@@ -1,0 +1,5 @@
+# Copyrighted book scans — never publish these
+*.pdf
+tools/ty2.png
+tools/__pycache__/
+.claude/
