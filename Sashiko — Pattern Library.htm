@@ -150,6 +150,32 @@ button.ctrl.primary:hover{background:#275784}
 #genSlider{width:100%;max-width:330px}
 #genSlider .gen-srow{width:100%}
 #genSlider #genSliderLabel{min-width:28px;font-size:12px;color:var(--muted)}
+
+/* ── Pattern Editor ── */
+#editorUI{flex-direction:column;align-items:center;gap:10px;width:100%;max-width:440px;
+  border-top:1px solid var(--line);padding-top:12px}
+.ed-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+.ed-btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;
+  transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.ed-btn:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
+.ed-btn.on{background:#1e3a52;border-color:#3a6ea3;color:#c8dff4}
+.ed-btn.erase.on{background:#3a1b1b;border-color:#7a3333;color:#f09090}
+.ed-btn.export{background:#163d20;border:1px solid #2a6a36;color:#88d4a0}
+.ed-btn.export:hover{background:#1d5229;color:#aaeabb}
+.ed-grid-btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:5px 11px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
+.ed-grid-btn:hover{background:#1d3850;color:#e7eef6}
+.ed-grid-btn.on{background:#1e3a52;border-color:#3a6ea3;color:#c8dff4}
+.ed-step{background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  width:28px;height:28px;font-size:16px;color:#e7eef6;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;transition:.15s;font:inherit}
+.ed-step:hover{background:#1d3850}
+#edNVal{font-size:12px;color:var(--muted);min-width:34px;text-align:center;
+  font-family:ui-monospace,monospace}
+.ed-status{font-size:12px;color:var(--muted);text-align:center;min-height:16px;
+  max-width:380px;line-height:1.5}
+.ed-hint{font-size:11px;color:var(--muted);opacity:.65;text-align:center}
 </style>
 </head>
 <body>
@@ -194,6 +220,27 @@ button.ctrl.primary:hover{background:#275784}
       <input type="range" id="genGrid" min="6" max="20" value="12" step="1">
       <span class="gen-sval" id="genGridVal">12</span>
     </label>
+  </div>
+
+  <!-- Pattern editor toolbar — only shown when editor pattern is active -->
+  <div id="editorUI" style="display:none">
+    <div class="ed-row">
+      <button type="button" class="ed-grid-btn on" data-grid="square">□ Square</button>
+      <button type="button" class="ed-grid-btn" data-grid="tri">△ Triangular</button>
+      <button type="button" class="ed-grid-btn" data-grid="iso">⬡ Isometric</button>
+      <button type="button" class="ed-step" id="edNDec">−</button>
+      <span id="edNVal">8×8</span>
+      <button type="button" class="ed-step" id="edNInc">+</button>
+      <button type="button" class="ed-btn" id="edFineBtn" title="Fine grid: adds midpoints between all edges — for triangular also enables 6-direction crossing edges">Fine</button>
+    </div>
+    <div class="ed-row">
+      <button type="button" class="ed-btn" id="edUndoBtn">↩ Undo</button>
+      <button type="button" class="ed-btn erase" id="edEraseBtn">✕ Erase</button>
+      <button type="button" class="ed-btn" id="edClearBtn" style="color:#f09090">Clear</button>
+      <button type="button" class="ed-btn export" id="edExportBtn">⎘ Copy pattern</button>
+    </div>
+    <div id="edStatus" class="ed-status">Click or drag edges to draw stitches</div>
+    <div class="ed-hint">Scroll to zoom · Ctrl+drag to pan</div>
   </div>
 
   <!-- Info bar — idle state is clickable (triggers Play) -->
@@ -272,6 +319,16 @@ const PATTERNS = [
     id:'tsuzuki-yamagata', name:'Tsuzuki Yamagata', jp:'続き山形', en:'Continuous Mountains',
     type:'polyline', passes:[],
     tip:'Overlapping mountain ranges flowing top to bottom and left to right. Stitched as continuous zigzag lines: Pass 1 marches horizontally (green), Pass 2 the same rotated 90° (blue). The two shades distinguish mirror-image rows. Geometry extracted from the book diagram (tools/pattern_extractor.py).',
+  },
+  {
+    id:'asanoha', name:'Asanoha', jp:'麻の葉', en:'Hemp Leaf',
+    type:'polyline', engine:'asanoha', passes:[],
+    tip:'The most iconic sashiko pattern — interlocking six-pointed hemp-leaf stars. Stitched in the traditional order: ① vertical lines, ② shallow diagonals, ③ steep leaf zigzags, ④ horizontals (floated behind between sections). Four passes, coloured by direction. Geometry extracted from the book diagram (tools/asanoha_extract.py).',
+  },
+  {
+    id:'editor', name:'Pattern Editor', jp:'', en:'Pattern Editor',
+    type:'editor', passes:[],
+    tip:'Draw your own stitch pattern by clicking or dragging edges. Square: H/V/diagonal edges; Fine adds half-distance sub-nodes. Triangular: 3 axes at 60°, Fine adds crossing-node edges in all 6 directions. Scroll to zoom, Ctrl+drag to pan, ↩ Undo. Click "⎘ Copy pattern" to export the edge list — paste it into chat for stitch-direction analysis.',
   },
 ];
 
@@ -525,9 +582,15 @@ function renderHMThumb(canvas,seq,thumbN){
 // images, shown in the two phase shades. Encoded on a HALF-grid lattice as a unit cell
 // + generators. Verified to reproduce the extracted edge set 100% (0 false positives).
 // Pass 1 = horizontal (shallow, green H shades), Pass 2 = vertical (steep, blue V shades).
-const PL_NHU=28;                       // half-grid units across the canvas (= 14 "grid squares")
-const PL_HU=(SIZE-2*PAD)/PL_NHU;       // px per half-unit
+const PL_NHU=28;                       // TY: half-grid units across the canvas (= 14 "grid squares")
+let PL_N=PL_NHU;                        // lattice units across the canvas (set per pattern)
+let PL_HU=(SIZE-2*PAD)/PL_N;            // px per lattice unit (recomputed in loadPattern)
+let PL_guideStep=2;                     // guide grid drawn every N units (= one "grid square")
 let PL_path=[], PL_fronts=[], PL_shCount=0;
+let PL_isoDY=0;   // when >0, y coords use PAD+c*PL_isoDY instead of plPx (iso asanoha)
+// Generic multi-pass descriptor: [{start, label, glyph, col}] (col = PHASE_COLORS key).
+// TY has 2 passes; Asanoha has 4. Drives the jump bar and the info pill.
+let PL_passes=[];
 
 // Unit cell: [I, J, dx, dy] edges in half-units; lattice generators G1, G2.
 const TY_CELL=[
@@ -675,21 +738,109 @@ function buildTsuzukiYamagata(NHU){
     fronts.push(path.length);
     path.push({type:'front',x1:it.poly[k][0],y1:it.poly[k][1],x2:it.poly[k+1][0],y2:it.poly[k+1][1],col:it.col});
   }});
-  emit(H); const shCount=path.length; emit(V);
-  return {path,fronts,shCount};
+  const passes=[{start:0,label:'Horizontal ranges (shallow)',glyph:'↗',col:'H'}];
+  emit(H);
+  passes.push({start:fronts.length,label:'Vertical ranges (steep)',glyph:'↕',col:'V'});
+  emit(V);
+  return {path,fronts,passes,shCount:passes[1].start};
+}
+
+// ── Asanoha (麻の葉, hemp leaf) ─────────────────────────────────────────────
+// Geometry extracted programmatically from Essential Sashiko p.13 (tools/
+// asanoha_extract.py), verified 100% recall / 98% precision. Lattice unit =
+// (grid square)/4. Four families: vertical, horizontal, shallow diagonal (2,±1
+// slope ½), steep "leaf" diagonal (2,±3 slope 1½). 12-ray hemp-leaf stars at the
+// hubs. 34-edge unit cell tiled by generators G1=(8,4), G2=(0,8).
+// Isometric Asanoha unit cell extracted from Asanoha.dxf (2026-06).
+// Integer iso coords: x_screen = PAD + ix*DX, y_screen = PAD + iy*DY, DY = DX*sqrt(3).
+// Unit cell 6 wide × 10 tall, generators G1=(6,0) G2=(0,10). 68 edges, 2 stars/cell.
+const ISO_ASA_CELL=[
+  [0,1,0,3],[0,1,1,2],[0,1,2,1],[0,1,3,0],[0,1,3,2],
+  [0,3,0,5],[0,3,1,2],[0,3,1,4],[0,3,2,3],[0,3,3,2],[0,3,3,4],
+  [0,5,0,9],[0,5,1,4],[0,5,1,6],[0,5,2,5],[0,5,3,4],[0,5,3,6],
+  [0,7,1,6],[0,7,1,8],[0,7,3,6],[0,7,3,8],
+  [0,9,1,8],[0,9,3,8],
+  [1,2,5,2],[1,4,5,4],[1,6,3,6],[1,8,3,8],
+  [2,1,3,0],[2,1,3,2],[2,3,3,2],[2,3,3,4],[2,5,3,4],[2,5,3,6],[2,7,3,6],[2,7,3,8],
+  [3,0,3,4],[3,0,4,1],[3,0,6,1],
+  [3,2,4,1],[3,2,4,3],[3,2,6,1],[3,2,6,3],
+  [3,4,4,3],[3,4,4,5],[3,4,6,3],[3,4,6,5],
+  [3,6,3,8],[3,6,4,5],[3,6,4,7],[3,6,5,6],[3,6,6,5],[3,6,6,7],
+  [3,8,4,7],[3,8,5,8],[3,8,6,7],[3,8,6,9],
+  [4,1,6,1],[4,3,6,3],[4,5,6,5],
+  [4,7,8,7],
+  [5,2,6,1],[5,2,6,3],[5,4,6,3],[5,4,6,5],[5,6,6,5],[5,6,6,7],[5,8,6,7],[5,8,6,9],
+];
+const ISO_ASA_NX=54, ISO_ASA_NY=30;  // 9 cells wide × 3 cells tall on canvas
+
+function genIsoAsanohaEdges(NX,NY){
+  const edges=[], seen=new Set();
+  for(let a=-1;a<=NX/6+1;a++) for(let b=-1;b<=NY/10+1;b++){
+    const ox=a*6, oy=b*10;
+    for(const [x1c,y1c,x2c,y2c] of ISO_ASA_CELL){
+      let x1=x1c+ox,y1=y1c+oy,x2=x2c+ox,y2=y2c+oy;
+      if(x1<0||x1>NX||x2<0||x2>NX||y1<0||y1>NY||y2<0||y2>NY) continue;
+      let A=[x1,y1],B=[x2,y2];
+      if(A[0]>B[0]||(A[0]===B[0]&&A[1]>B[1])){const t=A;A=B;B=t;}
+      const key=A[0]+','+A[1]+','+B[0]+','+B[1];
+      if(seen.has(key)) continue; seen.add(key);
+      const dx=B[0]-A[0], dy=Math.abs(B[1]-A[1]);
+      const fam=dy===0?'H':dx===0?'V':dx===1?'B':'A';
+      edges.push({x1:A[0],y1:A[1],x2:B[0],y2:B[1],fam});
+    }
+  }
+  return edges;
+}
+
+// Build isometric Asanoha as four ordered passes:
+// 1 vertical (V), 2 shallow 30° diagonals (A/D1), 3 steep 60° spokes (B/D2), 4 horizontal (H).
+function buildIsoAsanoha(){
+  const edges=genIsoAsanohaEdges(ISO_ASA_NX,ISO_ASA_NY);
+  const slopeSign=poly=>{const dx=poly[1][0]-poly[0][0],dy=poly[1][1]-poly[0][1];return (dx*dy>=0)?0:1;};
+  const buildFam=(fams,pal,bySlope)=>{
+    const fe=edges.filter(e=>fams.includes(e.fam)).map(e=>({x1:e.x1,y1:e.y1,x2:e.x2,y2:e.y2}));
+    const chains=tracePaired(fe);
+    const items=chains.map(poly=>({poly,col:pal[bySlope?slopeSign(poly):0]}));
+    items.sort((a,b)=>(a.poly[0][0]-b.poly[0][0])||(a.poly[0][1]-b.poly[0][1]));
+    return orderNN(items);
+  };
+  const V=buildFam(['V'],PHASE_COLORS.V,false);
+  const A=buildFam(['A'],PHASE_COLORS.D1,true);
+  const B=buildFam(['B'],PHASE_COLORS.D2,true);
+  const Hh=buildFam(['H'],PHASE_COLORS.H,false);
+  const path=[], fronts=[], passes=[];
+  const emit=items=>items.forEach(it=>{for(let k=0;k<it.poly.length-1;k++){
+    fronts.push(path.length);
+    path.push({type:'front',x1:it.poly[k][0],y1:it.poly[k][1],x2:it.poly[k+1][0],y2:it.poly[k+1][1],col:it.col});
+  }});
+  const addPass=(items,label,glyph,col)=>{passes.push({start:fronts.length,label,glyph,col});emit(items);};
+  addPass(V,'Vertical lines','↕','V');
+  addPass(A,'Diagonal lines','╱','D1');
+  addPass(B,'Leaf spokes','✧','D2');
+  addPass(Hh,'Horizontal lines','↔','H');
+  return {path,fronts,passes,shCount:passes[1]?passes[1].start:path.length};
 }
 
 function plPx(coord){return PAD+coord*PL_HU;}
 function drawPLGuide(){
   ctx.strokeStyle='rgba(220,235,255,0.07)';ctx.lineWidth=1;ctx.setLineDash([]);
-  for(let i=0;i<=PL_NHU;i+=2){            // grid lines every 2 half-units = one "grid square"
-    const p=PAD+i*PL_HU,e=PAD+PL_NHU*PL_HU;
-    ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,e);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(e,p);ctx.stroke();
+  if(PL_isoDY){
+    // Isometric guide: vertical lines every 6 iso-x units, horizontal every 10 iso-y units
+    const ex=PAD+ISO_ASA_NX*PL_HU, ey=PAD+ISO_ASA_NY*PL_isoDY;
+    for(let i=0;i<=ISO_ASA_NX;i+=6){const p=PAD+i*PL_HU;ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,ey);ctx.stroke();}
+    for(let j=0;j<=ISO_ASA_NY;j+=10){const p=PAD+j*PL_isoDY;ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(ex,p);ctx.stroke();}
+  }else{
+    const e=PAD+PL_N*PL_HU;
+    for(let i=0;i<=PL_N;i+=PL_guideStep){   // grid lines every PL_guideStep units = one "grid square"
+      const p=PAD+i*PL_HU;
+      ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,e);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(e,p);ctx.stroke();
+    }
   }
 }
 function drawPLFront(seg){
-  const x1=plPx(seg.x1),y1=plPx(seg.y1),x2=plPx(seg.x2),y2=plPx(seg.y2);
+  const py=PL_isoDY?c=>PAD+c*PL_isoDY:plPx;
+  const x1=plPx(seg.x1),y1=py(seg.y1),x2=plPx(seg.x2),y2=py(seg.y2);
   ctx.lineCap='round';ctx.setLineDash([]);
   ctx.strokeStyle='rgba(0,8,20,0.45)';ctx.lineWidth=3.6;
   ctx.beginPath();ctx.moveTo(x1,y1+0.7);ctx.lineTo(x2,y2+0.7);ctx.stroke();
@@ -700,40 +851,427 @@ function renderPolyline(st){
   ctx.setLineDash([]);drawFabric();drawPLGuide();
   const pos=(st===0)?-1:PL_fronts[st-1];
   for(let i=0;i<=pos;i++) drawPLFront(PL_path[i]);
-  if(pos>=0){const s=PL_path[pos];drawNeedleAt(plPx(s.x2),plPx(s.y2),s.col);}
+  if(pos>=0){const s=PL_path[pos];const py=PL_isoDY?c=>PAD+c*PL_isoDY:plPx;drawNeedleAt(plPx(s.x2),py(s.y2),s.col);}
   updateInfoPL(st);
 }
 function updateInfoPL(st){
   const el=document.getElementById('info');
   if(st===0){setIdleInfo();markJump(-1);return;}
   el.classList.remove('idle');el.onclick=null;
-  const total=PL_fronts.length;
-  if(st>=total){el.innerHTML='<span class="muted">complete ✓</span>';markJump(1);return;}
-  const inSh=(st-1)<PL_shCount;
-  const col=inSh?PHASE_COLORS.H[0]:PHASE_COLORS.V[0];
-  const pill=`<span class="pill" style="background:${hexA(col,.16)};color:${col}"><span class="dot" style="background:${col}"></span>pass ${inSh?'1/2 · horizontal ↗':'2/2 · vertical ↕'}</span>`;
+  const total=PL_fronts.length, np=PL_passes.length;
+  if(st>=total){el.innerHTML='<span class="muted">complete ✓</span>';markJump(np-1);return;}
+  let pi=0; for(let k=0;k<np;k++) if((st-1)>=PL_passes[k].start) pi=k;
+  const p=PL_passes[pi], col=PHASE_COLORS[p.col][0];
+  const pill=`<span class="pill" style="background:${hexA(col,.16)};color:${col}"><span class="dot" style="background:${col}"></span>pass ${pi+1}/${np} · ${p.label} ${p.glyph}</span>`;
   el.innerHTML=`stitch <b>${st}</b><span class="muted">/${total}</span> &nbsp;${pill}`;
-  markJump(inSh?0:1);
+  markJump(pi);
 }
-function renderPLThumb(canvas){
+function renderPLThumb(canvas,pat){
   const TDPR=Math.min(window.devicePixelRatio||1,2);
-  const TNHU=12,TPAD=3,TS=64,TG=(TS-2*TPAD)/TNHU;
+  const isAsa=pat&&pat.engine==='asanoha';
+  const TPAD=3,TS=64;
   canvas.width=TS*TDPR;canvas.height=TS*TDPR;
   canvas.style.width='64px';canvas.style.height='64px';
   const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
   tc.fillStyle='#1a3a5c';tc.fillRect(0,0,TS,TS);
-  const{path}=buildTsuzukiYamagata(TNHU);
-  tc.lineCap='round';tc.lineWidth=1;
-  for(const seg of path){
-    tc.strokeStyle=seg.col;
-    tc.beginPath();tc.moveTo(TPAD+seg.x1*TG,TPAD+seg.y1*TG);tc.lineTo(TPAD+seg.x2*TG,TPAD+seg.y2*TG);tc.stroke();
+  tc.lineCap='round';
+  if(isAsa){
+    // Iso asanoha thumbnail: use a small sub-region (18x10 iso units) centred
+    const TNX=18,TNY=10;
+    const TDX=(TS-2*TPAD)/TNX, TDY=TDX*Math.sqrt(3);
+    const{path}=buildIsoAsanoha();
+    tc.lineWidth=0.7;
+    for(const seg of path){
+      const x1=TPAD+seg.x1*TDX,y1=TPAD+seg.y1*TDY;
+      const x2=TPAD+seg.x2*TDX,y2=TPAD+seg.y2*TDY;
+      if(x1<0||x1>TS||x2<0||x2>TS||y1<0||y1>TS||y2<0||y2>TS) continue;
+      tc.strokeStyle=seg.col;
+      tc.beginPath();tc.moveTo(x1,y1);tc.lineTo(x2,y2);tc.stroke();
+    }
+  }else{
+    const TN=12, TG=(TS-2*TPAD)/TN;
+    const{path}=buildTsuzukiYamagata(TN);
+    tc.lineWidth=1;
+    for(const seg of path){
+      tc.strokeStyle=seg.col;
+      tc.beginPath();tc.moveTo(TPAD+seg.x1*TG,TPAD+seg.y1*TG);tc.lineTo(TPAD+seg.x2*TG,TPAD+seg.y2*TG);tc.stroke();
+    }
   }
+}
+
+// ── Pattern Editor ─────────────────────────────────────────────────────────
+// Draw custom stitches on a square or triangular grid.
+// Single thread colour — no passes/families. Export edge list for stitch analysis.
+let ED_grid='square', ED_N=8, ED_fine=false;
+let ED_erase=false, ED_dragMode=null, ED_dragTouched=new Set();
+let ED_edges=new Map();          // edgeKey → true
+let ED_undoStack=[];             // snapshots (Map) for undo
+let ED_hover=null;
+let ED_zoom=1.0, ED_panX=0, ED_panY=0;
+let ED_panning=false, ED_panStartX=0, ED_panStartY=0, ED_panOX=0, ED_panOY=0;
+let ED_edgeCache=null, ED_edgeCacheKey='';
+const ED_COL='#c8d8ec';         // single thread colour
+
+function edEffN(){return ED_fine?2*ED_N-1:ED_N;}
+
+function edStep(){
+  const av=SIZE-2*PAD,N=edEffN();
+  if(ED_grid==='square')return av/(N-1);
+  if(ED_grid==='iso')return av/(N-1);  // iso: DX=av/(N-1), DY=DX*sqrt(3)
+  // Offset-row: width=(N-0.5)*s, height=(N-1)*s*0.866 — fit to canvas
+  return Math.min(av/(N-0.5), av/((N-1)*0.866));
+}
+function edNodePx(i,j){
+  const s=edStep();
+  if(ED_grid==='square')return[PAD+i*s,PAD+j*s];
+  if(ED_grid==='iso')return[PAD+i*s, PAD+j*s*Math.sqrt(3)];
+  // Offset-row (brick) layout: every other row shifts right by half-step
+  return[PAD+(i+(j%2)*0.5)*s, PAD+j*s*0.866];
+}
+// Number of visible rows for iso grid (fewer rows than cols due to sqrt(3) scaling)
+function edIsoRows(){return Math.floor((SIZE-2*PAD)/edStep()/Math.sqrt(3))+1;}
+// Convert screen coords to world (canvas space before zoom/pan)
+function edS2W(cx,cy){return[(cx-ED_panX)/ED_zoom,(cy-ED_panY)/ED_zoom];}
+
+function edBuildEdges(){
+  const N=edEffN(),e=[];
+  if(ED_grid==='square'){
+    for(let j=0;j<N;j++)for(let i=0;i<N-1;i++)e.push({key:`H_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j});
+    for(let i=0;i<N;i++)for(let j=0;j<N-1;j++)e.push({key:`V_${i}_${j}`,x1:i,y1:j,x2:i,y2:j+1});
+    for(let j=0;j<N-1;j++)for(let i=0;i<N-1;i++)e.push({key:`D1_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j+1});
+    for(let j=1;j<N;j++)for(let i=0;i<N-1;i++)e.push({key:`D2_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j-1});
+  }else if(ED_grid==='iso'){
+    // Isometric grid: rectangular integer (ix,iy) coords, screen = (ix*DX, iy*DY), DY=DX*sqrt(3)
+    // Edge families matching the DXF: H(1,0), V(0,1), UR(1,1), UL(1,-1)
+    // Fine mode adds long petal edges: A(3,1)/A(3,-1) and wide horizontals IH(2,0)
+    const NR=edIsoRows();
+    for(let j=0;j<NR;j++)for(let i=0;i<N-1;i++)
+      e.push({key:`IH_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j});
+    for(let j=0;j<NR-1;j++)for(let i=0;i<N;i++)
+      e.push({key:`IV_${i}_${j}`,x1:i,y1:j,x2:i,y2:j+1});
+    for(let j=0;j<NR-1;j++)for(let i=0;i<N-1;i++)
+      e.push({key:`IUR_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j+1});
+    for(let j=1;j<NR;j++)for(let i=0;i<N-1;i++)
+      e.push({key:`IUL_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j-1});
+    if(ED_fine){
+      // Long petal edges (3,±1) — connect across 3 columns
+      for(let j=0;j<NR-1;j++)for(let i=0;i<N-3;i++)
+        e.push({key:`IA_${i}_${j}`,x1:i,y1:j,x2:i+3,y2:j+1});
+      for(let j=1;j<NR;j++)for(let i=0;i<N-3;i++)
+        e.push({key:`IAr_${i}_${j}`,x1:i,y1:j,x2:i+3,y2:j-1});
+    }
+  }else{
+    // Offset-row triangular grid: horizontal + parity-aware UR/UL diagonals
+    // A: horizontal — always (i,j)→(i+1,j)
+    for(let j=0;j<N;j++)for(let i=0;i<N-1;i++)
+      e.push({key:`A_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j});
+    // UR: up-right (+0.5s,+0.866s) — visually consistent regardless of row parity
+    //   even row j: (i,j)→(i,j+1);  odd row j: (i,j)→(i+1,j+1)
+    for(let j=0;j<N-1;j++){
+      if(j%2===0){for(let i=0;i<N;i++)  e.push({key:`UR_${i}_${j}`,x1:i,y1:j,x2:i,  y2:j+1});}
+      else        {for(let i=0;i<N-1;i++)e.push({key:`UR_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j+1});}
+    }
+    // UL: up-left (-0.5s,+0.866s) — visually consistent regardless of row parity
+    //   even row j: (i,j)→(i-1,j+1) [i≥1];  odd row j: (i,j)→(i,j+1)
+    for(let j=0;j<N-1;j++){
+      if(j%2===0){for(let i=1;i<N;i++)  e.push({key:`UL_${i}_${j}`,x1:i,y1:j,x2:i-1,y2:j+1});}
+      else        {for(let i=0;i<N;i++)  e.push({key:`UL_${i}_${j}`,x1:i,y1:j,x2:i,  y2:j+1});}
+    }
+    if(ED_fine){
+      // In fine mode, P1/P2/P3 are longer "crossing" edges (span 2 rows)
+      // P1: vertical — (i,j)→(i,j+2); same x in offset-row for both parities ✓
+      for(let j=0;j+2<N;j++)for(let i=0;i<N;i++)
+        e.push({key:`P1_${i}_${j}`,x1:i,y1:j,x2:i,y2:j+2});
+      // P2: up-left 2-row jump — (i,j)→(i-1,j+2) [i≥1]
+      for(let j=0;j+2<N;j++)for(let i=1;i<N;i++)
+        e.push({key:`P2_${i}_${j}`,x1:i,y1:j,x2:i-1,y2:j+2});
+      // P3: up-right 2-row jump — (i,j)→(i+1,j+2) [i<N-1]
+      for(let j=0;j+2<N;j++)for(let i=0;i<N-1;i++)
+        e.push({key:`P3_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j+2});
+    }
+  }
+  return e;
+}
+function edEdges(){
+  const ck=`${ED_grid}_${ED_N}_${ED_fine}`;
+  if(ED_edgeCacheKey!==ck){ED_edgeCache=edBuildEdges();ED_edgeCacheKey=ck;}
+  return ED_edgeCache;
+}
+function edKeyCoords(key){
+  const p=key.split('_'),t=p[0],i=+p[1],j=+p[2];
+  if(t==='H'||t==='A')return{x1:i,y1:j,x2:i+1,y2:j};
+  if(t==='V')return{x1:i,y1:j,x2:i,y2:j+1};
+  if(t==='D1')return{x1:i,y1:j,x2:i+1,y2:j+1};
+  if(t==='D2')return{x1:i,y1:j,x2:i+1,y2:j-1};
+  // Offset-row tri: parity-aware UR/UL
+  if(t==='UR'){const i2=(j%2===0)?i:i+1;   return{x1:i,y1:j,x2:i2,y2:j+1};}
+  if(t==='UL'){const i2=(j%2===0)?i-1:i;   return{x1:i,y1:j,x2:i2,y2:j+1};}
+  // Longer crossing edges (fine mode only)
+  if(t==='P1')return{x1:i,y1:j,x2:i,  y2:j+2};
+  if(t==='P2')return{x1:i,y1:j,x2:i-1,y2:j+2};
+  if(t==='P3')return{x1:i,y1:j,x2:i+1,y2:j+2};
+  // Iso grid edges
+  if(t==='IH') return{x1:i,y1:j,x2:i+1,y2:j};
+  if(t==='IV') return{x1:i,y1:j,x2:i,  y2:j+1};
+  if(t==='IUR')return{x1:i,y1:j,x2:i+1,y2:j+1};
+  if(t==='IUL')return{x1:i,y1:j,x2:i+1,y2:j-1};
+  if(t==='IA') return{x1:i,y1:j,x2:i+3,y2:j+1};
+  if(t==='IAr')return{x1:i,y1:j,x2:i+3,y2:j-1};
+  return{x1:i,y1:j,x2:i+1,y2:j};
+}
+function edPtSegDist(px,py,x1,y1,x2,y2){
+  const dx=x2-x1,dy=y2-y1,l2=dx*dx+dy*dy;
+  if(!l2)return Math.hypot(px-x1,py-y1);
+  const t=Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/l2));
+  return Math.hypot(px-(x1+t*dx),py-(y1+t*dy));
+}
+function edNearestEdge(wx,wy){
+  // wx,wy are world coords (already un-zoomed)
+  const s=edStep(),thr=s*0.46,all=edEdges();
+  let best=null,bd=thr;
+  for(const e of all){
+    const[x1,y1]=edNodePx(e.x1,e.y1),[x2,y2]=edNodePx(e.x2,e.y2);
+    const d=edPtSegDist(wx,wy,x1,y1,x2,y2);
+    if(d<bd){bd=d;best=e;}
+  }
+  return best;
+}
+
+function edSaveUndo(){
+  ED_undoStack.push(new Map(ED_edges));
+  if(ED_undoStack.length>80)ED_undoStack.shift();
+}
+function edUndo(){
+  if(!ED_undoStack.length)return;
+  ED_edges=ED_undoStack.pop();
+  if(isED)renderEditor();
+}
+
+function renderEditor(){
+  drawFabric();
+  const all=edEdges(),N=edEffN();
+  ctx.save();
+  ctx.translate(ED_panX,ED_panY);
+  ctx.scale(ED_zoom,ED_zoom);
+  ctx.lineCap='round';
+  // Guide edges (all possible, faint)
+  for(const e of all){
+    if(ED_edges.has(e.key))continue;
+    const[x1,y1]=edNodePx(e.x1,e.y1),[x2,y2]=edNodePx(e.x2,e.y2);
+    const hov=e.key===ED_hover;
+    ctx.strokeStyle=hov?'rgba(200,216,236,.45)':'rgba(255,255,255,.07)';
+    ctx.lineWidth=hov?1.8:0.9;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  }
+  // Drawn edges
+  for(const key of ED_edges.keys()){
+    const c=edKeyCoords(key);
+    const[x1,y1]=edNodePx(c.x1,c.y1),[x2,y2]=edNodePx(c.x2,c.y2);
+    ctx.strokeStyle='rgba(0,8,20,.45)';ctx.lineWidth=4.5;
+    ctx.beginPath();ctx.moveTo(x1,y1+0.7);ctx.lineTo(x2,y2+0.7);ctx.stroke();
+    ctx.strokeStyle=ED_COL;ctx.lineWidth=2.8;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  }
+  // Grid nodes
+  ctx.fillStyle='rgba(255,255,255,.3)';
+  const nr=ED_fine?2:2.5,nfill=ED_fine?'rgba(255,255,255,.18)':'rgba(255,255,255,.3)';
+  const NR=ED_grid==='iso'?edIsoRows():N;
+  for(let i=0;i<N;i++)for(let j=0;j<NR;j++){
+    const[px,py]=edNodePx(i,j);
+    if(px>SIZE||py>SIZE)continue;
+    const isMid=ED_fine&&(i%2!==0||j%2!==0);
+    ctx.fillStyle=isMid?'rgba(255,255,255,.14)':'rgba(255,255,255,.3)';
+    ctx.beginPath();ctx.arc(px,py,isMid?1.4:2.2,0,2*Math.PI);ctx.fill();
+  }
+  ctx.restore();
+  // Status (outside transform)
+  const st=document.getElementById('edStatus');
+  if(st&&!st.dataset.flash)st.textContent=ED_edges.size
+    ?`${ED_edges.size} edge${ED_edges.size!==1?'s':''} drawn`
+    :'Click or drag edges to draw stitches';
+}
+
+function edHandlePoint(wx,wy){
+  const edge=edNearestEdge(wx,wy);
+  if(!edge||ED_dragTouched.has(edge.key))return;
+  ED_dragTouched.add(edge.key);
+  if(ED_dragMode==='erase')ED_edges.delete(edge.key);
+  else if(ED_dragMode==='add'&&!ED_edges.has(edge.key))
+    ED_edges.set(edge.key,true);
+  renderEditor();
+}
+
+function edExport(){
+  if(!ED_edges.size){
+    const st=document.getElementById('edStatus');
+    st.textContent='Nothing drawn yet.';return;
+  }
+  const N=edEffN();
+  const byType={};
+  for(const key of ED_edges.keys()){
+    const t=key.split('_')[0];
+    (byType[t]=byType[t]||[]).push(key);
+  }
+  const lines=[`PatternEditor grid=${ED_grid} N=${N}${ED_fine?' fine':''} edges=${ED_edges.size}`];
+  for(const [t,keys] of Object.entries(byType).sort())
+    lines.push(t+': '+keys.sort().join(' '));
+  const text=lines.join('\n');
+  const st=document.getElementById('edStatus');
+  st.dataset.flash='1';
+  navigator.clipboard.writeText(text).then(()=>{
+    st.textContent=`Copied ${ED_edges.size} edges — paste into chat for stitch analysis`;
+  }).catch(()=>{
+    st.textContent='Clipboard blocked — see browser console';
+    console.log(text);
+  });
+  setTimeout(()=>{delete st.dataset.flash;renderEditor();},3000);
+}
+
+function showEditorUI(show){
+  document.getElementById('editorUI').style.display=show?'flex':'none';
+  [document.getElementById('jumpbar'),document.getElementById('info'),document.querySelector('.ctrls')]
+    .forEach(el=>{if(el)el.style.display=show?'none':'';});
+}
+
+function renderEditorThumb(canvas){
+  const TDPR=Math.min(window.devicePixelRatio||1,2);
+  const TS=64,TPAD=8,TN=5,TG=(TS-2*TPAD)/(TN-1);
+  canvas.width=TS*TDPR;canvas.height=TS*TDPR;
+  canvas.style.width='64px';canvas.style.height='64px';
+  const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
+  tc.fillStyle='#1a3a5c';tc.fillRect(0,0,TS,TS);
+  tc.fillStyle='rgba(255,255,255,.22)';
+  for(let i=0;i<TN;i++)for(let j=0;j<TN;j++){
+    tc.beginPath();tc.arc(TPAD+i*TG,TPAD+j*TG,1.5,0,2*Math.PI);tc.fill();}
+  tc.lineCap='round';tc.lineWidth=1.4;tc.strokeStyle=ED_COL;
+  [[0,2,1,2],[2,2,3,2],[2,0,2,1],[2,2,2,3],[0,0,1,1],[2,2,3,3],[1,3,2,2],[3,1,4,0]]
+    .forEach(([a,b,c,d])=>{tc.beginPath();tc.moveTo(TPAD+a*TG,TPAD+b*TG);tc.lineTo(TPAD+c*TG,TPAD+d*TG);tc.stroke();});
+}
+
+function edSyncGridBtn(){
+  document.querySelectorAll('[data-grid]').forEach(b=>b.classList.toggle('on',b.dataset.grid===ED_grid));
+  const fineBtn=document.getElementById('edFineBtn');
+  if(fineBtn){
+    fineBtn.classList.toggle('on',ED_fine);
+    fineBtn.title=ED_grid==='tri'
+      ?'Fine: 2× denser nodes + 6-direction crossing edges (P1/P2/P3)'
+      :ED_grid==='iso'
+      ?'Fine: adds long petal edges (3,±1) — the diagonal arms of Asanoha'
+      :'Fine: adds midpoints between nodes for half-distance edges';
+  }
+}
+function edSyncNVal(){
+  const el=document.getElementById('edNVal');
+  if(el)el.textContent=ED_grid==='iso'?ED_N+' cols':ED_N+'×'+ED_N;
+}
+
+function initEditorUI(){
+  document.querySelectorAll('[data-grid]').forEach(b=>b.onclick=()=>{
+    const prev=ED_grid;ED_grid=b.dataset.grid;
+    if(ED_grid!==prev){ED_edges.clear();ED_undoStack=[];ED_edgeCacheKey='';
+      ED_fine=(ED_grid==='tri'); // Fine is default for tri, off for square/iso
+      }
+    edSyncGridBtn();edSyncNVal();
+    if(isED)renderEditor();
+  });
+  document.getElementById('edFineBtn').onclick=()=>{
+    ED_fine=!ED_fine;
+    ED_edges.clear();ED_undoStack=[];ED_edgeCacheKey='';
+    edSyncGridBtn();edSyncNVal();
+    if(isED)renderEditor();
+  };
+  document.getElementById('edUndoBtn').onclick=edUndo;
+  document.getElementById('edEraseBtn').onclick=()=>{
+    ED_erase=!ED_erase;
+    document.getElementById('edEraseBtn').classList.toggle('on',ED_erase);
+    if(isED)cv.style.cursor=ED_erase?'not-allowed':'crosshair';
+  };
+  document.getElementById('edClearBtn').onclick=()=>{
+    edSaveUndo();ED_edges.clear();ED_erase=false;
+    document.getElementById('edEraseBtn').classList.remove('on');
+    if(isED){cv.style.cursor='crosshair';renderEditor();}
+  };
+  document.getElementById('edNDec').onclick=()=>{
+    if(ED_N>4){ED_N--;ED_edges.clear();ED_undoStack=[];ED_edgeCacheKey='';
+      edSyncNVal();if(isED)renderEditor();}
+  };
+  document.getElementById('edNInc').onclick=()=>{
+    if(ED_N<20){ED_N++;ED_edges.clear();ED_undoStack=[];ED_edgeCacheKey='';
+      edSyncNVal();if(isED)renderEditor();}
+  };
+  document.getElementById('edExportBtn').onclick=edExport;
+
+  // Mouse wheel zoom
+  cv.addEventListener('wheel',e=>{
+    if(!isED)return;
+    e.preventDefault();
+    const r=cv.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
+    const zf=e.deltaY<0?1.15:1/1.15;
+    const nz=Math.max(0.4,Math.min(6,ED_zoom*zf));
+    ED_panX=cx-(cx-ED_panX)*(nz/ED_zoom);
+    ED_panY=cy-(cy-ED_panY)*(nz/ED_zoom);
+    ED_zoom=nz;renderEditor();
+  },{passive:false});
+
+  // Mouse draw / pan
+  cv.addEventListener('mousedown',e=>{
+    if(!isED)return;
+    const r=cv.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
+    if(e.ctrlKey||e.button===1){
+      ED_panning=true;ED_panStartX=e.clientX;ED_panStartY=e.clientY;
+      ED_panOX=ED_panX;ED_panOY=ED_panY;cv.style.cursor='grabbing';return;
+    }
+    const[wx,wy]=edS2W(sx,sy);
+    const edge=edNearestEdge(wx,wy);if(!edge)return;
+    edSaveUndo();
+    ED_dragMode=ED_erase||ED_edges.has(edge.key)?'erase':'add';
+    ED_dragTouched=new Set();edHandlePoint(wx,wy);
+  });
+  cv.addEventListener('mousemove',e=>{
+    if(!isED)return;
+    const r=cv.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
+    if(ED_panning){
+      ED_panX=ED_panOX+(e.clientX-ED_panStartX);
+      ED_panY=ED_panOY+(e.clientY-ED_panStartY);
+      renderEditor();return;
+    }
+    const[wx,wy]=edS2W(sx,sy);
+    const near=edNearestEdge(wx,wy),nh=near?near.key:null;
+    if(nh!==ED_hover){ED_hover=nh;renderEditor();}
+    if(ED_dragMode)edHandlePoint(wx,wy);
+  });
+  cv.addEventListener('mouseup',e=>{
+    if(ED_panning){ED_panning=false;if(isED)cv.style.cursor=ED_erase?'not-allowed':'crosshair';}
+    ED_dragMode=null;
+  });
+  cv.addEventListener('mouseleave',()=>{
+    ED_panning=false;ED_dragMode=null;
+    if(isED&&ED_hover){ED_hover=null;renderEditor();}
+  });
+
+  // Touch draw
+  cv.addEventListener('touchstart',e=>{
+    if(!isED)return;e.preventDefault();
+    const t=e.touches[0],r=cv.getBoundingClientRect();
+    const[wx,wy]=edS2W(t.clientX-r.left,t.clientY-r.top);
+    const edge=edNearestEdge(wx,wy);if(!edge)return;
+    edSaveUndo();
+    ED_dragMode=ED_erase||ED_edges.has(edge.key)?'erase':'add';
+    ED_dragTouched=new Set();edHandlePoint(wx,wy);
+  },{passive:false});
+  cv.addEventListener('touchmove',e=>{
+    if(!isED)return;e.preventDefault();
+    const t=e.touches[0],r=cv.getBoundingClientRect();
+    const[wx,wy]=edS2W(t.clientX-r.left,t.clientY-r.top);
+    edHandlePoint(wx,wy);
+  },{passive:false});
+  cv.addEventListener('touchend',()=>{if(isED)ED_dragMode=null;});
 }
 
 // ── Animation state ────────────────────────────────────────────────────────
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
-let isHM=false, isPL=false;
+let isHM=false, isPL=false, isED=false;
 const TICK_MS=40; // fixed fast speed (~25 stitches/sec), no slider
 
 // ── Drawing (star patterns) ────────────────────────────────────────────────
@@ -783,6 +1321,7 @@ window.onInfoClick=function(){if(!playing&&step===0)play();};
 function render(st){
   if(isHM){renderHM(st);return;}
   if(isPL){renderPolyline(st);return;}
+  if(isED){renderEditor();return;}
   drawFabric(); drawGuide();
   const{p,local}=locate(st);
   for(let k=0;k<p;k++)frontAll(PASSES[k]);
@@ -812,10 +1351,11 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
   if(isPL){
-    const labels=[['1 · ↗','Horizontal ranges (shallow)'],['2 · ↕','Vertical ranges (steep)']];
-    labels.forEach(([txt,title],i)=>{
-      const b=document.createElement('button');b.textContent=txt;b.title=title;
-      b.onclick=()=>{pause();step=(i===0?PL_shCount:TOTAL);render(step);};
+    PL_passes.forEach((p,i)=>{
+      const b=document.createElement('button');
+      b.textContent=`${i+1} · ${p.glyph}`; b.title=p.label;
+      const end=(i+1<PL_passes.length)?PL_passes[i+1].start:TOTAL;
+      b.onclick=()=>{pause();step=end;render(step);};
       jb.appendChild(b);
     });
     return;
@@ -844,10 +1384,22 @@ function buildJumpBar(){
 // ── Load pattern ───────────────────────────────────────────────────────────
 function loadPattern(pat){
   curPat=pat;
+  isED=pat.type==='editor';
   const isGen=pat.type==='generator';
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
+  showEditorUI(false);cv.style.cursor='';
+  if(isED){
+    showGenUI(false);
+    document.getElementById('animTitle').innerHTML='Pattern Editor';
+    document.getElementById('animTip').textContent=pat.tip||'';
+    step=0;if(playing)pause();
+    showEditorUI(true);cv.style.cursor='crosshair';
+    TOTAL=0;PASSES=[];
+    renderEditor();
+    return;
+  }
   if(isGen){
     showGenUI(true);
     refreshGen(true);   // builds engine + UI + line toggles, renders the full pattern
@@ -855,8 +1407,20 @@ function loadPattern(pat){
   }
   showGenUI(false);
   if(isPL){
-    const built=buildTsuzukiYamagata(PL_NHU);
-    PL_path=built.path;PL_fronts=built.fronts;PL_shCount=built.shCount;TOTAL=PL_fronts.length;PASSES=[];
+    let built;
+    if(pat.engine==='asanoha'){
+      PL_isoDY=0;  // will be set after PL_HU
+      built=buildIsoAsanoha();
+      PL_HU=(SIZE-2*PAD)/ISO_ASA_NX;
+      PL_isoDY=PL_HU*Math.sqrt(3);
+      PL_N=ISO_ASA_NX; PL_guideStep=6;
+    }else{
+      PL_isoDY=0;
+      PL_N=PL_NHU; PL_guideStep=2; built=buildTsuzukiYamagata(PL_NHU);
+      PL_HU=(SIZE-2*PAD)/PL_N;
+    }
+    PL_path=built.path;PL_fronts=built.fronts;PL_passes=built.passes;PL_shCount=built.shCount;
+    TOTAL=PL_fronts.length;PASSES=[];
   } else if(isHM){
     buildHitomezashi(pat); TOTAL=HM_fronts.length; PASSES=[];
   } else {
@@ -1059,7 +1623,8 @@ window.addEventListener('keydown',e=>{
 function renderThumb(canvas,pat){
   if(pat.type==='generator'){renderHMThumb(canvas,[0,0,1,0,1],11);return;}
   if(pat.type==='hitomezashi'){renderHMThumb(canvas,pat.seq,pat.thumbN||11);return;}
-  if(pat.type==='polyline'){renderPLThumb(canvas);return;}
+  if(pat.type==='polyline'){renderPLThumb(canvas,pat);return;}
+  if(pat.type==='editor'){renderEditorThumb(canvas);return;}
   const TDPR=Math.min(window.devicePixelRatio||1,2);
   const TN=5,TG=12,TPAD=8,TS=(TN-1)*TG+2*TPAD;
   canvas.width=TS*TDPR;canvas.height=TS*TDPR;
@@ -1092,7 +1657,8 @@ function buildGallery(){
     const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
     const badge=document.createElement('div');
     if(pat.type==='generator'){badge.className='pcard-badge gen';badge.textContent='Kōshi · Kaki no Hana · Snowflake';}
-    else if(pat.type==='polyline'){badge.className='pcard-badge';badge.textContent='Continuous';}
+    else if(pat.type==='polyline'){badge.className='pcard-badge';badge.textContent=pat.engine==='asanoha'?'Hemp leaf':'Continuous';}
+    else if(pat.type==='editor'){badge.className='pcard-badge gen';badge.textContent='Draw custom';}
     else{badge.className='pcard-badge';badge.textContent=pat.passes.length+' passes';}
     card.append(name,jp,badge);
     card.onclick=()=>openPattern(pat);
@@ -1110,7 +1676,9 @@ window.filterGallery=function(){
     else if(activeFilter==='hm')mp=pat.type==='generator';
     else mp=parseInt(card.dataset.p)===activeFilter;
     const mq=!q||pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
-      (pat.type==='generator'&&('koshi kaki persimmon snowflake hitomezashi lattice'.includes(q)));
+      (pat.type==='generator'&&('koshi kaki persimmon snowflake hitomezashi lattice'.includes(q)))||
+      (pat.type==='polyline'&&('yamagata mountain continuous asanoha hemp leaf star 麻の葉 続き山形'.includes(q)))||
+      (pat.type==='editor'&&('editor custom draw pattern'.includes(q)));
     const show=mp&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
   });
   let nr=document.getElementById('noResults');
@@ -1144,6 +1712,7 @@ function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('')
 
 // ── Init ───────────────────────────────────────────────────────────────────
 initGenUI();
+initEditorUI();
 buildGallery();
 
 })();
