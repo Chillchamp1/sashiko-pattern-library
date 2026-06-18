@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sashiko — Pattern Library</title>
+<style>
+<!-- INJECT:styles.css -->
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- Gallery -->
+<div id="galleryView">
+  <div class="g-head">
+    <h1 class="g-title">Sashiko</h1>
+    <span class="g-sub">Pattern Library</span>
+  </div>
+  <p class="g-intro">Select a pattern to animate the full stitch path with phase colouring.
+    Two shades per pass show which rows start offset.</p>
+  <div class="toolbar">
+    <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
+    <div class="filt-row">
+      <button class="filt on" data-f="0" onclick="setFilter(this)">All</button>
+      <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
+      <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
+      <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
+      <button class="filt exp" data-f="exp" onclick="setFilter(this)">Experimental</button>
+    </div>
+  </div>
+  <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
+</div>
+
+<!-- Animation / Generator view -->
+<div id="animView">
+  <div class="back-row">
+    <button class="back-btn" onclick="showGallery()">← Patterns</button>
+    <h2 class="anim-title" id="animTitle">Hitomezashi<span class="jp">一目刺し · Snowflake</span></h2>
+  </div>
+  <div class="hm-frame" id="hmFrame">
+    <div class="hm-col-toggles" id="hmColToggles"></div>
+    <div class="hm-row-toggles" id="hmRowToggles"></div>
+    <div class="stage"><canvas id="cv" width="465" height="465" style="width: 372px; height: 372px;"></canvas></div>
+  </div>
+
+  <!-- Universal size slider — always directly below the pattern, only for generator -->
+  <div id="genSlider" style="display:none">
+    <label class="gen-srow">
+      <span id="genSliderLabel">Grid</span>
+      <input type="range" id="genGrid" min="6" max="20" value="12" step="1">
+      <span class="gen-sval" id="genGridVal">12</span>
+    </label>
+  </div>
+
+  <!-- Info bar — idle state is clickable (triggers Play) -->
+  <div class="info" id="info" onclick="onInfoClick()"><span class="muted">complete ✓</span> &nbsp;<span class="pill" style="background:rgba(205,224,244,0.18);color:#cde0f4"><span class="dot" style="background:#cde0f4"></span>pass 2/2 · vertical ↑</span></div>
+
+  <div class="jumpbar" id="jumpbar"><button title="All horizontal rows" class="">1 · →</button><button title="All vertical columns" class="on">2 · ↑</button></div>
+
+  <!-- Generator panel — only shown when generator is active -->
+  <div id="genUI" style="display: flex;">
+    <div class="gen-label">Pattern</div>
+    <div class="gen-presets" id="genPresets">
+      <button class="gen-btn" data-preset="koshi">Kōshi<span style="font-size:10px;color:var(--muted)">格子</span></button>
+      <button class="gen-btn" data-preset="kaki">Kaki no Hana<span style="font-size:10px;color:var(--muted)">柿の花</span></button>
+      <button class="gen-btn" data-preset="snowflake">⬡ Snowflake</button>
+    </div>
+    <!-- Hint — hidden for snowflake -->
+    <div id="genHint" class="gen-hint">Click <b class="hm-g">green</b> (row) or <b class="hm-b">blue</b> (column) toggle · top/left half mirrors bottom/right</div>
+    <!-- Snowflake info (replaces hint) -->
+    <div id="genSnowInfo" style="display: none;">
+      <b>⬡ Fibonacci Snowflake</b>
+      <div class="snow-desc" id="snowDesc"></div>
+    </div>
+  </div>
+
+  <div class="ctrls">
+    <button class="ctrl" id="bReset" title="Reset">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+    </button>
+    <button class="ctrl" id="bBack" title="Step back">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20 9 12l10-8z"></path><path d="M5 19V5"></path></svg>
+    </button>
+    <button class="ctrl primary" id="bPlay">
+      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
+    </button>
+    <button class="ctrl" id="bFwd" title="Step forward">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
+    </button>
+    <button class="ctrl" id="bAll" title="Show complete">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      <span>Done</span>
+    </button>
+    <button class="ctrl" id="bSpeed" title="Toggle animation speed" style="font-size:12px;padding:6px 10px">🐢 Slow</button>
+  </div>
+  <p class="tip" id="animTip">Fibonacci Snowflake order 2. Phase
+sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element
+palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
+</div>
+
+<!-- CAD Pattern Editor — full-screen overlay -->
+<div id="cadView">
+  <div class="cad-wrap">
+    <div class="cad-header">
+      <button class="back-btn" onclick="showGalleryFromCAD()">← Patterns</button>
+      <h2>CAD Pattern Editor</h2>
+      <input id="cadPatName" class="cad-name-input" placeholder="Pattern name…" value="My Pattern">
+      <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save to Library</button>
+    </div>
+    <div class="cad-settings-bar">
+      <label>Grid:
+        <select id="cadGridType" onchange="cadUpdateSettings()">
+          <option value="isometric" selected>Isometric (30°)</option>
+          <option value="square">Square (90°)</option>
+        </select>
+      </label>
+      <label>Work Size:
+        <select id="cadGridSize" onchange="cadUpdateSettings()">
+          <option value="2">2×2</option>
+          <option value="3" selected>3×3</option>
+          <option value="4">4×4</option>
+          <option value="5">5×5</option>
+          <option value="6">6×6</option>
+        </select>
+      </label>
+      <label>Tile Preview:
+        <select id="cadPatSize" onchange="cadUpdateSettings()">
+          <option value="5" selected>5×5</option>
+          <option value="8">8×8</option>
+          <option value="12">12×12</option>
+        </select>
+      </label>
+    </div>
+    <div class="cad-workspace">
+      <div class="cad-panel">
+        <div class="cad-canvas-label">Draw</div>
+        <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
+        <div class="cad-toolbar">
+          <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
+          <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
+          <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
+          <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
+          <button class="cad-tool" onclick="cadResetView()">🔍 Reset View</button>
+        </div>
+      </div>
+      <div class="cad-panel">
+        <div class="cad-canvas-label">Live Tiling</div>
+        <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
+      </div>
+    </div>
+    <p class="tip" style="text-align:center;margin:14px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints</p>
+  </div>
+</div>
+
+</div>
+<script>
+(()=>{
+<!-- INJECT:scripts -->
+})();
+</script>
+
+</body></html>

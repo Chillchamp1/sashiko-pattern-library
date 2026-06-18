@@ -151,31 +151,39 @@ button.ctrl.primary:hover{background:#275784}
 #genSlider .gen-srow{width:100%}
 #genSlider #genSliderLabel{min-width:28px;font-size:12px;color:var(--muted)}
 
-/* ── Pattern Editor ── */
-#editorUI{flex-direction:column;align-items:center;gap:10px;width:100%;max-width:440px;
-  border-top:1px solid var(--line);padding-top:12px}
-.ed-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
-.ed-btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;
-  padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;
-  transition:.15s;display:inline-flex;align-items:center;gap:5px}
-.ed-btn:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
-.ed-btn.on{background:#1e3a52;border-color:#3a6ea3;color:#c8dff4}
-.ed-btn.erase.on{background:#3a1b1b;border-color:#7a3333;color:#f09090}
-.ed-btn.export{background:#163d20;border:1px solid #2a6a36;color:#88d4a0}
-.ed-btn.export:hover{background:#1d5229;color:#aaeabb}
-.ed-grid-btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;
-  padding:5px 11px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
-.ed-grid-btn:hover{background:#1d3850;color:#e7eef6}
-.ed-grid-btn.on{background:#1e3a52;border-color:#3a6ea3;color:#c8dff4}
-.ed-step{background:var(--panel);border:1px solid var(--line);border-radius:6px;
-  width:28px;height:28px;font-size:16px;color:#e7eef6;cursor:pointer;
-  display:inline-flex;align-items:center;justify-content:center;transition:.15s;font:inherit}
-.ed-step:hover{background:#1d3850}
-#edNVal{font-size:12px;color:var(--muted);min-width:34px;text-align:center;
-  font-family:ui-monospace,monospace}
-.ed-status{font-size:12px;color:var(--muted);text-align:center;min-height:16px;
-  max-width:380px;line-height:1.5}
-.ed-hint{font-size:11px;color:var(--muted);opacity:.65;text-align:center}
+/* ── CAD Pattern Editor overlay ── */
+#cadView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
+#cadView.open{display:block}
+.cad-wrap{max-width:900px;margin:0 auto}
+.cad-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.cad-header h2{margin:0;font-size:17px;font-weight:600;flex:1;min-width:120px}
+.cad-name-input{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 12px;color:#e7eef6;font-size:13px;outline:none;width:180px}
+.cad-name-input:focus{border-color:#33557a}
+.cad-save-btn{background:#163d20;border:1px solid #2a6a36;color:#88d4a0;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
+.cad-save-btn:hover{background:#1d5229;color:#aaeabb}
+.cad-settings-bar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-settings-bar label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.cad-settings-bar select{background:var(--panel2,#1c3045);color:#e7eef6;border:1px solid var(--line);padding:4px 8px;border-radius:6px;font-size:12px;outline:none}
+.cad-workspace{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.cad-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-width:300px;max-width:440px}
+.cad-canvas-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center}
+.cad-canvas-wrap{border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);background:#22222a;aspect-ratio:1;width:100%}
+.cad-canvas-wrap canvas{display:block;width:100%;height:100%}
+.cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
+.cad-tool:hover{background:#1d3850;color:#e7eef6}
+.cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
+/* New Pattern / CAD button card */
+.pcard.new-pattern-card{border:2px dashed #2a4a2a;background:#111a11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:100px}
+.pcard.new-pattern-card:hover{background:#162016;border-color:#3a6a3a}
+.pcard-new-icon{font-size:32px;line-height:1;color:#4a9a4a;font-weight:300}
+/* Experimental gallery cards */
+.pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
+.pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
+.filt.exp.on{background:#1e1e3a;border-color:#3a3a7a;color:#9090d4}
+.exp-del-btn{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
+.pcard.exp-card:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
+
 </style>
 </head>
 <body>
@@ -196,6 +204,7 @@ button.ctrl.primary:hover{background:#275784}
       <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
       <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
+      <button class="filt exp" data-f="exp" onclick="setFilter(this)">Experimental</button>
     </div>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
@@ -220,27 +229,6 @@ button.ctrl.primary:hover{background:#275784}
       <input type="range" id="genGrid" min="6" max="20" value="12" step="1">
       <span class="gen-sval" id="genGridVal">12</span>
     </label>
-  </div>
-
-  <!-- Pattern editor toolbar — only shown when editor pattern is active -->
-  <div id="editorUI" style="display:none">
-    <div class="ed-row">
-      <button type="button" class="ed-grid-btn on" data-grid="square">□ Square</button>
-      <button type="button" class="ed-grid-btn" data-grid="tri">△ Triangular</button>
-      <button type="button" class="ed-grid-btn" data-grid="iso">⬡ Isometric</button>
-      <button type="button" class="ed-step" id="edNDec">−</button>
-      <span id="edNVal">8×8</span>
-      <button type="button" class="ed-step" id="edNInc">+</button>
-      <button type="button" class="ed-btn" id="edFineBtn" title="Fine grid: adds midpoints between all edges — for triangular also enables 6-direction crossing edges">Fine</button>
-    </div>
-    <div class="ed-row">
-      <button type="button" class="ed-btn" id="edUndoBtn">↩ Undo</button>
-      <button type="button" class="ed-btn erase" id="edEraseBtn">✕ Erase</button>
-      <button type="button" class="ed-btn" id="edClearBtn" style="color:#f09090">Clear</button>
-      <button type="button" class="ed-btn export" id="edExportBtn">⎘ Copy pattern</button>
-    </div>
-    <div id="edStatus" class="ed-status">Click or drag edges to draw stitches</div>
-    <div class="ed-hint">Scroll to zoom · Ctrl+drag to pan</div>
   </div>
 
   <!-- Info bar — idle state is clickable (triggers Play) -->
@@ -282,16 +270,71 @@ button.ctrl.primary:hover{background:#275784}
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
       <span>Done</span>
     </button>
+    <button class="ctrl" id="bSpeed" title="Toggle animation speed" style="font-size:12px;padding:6px 10px">🐢 Slow</button>
   </div>
-  <p class="tip" id="animTip">Fibonacci Snowflake order 2. Phase 
-sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element 
+  <p class="tip" id="animTip">Fibonacci Snowflake order 2. Phase
+sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element
 palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
+</div>
+
+<!-- CAD Pattern Editor — full-screen overlay -->
+<div id="cadView">
+  <div class="cad-wrap">
+    <div class="cad-header">
+      <button class="back-btn" onclick="showGalleryFromCAD()">← Patterns</button>
+      <h2>CAD Pattern Editor</h2>
+      <input id="cadPatName" class="cad-name-input" placeholder="Pattern name…" value="My Pattern">
+      <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save to Library</button>
+    </div>
+    <div class="cad-settings-bar">
+      <label>Grid:
+        <select id="cadGridType" onchange="cadUpdateSettings()">
+          <option value="isometric" selected>Isometric (30°)</option>
+          <option value="square">Square (90°)</option>
+        </select>
+      </label>
+      <label>Work Size:
+        <select id="cadGridSize" onchange="cadUpdateSettings()">
+          <option value="2">2×2</option>
+          <option value="3" selected>3×3</option>
+          <option value="4">4×4</option>
+          <option value="5">5×5</option>
+          <option value="6">6×6</option>
+        </select>
+      </label>
+      <label>Tile Preview:
+        <select id="cadPatSize" onchange="cadUpdateSettings()">
+          <option value="5" selected>5×5</option>
+          <option value="8">8×8</option>
+          <option value="12">12×12</option>
+        </select>
+      </label>
+    </div>
+    <div class="cad-workspace">
+      <div class="cad-panel">
+        <div class="cad-canvas-label">Draw</div>
+        <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
+        <div class="cad-toolbar">
+          <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
+          <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
+          <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
+          <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
+          <button class="cad-tool" onclick="cadResetView()">🔍 Reset View</button>
+        </div>
+      </div>
+      <div class="cad-panel">
+        <div class="cad-canvas-label">Live Tiling</div>
+        <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
+      </div>
+    </div>
+    <p class="tip" style="text-align:center;margin:14px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints</p>
+  </div>
 </div>
 
 </div>
 <script>
-(function(){
-
+(()=>{
+// ── patterns.js ──────────────────────────────
 // ── Pattern registry ───────────────────────────────────────────────────────
 // Kōshi and Kaki no Hana are Hitomezashi — they live in the generator as named presets.
 // Yarai/Yoko-Yarai/Mittsu-zashi removed: not findable as traditional named patterns.
@@ -319,16 +362,6 @@ const PATTERNS = [
     id:'tsuzuki-yamagata', name:'Tsuzuki Yamagata', jp:'続き山形', en:'Continuous Mountains',
     type:'polyline', passes:[],
     tip:'Overlapping mountain ranges flowing top to bottom and left to right. Stitched as continuous zigzag lines: Pass 1 marches horizontally (green), Pass 2 the same rotated 90° (blue). The two shades distinguish mirror-image rows. Geometry extracted from the book diagram (tools/pattern_extractor.py).',
-  },
-  {
-    id:'asanoha', name:'Asanoha', jp:'麻の葉', en:'Hemp Leaf',
-    type:'polyline', engine:'asanoha', passes:[],
-    tip:'The most iconic sashiko pattern — interlocking six-pointed hemp-leaf stars. Stitched in the traditional order: ① vertical lines, ② shallow diagonals, ③ steep leaf zigzags, ④ horizontals (floated behind between sections). Four passes, coloured by direction. Geometry extracted from the book diagram (tools/asanoha_extract.py).',
-  },
-  {
-    id:'editor', name:'Pattern Editor', jp:'', en:'Pattern Editor',
-    type:'editor', passes:[],
-    tip:'Draw your own stitch pattern by clicking or dragging edges. Square: H/V/diagonal edges; Fine adds half-distance sub-nodes. Triangular: 3 axes at 60°, Fine adds crossing-node edges in all 6 directions. Scroll to zoom, Ctrl+drag to pan, ↩ Undo. Click "⎘ Copy pattern" to export the edge list — paste it into chat for stitch-direction analysis.',
   },
 ];
 
@@ -367,6 +400,9 @@ function snowSeq(ord){ const h=snowHalf(ord); return [...h, ...[...h].reverse()]
 let GEN_rowBits=[], GEN_colBits=[], GEN_n=12, GEN_preset='kaki', GEN_snowGrid=16;
 function effectiveN(){ return GEN_rowBits.length; }
 
+
+
+// ── engine-star.js ──────────────────────────────
 // ── Canvas setup ───────────────────────────────────────────────────────────
 const N=7, G=50, PAD=36, SIZE=(N-1)*G+2*PAD;
 const DPR=Math.min(window.devicePixelRatio||1,2);
@@ -421,6 +457,9 @@ function buildPasses(pl,n){
 }
 
 // ══════════════════════════════════════════════════════════════════════════
+
+
+// ── engine-hm.js ──────────────────────────────
 // ── Hitomezashi engine ────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════
 let HM_path=[], HM_fronts=[], HM_phase_order=[];
@@ -574,6 +613,9 @@ function renderHMThumb(canvas,seq,thumbN){
   for(let i=0;i<TN;i++){const lp=ph(i);for(let j=0;j<TN-1;j++){if((j+lp)%2===0){tc.strokeStyle=PHASE_COLORS.V[lp];tc.lineWidth=lw;tc.beginPath();tc.moveTo(tx(i),ty(j));tc.lineTo(tx(i),ty(j+1));tc.stroke();}}}
 }
 
+
+
+// ── engine-polyline.js ──────────────────────────────
 // ── Polyline engine (Tsuzuki Yamagata) ────────────────────────────────────
 // Geometry extracted programmatically from the book diagram (tools/pattern_extractor.py):
 // the pattern is the union of straight running-stitch lines at four slopes — shallow
@@ -587,7 +629,6 @@ let PL_N=PL_NHU;                        // lattice units across the canvas (set 
 let PL_HU=(SIZE-2*PAD)/PL_N;            // px per lattice unit (recomputed in loadPattern)
 let PL_guideStep=2;                     // guide grid drawn every N units (= one "grid square")
 let PL_path=[], PL_fronts=[], PL_shCount=0;
-let PL_isoDY=0;   // when >0, y coords use PAD+c*PL_isoDY instead of plPx (iso asanoha)
 // Generic multi-pass descriptor: [{start, label, glyph, col}] (col = PHASE_COLORS key).
 // TY has 2 passes; Asanoha has 4. Drives the jump bar and the info pill.
 let PL_passes=[];
@@ -745,102 +786,18 @@ function buildTsuzukiYamagata(NHU){
   return {path,fronts,passes,shCount:passes[1].start};
 }
 
-// ── Asanoha (麻の葉, hemp leaf) ─────────────────────────────────────────────
-// Geometry extracted programmatically from Essential Sashiko p.13 (tools/
-// asanoha_extract.py), verified 100% recall / 98% precision. Lattice unit =
-// (grid square)/4. Four families: vertical, horizontal, shallow diagonal (2,±1
-// slope ½), steep "leaf" diagonal (2,±3 slope 1½). 12-ray hemp-leaf stars at the
-// hubs. 34-edge unit cell tiled by generators G1=(8,4), G2=(0,8).
-// Isometric Asanoha unit cell extracted from Asanoha.dxf (2026-06).
-// Integer iso coords: x_screen = PAD + ix*DX, y_screen = PAD + iy*DY, DY = DX*sqrt(3).
-// Unit cell 6 wide × 10 tall, generators G1=(6,0) G2=(0,10). 68 edges, 2 stars/cell.
-const ISO_ASA_CELL=[
-  [0,1,0,3],[0,1,1,2],[0,1,2,1],[0,1,3,0],[0,1,3,2],
-  [0,3,0,5],[0,3,1,2],[0,3,1,4],[0,3,2,3],[0,3,3,2],[0,3,3,4],
-  [0,5,0,9],[0,5,1,4],[0,5,1,6],[0,5,2,5],[0,5,3,4],[0,5,3,6],
-  [0,7,1,6],[0,7,1,8],[0,7,3,6],[0,7,3,8],
-  [0,9,1,8],[0,9,3,8],
-  [1,2,5,2],[1,4,5,4],[1,6,3,6],[1,8,3,8],
-  [2,1,3,0],[2,1,3,2],[2,3,3,2],[2,3,3,4],[2,5,3,4],[2,5,3,6],[2,7,3,6],[2,7,3,8],
-  [3,0,3,4],[3,0,4,1],[3,0,6,1],
-  [3,2,4,1],[3,2,4,3],[3,2,6,1],[3,2,6,3],
-  [3,4,4,3],[3,4,4,5],[3,4,6,3],[3,4,6,5],
-  [3,6,3,8],[3,6,4,5],[3,6,4,7],[3,6,5,6],[3,6,6,5],[3,6,6,7],
-  [3,8,4,7],[3,8,5,8],[3,8,6,7],[3,8,6,9],
-  [4,1,6,1],[4,3,6,3],[4,5,6,5],
-  [4,7,8,7],
-  [5,2,6,1],[5,2,6,3],[5,4,6,3],[5,4,6,5],[5,6,6,5],[5,6,6,7],[5,8,6,7],[5,8,6,9],
-];
-const ISO_ASA_NX=54, ISO_ASA_NY=30;  // 9 cells wide × 3 cells tall on canvas
-
-function genIsoAsanohaEdges(NX,NY){
-  const edges=[], seen=new Set();
-  for(let a=-1;a<=NX/6+1;a++) for(let b=-1;b<=NY/10+1;b++){
-    const ox=a*6, oy=b*10;
-    for(const [x1c,y1c,x2c,y2c] of ISO_ASA_CELL){
-      let x1=x1c+ox,y1=y1c+oy,x2=x2c+ox,y2=y2c+oy;
-      if(x1<0||x1>NX||x2<0||x2>NX||y1<0||y1>NY||y2<0||y2>NY) continue;
-      let A=[x1,y1],B=[x2,y2];
-      if(A[0]>B[0]||(A[0]===B[0]&&A[1]>B[1])){const t=A;A=B;B=t;}
-      const key=A[0]+','+A[1]+','+B[0]+','+B[1];
-      if(seen.has(key)) continue; seen.add(key);
-      const dx=B[0]-A[0], dy=Math.abs(B[1]-A[1]);
-      const fam=dy===0?'H':dx===0?'V':dx===1?'B':'A';
-      edges.push({x1:A[0],y1:A[1],x2:B[0],y2:B[1],fam});
-    }
-  }
-  return edges;
-}
-
-// Build isometric Asanoha as four ordered passes:
-// 1 vertical (V), 2 shallow 30° diagonals (A/D1), 3 steep 60° spokes (B/D2), 4 horizontal (H).
-function buildIsoAsanoha(){
-  const edges=genIsoAsanohaEdges(ISO_ASA_NX,ISO_ASA_NY);
-  const slopeSign=poly=>{const dx=poly[1][0]-poly[0][0],dy=poly[1][1]-poly[0][1];return (dx*dy>=0)?0:1;};
-  const buildFam=(fams,pal,bySlope)=>{
-    const fe=edges.filter(e=>fams.includes(e.fam)).map(e=>({x1:e.x1,y1:e.y1,x2:e.x2,y2:e.y2}));
-    const chains=tracePaired(fe);
-    const items=chains.map(poly=>({poly,col:pal[bySlope?slopeSign(poly):0]}));
-    items.sort((a,b)=>(a.poly[0][0]-b.poly[0][0])||(a.poly[0][1]-b.poly[0][1]));
-    return orderNN(items);
-  };
-  const V=buildFam(['V'],PHASE_COLORS.V,false);
-  const A=buildFam(['A'],PHASE_COLORS.D1,true);
-  const B=buildFam(['B'],PHASE_COLORS.D2,true);
-  const Hh=buildFam(['H'],PHASE_COLORS.H,false);
-  const path=[], fronts=[], passes=[];
-  const emit=items=>items.forEach(it=>{for(let k=0;k<it.poly.length-1;k++){
-    fronts.push(path.length);
-    path.push({type:'front',x1:it.poly[k][0],y1:it.poly[k][1],x2:it.poly[k+1][0],y2:it.poly[k+1][1],col:it.col});
-  }});
-  const addPass=(items,label,glyph,col)=>{passes.push({start:fronts.length,label,glyph,col});emit(items);};
-  addPass(V,'Vertical lines','↕','V');
-  addPass(A,'Diagonal lines','╱','D1');
-  addPass(B,'Leaf spokes','✧','D2');
-  addPass(Hh,'Horizontal lines','↔','H');
-  return {path,fronts,passes,shCount:passes[1]?passes[1].start:path.length};
-}
-
 function plPx(coord){return PAD+coord*PL_HU;}
 function drawPLGuide(){
   ctx.strokeStyle='rgba(220,235,255,0.07)';ctx.lineWidth=1;ctx.setLineDash([]);
-  if(PL_isoDY){
-    // Isometric guide: vertical lines every 6 iso-x units, horizontal every 10 iso-y units
-    const ex=PAD+ISO_ASA_NX*PL_HU, ey=PAD+ISO_ASA_NY*PL_isoDY;
-    for(let i=0;i<=ISO_ASA_NX;i+=6){const p=PAD+i*PL_HU;ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,ey);ctx.stroke();}
-    for(let j=0;j<=ISO_ASA_NY;j+=10){const p=PAD+j*PL_isoDY;ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(ex,p);ctx.stroke();}
-  }else{
-    const e=PAD+PL_N*PL_HU;
-    for(let i=0;i<=PL_N;i+=PL_guideStep){   // grid lines every PL_guideStep units = one "grid square"
-      const p=PAD+i*PL_HU;
-      ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,e);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(e,p);ctx.stroke();
-    }
+  const e=PAD+PL_N*PL_HU;
+  for(let i=0;i<=PL_N;i+=PL_guideStep){
+    const p=PAD+i*PL_HU;
+    ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,e);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(e,p);ctx.stroke();
   }
 }
 function drawPLFront(seg){
-  const py=PL_isoDY?c=>PAD+c*PL_isoDY:plPx;
-  const x1=plPx(seg.x1),y1=py(seg.y1),x2=plPx(seg.x2),y2=py(seg.y2);
+  const x1=plPx(seg.x1),y1=plPx(seg.y1),x2=plPx(seg.x2),y2=plPx(seg.y2);
   ctx.lineCap='round';ctx.setLineDash([]);
   ctx.strokeStyle='rgba(0,8,20,0.45)';ctx.lineWidth=3.6;
   ctx.beginPath();ctx.moveTo(x1,y1+0.7);ctx.lineTo(x2,y2+0.7);ctx.stroke();
@@ -851,7 +808,7 @@ function renderPolyline(st){
   ctx.setLineDash([]);drawFabric();drawPLGuide();
   const pos=(st===0)?-1:PL_fronts[st-1];
   for(let i=0;i<=pos;i++) drawPLFront(PL_path[i]);
-  if(pos>=0){const s=PL_path[pos];const py=PL_isoDY?c=>PAD+c*PL_isoDY:plPx;drawNeedleAt(plPx(s.x2),py(s.y2),s.col);}
+  if(pos>=0){const s=PL_path[pos];drawNeedleAt(plPx(s.x2),plPx(s.y2),s.col);}
   updateInfoPL(st);
 }
 function updateInfoPL(st){
@@ -875,404 +832,23 @@ function renderPLThumb(canvas,pat){
   const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
   tc.fillStyle='#1a3a5c';tc.fillRect(0,0,TS,TS);
   tc.lineCap='round';
-  if(isAsa){
-    // Iso asanoha thumbnail: use a small sub-region (18x10 iso units) centred
-    const TNX=18,TNY=10;
-    const TDX=(TS-2*TPAD)/TNX, TDY=TDX*Math.sqrt(3);
-    const{path}=buildIsoAsanoha();
-    tc.lineWidth=0.7;
-    for(const seg of path){
-      const x1=TPAD+seg.x1*TDX,y1=TPAD+seg.y1*TDY;
-      const x2=TPAD+seg.x2*TDX,y2=TPAD+seg.y2*TDY;
-      if(x1<0||x1>TS||x2<0||x2>TS||y1<0||y1>TS||y2<0||y2>TS) continue;
-      tc.strokeStyle=seg.col;
-      tc.beginPath();tc.moveTo(x1,y1);tc.lineTo(x2,y2);tc.stroke();
-    }
-  }else{
-    const TN=12, TG=(TS-2*TPAD)/TN;
-    const{path}=buildTsuzukiYamagata(TN);
-    tc.lineWidth=1;
-    for(const seg of path){
-      tc.strokeStyle=seg.col;
-      tc.beginPath();tc.moveTo(TPAD+seg.x1*TG,TPAD+seg.y1*TG);tc.lineTo(TPAD+seg.x2*TG,TPAD+seg.y2*TG);tc.stroke();
-    }
+  const TN=12, TG=(TS-2*TPAD)/TN;
+  const{path}=buildTsuzukiYamagata(TN);
+  tc.lineWidth=1;
+  for(const seg of path){
+    tc.strokeStyle=seg.col;
+    tc.beginPath();tc.moveTo(TPAD+seg.x1*TG,TPAD+seg.y1*TG);tc.lineTo(TPAD+seg.x2*TG,TPAD+seg.y2*TG);tc.stroke();
   }
 }
 
-// ── Pattern Editor ─────────────────────────────────────────────────────────
-// Draw custom stitches on a square or triangular grid.
-// Single thread colour — no passes/families. Export edge list for stitch analysis.
-let ED_grid='square', ED_N=8, ED_fine=false;
-let ED_erase=false, ED_dragMode=null, ED_dragTouched=new Set();
-let ED_edges=new Map();          // edgeKey → true
-let ED_undoStack=[];             // snapshots (Map) for undo
-let ED_hover=null;
-let ED_zoom=1.0, ED_panX=0, ED_panY=0;
-let ED_panning=false, ED_panStartX=0, ED_panStartY=0, ED_panOX=0, ED_panOY=0;
-let ED_edgeCache=null, ED_edgeCacheKey='';
-const ED_COL='#c8d8ec';         // single thread colour
 
-function edEffN(){return ED_fine?2*ED_N-1:ED_N;}
 
-function edStep(){
-  const av=SIZE-2*PAD,N=edEffN();
-  if(ED_grid==='square')return av/(N-1);
-  if(ED_grid==='iso')return av/(N-1);  // iso: DX=av/(N-1), DY=DX*sqrt(3)
-  // Offset-row: width=(N-0.5)*s, height=(N-1)*s*0.866 — fit to canvas
-  return Math.min(av/(N-0.5), av/((N-1)*0.866));
-}
-function edNodePx(i,j){
-  const s=edStep();
-  if(ED_grid==='square')return[PAD+i*s,PAD+j*s];
-  if(ED_grid==='iso')return[PAD+i*s, PAD+j*s*Math.sqrt(3)];
-  // Offset-row (brick) layout: every other row shifts right by half-step
-  return[PAD+(i+(j%2)*0.5)*s, PAD+j*s*0.866];
-}
-// Number of visible rows for iso grid (fewer rows than cols due to sqrt(3) scaling)
-function edIsoRows(){return Math.floor((SIZE-2*PAD)/edStep()/Math.sqrt(3))+1;}
-// Convert screen coords to world (canvas space before zoom/pan)
-function edS2W(cx,cy){return[(cx-ED_panX)/ED_zoom,(cy-ED_panY)/ED_zoom];}
-
-function edBuildEdges(){
-  const N=edEffN(),e=[];
-  if(ED_grid==='square'){
-    for(let j=0;j<N;j++)for(let i=0;i<N-1;i++)e.push({key:`H_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j});
-    for(let i=0;i<N;i++)for(let j=0;j<N-1;j++)e.push({key:`V_${i}_${j}`,x1:i,y1:j,x2:i,y2:j+1});
-    for(let j=0;j<N-1;j++)for(let i=0;i<N-1;i++)e.push({key:`D1_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j+1});
-    for(let j=1;j<N;j++)for(let i=0;i<N-1;i++)e.push({key:`D2_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j-1});
-  }else if(ED_grid==='iso'){
-    // Isometric grid: rectangular integer (ix,iy) coords, screen = (ix*DX, iy*DY), DY=DX*sqrt(3)
-    // Edge families matching the DXF: H(1,0), V(0,1), UR(1,1), UL(1,-1)
-    // Fine mode adds long petal edges: A(3,1)/A(3,-1) and wide horizontals IH(2,0)
-    const NR=edIsoRows();
-    for(let j=0;j<NR;j++)for(let i=0;i<N-1;i++)
-      e.push({key:`IH_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j});
-    for(let j=0;j<NR-1;j++)for(let i=0;i<N;i++)
-      e.push({key:`IV_${i}_${j}`,x1:i,y1:j,x2:i,y2:j+1});
-    for(let j=0;j<NR-1;j++)for(let i=0;i<N-1;i++)
-      e.push({key:`IUR_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j+1});
-    for(let j=1;j<NR;j++)for(let i=0;i<N-1;i++)
-      e.push({key:`IUL_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j-1});
-    if(ED_fine){
-      // Long petal edges (3,±1) — connect across 3 columns
-      for(let j=0;j<NR-1;j++)for(let i=0;i<N-3;i++)
-        e.push({key:`IA_${i}_${j}`,x1:i,y1:j,x2:i+3,y2:j+1});
-      for(let j=1;j<NR;j++)for(let i=0;i<N-3;i++)
-        e.push({key:`IAr_${i}_${j}`,x1:i,y1:j,x2:i+3,y2:j-1});
-    }
-  }else{
-    // Offset-row triangular grid: horizontal + parity-aware UR/UL diagonals
-    // A: horizontal — always (i,j)→(i+1,j)
-    for(let j=0;j<N;j++)for(let i=0;i<N-1;i++)
-      e.push({key:`A_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j});
-    // UR: up-right (+0.5s,+0.866s) — visually consistent regardless of row parity
-    //   even row j: (i,j)→(i,j+1);  odd row j: (i,j)→(i+1,j+1)
-    for(let j=0;j<N-1;j++){
-      if(j%2===0){for(let i=0;i<N;i++)  e.push({key:`UR_${i}_${j}`,x1:i,y1:j,x2:i,  y2:j+1});}
-      else        {for(let i=0;i<N-1;i++)e.push({key:`UR_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j+1});}
-    }
-    // UL: up-left (-0.5s,+0.866s) — visually consistent regardless of row parity
-    //   even row j: (i,j)→(i-1,j+1) [i≥1];  odd row j: (i,j)→(i,j+1)
-    for(let j=0;j<N-1;j++){
-      if(j%2===0){for(let i=1;i<N;i++)  e.push({key:`UL_${i}_${j}`,x1:i,y1:j,x2:i-1,y2:j+1});}
-      else        {for(let i=0;i<N;i++)  e.push({key:`UL_${i}_${j}`,x1:i,y1:j,x2:i,  y2:j+1});}
-    }
-    if(ED_fine){
-      // In fine mode, P1/P2/P3 are longer "crossing" edges (span 2 rows)
-      // P1: vertical — (i,j)→(i,j+2); same x in offset-row for both parities ✓
-      for(let j=0;j+2<N;j++)for(let i=0;i<N;i++)
-        e.push({key:`P1_${i}_${j}`,x1:i,y1:j,x2:i,y2:j+2});
-      // P2: up-left 2-row jump — (i,j)→(i-1,j+2) [i≥1]
-      for(let j=0;j+2<N;j++)for(let i=1;i<N;i++)
-        e.push({key:`P2_${i}_${j}`,x1:i,y1:j,x2:i-1,y2:j+2});
-      // P3: up-right 2-row jump — (i,j)→(i+1,j+2) [i<N-1]
-      for(let j=0;j+2<N;j++)for(let i=0;i<N-1;i++)
-        e.push({key:`P3_${i}_${j}`,x1:i,y1:j,x2:i+1,y2:j+2});
-    }
-  }
-  return e;
-}
-function edEdges(){
-  const ck=`${ED_grid}_${ED_N}_${ED_fine}`;
-  if(ED_edgeCacheKey!==ck){ED_edgeCache=edBuildEdges();ED_edgeCacheKey=ck;}
-  return ED_edgeCache;
-}
-function edKeyCoords(key){
-  const p=key.split('_'),t=p[0],i=+p[1],j=+p[2];
-  if(t==='H'||t==='A')return{x1:i,y1:j,x2:i+1,y2:j};
-  if(t==='V')return{x1:i,y1:j,x2:i,y2:j+1};
-  if(t==='D1')return{x1:i,y1:j,x2:i+1,y2:j+1};
-  if(t==='D2')return{x1:i,y1:j,x2:i+1,y2:j-1};
-  // Offset-row tri: parity-aware UR/UL
-  if(t==='UR'){const i2=(j%2===0)?i:i+1;   return{x1:i,y1:j,x2:i2,y2:j+1};}
-  if(t==='UL'){const i2=(j%2===0)?i-1:i;   return{x1:i,y1:j,x2:i2,y2:j+1};}
-  // Longer crossing edges (fine mode only)
-  if(t==='P1')return{x1:i,y1:j,x2:i,  y2:j+2};
-  if(t==='P2')return{x1:i,y1:j,x2:i-1,y2:j+2};
-  if(t==='P3')return{x1:i,y1:j,x2:i+1,y2:j+2};
-  // Iso grid edges
-  if(t==='IH') return{x1:i,y1:j,x2:i+1,y2:j};
-  if(t==='IV') return{x1:i,y1:j,x2:i,  y2:j+1};
-  if(t==='IUR')return{x1:i,y1:j,x2:i+1,y2:j+1};
-  if(t==='IUL')return{x1:i,y1:j,x2:i+1,y2:j-1};
-  if(t==='IA') return{x1:i,y1:j,x2:i+3,y2:j+1};
-  if(t==='IAr')return{x1:i,y1:j,x2:i+3,y2:j-1};
-  return{x1:i,y1:j,x2:i+1,y2:j};
-}
-function edPtSegDist(px,py,x1,y1,x2,y2){
-  const dx=x2-x1,dy=y2-y1,l2=dx*dx+dy*dy;
-  if(!l2)return Math.hypot(px-x1,py-y1);
-  const t=Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/l2));
-  return Math.hypot(px-(x1+t*dx),py-(y1+t*dy));
-}
-function edNearestEdge(wx,wy){
-  // wx,wy are world coords (already un-zoomed)
-  const s=edStep(),thr=s*0.46,all=edEdges();
-  let best=null,bd=thr;
-  for(const e of all){
-    const[x1,y1]=edNodePx(e.x1,e.y1),[x2,y2]=edNodePx(e.x2,e.y2);
-    const d=edPtSegDist(wx,wy,x1,y1,x2,y2);
-    if(d<bd){bd=d;best=e;}
-  }
-  return best;
-}
-
-function edSaveUndo(){
-  ED_undoStack.push(new Map(ED_edges));
-  if(ED_undoStack.length>80)ED_undoStack.shift();
-}
-function edUndo(){
-  if(!ED_undoStack.length)return;
-  ED_edges=ED_undoStack.pop();
-  if(isED)renderEditor();
-}
-
-function renderEditor(){
-  drawFabric();
-  const all=edEdges(),N=edEffN();
-  ctx.save();
-  ctx.translate(ED_panX,ED_panY);
-  ctx.scale(ED_zoom,ED_zoom);
-  ctx.lineCap='round';
-  // Guide edges (all possible, faint)
-  for(const e of all){
-    if(ED_edges.has(e.key))continue;
-    const[x1,y1]=edNodePx(e.x1,e.y1),[x2,y2]=edNodePx(e.x2,e.y2);
-    const hov=e.key===ED_hover;
-    ctx.strokeStyle=hov?'rgba(200,216,236,.45)':'rgba(255,255,255,.07)';
-    ctx.lineWidth=hov?1.8:0.9;
-    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-  }
-  // Drawn edges
-  for(const key of ED_edges.keys()){
-    const c=edKeyCoords(key);
-    const[x1,y1]=edNodePx(c.x1,c.y1),[x2,y2]=edNodePx(c.x2,c.y2);
-    ctx.strokeStyle='rgba(0,8,20,.45)';ctx.lineWidth=4.5;
-    ctx.beginPath();ctx.moveTo(x1,y1+0.7);ctx.lineTo(x2,y2+0.7);ctx.stroke();
-    ctx.strokeStyle=ED_COL;ctx.lineWidth=2.8;
-    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-  }
-  // Grid nodes
-  ctx.fillStyle='rgba(255,255,255,.3)';
-  const nr=ED_fine?2:2.5,nfill=ED_fine?'rgba(255,255,255,.18)':'rgba(255,255,255,.3)';
-  const NR=ED_grid==='iso'?edIsoRows():N;
-  for(let i=0;i<N;i++)for(let j=0;j<NR;j++){
-    const[px,py]=edNodePx(i,j);
-    if(px>SIZE||py>SIZE)continue;
-    const isMid=ED_fine&&(i%2!==0||j%2!==0);
-    ctx.fillStyle=isMid?'rgba(255,255,255,.14)':'rgba(255,255,255,.3)';
-    ctx.beginPath();ctx.arc(px,py,isMid?1.4:2.2,0,2*Math.PI);ctx.fill();
-  }
-  ctx.restore();
-  // Status (outside transform)
-  const st=document.getElementById('edStatus');
-  if(st&&!st.dataset.flash)st.textContent=ED_edges.size
-    ?`${ED_edges.size} edge${ED_edges.size!==1?'s':''} drawn`
-    :'Click or drag edges to draw stitches';
-}
-
-function edHandlePoint(wx,wy){
-  const edge=edNearestEdge(wx,wy);
-  if(!edge||ED_dragTouched.has(edge.key))return;
-  ED_dragTouched.add(edge.key);
-  if(ED_dragMode==='erase')ED_edges.delete(edge.key);
-  else if(ED_dragMode==='add'&&!ED_edges.has(edge.key))
-    ED_edges.set(edge.key,true);
-  renderEditor();
-}
-
-function edExport(){
-  if(!ED_edges.size){
-    const st=document.getElementById('edStatus');
-    st.textContent='Nothing drawn yet.';return;
-  }
-  const N=edEffN();
-  const byType={};
-  for(const key of ED_edges.keys()){
-    const t=key.split('_')[0];
-    (byType[t]=byType[t]||[]).push(key);
-  }
-  const lines=[`PatternEditor grid=${ED_grid} N=${N}${ED_fine?' fine':''} edges=${ED_edges.size}`];
-  for(const [t,keys] of Object.entries(byType).sort())
-    lines.push(t+': '+keys.sort().join(' '));
-  const text=lines.join('\n');
-  const st=document.getElementById('edStatus');
-  st.dataset.flash='1';
-  navigator.clipboard.writeText(text).then(()=>{
-    st.textContent=`Copied ${ED_edges.size} edges — paste into chat for stitch analysis`;
-  }).catch(()=>{
-    st.textContent='Clipboard blocked — see browser console';
-    console.log(text);
-  });
-  setTimeout(()=>{delete st.dataset.flash;renderEditor();},3000);
-}
-
-function showEditorUI(show){
-  document.getElementById('editorUI').style.display=show?'flex':'none';
-  [document.getElementById('jumpbar'),document.getElementById('info'),document.querySelector('.ctrls')]
-    .forEach(el=>{if(el)el.style.display=show?'none':'';});
-}
-
-function renderEditorThumb(canvas){
-  const TDPR=Math.min(window.devicePixelRatio||1,2);
-  const TS=64,TPAD=8,TN=5,TG=(TS-2*TPAD)/(TN-1);
-  canvas.width=TS*TDPR;canvas.height=TS*TDPR;
-  canvas.style.width='64px';canvas.style.height='64px';
-  const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
-  tc.fillStyle='#1a3a5c';tc.fillRect(0,0,TS,TS);
-  tc.fillStyle='rgba(255,255,255,.22)';
-  for(let i=0;i<TN;i++)for(let j=0;j<TN;j++){
-    tc.beginPath();tc.arc(TPAD+i*TG,TPAD+j*TG,1.5,0,2*Math.PI);tc.fill();}
-  tc.lineCap='round';tc.lineWidth=1.4;tc.strokeStyle=ED_COL;
-  [[0,2,1,2],[2,2,3,2],[2,0,2,1],[2,2,2,3],[0,0,1,1],[2,2,3,3],[1,3,2,2],[3,1,4,0]]
-    .forEach(([a,b,c,d])=>{tc.beginPath();tc.moveTo(TPAD+a*TG,TPAD+b*TG);tc.lineTo(TPAD+c*TG,TPAD+d*TG);tc.stroke();});
-}
-
-function edSyncGridBtn(){
-  document.querySelectorAll('[data-grid]').forEach(b=>b.classList.toggle('on',b.dataset.grid===ED_grid));
-  const fineBtn=document.getElementById('edFineBtn');
-  if(fineBtn){
-    fineBtn.classList.toggle('on',ED_fine);
-    fineBtn.title=ED_grid==='tri'
-      ?'Fine: 2× denser nodes + 6-direction crossing edges (P1/P2/P3)'
-      :ED_grid==='iso'
-      ?'Fine: adds long petal edges (3,±1) — the diagonal arms of Asanoha'
-      :'Fine: adds midpoints between nodes for half-distance edges';
-  }
-}
-function edSyncNVal(){
-  const el=document.getElementById('edNVal');
-  if(el)el.textContent=ED_grid==='iso'?ED_N+' cols':ED_N+'×'+ED_N;
-}
-
-function initEditorUI(){
-  document.querySelectorAll('[data-grid]').forEach(b=>b.onclick=()=>{
-    const prev=ED_grid;ED_grid=b.dataset.grid;
-    if(ED_grid!==prev){ED_edges.clear();ED_undoStack=[];ED_edgeCacheKey='';
-      ED_fine=(ED_grid==='tri'); // Fine is default for tri, off for square/iso
-      }
-    edSyncGridBtn();edSyncNVal();
-    if(isED)renderEditor();
-  });
-  document.getElementById('edFineBtn').onclick=()=>{
-    ED_fine=!ED_fine;
-    ED_edges.clear();ED_undoStack=[];ED_edgeCacheKey='';
-    edSyncGridBtn();edSyncNVal();
-    if(isED)renderEditor();
-  };
-  document.getElementById('edUndoBtn').onclick=edUndo;
-  document.getElementById('edEraseBtn').onclick=()=>{
-    ED_erase=!ED_erase;
-    document.getElementById('edEraseBtn').classList.toggle('on',ED_erase);
-    if(isED)cv.style.cursor=ED_erase?'not-allowed':'crosshair';
-  };
-  document.getElementById('edClearBtn').onclick=()=>{
-    edSaveUndo();ED_edges.clear();ED_erase=false;
-    document.getElementById('edEraseBtn').classList.remove('on');
-    if(isED){cv.style.cursor='crosshair';renderEditor();}
-  };
-  document.getElementById('edNDec').onclick=()=>{
-    if(ED_N>4){ED_N--;ED_edges.clear();ED_undoStack=[];ED_edgeCacheKey='';
-      edSyncNVal();if(isED)renderEditor();}
-  };
-  document.getElementById('edNInc').onclick=()=>{
-    if(ED_N<20){ED_N++;ED_edges.clear();ED_undoStack=[];ED_edgeCacheKey='';
-      edSyncNVal();if(isED)renderEditor();}
-  };
-  document.getElementById('edExportBtn').onclick=edExport;
-
-  // Mouse wheel zoom
-  cv.addEventListener('wheel',e=>{
-    if(!isED)return;
-    e.preventDefault();
-    const r=cv.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
-    const zf=e.deltaY<0?1.15:1/1.15;
-    const nz=Math.max(0.4,Math.min(6,ED_zoom*zf));
-    ED_panX=cx-(cx-ED_panX)*(nz/ED_zoom);
-    ED_panY=cy-(cy-ED_panY)*(nz/ED_zoom);
-    ED_zoom=nz;renderEditor();
-  },{passive:false});
-
-  // Mouse draw / pan
-  cv.addEventListener('mousedown',e=>{
-    if(!isED)return;
-    const r=cv.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
-    if(e.ctrlKey||e.button===1){
-      ED_panning=true;ED_panStartX=e.clientX;ED_panStartY=e.clientY;
-      ED_panOX=ED_panX;ED_panOY=ED_panY;cv.style.cursor='grabbing';return;
-    }
-    const[wx,wy]=edS2W(sx,sy);
-    const edge=edNearestEdge(wx,wy);if(!edge)return;
-    edSaveUndo();
-    ED_dragMode=ED_erase||ED_edges.has(edge.key)?'erase':'add';
-    ED_dragTouched=new Set();edHandlePoint(wx,wy);
-  });
-  cv.addEventListener('mousemove',e=>{
-    if(!isED)return;
-    const r=cv.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
-    if(ED_panning){
-      ED_panX=ED_panOX+(e.clientX-ED_panStartX);
-      ED_panY=ED_panOY+(e.clientY-ED_panStartY);
-      renderEditor();return;
-    }
-    const[wx,wy]=edS2W(sx,sy);
-    const near=edNearestEdge(wx,wy),nh=near?near.key:null;
-    if(nh!==ED_hover){ED_hover=nh;renderEditor();}
-    if(ED_dragMode)edHandlePoint(wx,wy);
-  });
-  cv.addEventListener('mouseup',e=>{
-    if(ED_panning){ED_panning=false;if(isED)cv.style.cursor=ED_erase?'not-allowed':'crosshair';}
-    ED_dragMode=null;
-  });
-  cv.addEventListener('mouseleave',()=>{
-    ED_panning=false;ED_dragMode=null;
-    if(isED&&ED_hover){ED_hover=null;renderEditor();}
-  });
-
-  // Touch draw
-  cv.addEventListener('touchstart',e=>{
-    if(!isED)return;e.preventDefault();
-    const t=e.touches[0],r=cv.getBoundingClientRect();
-    const[wx,wy]=edS2W(t.clientX-r.left,t.clientY-r.top);
-    const edge=edNearestEdge(wx,wy);if(!edge)return;
-    edSaveUndo();
-    ED_dragMode=ED_erase||ED_edges.has(edge.key)?'erase':'add';
-    ED_dragTouched=new Set();edHandlePoint(wx,wy);
-  },{passive:false});
-  cv.addEventListener('touchmove',e=>{
-    if(!isED)return;e.preventDefault();
-    const t=e.touches[0],r=cv.getBoundingClientRect();
-    const[wx,wy]=edS2W(t.clientX-r.left,t.clientY-r.top);
-    edHandlePoint(wx,wy);
-  },{passive:false});
-  cv.addEventListener('touchend',()=>{if(isED)ED_dragMode=null;});
-}
-
+// ── render.js ──────────────────────────────
 // ── Animation state ────────────────────────────────────────────────────────
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
-let isHM=false, isPL=false, isED=false;
-const TICK_MS=40; // fixed fast speed (~25 stitches/sec), no slider
+let isHM=false, isPL=false, isEXP=false;
+let TICK_MS=80;  // default slow (~12 stitches/sec); toggle to 40 for fast
 
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
@@ -1321,7 +897,7 @@ window.onInfoClick=function(){if(!playing&&step===0)play();};
 function render(st){
   if(isHM){renderHM(st);return;}
   if(isPL){renderPolyline(st);return;}
-  if(isED){renderEditor();return;}
+  if(isEXP){renderExpPattern(curPat);return;}
   drawFabric(); drawGuide();
   const{p,local}=locate(st);
   for(let k=0;k<p;k++)frontAll(PASSES[k]);
@@ -1384,41 +960,22 @@ function buildJumpBar(){
 // ── Load pattern ───────────────────────────────────────────────────────────
 function loadPattern(pat){
   curPat=pat;
-  isED=pat.type==='editor';
+  isEXP=pat.type==='exp';
   const isGen=pat.type==='generator';
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
-  showEditorUI(false);cv.style.cursor='';
-  if(isED){
-    showGenUI(false);
-    document.getElementById('animTitle').innerHTML='Pattern Editor';
-    document.getElementById('animTip').textContent=pat.tip||'';
-    step=0;if(playing)pause();
-    showEditorUI(true);cv.style.cursor='crosshair';
-    TOTAL=0;PASSES=[];
-    renderEditor();
-    return;
-  }
+  cv.style.cursor='';
   if(isGen){
     showGenUI(true);
-    refreshGen(true);   // builds engine + UI + line toggles, renders the full pattern
+    refreshGen(true);
     return;
   }
   showGenUI(false);
   if(isPL){
     let built;
-    if(pat.engine==='asanoha'){
-      PL_isoDY=0;  // will be set after PL_HU
-      built=buildIsoAsanoha();
-      PL_HU=(SIZE-2*PAD)/ISO_ASA_NX;
-      PL_isoDY=PL_HU*Math.sqrt(3);
-      PL_N=ISO_ASA_NX; PL_guideStep=6;
-    }else{
-      PL_isoDY=0;
-      PL_N=PL_NHU; PL_guideStep=2; built=buildTsuzukiYamagata(PL_NHU);
-      PL_HU=(SIZE-2*PAD)/PL_N;
-    }
+    PL_N=PL_NHU; PL_guideStep=2; built=buildTsuzukiYamagata(PL_NHU);
+    PL_HU=(SIZE-2*PAD)/PL_N;
     PL_path=built.path;PL_fronts=built.fronts;PL_passes=built.passes;PL_shCount=built.shCount;
     TOTAL=PL_fronts.length;PASSES=[];
   } else if(isHM){
@@ -1434,6 +991,9 @@ function loadPattern(pat){
   buildJumpBar();render(0);
 }
 
+
+
+// ── generator.js ──────────────────────────────
 // ── Generator ──────────────────────────────────────────────────────────────
 const HM_GUT=30;   // px gutter holding the line toggles (matches CSS .hm-frame.hm-on)
 
@@ -1612,6 +1172,11 @@ document.getElementById('bReset').onclick=()=>{pause();step=0;render(step);};
 document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);render(step);};
 document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
 document.getElementById('bAll').onclick=()=>{pause();step=TOTAL;render(step);};
+document.getElementById('bSpeed').onclick=()=>{
+  TICK_MS=TICK_MS===80?40:80;
+  const b=document.getElementById('bSpeed');
+  b.textContent=TICK_MS===80?'🐢 Slow':'⚡ Fast';
+};
 window.addEventListener('keydown',e=>{
   if(!document.getElementById('animView').classList.contains('open'))return;
   if(e.code==='Space'){e.preventDefault();playing?pause():play();}
@@ -1624,7 +1189,6 @@ function renderThumb(canvas,pat){
   if(pat.type==='generator'){renderHMThumb(canvas,[0,0,1,0,1],11);return;}
   if(pat.type==='hitomezashi'){renderHMThumb(canvas,pat.seq,pat.thumbN||11);return;}
   if(pat.type==='polyline'){renderPLThumb(canvas,pat);return;}
-  if(pat.type==='editor'){renderEditorThumb(canvas);return;}
   const TDPR=Math.min(window.devicePixelRatio||1,2);
   const TN=5,TG=12,TPAD=8,TS=(TN-1)*TG+2*TPAD;
   canvas.width=TS*TDPR;canvas.height=TS*TDPR;
@@ -1642,10 +1206,18 @@ function renderThumb(canvas,pat){
   }}
 }
 
+
+
+// ── gallery.js ──────────────────────────────
 // ── Gallery ────────────────────────────────────────────────────────────────
 let activeFilter=0;
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
+  const newBtn=document.createElement('button');
+  newBtn.className='pcard new-pattern-card';
+  newBtn.innerHTML='<div class="pcard-new-icon">＋</div><div class="pcard-name">New Pattern</div><div class="pcard-badge gen">CAD Editor</div>';
+  newBtn.onclick=()=>showCAD();
+  grid.appendChild(newBtn);
   PATTERNS.forEach(pat=>{
     const card=document.createElement('button');
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
@@ -1657,8 +1229,7 @@ function buildGallery(){
     const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
     const badge=document.createElement('div');
     if(pat.type==='generator'){badge.className='pcard-badge gen';badge.textContent='Kōshi · Kaki no Hana · Snowflake';}
-    else if(pat.type==='polyline'){badge.className='pcard-badge';badge.textContent=pat.engine==='asanoha'?'Hemp leaf':'Continuous';}
-    else if(pat.type==='editor'){badge.className='pcard-badge gen';badge.textContent='Draw custom';}
+    else if(pat.type==='polyline'){badge.className='pcard-badge';badge.textContent='Continuous';}
     else{badge.className='pcard-badge';badge.textContent=pat.passes.length+' passes';}
     card.append(name,jp,badge);
     card.onclick=()=>openPattern(pat);
@@ -1670,15 +1241,20 @@ window.filterGallery=function(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
   let vis=0;
   document.querySelectorAll('.pcard').forEach(card=>{
+    if(card.classList.contains('new-pattern-card')){
+      card.classList.toggle('hidden',activeFilter==='exp');
+      return;
+    }
     const pat=PATTERNS.find(p=>p.id===card.dataset.id);
     let mp;
     if(activeFilter===0)mp=true;
-    else if(activeFilter==='hm')mp=pat.type==='generator';
-    else mp=parseInt(card.dataset.p)===activeFilter;
-    const mq=!q||pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
+    else if(activeFilter==='hm')mp=pat&&pat.type==='generator';
+    else if(activeFilter==='exp')mp=card.dataset.exp==='1';
+    else mp=pat&&parseInt(card.dataset.p)===activeFilter;
+    const mq=!q||(pat&&(pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
       (pat.type==='generator'&&('koshi kaki persimmon snowflake hitomezashi lattice'.includes(q)))||
-      (pat.type==='polyline'&&('yamagata mountain continuous asanoha hemp leaf star 麻の葉 続き山形'.includes(q)))||
-      (pat.type==='editor'&&('editor custom draw pattern'.includes(q)));
+      (pat.type==='polyline'&&('yamagata mountain continuous'.includes(q)))))||
+      (card.dataset.exp==='1'&&('experimental custom draw'.includes(q)));
     const show=mp&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
   });
   let nr=document.getElementById('noResults');
@@ -1689,7 +1265,7 @@ window.setFilter=function(btn){
   document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   const f=btn.dataset.f;
-  activeFilter=f==='hm'?'hm':(f==='0'?0:parseInt(f));
+  activeFilter=f==='hm'?'hm':f==='exp'?'exp':(f==='0'?0:parseInt(f));
   filterGallery();
 };
 
@@ -1710,13 +1286,361 @@ window.showGallery=function(){
 function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
 
+
+
+// ── experimental.js ──────────────────────────────
+// ── Experimental patterns (localStorage) ───────────────────────────────────
+let EXP_PATTERNS=[];
+window.EXP_PATTERNS_ref=()=>EXP_PATTERNS;
+function loadExpPatterns(){try{EXP_PATTERNS=JSON.parse(localStorage.getItem('sashiko_exp')||'[]');}catch(e){EXP_PATTERNS=[];}}
+function saveExpPatterns(){localStorage.setItem('sashiko_exp',JSON.stringify(EXP_PATTERNS));}
+
+function renderExpPattern(pat){
+  if(!pat||!pat.lines)return;
+  const x=ctx;
+  x.fillStyle='#1a3a5c';x.fillRect(0,0,SIZE,SIZE);
+  const COS30=Math.cos(Math.PI/6),SIN30=Math.sin(Math.PI/6);
+  const bbox=pat.bbox;
+  const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
+  const tileW=dU,tileH=dV;
+  const isIso=pat.gridType==='isometric';
+  let tileSize;
+  if(isIso){tileSize=Math.min(SIZE/(tileW*2*COS30+4),SIZE/(tileH*2*SIN30+4))*1.5;}
+  else{tileSize=Math.min(SIZE/(tileW+4),SIZE/(tileH+4))*1.5;}
+  const ox=SIZE/2,oy=SIZE/2;
+  function g2s(u,v){
+    if(isIso)return{x:ox+(u-v)*tileSize*COS30,y:oy+(u+v)*tileSize*SIN30};
+    return{x:ox+u*tileSize,y:oy+v*tileSize};
+  }
+  x.lineWidth=1.5;x.lineCap='round';x.strokeStyle='#9cbcd8';
+  const over=Math.ceil(SIZE/Math.max(tileSize*tileW,tileSize*tileH,1))+2;
+  for(let ou=-over;ou<=over;ou++){for(let ov=-over;ov<=over;ov++){
+    pat.lines.forEach(l=>{
+      const u1=l.start[0]-bbox.minU+ou*dU,v1=l.start[1]-bbox.minV+ov*dV;
+      const u2=l.end[0]-bbox.minU+ou*dU,v2=l.end[1]-bbox.minV+ov*dV;
+      const p1=g2s(u1,v1),p2=g2s(u2,v2);
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    });
+  }}
+}
+
+window.openExpPattern=function openExpPattern(idOrPat){
+  const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
+  if(!pat)return;
+  document.getElementById('galleryView').style.display='none';
+  document.getElementById('animView').classList.add('open');
+  curPat=pat;isEXP=true;isHM=false;isPL=false;
+  TOTAL=1;step=1;playing=false;
+  showGenUI(false);
+  document.getElementById('info').textContent=pat.name||'Custom Pattern';
+  renderExpPattern(pat);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function expCardHTML(pat){
+  return`<div class="pcard exp-card" data-id="${pat.id}" data-exp="1" onclick="openExpPattern('${pat.id}')">
+    <canvas class="pcard-thumb" width="120" height="120" data-expid="${pat.id}"></canvas>
+    <div class="pcard-body">
+      <div class="pcard-name">${pat.name||'Custom'}</div>
+      <span class="pcard-badge">${pat.gridType==='isometric'?'Isometric':'Square'}</span>
+    </div>
+    <button class="exp-del-btn" title="Delete" onclick="event.stopPropagation();removeExpPattern('${pat.id}')">✕</button>
+  </div>`;
+}
+
+function rebuildExpGallery(){
+  document.querySelectorAll('.pcard.exp-card').forEach(c=>c.remove());
+  const grid=document.getElementById('pgrid');
+  EXP_PATTERNS.forEach(pat=>{
+    grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
+    const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
+    if(thumb&&pat.thumbnail){const img=new Image();img.onload=()=>{const tc=thumb.getContext('2d');tc.drawImage(img,0,0,120,120);};img.src=pat.thumbnail;}
+  });
+  filterGallery();
+}
+
+window.removeExpPattern=function removeExpPattern(id){
+  EXP_PATTERNS=EXP_PATTERNS.filter(p=>p.id!==id);
+  saveExpPatterns();
+  rebuildExpGallery();
+}
+
+// ── CAD view switching ──────────────────────────────────────────────────────
+window.showCAD=function(){
+  document.getElementById('galleryView').style.display='none';
+  document.getElementById('animView').classList.remove('open');
+  document.getElementById('cadView').classList.add('open');
+  cadInit();
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+window.showGalleryFromCAD=function(){
+  document.getElementById('cadView').classList.remove('open');
+  document.getElementById('galleryView').style.display='block';
+};
+
+
+
+// ── cad-engine.js ──────────────────────────────
+// ── CAD Engine ──────────────────────────────────────────────────────────────
+let cadLines=[],cadHistory=[],cadTool='draw';
+let cadGridType='isometric',cadMacro=3,cadPatMacro=5;
+const CAD_MICRO=10;
+const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
+let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
+let cadBase=1,cadTileSize,cadOX,cadOY;
+let cadPTile,cadPOX,cadPOY;
+let cadDrawing=false,cadStart=null,cadCur=null,cadHover=null;
+let cadLeftBuf=null,cadRightBuf=null;
+let cadInited=false;
+
+function cadApplyView(){
+  cadTileSize=cadBase*cadZoom;
+  const tc=Math.ceil(cadMacro*CAD_MICRO);
+  if(cadGridType==='isometric'){
+    cadOX=250+cadPanX;
+    cadOY=(500-(tc*2*cadTileSize*CAD_SIN30))/2+cadPanY;
+  }else{cadOX=(500-tc*cadTileSize)/2+cadPanX;cadOY=(500-tc*cadTileSize)/2+cadPanY;}
+}
+function cadG2S(u,v,ox,oy,sz){
+  if(cadGridType==='isometric')return{x:ox+(u-v)*sz*CAD_COS30,y:oy+(u+v)*sz*CAD_SIN30};
+  return{x:ox+u*sz,y:oy+v*sz};
+}
+function cadS2G(x,y,ox,oy,sz){
+  if(cadGridType==='isometric'){const dx=(x-ox)/(sz*CAD_COS30),dy=(y-oy)/(sz*CAD_SIN30);return{u:(dy+dx)/2,v:(dy-dx)/2};}
+  return{u:(x-ox)/sz,v:(y-oy)/sz};
+}
+function cadSnapPoint(ru,rv){
+  const SNAP=0.8;let best=null,bd=SNAP;
+  const tc=cadMacro*CAD_MICRO;
+  cadLines.forEach(l=>{
+    let d=Math.hypot(l.start[0]-ru,l.start[1]-rv);if(d<bd){bd=d;best=[l.start[0],l.start[1]];}
+    d=Math.hypot(l.end[0]-ru,l.end[1]-rv);if(d<bd){bd=d;best=[l.end[0],l.end[1]];}
+  });
+  if(best)return best;
+  return[Math.max(0,Math.min(tc,Math.round(ru))),Math.max(0,Math.min(tc,Math.round(rv)))];
+}
+function cadDistToSeg(p,a,b){
+  const l2=(b[0]-a[0])**2+(b[1]-a[1])**2;
+  if(l2===0)return{dist:Math.hypot(p[0]-a[0],p[1]-a[1]),t:0};
+  let t=((p[0]-a[0])*(b[0]-a[0])+(p[1]-a[1])*(b[1]-a[1]))/l2;
+  t=Math.max(0,Math.min(1,t));
+  return{dist:Math.hypot(p[0]-a[0]-t*(b[0]-a[0]),p[1]-a[1]-t*(b[1]-a[1])),t};
+}
+function cadLineInter(p1,p2,p3,p4){
+  const s1u=p2[0]-p1[0],s1v=p2[1]-p1[1],s2u=p4[0]-p3[0],s2v=p4[1]-p3[1];
+  const d=-s2u*s1v+s1u*s2v;
+  if(Math.abs(d)<0.0001)return null;
+  const s=(-s1v*(p1[0]-p3[0])+s1u*(p1[1]-p3[1]))/d;
+  let t=(s2u*(p1[1]-p3[1])-s2v*(p1[0]-p3[0]))/d;
+  if(s>=-0.001&&s<=1.001&&t>=-0.001&&t<=1.001){t=Math.max(0,Math.min(1,t));return[p1[0]+t*s1u,p1[1]+t*s1v,t];}
+  return null;
+}
+function cadHoveredSeg(ru,rv){
+  const THRESH=15/cadTileSize;let best=null,bd=THRESH,li=-1,bt=0;
+  cadLines.forEach((l,i)=>{const r=cadDistToSeg([ru,rv],l.start,l.end);if(r.dist<bd){bd=r.dist;best=l;bt=r.t;li=i;}});
+  if(!best)return null;
+  let pts=[{t:0,u:best.start[0],v:best.start[1]},{t:1,u:best.end[0],v:best.end[1]}];
+  cadLines.forEach((l,i)=>{if(i===li)return;const ix=cadLineInter(best.start,best.end,l.start,l.end);if(ix)pts.push({t:ix[2],u:ix[0],v:ix[1]});});
+  pts.sort((a,b)=>a.t-b.t);
+  const up=[pts[0]];for(let i=1;i<pts.length;i++)if(pts[i].t-up[up.length-1].t>0.005)up.push(pts[i]);
+  for(let i=0;i<up.length-1;i++)if(bt>=up[i].t-0.005&&bt<=up[i+1].t+0.005)return{li,start:up[i],end:up[i+1],all:up,ci:i};
+  return null;
+}
+function cadBBox(){
+  if(!cadLines.length)return null;
+  let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
+  cadLines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
+  return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
+}
+function cadBakeLeft(){
+  const cv=document.getElementById('cadCanvas');if(!cv)return;
+  cadLeftBuf=document.createElement('canvas');cadLeftBuf.width=500;cadLeftBuf.height=500;
+  const lx=cadLeftBuf.getContext('2d');
+  const tc=cadMacro*CAD_MICRO;
+  lx.fillStyle='#a0a0b8';
+  for(let u=0;u<=tc;u++)for(let v=0;v<=tc;v++){
+    if(u%CAD_MICRO!==0&&v%CAD_MICRO!==0){const p=cadG2S(u,v,cadOX,cadOY,cadTileSize);lx.fillRect(p.x-1.5,p.y-1.5,3,3);}
+  }
+  lx.lineWidth=2;lx.strokeStyle='#c5c5d5';
+  for(let i=0;i<=cadMacro;i++){
+    const val=i*CAD_MICRO;
+    lx.beginPath();const p1=cadG2S(val,0,cadOX,cadOY,cadTileSize),p2=cadG2S(val,tc,cadOX,cadOY,cadTileSize);lx.moveTo(p1.x,p1.y);lx.lineTo(p2.x,p2.y);lx.stroke();
+    lx.beginPath();const p3=cadG2S(0,val,cadOX,cadOY,cadTileSize),p4=cadG2S(tc,val,cadOX,cadOY,cadTileSize);lx.moveTo(p3.x,p3.y);lx.lineTo(p4.x,p4.y);lx.stroke();
+  }
+}
+function cadBakeRight(){
+  cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
+  const rx=cadRightBuf.getContext('2d');
+  rx.lineWidth=1.5;rx.strokeStyle='#3a3a4a';
+  const ptc=cadPatMacro*CAD_MICRO,ov=cadPatMacro;
+  for(let i=-ov;i<=cadPatMacro+ov;i++){
+    const val=i*CAD_MICRO;
+    rx.beginPath();const p1=cadG2S(val,-ov*CAD_MICRO,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,(cadPatMacro+ov)*CAD_MICRO,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
+    rx.beginPath();const p3=cadG2S(-ov*CAD_MICRO,val,cadPOX,cadPOY,cadPTile),p4=cadG2S((cadPatMacro+ov)*CAD_MICRO,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
+  }
+}
+function cadDrawWorkspace(){
+  const cv=document.getElementById('cadCanvas');if(!cv)return;
+  const x=cv.getContext('2d');
+  x.clearRect(0,0,500,500);
+  if(cadLeftBuf)x.drawImage(cadLeftBuf,0,0);
+  const all=[...cadLines];
+  if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
+  const bbox=cadBBox2(all);
+  if(bbox){
+    x.fillStyle='rgba(255,255,255,0.08)';x.beginPath();
+    const p1=cadG2S(bbox.minU,bbox.minV,cadOX,cadOY,cadTileSize),p2=cadG2S(bbox.maxU,bbox.minV,cadOX,cadOY,cadTileSize);
+    const p3=cadG2S(bbox.maxU,bbox.maxV,cadOX,cadOY,cadTileSize),p4=cadG2S(bbox.minU,bbox.maxV,cadOX,cadOY,cadTileSize);
+    x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);x.closePath();x.fill();
+  }
+  x.lineWidth=4;x.lineCap='round';
+  cadLines.forEach((l,i)=>{
+    x.strokeStyle=(cadHover&&cadHover.li===i)?'#00ffcc55':'#00ffcc';
+    const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize),p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
+    x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+  });
+  if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
+    const p1=cadG2S(cadStart[0],cadStart[1],cadOX,cadOY,cadTileSize),p2=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+    x.strokeStyle='rgba(0,255,204,0.5)';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+  }
+  if(cadTool==='erase'&&cadHover){
+    const p1=cadG2S(cadHover.start.u,cadHover.start.v,cadOX,cadOY,cadTileSize),p2=cadG2S(cadHover.end.u,cadHover.end.v,cadOX,cadOY,cadTileSize);
+    x.strokeStyle='#ff3366';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+  }
+  if(cadTool==='draw'&&cadCur){
+    const s=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+    x.fillStyle='#00ffcc';x.beginPath();x.arc(s.x,s.y,6,0,Math.PI*2);x.fill();
+  }
+}
+function cadBBox2(lines){
+  if(!lines.length)return null;
+  let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
+  lines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
+  return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
+}
+function cadDrawPattern(){
+  const pv=document.getElementById('patCanvas');if(!pv)return;
+  const x=pv.getContext('2d');
+  x.clearRect(0,0,500,500);
+  if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
+  const all=[...cadLines];
+  if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
+  const bbox=cadBBox2(all);if(!bbox)return;
+  const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
+  const ptc=cadPatMacro*CAD_MICRO,ov=ptc;
+  x.lineWidth=2.5;x.lineCap='round';
+  for(let ou=-ov;ou<=ptc+ov;ou+=dU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=dV){
+    all.forEach(l=>{
+      const u1=l.start[0]-bbox.minU+ou,v1=l.start[1]-bbox.minV+ov2;
+      const u2=l.end[0]-bbox.minU+ou,v2=l.end[1]-bbox.minV+ov2;
+      const p1=cadG2S(u1,v1,cadPOX,cadPOY,cadPTile),p2=cadG2S(u2,v2,cadPOX,cadPOY,cadPTile);
+      if((p1.x>-50&&p1.x<550&&p1.y>-50&&p1.y<550)||(p2.x>-50&&p2.x<550&&p2.y>-50&&p2.y<550)){
+        x.strokeStyle=l.preview?'rgba(0,255,204,0.4)':'#00ffcc';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+      }
+    });
+  }}
+}
+function cadUpdateAll(){cadDrawWorkspace();cadDrawPattern();}
+window.cadUpdateSettings=function(){
+  cadGridType=document.getElementById('cadGridType').value;
+  cadMacro=parseInt(document.getElementById('cadGridSize').value);
+  cadPatMacro=parseInt(document.getElementById('cadPatSize').value);
+  cadZoom=1;cadPanX=0;cadPanY=0;
+  const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*CAD_MICRO;
+  if(cadGridType==='isometric'){
+    cadBase=460/(2*tc*CAD_COS30);
+    cadPTile=500/(2*ptc*CAD_COS30);cadPOX=250;cadPOY=(500-(ptc*2*cadPTile*CAD_SIN30))/2;
+  }else{
+    cadBase=460/tc;
+    cadPTile=500/ptc;cadPOX=0;cadPOY=0;
+  }
+  cadApplyView();cadBakeLeft();cadBakeRight();cadUpdateAll();
+};
+window.cadSetTool=function(t){
+  cadTool=t;
+  document.getElementById('cadBtnDraw').classList.toggle('on',t==='draw');
+  document.getElementById('cadBtnErase').classList.toggle('on',t==='erase');
+  cadDrawing=false;cadStart=null;cadHover=null;cadUpdateAll();
+};
+window.cadUndo=function(){if(cadHistory.length){cadLines=cadHistory.pop();cadUpdateAll();}};
+window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadUpdateAll();}};
+window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
+window.cadSaveToLibrary=function(){
+  if(!cadLines.length)return;
+  const bbox=cadBBox();if(!bbox)return;
+  const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
+  const id='exp_'+Date.now();
+  const lines=cadLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  const thumbnail=document.getElementById('patCanvas').toDataURL('image/png');
+  const pat={id,name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},thumbnail};
+  EXP_PATTERNS.unshift(pat);saveExpPatterns();rebuildExpGallery();
+  const btn=document.getElementById('cadSaveBtn');
+  btn.textContent='✓ Saved!';btn.style.background='#1a5c28';
+  setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
+};
+function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
+function cadInit(){
+  if(cadInited)return;cadInited=true;
+  const cv=document.getElementById('cadCanvas');
+  cadUpdateSettings();
+  cv.addEventListener('contextmenu',e=>e.preventDefault());
+  cv.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const pos=cadGetPos(e,cv);
+    const delta=e.deltaY>0?0.9:1.1;
+    let nz=Math.max(0.2,Math.min(cadZoom*delta,10));
+    if(nz===cadZoom)return;
+    const ratio=nz/cadZoom;
+    const tc=cadMacro*CAD_MICRO;
+    if(cadGridType==='isometric'){const dx=250,dy=(500-(tc*2*(cadBase*nz)*CAD_SIN30))/2;cadPanX=pos.x-(pos.x-cadOX)*ratio-dx;cadPanY=pos.y-(pos.y-cadOY)*ratio-dy;}
+    else{const dx=(500-tc*(cadBase*nz))/2,dy=(500-tc*(cadBase*nz))/2;cadPanX=pos.x-(pos.x-cadOX)*ratio-dx;cadPanY=pos.y-(pos.y-cadOY)*ratio-dy;}
+    cadZoom=nz;cadApplyView();cadBakeLeft();cadUpdateAll();
+  },{passive:false});
+  cv.addEventListener('pointerdown',e=>{
+    cv.setPointerCapture(e.pointerId);
+    const pos=cadGetPos(e,cv);
+    if(e.button===1||e.button===2){cadPanning=true;cadPanStart=pos;cv.style.cursor='grabbing';return;}
+    if(cadTool==='draw'){const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);cadCur=cadSnapPoint(g.u,g.v);cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];}
+    else if(cadTool==='erase'&&cadHover){
+      cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+      cadLines.splice(cadHover.li,1);
+      for(let i=0;i<cadHover.all.length-1;i++)if(i!==cadHover.ci)cadLines.push({start:[cadHover.all[i].u,cadHover.all[i].v],end:[cadHover.all[i+1].u,cadHover.all[i+1].v]});
+      cadHover=null;
+    }
+    cadUpdateAll();
+  });
+  cv.addEventListener('pointermove',e=>{
+    const pos=cadGetPos(e,cv);
+    if(cadPanning){cadPanX+=pos.x-cadPanStart.x;cadPanY+=pos.y-cadPanStart.y;cadPanStart=pos;cadApplyView();cadBakeLeft();cadUpdateAll();return;}
+    const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
+    if(cadTool==='draw')cadCur=cadSnapPoint(g.u,g.v);
+    else{cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
+    cadUpdateAll();
+  });
+  cv.addEventListener('pointerup',e=>{
+    if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
+    if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
+      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines.push({start:cadStart,end:cadCur});}
+    }
+    cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
+  });
+  cv.addEventListener('pointerleave',()=>{cadDrawing=false;cadStart=null;cadCur=null;cadHover=null;cadUpdateAll();});
+  document.addEventListener('keydown',e=>{
+    if(document.getElementById('cadView').classList.contains('open')&&e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
+  });
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
+document.getElementById('cadView').classList.remove('open');
+document.getElementById('animView').classList.remove('open');
+document.getElementById('galleryView').style.display='block';
 initGenUI();
-initEditorUI();
+loadExpPatterns();
 buildGallery();
+rebuildExpGallery();
+
 
 })();
 </script>
-
 
 </body></html>
