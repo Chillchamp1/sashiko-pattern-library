@@ -214,7 +214,7 @@ function renderPLThumb(canvas,pat){
   const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
   tc.fillStyle='#1a3a5c';tc.fillRect(0,0,TS,TS);
   tc.lineCap='round';
-  const TN=12, TG=(TS-2*TPAD)/TN;
+  const TN=PL_NHU, TG=(TS-2*TPAD)/TN;
   const{path}=buildTsuzukiYamagata(TN);
   tc.lineWidth=1;
   for(const seg of path){

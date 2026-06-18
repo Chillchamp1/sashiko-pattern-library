@@ -18,7 +18,7 @@ function buildGallery(){
     card.append(name,jp,badge);
     card.onclick=()=>openPattern(pat);
     grid.appendChild(card);
-    requestAnimationFrame(()=>renderThumb(thumb,pat));
+    setTimeout(()=>renderThumb(thumb,pat),0);
   });
 }
 window.filterGallery=function(){
