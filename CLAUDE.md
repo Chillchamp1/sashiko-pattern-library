@@ -1,305 +1,302 @@
-# Sashiko Pattern Library — Projektkontext
+﻿# Sashiko Pattern Library — Project Context
 
 ## Deliverable
 
-**Datei:** `Sashiko — Pattern Library.htm` — self-contained, kein Build-Schritt, kein Server. Einfach im Browser öffnen.
+**File:** `Sashiko — Pattern Library.htm` — self-contained, no build step, no server. Open directly in a browser.
 
-Interaktive Sashiko-Muster-Bibliothek mit animierter Stich-Vorschau. Alle Logik, CSS und Canvas-Rendering in einer einzigen HTML-Datei.
+Interactive Sashiko pattern library with animated stitch-by-stitch preview. All logic, CSS and canvas rendering in a single HTML file.
 
-**Workflow-Hinweise (wichtig):**
-- Diese Datei (CLAUDE.md) ist die Projektdoku — bei jeder Session lesen und bei Änderungen aktuell halten.
-- Farbtöne IMMER aus dem Abschnitt **Farben** unten nehmen (`PHASE_COLORS` + Stoff `#1a3a5c`).
-- Neue Muster aus den Büchern (`../Bücher`, PDFs): Geometrie NICHT aus dem Bild raten, sondern mit `tools/pattern_extractor.py` programmatisch extrahieren (siehe Abschnitt **Pattern-Extraktor**).
-- **Stickreihenfolge/Routing** IMMER nach den Regeln in `ROUTING.md` (lange Linien, kurze Sprünge). Gilt für alle Muster.
+**Workflow notes (important):**
+- This file (CLAUDE.md) is the project documentation — read it at the start of every session and keep it current when things change.
+- Colours ALWAYS from the **Colours** section below (`PHASE_COLORS` + fabric `#1a3a5c`).
+- New patterns from the books (`../Buecher`, PDFs): do NOT guess geometry from the image — extract it programmatically with `tools/pattern_extractor.py` (see **Pattern Extractor** section).
+- **Stitch order / routing** ALWAYS per the rules in `ROUTING.md` (long lines, short jumps). Applies to all patterns.
 
-## Build-System
+## Build System
 
-**Quellcode:** `src/` — aufgeteilt in kleine, gezielte Dateien:
+**Source:** `src/` — split into small, focused files:
 
-| Datei | Inhalt | Zeilen |
+| File | Contents | Lines |
 |---|---|---|
-| `src/template.html` | HTML-Skelett mit Injection-Markern | ~163 |
-| `src/styles.css` | Alle CSS-Styles | ~178 |
-| `src/patterns.js` | `PATTERNS`-Array + Generator-Presets | ~65 |
-| `src/engine-star.js` | Canvas-Setup + Star-Arm-Engine | ~54 |
-| `src/engine-hm.js` | Hitomezashi-Engine | ~153 |
-| `src/engine-polyline.js` | Tsuzuki Yamagata Polyline-Engine | ~225 |
-| `src/render.js` | Animations-State, Render-Dispatcher, `loadPattern` | ~147 |
-| `src/generator.js` | Generator-UI, Playback, Thumbnails | ~212 |
-| `src/gallery.js` | `buildGallery`, `filterGallery`, View-Switching | ~77 |
-| `src/experimental.js` | Experimentelle Muster (localStorage) | ~89 |
-| `src/cad-engine.js` | CAD-Editor + Init | ~259 |
+| `src/template.html` | HTML skeleton with injection markers | ~163 |
+| `src/styles.css` | All CSS styles | ~178 |
+| `src/patterns.js` | `PATTERNS` array + generator presets | ~65 |
+| `src/engine-star.js` | Canvas setup + star-arm engine | ~54 |
+| `src/engine-hm.js` | Hitomezashi engine | ~153 |
+| `src/engine-polyline.js` | Tsuzuki Yamagata polyline engine | ~225 |
+| `src/render.js` | Animation state, render dispatcher, `loadPattern` | ~170 |
+| `src/generator.js` | Generator UI, playback, thumbnails | ~240 |
+| `src/gallery.js` | `buildGallery`, `filterGallery`, view switching | ~77 |
+| `src/experimental.js` | Custom Patterns (experimental), Firebase sync, CAD save/open | ~300 |
+| `src/cad-engine.js` | CAD editor + init | ~320 |
 
-**Build:** `python build.py` → schreibt `Sashiko — Pattern Library.htm` + `index.html` (identisch).
+**Build:** `python build.py` writes `Sashiko — Pattern Library.htm` + `index.html` (identical).
 
-**GitHub Actions** (`.github/workflows/build.yml`): Läuft automatisch bei jedem Push nach `src/` → baut und committed die Deliverable-Dateien → GitHub Pages deployed `index.html` live.
+**GitHub Actions** (`.github/workflows/build.yml`): runs automatically on every push to `src/` — builds and commits the deliverable files — GitHub Pages deploys `index.html` live.
 
-**Editier-Workflow:**
-1. Gewünschte `src/`-Datei bearbeiten (z.B. `src/cad-engine.js` für CAD-Änderungen)
-2. `python build.py` lokal testen
-3. Pushen → Actions baut + deployed automatisch
+**Edit workflow:**
+1. Edit the desired `src/` file (e.g. `src/cad-engine.js` for CAD changes)
+2. Test locally with `python build.py`
+3. Push — Actions builds + deploys automatically
 
-**NIE** `Sashiko — Pattern Library.htm` oder `index.html` direkt bearbeiten — das sind Build-Artefakte.
+**NEVER** edit `Sashiko — Pattern Library.htm` or `index.html` directly — those are build artefacts.
 
 ---
 
-## Architektur
+## Architecture
 
-Drei getrennte Rendering-Engines:
+Three separate rendering engines:
 
-### 1. Star-Arm Engine (Moyozashi-Stil)
-Für Jūji-zashi, Naname Jūji-zashi, Komesashi.
+### 1. Star-Arm Engine (Moyozashi style)
+For Juji-zashi, Naname Juji-zashi, Komesashi.
 
-Kurze Arm-Segmente von jedem Gitterpunkt aus in den Richtungen `V`, `H`, `D1`, `D2`. Jede Richtung = ein Pass. Das System optimiert die Reihenfolge der Pässe und ihre Richtung durch Brute-Force über alle Permutationen (4! = 24), um den Inter-Pass-Sprung zu minimieren.
+Short arm segments from each grid point in directions `V`, `H`, `D1`, `D2`. Each direction = one pass. The system optimises pass order and direction by brute-force over all permutations (4! = 24) to minimise inter-pass jumps.
 
 ```
-const sx = i => PAD + i*G       // x-Koordinate Gitterpunkt i
-const sy = j => PAD + (N-1-j)*G // y-Koordinate, j=0 unten
+const sx = i => PAD + i*G       // x coordinate of grid point i
+const sy = j => PAD + (N-1-j)*G // y coordinate, j=0 at bottom
 N = 7, G = 50px, PAD = 36px, SIZE = 372px
 ```
 
 ### 2. Hitomezashi Running-Stitch Engine
-Für Hitomezashi-Generator, Kōshi, Kaki no Hana, Yamagata-Preset, Fibonacci-Snowflake.
+For Hitomezashi Generator, Koshi, Kaki no Hana, Yamagata preset, Fibonacci Snowflake.
 
-Kanten-Segmente entlang Gitterlinien. Dynamisches Grid (HM_N × HM_N Punkte), `HM_CELL = 300 / (HM_N - 1)` — passt immer in den Canvas.
+Edge segments along grid lines. Dynamic grid (HM_N x HM_N points), `HM_CELL = 300 / (HM_N - 1)` — always fits the canvas.
 
 ```
 const shx = i => PAD + i*HM_CELL
-const shy = j => PAD + j*HM_CELL   // j=0 oben (nicht gespiegelt!)
+const shy = j => PAD + j*HM_CELL   // j=0 at top (not mirrored)
 ```
 
-**Mathematisches Modell (explizite Pro-Linie-Bits):**
-- Horizontale Kante `(i,j)-(i+1,j)` wird gestickt ⟺ `(i + rowBits[j]) % 2 === 0`
-- Vertikale Kante `(i,j)-(i,j+1)` wird gestickt ⟺ `(j + colBits[i]) % 2 === 0`
-- `rowBits[j]` = Start-Phase der **Reihe** j (horizontale Stiche, grün), `colBits[i]` = Start-Phase der **Spalte** i (vertikale Stiche, blau). **Reihen und Spalten sind unabhängig** — das ist das echte Hitomezashi-Modell. Der frühere Einzel-`seq`+`off`-Ansatz war der symmetrische Spezialfall `rowBits === colBits`.
+**Mathematical model (explicit per-line bits):**
+- Horizontal edge `(i,j)-(i+1,j)` is stitched if `(i + rowBits[j]) % 2 === 0`
+- Vertical edge `(i,j)-(i,j+1)` is stitched if `(j + colBits[i]) % 2 === 0`
+- `rowBits[j]` = start phase of **row** j (horizontal stitches, green), `colBits[i]` = start phase of **column** i (vertical stitches, blue). **Rows and columns are independent** — this is the true Hitomezashi model.
 
-**Engine-Einstieg:** `buildHMcore(rowBits, colBits)` (N = `rowBits.length`). 8-Kombinations-Sprung-Optimierung wie zuvor.
+**Engine entry point:** `buildHMcore(rowBits, colBits)` (N = `rowBits.length`). 8-combination jump optimisation.
 
-**Preset → Bits:** `seqToBits(seq, N)` kachelt eine Periodensequenz auf N explizite Bits und zentriert sie über `findSymOffset(seq, N)` (Palindrom-Offset, sonst 0) — so sieht ein Preset aus wie früher. Danach sind die Bits explizit und einzeln umschaltbar. **Kein N-Snapping mehr** (`nearestSymN` entfernt): jede Gittergröße ist erlaubt; Presets werden bei Größenänderung neu gekachelt. `buildHitomezashi(pat)` ist nur noch ein Wrapper: `buildHMcore(seqToBits(pat.seq,N), …)` für seq-basierte Muster.
+**Preset to bits:** `seqToBits(seq, N)` tiles a period sequence to N explicit bits and centres them via `findSymOffset(seq, N)` (palindrome offset, otherwise 0). No more N-snapping (`nearestSymN` removed): any grid size is allowed; presets re-tile on size change. `buildHitomezashi(pat)` is just a wrapper: `buildHMcore(seqToBits(pat.seq,N), ...)` for seq-based patterns.
 
 ### 3. Polyline Engine (Tsuzuki Yamagata + Asanoha)
-Für `type:'polyline'` (Tsuzuki Yamagata und Asanoha). Geometrie programmatisch aus dem Buch-Diagramm extrahiert (siehe **Pattern-Extraktor**), nicht geraten.
+For `type:'polyline'` (Tsuzuki Yamagata and Asanoha). Geometry extracted programmatically from the book diagram (see **Pattern Extractor**), not guessed.
 
-**Generisches N-Pass-Modell:** `PL_passes = [{start, label, glyph, col}]` beschreibt die Pässe (col = `PHASE_COLORS`-Key). TY hat 2 Pässe, Asanoha 4. `buildJumpBar`, `updateInfoPL` und der Jump-Bar lesen `PL_passes` (kein hartkodiertes 2-Pass mehr; `PL_shCount` bleibt nur als Alias = `passes[1].start`). Rendering-Skala pro Muster: `PL_N` (Einheiten über Canvas), `PL_HU=(SIZE-2*PAD)/PL_N`, `PL_guideStep` (Gitterlinien alle n Einheiten) — in `loadPattern` je nach `pat.engine` gesetzt. `tracePaired`/`orderNN`/`renderPolyline`/`drawPLFront` sind geteilt.
+**Generic N-pass model:** `PL_passes = [{start, label, glyph, col}]` describes the passes (col = `PHASE_COLORS` key). TY has 2 passes, Asanoha 4. `buildJumpBar`, `updateInfoPL` and the jump bar all read `PL_passes`. Per-pattern render scale: `PL_N` (units across canvas), `PL_HU=(SIZE-2*PAD)/PL_N`, `PL_guideStep` (grid lines every n units) — set in `loadPattern` depending on `pat.engine`. `tracePaired`/`orderNN`/`renderPolyline`/`drawPLFront` are shared.
 
-Das Muster ist die Vereinigung gerader Running-Stitch-Linien in vier Steigungen: **flach ±1/2** (breite Rauten 2×1, fließen horizontal) und **steil ±2** (hohe Rauten 1×2, fließen vertikal). Die Linien kreuzen sich → Bergketten-Mesh. Kodiert auf einem **Halbraster** als 16-Kanten-Einheitszelle `TY_CELL` + Generatoren `TY_G1=[4,4]`, `TY_G2=[8,0]`. Verifiziert: reproduziert den extrahierten Kanten-Datensatz zu 100 % (0 false positives).
+The pattern is the union of straight running-stitch lines in four slopes: **shallow +/-1/2** (wide 2x1 diamonds, flow horizontally) and **steep +/-2** (tall 1x2 diamonds, flow vertically). Lines cross — mountain-range mesh. Encoded on a **half-grid** as a 16-edge unit cell `TY_CELL` + generators `TY_G1=[4,4]`, `TY_G2=[8,0]`. Verified: reproduces the extracted edge dataset 100% (0 false positives).
 
 ```
-PL_NHU = 20           // Halbeinheiten über den Canvas (= 10 "grid squares")
+PL_NHU = 20           // half-units across the canvas (= 10 "grid squares")
 PL_HU  = (SIZE-2*PAD)/PL_NHU
 plPx(c) = PAD + c*PL_HU
 ```
 
-- `genTYedges(NHU)` — Einheitszelle über Gitter kacheln, Kanten im Halbraster.
-- `traceZig(edges, axis)` — durchgehende Zickzack-Linien tracen: an jeder Kreuzung geradeaus in +axis weiter, Senkrechtschritt alternieren → eine Zickzack-Linie, die über den Stoff marschiert (wie der rote Buch-Pfad). 100 % Kantenabdeckung verifiziert.
-- `buildTsuzukiYamagata(NHU)` — steile Kanten → horizontal marschierende Zickzacks (Pass 1), flache → dasselbe um 90° gedreht (Pass 2).
-- **Pass 1 = horizontal** (grüne `H`-Töne), **Pass 2 = vertikal** (blaue `V`-Töne). Zwei Töne je Familie = die zwei Translations-Klassen (siehe **Farb-Zuordnung**). Grenze bei `PL_shCount`. Ausschnitt: `PL_NHU=28`.
+- `genTYedges(NHU)` — tile unit cell over grid, edges in half-grid coords.
+- `traceZig(edges, axis)` — trace continuous zigzag lines: at each crossing go straight in +axis, alternate the perpendicular step. 100% edge coverage verified.
+- `buildTsuzukiYamagata(NHU)` — steep edges to horizontally marching zigzags (pass 1), shallow to same rotated 90 degrees (pass 2).
+- **Pass 1 = horizontal** (green `H` shades), **Pass 2 = vertical** (blue `V` shades). Two shades per family = the two translation classes (see **Colour Assignment**). Boundary at `PL_shCount`. Viewport: `PL_NHU=28`.
 
-#### Asanoha (麻の葉, Hemp Leaf) — `engine:'asanoha'`
-Geometrie aus **Essential Sashiko S.13** extrahiert (`tools/asanoha_extract.py`), verifiziert 100 % Recall / 98 % Precision (rotes Overlay liegt exakt auf jeder schwarzen Linie). Ineinandergreifende sechszackige Hanfblatt-Sterne.
+#### Asanoha (Hemp Leaf) — `engine:'asanoha'`
+Geometry extracted from **Essential Sashiko p.13** (`tools/asanoha_extract.py`), verified 100% recall / 98% precision. Interlocking six-pointed hemp-leaf stars.
 
-- **Quadratraster, Einheit = Gitterquadrat/4** (im Buch 84px → u=21px). Vertikale Gitterlinien alle 4u, horizontale alle 2u (Buchzelle 2:1 breit, 168×84px).
-- Vier Kantenfamilien: **V (0,1)**, **H (1,0)**, **flache Diagonale (2,±1)** (Steigung ½, lange „Speichen"-Linien), **steile Diagonale (2,±3)** (Steigung 1½, kurze „Blatt"-Zickzacks — knicken an den Blattspitzen, gerade durch die Naben). 12-strahlige Sterne an den Naben.
-- **34-Kanten-Einheitszelle `ASA_CELL` + Generatoren `ASA_G1=[8,4]`, `ASA_G2=[0,8]`** (in u). `genAsanohaEdges(NQ)` kachelt sie. Ausschnitt: `ASA_NQ=32`.
-- **4 Pässe in traditioneller Stickreihenfolge** (Buch): ① Vertikale `V`, ② flache Diagonalen `D1`, ③ steile Blatt-Zickzacks `D2`, ④ Horizontale `H` (zuletzt, hinter dem Stoff geführt). Je Diagonal-Pass 2 Töne = die zwei Schräglagen (Spiegelklassen). `buildAsanoha(NQ)` tract jede Familie einzeln mit `tracePaired`+`orderNN`.
+- **Square grid, unit = grid square/4** (84px in the book, u=21px). Vertical grid lines every 4u, horizontal every 2u (book cell 2:1 wide, 168x84px).
+- Four edge families: **V (0,1)**, **H (1,0)**, **shallow diagonal (2,+/-1)** (slope 1/2, long spoke lines), **steep diagonal (2,+/-3)** (slope 3/2, short leaf zigzags). 12-pointed stars at hubs.
+- **34-edge unit cell `ASA_CELL` + generators `ASA_G1=[8,4]`, `ASA_G2=[0,8]`** (in u). `genAsanohaEdges(NQ)` tiles them. Viewport: `ASA_NQ=32`.
+- **4 passes in traditional stitch order** (book): 1 Vertical V, 2 shallow diagonals D1, 3 steep leaf zigzags D2, 4 Horizontal H (last, carried behind the cloth). Two shades per diagonal pass = the two slope orientations (mirror classes). `buildAsanoha(NQ)` traces each family with `tracePaired`+`orderNN`.
 
 ---
 
-## Galerie-Patterns
+## Gallery Patterns
 
 ```javascript
 const PATTERNS = [
-  { id:'generator',         type:'generator', ...  },  // Hitomezashi-Generator, immer zuerst
+  { id:'generator',         type:'generator', ...  },  // Hitomezashi Generator, always first
   { id:'juji',              passes:['V','H'],  ... },
   { id:'naname',            passes:['D1','D2'], ... },
   { id:'komesashi',         passes:['V','H','D1','D2'], ... },
-  { id:'tsuzuki-yamagata',  type:'polyline',  ... },                   // Polyline Engine, 2 Pässe
-  { id:'asanoha',           type:'polyline', engine:'asanoha', ... },  // Polyline Engine, 4 Pässe
+  { id:'tsuzuki-yamagata',  type:'polyline',  ... },                   // Polyline Engine, 2 passes
+  { id:'asanoha',           type:'polyline', engine:'asanoha', ... },  // Polyline Engine, 4 passes
 ];
 ```
 
-Kōshi und Kaki no Hana sind **nicht** als separate Gallery-Einträge vorhanden — sie sind Generator-Presets.
+Koshi and Kaki no Hana are **not** separate gallery entries — they are generator presets.
 
-Entfernt (nicht verifizierbar als traditionelle Muster): `yarai`, `yokoyarai`, `mittsu`.
+Removed (not verifiable as traditional patterns): `yarai`, `yokoyarai`, `mittsu`.
 
 ---
 
 ## Hitomezashi Generator
 
-Zustand:
+State:
 ```javascript
-let GEN_rowBits=[], GEN_colBits=[];  // explizite Pro-Linie-Phasen (Länge = GEN_n)
-let GEN_n=12;                         // Gittergröße (= Anzahl Reihen/Spalten)
+let GEN_rowBits=[], GEN_colBits=[];  // explicit per-line phases (length = GEN_n)
+let GEN_n=12;                         // grid size (= number of rows/columns)
 let GEN_preset='kaki';                // 'koshi'|'kaki'|'snowflake'|null (null = Custom)
-let GEN_snowOrder=2;                  // 1|2|3
+let GEN_snowOrder=2;                  // always 2
 ```
 
-### Grafischer Linien-Editor (das Kern-Feature)
-Toggle-Buttons **rund um die Live-Vorschau**, exakt auf die Gitterpunkte ausgerichtet:
-- **Links** (`#hmRowToggles`): `ceil(N/2)` Buttons (obere Hälfte) → kippt `GEN_rowBits[j]` und spiegelt auf `GEN_rowBits[N-1-j]` → **grüne** horizontale Stiche.
-- **Oben** (`#hmColToggles`): `ceil(N/2)` Buttons (linke Hälfte) → kippt `GEN_colBits[i]` und spiegelt auf `GEN_colBits[N-1-i]` → **blaue** vertikale Stiche.
-- **Symmetrie:** Muster ist immer bilateral symmetrisch (oben↔unten, links↔rechts). Nur die erste Hälfte der Toggles ist sichtbar; die andere Hälfte wird automatisch gespiegelt. `resizeBitsSymmetric(a, N)` beim Resize.
-- DOM-Overlay in `.hm-frame` (CSS-Grid `[gutter auto / gutter auto]`, Gutter = `HM_GUT=30px` via `.hm-on`-Klasse). Position je Button: `left=shx(i)-bs/2` / `top=shy(j)-bs/2`; Größe `bs=clamp(11, HM_CELL-3, 22)`, Ziffer 0/1 nur wenn `bs≥14`. `buildLineToggles()` baut sie neu.
-- Jeder Toggle setzt `GEN_preset=null` (→ Custom) und ruft `refreshGen(true)`.
-- **`refreshGen(showFull)`** = einziger Einstieg nach jeder Änderung: `applyGeneratorInternal()` (baut Engine, setzt `HM_CELL`/`TOTAL`) → `updateGenUI` → `buildLineToggles` → `syncGrid` → `setGenTitle` → `buildJumpBar` → bei `showFull` `step=TOTAL` und `render`. **Editieren zeigt sofort das volle Muster** (Vorhersage), nicht die Animation; Play/Reset starten die Animation neu.
-- **`#genSlider`** sitzt direkt unter dem Canvas (zwischen `#hmFrame` und `#info`), immer sichtbar wenn Generator aktiv. Universeller Slider: bei normalen Presets Label „Grid", Range 6–20; bei Snowflake Label „Size", Range 8–32.
-- `setGridN(N)`: Preset aktiv → neu kacheln (`seqToBits`); Custom → Bits erhalten/symmetrisch auffüllen (`resizeBitsSymmetric`).
+### Graphical Line Editor (the core feature)
+Toggle buttons **around the live preview**, precisely aligned to grid points:
+- **Left** (`#hmRowToggles`): `ceil(N/2)` buttons (upper half) — toggles `GEN_rowBits[j]` and mirrors to `GEN_rowBits[N-1-j]` — **green** horizontal stitches.
+- **Top** (`#hmColToggles`): `ceil(N/2)` buttons (left half) — toggles `GEN_colBits[i]` and mirrors to `GEN_colBits[N-1-i]` — **blue** vertical stitches.
+- **Symmetry:** pattern is always bilaterally symmetric (top/bottom, left/right). Only the first half of the toggles is visible; the other half is mirrored automatically. `resizeBitsSymmetric(a, N)` on resize.
+- `buildLineToggles()` rebuilds the buttons. Each toggle sets `GEN_preset=null` (Custom) and calls `refreshGen(true)`.
+- **`refreshGen(showFull)`** = sole entry point after every change. Editing immediately shows the full pattern (preview); Play/Reset restart the animation.
+- `setGridN(N)`: preset active — re-tile; Custom — preserve bits / symmetrically pad.
 
-### Generator-Presets
-Ein Preset **füllt nur** `GEN_rowBits`/`GEN_colBits` (`loadPreset(key)` → `seqToBits`); danach frei umschaltbar.
+### Generator Presets
+A preset **only fills** `GEN_rowBits`/`GEN_colBits` (`loadPreset(key)` -> `seqToBits`); freely editable afterwards.
 ```javascript
 const GEN_PRESETS = {
-  koshi:    { seq:[0],          n:12, label:'Kōshi'        },
+  koshi:    { seq:[0],          n:12, label:'Koshi'        },
   kaki:     { seq:[0,0,1,0,1], n:12, label:'Kaki no Hana' },
-  snowflake:{ label:'Snowflake' },   // seq/n via snowSeq(2) + GEN_snowGrid
+  snowflake:{ label:'Snowflake' },
 };
 ```
-(Yamagata ist KEIN Generator-Preset mehr.)
+Yamagata is NO LONGER a generator preset.
 
-### Fibonacci Snowflake (immer Order 2)
-Nur Order 2 ist implementiert (8-Element-Fibonacci-Wort gespiegelt → 16-Element-Palindrom):
-```javascript
-function snowSeq(ord){ const h=snowHalf(ord); return [...h, ...[...h].reverse()]; }
-// Nur snowSeq(2) wird genutzt — kein Order-Menü mehr.
-```
-- **`GEN_snowGrid`** (default 16): Grid-Größe des Snowflake; der universelle Slider (`#genSlider`, Range 8–32) steuert ihn. `loadPreset('snowflake')` kachelt `snowSeq(2)` via `seqToBits(snowSeq(2), GEN_snowGrid)` auf beliebige Größe.
-- Linien-Toggles ausgeblendet (Snowflake hat keine frei editierbaren Bits — Preset-Struktur soll erhalten bleiben).
-- `#genSnowInfo` zeigt `N×N grid · TOTAL stitches`; kein Order-Untermenü.
+### Fibonacci Snowflake (always Order 2)
+Only Order 2 is implemented (8-element Fibonacci word mirrored to 16-element palindrome). `GEN_snowGrid` (default 16) controls the grid size via the universal slider (range 8-32).
 
 ---
 
-## Farben
+## Colours
 
 ```javascript
 const PHASE_COLORS = {
-  V:  ['#cde0f4', '#9cbcd8'],  // Vertical: hell/dunkel
+  V:  ['#cde0f4', '#9cbcd8'],  // Vertical: light/dark
   H:  ['#c4ebd6', '#88c4a4'],  // Horizontal
-  D1: ['#f5e0c8', '#e0b890'],  // Diagonal ⟋ (orange/amber)
-  D2: ['#ddd0f2', '#b0a0e0'],  // Diagonal ⟍ (violett)
+  D1: ['#f5e0c8', '#e0b890'],  // Diagonal (orange/amber)
+  D2: ['#ddd0f2', '#b0a0e0'],  // Diagonal (violet)
 };
 ```
-- Zwei Farbtöne pro Richtung: `lp=0` (gerade Zeilen, heller), `lp=1` (versetzte Zeilen, dunkler)
-- Stoff: `#1a3a5c` (dunkles Marineblau)
-- **Tsuzuki Yamagata** nutzt dieselbe Palette: flache (horizontale) Linien → `PHASE_COLORS.H`, steile (vertikale) → `PHASE_COLORS.V`.
-- **Diese Palette ist verbindlich** — für neue Muster keine neuen Farben erfinden, sondern hier wählen (ggf. erweitern und dokumentieren).
+- Two shades per direction: `lp=0` (even rows, lighter), `lp=1` (offset rows, darker)
+- Fabric: `#1a3a5c` (dark navy blue)
+- **Tsuzuki Yamagata** uses the same palette: shallow (horizontal) lines to `PHASE_COLORS.H`, steep (vertical) to `PHASE_COLORS.V`.
+- **This palette is binding** — do not invent new colours; choose from here (extend and document if necessary).
 
-### Farb-Zuordnung = Translations-Äquivalenzklasse (verbindlich, auch für künftige Muster)
-Die Farbe eines Pfades kodiert seine **Translations-Klasse**: zwei Pfade bekommen genau dann denselben Farbton, wenn der eine durch eine **Muster-Symmetrie-Verschiebung** auf (einen Teil) des anderen abgebildet wird. Ein nur nach links/rechts oder oben/unten verschobener Pfad = identisch. Ein am Rand **abgeschnittenes** Stück = identisch zum vollen Pfad, wenn sein ungeschnittener Teil verschoben woanders auftaucht. Ein Spiegelbild (Halbperioden-Versatz, KEIN Gittervektor) = eigene Klasse.
+### Colour Assignment = Translation Equivalence Class
+A path's colour encodes its **translation class**: two paths get the same shade if and only if one maps onto (part of) the other via a pattern symmetry translation. A mirror image (half-period offset, NOT a lattice vector) = its own class.
 
-Umsetzung (Tsuzuki Yamagata, Symmetriegitter aus `(4,4)`+`(8,0)` Halbeinheiten → 2 Klassen je Familie):
-- `classifyTranslation(chains)` — gruppiert Pfade; `latContains(big,small)` testet `∃ Gittervektor t: (small+t) ⊆ big` über `TY_LAT` (Brute-Force aller Gittervektoren). Subset deckt die Rand-Stücke ab.
-- **Geometrisches Invariant statt Heuristik (gilt für beide Familien):** `classifyTranslation` versagt bei kurzen Rand-Stücken (n=4), weil kleines |t|² zufällig die falsche Klasse trifft.
-  - Steile Ketten H (f=1): `startY % 8 === 4 → Klasse 0` (hell), `=== 0 → Klasse 1` (dunkel).
-  - Flache Ketten V (f=2): `startX % 8 === 4 → Klasse 0` (hell), `=== 0 → Klasse 1` (dunkel).
-- **V-Familie: sort-before-NN gegen große Sprünge:** `tracePaired` liefert V-Ketten in der Reihenfolge x=4…24 (voll), dann x=0,x=28 (Rand). NN lässt die x=0-Rand-Ketten als letztes übrig → Sprung von x=28 nach x=0. Fix: `items.sort((a,b)=>a.poly[0][0]-b.poly[0][0])` vor `orderNN` → x=0-Rand zuerst, dann x=4…24 voll, dann x=28-Rand. **Für neue Muster mit Rand-Ketten auf gegenüberliegenden Seiten dasselbe Muster anwenden.**
-- NICHT per Band-Parität / mittlerer Koordinate (war falsch — gab Nicht-Translaten dieselbe Farbe).
+Implementation (Tsuzuki Yamagata, 2 classes per family):
+- `classifyTranslation(chains)` — groups paths; `latContains(big,small)` tests for lattice vector containment over `TY_LAT`.
+- Geometric invariant: steep chains H (f=1): `startY % 8 === 4` -> class 0 (light), `=== 0` -> class 1 (dark). Shallow chains V (f=2): `startX % 8 === 4` -> class 0, `=== 0` -> class 1.
+- V-family: sort by x before NN to avoid large edge-to-edge jumps.
+- NOT by band parity / median coordinate.
 
 ---
 
-## Animations-Engine
+## Animation Engine
 
 ```javascript
-const TICK_MS = 40;  // feste Geschwindigkeit, ~25 Stiche/Sek, kein Slider
+const TICK_MS = 40;  // fixed speed, ~25 stitches/sec
 
-let step = 0;        // 0 = Anfang, TOTAL = fertig
+let step = 0;        // 0 = start, TOTAL = finished
 let playing = false;
 let raf = null;
 ```
 
-**Idle-Info-Bar Bug-Fix:** `el.classList.contains('idle')` wird in `onInfoClick()` geprüft — onclick-Attribut bleibt immer gesetzt, `setIdleInfo()` stellt die `idle`-Klasse wieder her. Dieses Pattern verhindert, dass onclick nach Reset nicht mehr funktioniert.
+**Keyboard:** Space = Play/Pause, ArrowLeft/Right = one stitch forward/back.
 
-**Tastatur:** Space = Play/Pause, ArrowLeft/Right = ein Stich vor/zurück.
-
----
-
-## Jump-Bar
-
-Springt direkt zu Pass-Grenzen. Beim HM-Muster: Pass 1 (horizontal) vs. Pass 2 (vertikal). Bei Polyline-Mustern: ein Button je `PL_passes`-Eintrag (TY 2, Asanoha 4) — Grenzen aus `PL_passes[i].start`.
+**Idle info-bar:** `onInfoClick()` checks `classList.contains('idle')` — onclick stays set always, `setIdleInfo()` restores the `idle` class (prevents onclick from breaking after Reset).
 
 ---
 
-## Filter-System
+## Jump Bar
+
+Jumps directly to pass boundaries. HM patterns: pass 1 (horizontal) vs. pass 2 (vertical). Polyline patterns: one button per `PL_passes` entry (TY 2, Asanoha 4) — boundaries from `PL_passes[i].start`.
+
+---
+
+## Filter System
 
 ```
-data-f="0"  → Alle
-data-f="2"  → 2 Pässe
-data-f="4"  → 4 Pässe
-data-f="hm" → Hitomezashi (nur Generator-Card)
+data-f="0"  -> All
+data-f="2"  -> 2 passes
+data-f="4"  -> 4 passes
+data-f="hm" -> Hitomezashi (Generator card only)
 ```
 
-Suche matcht auf: name, jp, en, id, plus Generator-Keywords (`koshi kaki persimmon lattice snowflake hitomezashi`) und Polyline-Keywords (`yamagata mountain continuous asanoha hemp leaf star 麻の葉 続き山形`).
+Search matches: name, jp, en, id, plus generator keywords (`koshi kaki persimmon lattice snowflake hitomezashi`) and polyline keywords (`yamagata mountain continuous asanoha hemp leaf star`).
 
-Polyline-Muster (TY, Asanoha) haben `passes.length===0` → erscheinen nur unter „Alle" (nicht unter den Pass-Zahl-Filtern). Badge: Asanoha „Hemp leaf", TY „Continuous".
+Polyline patterns (TY, Asanoha) have `passes.length===0` — appear only under "All". Badge: Asanoha "Hemp leaf", TY "Continuous".
 
 ---
 
 ## Thumbnails
 
+All thumbnails use the real animation pipeline (`ctx` redirected to thumb canvas, build + draw, then restore). `buildGallery` uses `setTimeout(..., 0)` so thumbnails render even when the tab is hidden.
+
 ```javascript
 function renderThumb(canvas, pat) {
-  if (pat.type === 'generator') → renderHMThumb(canvas, [0,0,1,0,1], 11);
-  if (pat.type === 'hitomezashi') → renderHMThumb(canvas, pat.seq, pat.thumbN||11);
-  if (pat.type === 'polyline')  → renderPLThumb(canvas, pat);   // TY-Mesh oder Asanoha (pat.engine)
-  default: → Star-Arm-Thumbnails (5×5 Grid)
+  // exp:       computeExpLayout + buildExpPath(genTiledSegs) + renderExp(TOTAL)
+  // polyline:  buildTsuzukiYamagata/buildAsanoha -> renderPolyline(TOTAL)
+  // hitomezashi/generator: seqToBits -> buildHMcore -> renderHM(TOTAL)
+  // star-arm:  buildPasses -> drawFabric + drawGuide + frontAll
 }
 ```
 
+Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
+
 ---
 
-## Schlüsselfunktionen
+## Key Functions
 
-| Funktion | Zweck |
+| Function | Purpose |
 |---|---|
-| `findSymOffset(seq, N)` | Palindrom-Offset (sonst 0) — für `seqToBits` |
-| `seqToBits(seq, N)` | Periodensequenz → N explizite, zentrierte Bits |
-| `buildHMcore(rowBits, colBits)` | Hitomezashi-Engine: HM_path + HM_fronts, 8-Kombinations-Sprung-Opt. |
-| `buildHitomezashi(pat)` | Wrapper: `buildHMcore(seqToBits(pat.seq,N),…)` |
-| `buildLineToggles()` | Baut die Reihen-/Spalten-Toggles ums Canvas |
-| `loadPreset(key)` | Füllt GEN_rowBits/colBits aus Preset bzw. snowSeq |
-| `setGridN(N)` | Gittergröße ändern (Preset neu kacheln / Custom auffüllen) |
-| `refreshGen(showFull)` | Einziger Einstieg nach jeder Generator-Änderung |
-| `applyGenerator()` | Legacy-Alias → `refreshGen(true)` |
-| `snowSeq(ord)` / `snowHalf(ord)` | Fibonacci-Snowflake-Sequenz (Order 1/2/3) |
-| `genTYedges(NHU)` | Tsuzuki Yamagata: Einheitszelle kacheln → Kanten im Halbraster |
-| `buildTsuzukiYamagata(NHU)` | Kanten → Zickzacks → 2 Pässe (PL_path, PL_fronts, PL_passes) |
-| `genAsanohaEdges(NQ)` | Asanoha: `ASA_CELL` über `ASA_G1/G2` kacheln → Kanten (V/H/A/B) |
-| `buildAsanoha(NQ)` | Pro Familie `tracePaired`+`orderNN` → 4 Pässe (PL_passes) |
-| `buildPasses(pl, n)` | Star-Arm Pässe mit Permutations-Optimierung |
-| `loadPattern(pat)` | Dispatcher für alle Pattern-Typen |
+| `findSymOffset(seq, N)` | Palindrome offset (else 0) — for `seqToBits` |
+| `seqToBits(seq, N)` | Period sequence -> N explicit, centred bits |
+| `buildHMcore(rowBits, colBits)` | Hitomezashi engine: HM_path + HM_fronts, 8-combination jump opt. |
+| `buildHitomezashi(pat)` | Wrapper: `buildHMcore(seqToBits(pat.seq,N),...)` |
+| `buildLineToggles()` | Builds row/column toggles around the canvas |
+| `loadPreset(key)` | Fills GEN_rowBits/colBits from preset or snowSeq |
+| `setGridN(N)` | Change grid size (re-tile preset / pad custom) |
+| `refreshGen(showFull)` | Sole entry point after any generator change |
+| `snowSeq(ord)` / `snowHalf(ord)` | Fibonacci snowflake sequence |
+| `genTYedges(NHU)` | Tsuzuki Yamagata: tile unit cell -> half-grid edges |
+| `buildTsuzukiYamagata(NHU)` | Edges -> zigzags -> 2 passes |
+| `genAsanohaEdges(NQ)` | Asanoha: tile ASA_CELL via ASA_G1/G2 -> edges |
+| `buildAsanoha(NQ)` | Per family tracePaired+orderNN -> 4 passes |
+| `buildPasses(pl, n)` | Star-arm passes with permutation optimisation |
+| `loadPattern(pat)` | Dispatcher for all pattern types |
+| `computeExpLayout(pat)` | Tiled-view scale/origin for exp patterns (patMacro-based) |
+| `genTiledSegs(pat)` | All tile instances covering the canvas (with edge overlap) |
+| `buildExpPath(segs)` | Chain + NN routing (collinear preference, ROUTING.md rules 1+2) |
+| `renderExp(step)` | Animated render for custom exp patterns |
 
 ---
 
-## Bekannte Entscheidungen / Einschränkungen
+## Known Decisions / Constraints
 
-- **Linewidth skaliert mit HM_CELL:** `lw = max(1, min(3, HM_CELL * 0.15))` — sieht gut aus von Order 1 (100px Zellen) bis Order 3 (4.5px Zellen)
-- **Generator zeigt immer `step=TOTAL`:** Editieren/Preset/Order rendert sofort das volle Muster (Vorhersage). Snowflake Order 3 (68×68, ~4572 Stiche) baut in ~14 ms — kein Lang-Animations-Problem mehr. Play startet die Animation neu.
-- **Reihen/Spalten unabhängig:** Toggles können das Muster asymmetrisch machen (genau das gewünschte freie Explorieren). Presets stellen die Symmetrie wieder her (`rowBits === colBits`).
-- **Yamagata-Preset entfernt:** war nur eine Hitomezashi-Annäherung; der echte Tsuzuki Yamagata lebt in der Polyline-Engine/Gallery.
-- **Tsuzuki Yamagata in Gallery:** Polyline-Engine, Geometrie aus Buch S.44 extrahiert (Essential Sashiko: "mountain ranges overlap and flow"). Verifiziert 100 % gegen Original.
-- **Asanoha in Gallery:** Polyline-Engine (4 Pässe), Geometrie aus Essential Sashiko S.13 extrahiert (`tools/asanoha_extract.py`). Quadratraster Einheit=Gitterquadrat/4; Familien V/H/(2,±1)/(2,±3); 34-Kanten-Zelle. Verifiziert 100 % Recall / 98 % Precision. Steile (2,±3)-Familie erst auf dem Viertelraster gefunden — bei „Familie fehlt" feiner abtasten.
-- **Kein Speed-Slider:** entfernt, feste `TICK_MS=40`
-- **Kein `el.onclick=null`** in update-Funktionen, weil das den Reset-Play-Button bricht
-
----
-
-## Pattern-Extraktor (`tools/pattern_extractor.py`)
-
-Wiederverwendbares Werkzeug, um Muster-Geometrie programmatisch aus Buch-Diagrammen zu gewinnen — NICHT per Auge raten (das ging mehrfach schief). Deps: `pymupdf`, `opencv-python`, `numpy` (installiert).
-
-Bewährter Ablauf für ein neues Muster:
-1. PDF-Seite rendern (Poppler ist NICHT installiert, daher PyMuPDF): `fitz.open(pdf)[seite].get_pixmap(matrix=fitz.Matrix(300/72,300/72))`.
-2. Diagramm zuschneiden.
-3. `color_masks()` trennt **Cyan** (Gitter) / **Schwarz** (Muster) / **Rot** (Stick-Reihenfolge-Pfeile).
-4. `grid_geometry()` misst Gitter-Ursprung + Abstand.
-5. `extract_segments()` tastet jede Kandidaten-Kante im Halbraster ab → echte Liniensegmente.
-6. Per `overlay()` / Side-by-Side verifizieren, Einheitszelle ableiten, nach JS portieren.
-7. JS-Logik in Python gegenrendern, BEVOR man es dem User zeigt.
-
-Die roten Pfeile/Zahlen im Buch = empfohlene Stich-Reihenfolge (bei Tsuzuki: 1-2 horizontal, 3-4 vertikal).
+- **Line width scales with HM_CELL:** `lw = max(1, min(3, HM_CELL * 0.15))` — looks good from Order 1 (100px cells) to Order 3 (4.5px cells)
+- **Generator always shows `step=TOTAL`:** editing/preset/order immediately renders the full pattern (preview). Play restarts the animation.
+- **Rows/columns independent:** toggles can make the pattern asymmetric. Presets restore symmetry (`rowBits === colBits`).
+- **Yamagata preset removed:** was only a Hitomezashi approximation; the real Tsuzuki Yamagata lives in the Polyline Engine/Gallery.
+- **No speed slider:** removed, fixed `TICK_MS=40`
+- **No `el.onclick=null`** in update functions — breaks the Reset/Play button
+- **Arc resolution in CAD editor:** max 30 segments per full circle (`Math.max(3, Math.round(sweep/2pi * 30))`) — sashiko stitching needs low-poly curves
+- **Exp pattern routing:** `buildExpPath` uses collinear-preference chain extension (ROUTING.md Rule 1) + NN ordering (Rule 2); fed tiled segments from `genTiledSegs`
+- **Exp canvas borders:** iso patterns use canvas height = SIZE/sqrt(3) so the parallelogram diamond tips land exactly at the four canvas edges
 
 ---
 
-## Noch offene Punkte (als Ideen, nicht implementiert)
+## Pattern Extractor (`tools/pattern_extractor.py`)
 
-- Weitere Muster aus `../Bücher` per Extraktor: Kikko (Tortoiseshell), Sugi Aya (Herringbone, Buch S.44) wären gute nächste Additions. (Asanoha ✓ erledigt.)
-- Export als SVG oder PNG.
+Reusable tool to extract pattern geometry programmatically from book diagrams. Do NOT guess by eye. Deps: `pymupdf`, `opencv-python`, `numpy` (installed).
+
+Proven workflow for a new pattern:
+1. Render PDF page (Poppler is NOT installed, use PyMuPDF): `fitz.open(pdf)[page].get_pixmap(matrix=fitz.Matrix(300/72,300/72))`.
+2. Crop the diagram.
+3. `color_masks()` separates **cyan** (grid) / **black** (pattern) / **red** (stitch-order arrows).
+4. `grid_geometry()` measures grid origin + spacing.
+5. `extract_segments()` samples every candidate edge on the half-grid -> real line segments.
+6. Verify via `overlay()` / side-by-side, derive unit cell, port to JS.
+7. Cross-render the JS logic in Python BEFORE showing it to the user.
+
+Red arrows/numbers in the book = recommended stitch order (for Tsuzuki: 1-2 horizontal, 3-4 vertical).
+
+---
+
+## Open Items (ideas, not yet implemented)
+
+- More patterns from the books via the extractor: Kikko (Tortoiseshell), Sugi Aya (Herringbone, book p.44) would be good next additions. (Asanoha done.)
+- Export as SVG or PNG.
