@@ -874,7 +874,7 @@ function renderPLThumb(canvas,pat){
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
-let TICK_MS=80;  // default slow (~12 stitches/sec); toggle to 40 for fast
+let TICK_MS=160;  // default slow (~6 stitches/sec); toggle to 80 for fast
 
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
@@ -1220,9 +1220,9 @@ document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);re
 document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
 document.getElementById('bAll').onclick=()=>{pause();step=TOTAL;render(step);};
 document.getElementById('bSpeed').onclick=()=>{
-  TICK_MS=TICK_MS===80?40:80;
+  TICK_MS=TICK_MS===160?80:160;
   const b=document.getElementById('bSpeed');
-  b.textContent=TICK_MS===80?'🐢 Slow':'⚡ Fast';
+  b.textContent=TICK_MS===160?'🐢 Slow':'⚡ Fast';
 };
 window.addEventListener('keydown',e=>{
   if(!document.getElementById('animView').classList.contains('open'))return;
@@ -1500,93 +1500,108 @@ function setupExpCanvas(pat){
   ctx.scale(DPR,DPR);
 }
 
-// Build animation path: ROUTING.md rules applied.
-// Rule 1 — long lines: at each junction prefer the collinear continuation (tracePaired logic).
-// Rule 2 — short jumps: NN-order the resulting chains.
+// Build animation path: row/column sweep with snake ordering.
+// Segments are clustered into direction families, grouped into rows by perpendicular
+// coordinate, merged into collinear chains, NN-ordered within each row, then snaked
+// (alternating forward/reverse) across rows. Matches how a human stitcher works a grid.
 function buildExpPath(lines){
   if(!lines||!lines.length)return[];
-  const segs=lines.map(l=>({start:[...l.start],end:[...l.end]}));
-  const n=segs.length;
-  const EPS=0.01;
-  function key(p){return Math.round(p[0]/EPS)+','+Math.round(p[1]/EPS);}
-  const adj=new Map();
-  segs.forEach((s,i)=>{
-    [key(s.start),key(s.end)].forEach((k,ki)=>{
-      if(!adj.has(k))adj.set(k,[]);
-      adj.get(k).push({i,atStart:ki===0});
-    });
-  });
+  const EPS=0.001;
 
-  // Pick the most collinear unused neighbour at a junction (Rule 1).
-  function pickNext(candidates,dir){
-    if(!candidates.length)return null;
-    const dl=Math.hypot(dir[0],dir[1]);
-    if(dl<1e-9)return candidates[0];
-    let best=candidates[0],bestDot=-2;
-    for(const c of candidates){
-      const s=segs[c.i];
-      const cd=c.atStart?[s.end[0]-s.start[0],s.end[1]-s.start[1]]:[s.start[0]-s.end[0],s.start[1]-s.end[1]];
-      const cl=Math.hypot(cd[0],cd[1]);
-      if(cl<1e-9)continue;
-      const dot=(dir[0]*cd[0]+dir[1]*cd[1])/(dl*cl);
-      if(dot>bestDot){bestDot=dot;best=c;}
-    }
-    return best;
+  // Normalize angle to [0,180) degrees
+  function segAngle(l){
+    let dx=l.end[0]-l.start[0],dy=l.end[1]-l.start[1];
+    let a=Math.atan2(dy,dx)*180/Math.PI;
+    if(a<0)a+=180; if(a>=180)a-=180; return a;
   }
 
-  const used=new Uint8Array(n);
-  const chains=[];
-  for(let s=0;s<n;s++){
-    if(used[s])continue;
-    used[s]=1;
-    const chain=[s];
-    // Extend forward — collinear preference
-    for(;;){
-      const last=segs[chain[chain.length-1]];
-      const dir=[last.end[0]-last.start[0],last.end[1]-last.start[1]];
-      const cands=(adj.get(key(last.end))||[]).filter(c=>!used[c.i]);
-      const nb=pickNext(cands,dir);
-      if(!nb)break;
-      used[nb.i]=1;
-      if(!nb.atStart)[segs[nb.i].start,segs[nb.i].end]=[segs[nb.i].end,segs[nb.i].start];
-      chain.push(nb.i);
-    }
-    // Extend backward — collinear preference (reversed direction)
-    for(;;){
-      const first=segs[chain[0]];
-      const dir=[first.start[0]-first.end[0],first.start[1]-first.end[1]];
-      const cands=(adj.get(key(first.start))||[]).filter(c=>!used[c.i]);
-      const nb=pickNext(cands,dir);
-      if(!nb)break;
-      used[nb.i]=1;
-      if(nb.atStart)[segs[nb.i].start,segs[nb.i].end]=[segs[nb.i].end,segs[nb.i].start];
-      chain.unshift(nb.i);
-    }
-    chains.push(chain);
+  // Cluster into direction families (15° bins so floating-point angles stay in same bin)
+  const famMap=new Map();
+  for(const l of lines){
+    const ang=segAngle(l);
+    const key=Math.round(ang/15)*15%180;
+    if(!famMap.has(key))famMap.set(key,[]);
+    famMap.get(key).push({start:[...l.start],end:[...l.end]});
   }
-  // Rule 2 — NN-order chains
-  const usedC=new Uint8Array(chains.length),ordered=[chains[0]];
-  usedC[0]=1;
-  function ep(chain,fromEnd){const si=fromEnd?chain[chain.length-1]:chain[0];return fromEnd?segs[si].end:segs[si].start;}
-  for(let k=1;k<chains.length;k++){
-    const tail=ep(ordered[ordered.length-1],true);
-    let best=Infinity,bi=-1,bFlip=false;
-    chains.forEach((c,ci)=>{
-      if(usedC[ci])return;
-      const d0=Math.hypot(ep(c,false)[0]-tail[0],ep(c,false)[1]-tail[1]);
-      const d1=Math.hypot(ep(c,true)[0]-tail[0],ep(c,true)[1]-tail[1]);
-      if(d0<best){best=d0;bi=ci;bFlip=false;}
-      if(d1<best){best=d1;bi=ci;bFlip=true;}
-    });
-    if(bi<0)break;
-    usedC[bi]=1;
-    if(bFlip){chains[bi].reverse();chains[bi].forEach(i=>{[segs[i].start,segs[i].end]=[segs[i].end,segs[i].start];});}
-    ordered.push(chains[bi]);
-  }
+
+  // Sort families: 0° (H-ish) first, 90° (V-ish) last
+  const famKeys=[...famMap.keys()].sort((a,b)=>a-b);
+
   const path=[];
-  ordered.forEach((chain,ci)=>{
-    chain.forEach((si,k)=>path.push({start:segs[si].start,end:segs[si].end,jump:ci>0&&k===0}));
-  });
+  let firstSeg=true;
+
+  for(const angDeg of famKeys){
+    const famSegs=famMap.get(angDeg);
+    const ang=angDeg*Math.PI/180;
+    const fwdU=Math.cos(ang),fwdV=Math.sin(ang);
+    // Perpendicular axis (used to separate rows)
+    const perpU=-fwdV,perpV=fwdU;
+
+    // Group segments into rows by perpendicular coordinate of midpoint
+    const rowMap=new Map();
+    for(const s of famSegs){
+      const mu=(s.start[0]+s.end[0])/2,mv=(s.start[1]+s.end[1])/2;
+      const rowKey=Math.round((mu*perpU+mv*perpV)/EPS); // quantised
+      if(!rowMap.has(rowKey))rowMap.set(rowKey,[]);
+      rowMap.get(rowKey).push(s);
+    }
+
+    // Sort rows by perpendicular coordinate (sweep direction)
+    const rows=[...rowMap.entries()].sort((a,b)=>a[0]-b[0]);
+
+    for(let ri=0;ri<rows.length;ri++){
+      const [,rowSegs]=rows[ri];
+      const goReverse=ri%2===1; // snake
+
+      // Normalise each segment to point in the fwd direction, then sort by start position
+      const norm=rowSegs.map(s=>{
+        const dot=(s.end[0]-s.start[0])*fwdU+(s.end[1]-s.start[1])*fwdV;
+        return dot>=0?{start:[...s.start],end:[...s.end]}:{start:[...s.end],end:[...s.start]};
+      }).sort((a,b)=>(a.start[0]*fwdU+a.start[1]*fwdV)-(b.start[0]*fwdU+b.start[1]*fwdV));
+
+      // Merge touching collinear segments into point-chains (Rule 1 — long lines)
+      const chains=[];
+      for(const s of norm){
+        if(chains.length){
+          const tail=chains[chains.length-1][chains[chains.length-1].length-1];
+          if(Math.abs(s.start[0]-tail[0])<EPS*10&&Math.abs(s.start[1]-tail[1])<EPS*10){
+            chains[chains.length-1].push(s.end); continue;
+          }
+        }
+        chains.push([s.start,s.end]);
+      }
+
+      // NN-order chains within the row to minimise intra-row jumps (Rule 2)
+      if(chains.length>1){
+        const ord=[chains[0]],usedC=new Uint8Array(chains.length);usedC[0]=1;
+        for(let k=1;k<chains.length;k++){
+          const tail=ord[ord.length-1][ord[ord.length-1].length-1];
+          let best=Infinity,bi=-1,bFlip=false;
+          chains.forEach((c,ci)=>{
+            if(usedC[ci])return;
+            const d0=Math.hypot(c[0][0]-tail[0],c[0][1]-tail[1]);
+            const d1=Math.hypot(c[c.length-1][0]-tail[0],c[c.length-1][1]-tail[1]);
+            if(d0<best){best=d0;bi=ci;bFlip=false;}
+            if(d1<best){best=d1;bi=ci;bFlip=true;}
+          });
+          if(bi<0)break;
+          usedC[bi]=1; if(bFlip)chains[bi].reverse(); ord.push(chains[bi]);
+        }
+        chains.length=0; ord.forEach(c=>chains.push(c));
+      }
+
+      // Snake: reverse row direction on odd rows
+      if(goReverse){chains.reverse();chains.forEach(c=>c.reverse());}
+
+      // Flatten into path; mark jump at the start of each chain (except the very first stitch)
+      for(const chain of chains){
+        for(let k=0;k<chain.length-1;k++){
+          path.push({start:chain[k],end:chain[k+1],jump:!firstSeg&&k===0});
+          firstSeg=false;
+        }
+      }
+    }
+  }
   return path;
 }
 
