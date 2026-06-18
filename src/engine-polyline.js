@@ -1,5 +1,5 @@
 // ── Polyline engine (Tsuzuki Yamagata) ────────────────────────────────────
-// Geometry extracted programmatically from the book diagram (tools/pattern_extractor.py):
+// Geometry encoded as a unit cell + lattice generators (derived once and verified):
 // the pattern is the union of straight running-stitch lines at four slopes — shallow
 // ±1/2 (flow left→right) and steep ±2 (flow top→bottom) — crossing one another to form
 // the mountain mesh. Each line is stitched continuously; +slope and −slope are mirror

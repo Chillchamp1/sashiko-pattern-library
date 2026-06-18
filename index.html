@@ -387,7 +387,7 @@ const PATTERNS = [
   {
     id:'tsuzuki-yamagata', name:'Tsuzuki Yamagata', jp:'続き山形', en:'Continuous Mountains',
     type:'polyline', passes:[],
-    tip:'Overlapping mountain ranges flowing top to bottom and left to right. Stitched as continuous zigzag lines: Pass 1 marches horizontally (green), Pass 2 the same rotated 90° (blue). The two shades distinguish mirror-image rows. Geometry extracted from the book diagram (tools/pattern_extractor.py).',
+    tip:'Overlapping mountain ranges flowing top to bottom and left to right. Stitched as continuous zigzag lines: Pass 1 marches horizontally (green), Pass 2 the same rotated 90° (blue). The two shades distinguish mirror-image rows.',
   },
 ];
 
@@ -643,7 +643,7 @@ function renderHMThumb(canvas,seq,thumbN){
 
 // ── engine-polyline.js ──────────────────────────────
 // ── Polyline engine (Tsuzuki Yamagata) ────────────────────────────────────
-// Geometry extracted programmatically from the book diagram (tools/pattern_extractor.py):
+// Geometry encoded as a unit cell + lattice generators (derived once and verified):
 // the pattern is the union of straight running-stitch lines at four slopes — shallow
 // ±1/2 (flow left→right) and steep ±2 (flow top→bottom) — crossing one another to form
 // the mountain mesh. Each line is stitched continuously; +slope and −slope are mirror
