@@ -20,7 +20,7 @@ Key consequence: the turn-sharpness term **C** decides where a stroke continues 
 ## Rule 1 — Long, smooth strokes / few direction changes
 Within a continuous stroke the needle should run as **straight or smoothly-curving** as possible, only breaking at true endpoints or near-reversals. Multiple angles within one stroke are fine (a half-circle is one stroke).
 
-**Implementation:** Build a vertex/edge graph. At every vertex, **pair the incident edges by minimum deflection** (straightest through-passage; deflection 0 = collinear opposite, π = fold straight back). A stroke follows these pairings → straight through crossings, smoothly along curves, breaking only where the smoothest available turn exceeds `MAXTURN` (135°) or no edge remains. Greedy "alternate direction at every crossing" is WRONG — it produces the maximum number of direction changes.
+**Implementation:** Build a vertex/edge graph. At every vertex, **pair the incident edges by minimum deflection** (straightest through-passage; deflection 0 = collinear opposite, π = fold straight back). A stroke follows these pairings → straight through crossings, smoothly along curves, breaking only where the smoothest available turn exceeds `MAXTURN` or no edge remains. `MAXTURN = 90°` for custom patterns (the user's rule: *sharp turns should almost never happen* — a turn sharper than a right angle breaks the stroke into two rather than forcing an ugly fold). Greedy "alternate direction at every crossing" is WRONG — it produces the maximum number of direction changes.
 
 Functions: `tracePaired(edges)` for the built-in lattice patterns (collinear pairing); `buildExpPath` + `matchVertex` for custom patterns (general min-deflection matching, handles curves).
 
@@ -34,9 +34,15 @@ Function: `orderNN(chains)`.
 ## Rule 3 — Pass order and row sweeping (snake)
 Complete one family/direction entirely (e.g. horizontal), then move to the next (vertical). Rules 1 and 2 apply within each pass.
 
-**For custom (exp) patterns — strokes first, then band-snake:** strokes are formed by Rule 1 *before* any grouping (so a curve stays whole). Each stroke is then placed by its overall orientation (chord, or bbox major axis for loops) into an **orientation family** (30° bins; horizontal families stitched before vertical — Rule 3). Within a family, strokes are grouped into parallel **bands** by the perpendicular coordinate of their centroid, the bands are swept in order, and the sweep **snakes** (band 0 → forward, band 1 → reverse, …). Because progression along the sweep is monotonic, every jump is a short hop into **unstitched** territory — never back over finished stitches. A band may legitimately contain strokes of slightly different angles if that minimises jumps (e.g. a row of arches).
+**For custom (exp) patterns — order first, then strokes-first band-snake.** The user's overriding priority: the path must look *ordered and predictable*, even if that costs a few extra jumps. Strokes are formed by Rule 1 *before* any grouping (a curve stays whole), then ordered:
 
-Functions: `buildExpPath` (Phase 2), `matchVertex`.
+1. **Movement type** — group by the stroke's turning profile and sweep the groups **straight → zigzag → curve** (Σ|turn| small ⇒ straight; turns keep one sign ⇒ curve; turns alternate ⇒ zigzag). Keeps "similar movements next to each other" (e.g. all zigzags together, alternating down/up).
+2. **Orientation family** — 30° bins within each type.
+3. **Bands + snake** — group by the perpendicular coordinate of the centroid, sweep bands in order, **snake** (reverse alternate bands). The first stroke is oriented to flow into the second, and each subsequent stroke is entered from the end nearest the needle — so a row/column of arches flows like an **S** (and touching arches merge into one stroke via Rule 1). Monotonic progress ⇒ every jump hops into **unstitched** area, never back over finished stitches.
+
+**Coordinate space:** routing runs in grid **(u,v)** coordinates. For isometric patterns this means the sweep follows the **iso grid lines** (the lattice is axis-aligned in (u,v)), which is how iso sashiko is actually sewn. The visible square is expressed as a convex region in (u,v); every tiled segment is **clipped** to it so nothing routes off-screen and the whole square is filled.
+
+Functions: `buildExpPath` (Phase 2), `matchVertex`, `computeExpLayout`/`genTiledSegs`/`clipSegConvex`.
 
 ## Rule 4 — Colour by translation equivalence class
 A path's colour encodes its **translation equivalence class**: same shade if and only if one path maps onto (part of) the other via a pattern symmetry translation. A path shifted purely left/right or up/down = identical. An edge-clipped piece = identical to the full path if its unclipped portion appears shifted elsewhere. A mirror image (half-period offset, NOT a lattice vector) = its own class/colour.

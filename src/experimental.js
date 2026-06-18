@@ -87,39 +87,69 @@ async function saveExpPatterns(pat){
 // ── EXP layout & animation helpers ───────────────────────────────────────────
 const _COS30=Math.cos(Math.PI/6), _SIN30=Math.sin(Math.PI/6);
 
-// Pure: compute tiled-view layout for pat (scale = patMacro tiles across canvas).
-function computeExpLayout(pat){
-  const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
-  const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
-  const ptc=(pat.patMacro||5)*10; // total micro-units across canvas
-  const iso=pat.gridType==='isometric';
-  let sz,ox,oy,canvasH;
-  if(iso){
-    sz=SIZE/(2*ptc*_COS30);
-    ox=SIZE/2; oy=0;
-    canvasH=Math.round(ptc*2*sz*_SIN30); // = Math.round(SIZE/√3) ≈ 215
-  }else{
-    sz=SIZE/ptc;
-    ox=0; oy=0; canvasH=SIZE;
+// Inward half-planes {n,c} for a convex polygon; a point X is inside ⟺ n·X ≤ c for all.
+function convexPlanes(poly){
+  let cx=0,cy=0; poly.forEach(p=>{cx+=p[0];cy+=p[1];}); cx/=poly.length; cy/=poly.length;
+  return poly.map((a,i)=>{
+    const b=poly[(i+1)%poly.length];
+    let nx=-(b[1]-a[1]), ny=(b[0]-a[0]);              // normal to edge a→b
+    if(nx*(cx-a[0])+ny*(cy-a[1])>0){nx=-nx;ny=-ny;}   // point it OUTWARD (away from centroid)
+    return{n:[nx,ny], c:nx*a[0]+ny*a[1]};
+  });
+}
+// Clip segment p0→p1 to the convex region (Liang–Barsky); return [q0,q1] or null if fully outside.
+function clipSegConvex(p0,p1,planes){
+  let te=0, tl=1; const dx=p1[0]-p0[0], dy=p1[1]-p0[1];
+  for(const {n,c} of planes){
+    const d0=n[0]*p0[0]+n[1]*p0[1]-c, den=n[0]*dx+n[1]*dy;
+    if(Math.abs(den)<1e-12){ if(d0>1e-9)return null; continue; }
+    const t=-d0/den;
+    if(den>0){ if(t<tl)tl=t; } else { if(t>te)te=t; }
+    if(te>tl)return null;
   }
-  function g2s(p){
-    const u=p[0],v=p[1];
-    if(iso)return{x:ox+(u-v)*sz*_COS30,y:oy+(u+v)*sz*_SIN30};
-    return{x:ox+u*sz,y:oy+v*sz};
-  }
-  return{sz,ox,oy,canvasH,g2s,ptc,dU,dV};
+  const q0=[p0[0]+te*dx,p0[1]+te*dy], q1=[p0[0]+tl*dx,p0[1]+tl*dy];
+  if(Math.hypot(q1[0]-q0[0],q1[1]-q0[1])<1e-6)return null;
+  return [q0,q1];
 }
 
-// Generate all tiled segment instances that cover the visible canvas area.
+// Pure: square tiled-view layout. BOTH grids fill the full SIZE×SIZE square; the isometric
+// lattice is tiled and clipped to the square (no inscribed-diamond gaps). `planes` = the
+// visible square expressed as a convex region in grid (u,v) space (for clipping + iso "along
+// the grid lines" routing, which happens in (u,v)).
+function computeExpLayout(pat){
+  const ptc=(pat.patMacro||5)*10;                 // micro-units across the canvas
+  const iso=pat.gridType==='isometric';
+  const canvasH=SIZE;                             // always square
+  let sz,ox,oy;
+  if(iso){ sz=SIZE/(2*ptc*_COS30); ox=SIZE/2; oy=0; }
+  else   { sz=SIZE/ptc;            ox=0;      oy=0; }
+  function g2s(p){const u=p[0],v=p[1];
+    if(iso)return{x:ox+(u-v)*sz*_COS30, y:oy+(u+v)*sz*_SIN30};
+    return{x:ox+u*sz, y:oy+v*sz};}
+  function s2g(x,y){
+    if(iso){const a=(x-ox)/(sz*_COS30), b=(y-oy)/(sz*_SIN30); return [(a+b)/2,(b-a)/2];}
+    return [(x-ox)/sz,(y-oy)/sz];}
+  const corners=[s2g(0,0),s2g(SIZE,0),s2g(SIZE,canvasH),s2g(0,canvasH)];
+  let minU=Infinity,maxU=-Infinity,minV=Infinity,maxV=-Infinity;
+  corners.forEach(c=>{minU=Math.min(minU,c[0]);maxU=Math.max(maxU,c[0]);minV=Math.min(minV,c[1]);maxV=Math.max(maxV,c[1]);});
+  return{sz,ox,oy,canvasH,g2s,s2g,ptc,iso,corners,planes:convexPlanes(corners),uRange:[minU,maxU],vRange:[minV,maxV]};
+}
+
+// All tiled segment instances covering the visible square, each CLIPPED to it (grid coords).
+// Anything fully off-screen is dropped — nothing routes outside the window.
 function genTiledSegs(pat){
+  const lay=computeExpLayout(pat);
   const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
   const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
-  const ptc=(pat.patMacro||5)*10;
+  const [minU,maxU]=lay.uRange, [minV,maxV]=lay.vRange;
+  const ou0=Math.floor((minU-bbox.maxU)/dU)*dU, ou1=Math.ceil((maxU-bbox.minU)/dU)*dU;
+  const ov0=Math.floor((minV-bbox.maxV)/dV)*dV, ov1=Math.ceil((maxV-bbox.minV)/dV)*dV;
   const segs=[];
-  for(let ou=-dU;ou<=ptc;ou+=dU){
-    for(let ov=-dV;ov<=ptc;ov+=dV){
+  for(let ou=ou0;ou<=ou1;ou+=dU){
+    for(let ov=ov0;ov<=ov1;ov+=dV){
       (pat.lines||[]).forEach(l=>{
-        segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov]});
+        const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
+        if(c)segs.push({start:c[0],end:c[1]});
       });
     }
   }
@@ -155,7 +185,7 @@ function setupExpCanvas(pat){
 function buildExpPath(lines){
   if(!lines||!lines.length)return[];
   const Q=1e-4;                    // vertex-merge quantum (shared endpoints are computed identically)
-  const MAXTURN=135*Math.PI/180;   // break a stroke rather than force a turn sharper than this
+  const MAXTURN=90*Math.PI/180;    // break a stroke rather than force a turn sharper than 90° (user: sharp turns should almost never happen)
 
   // ---- vertex / edge graph ----
   const vId=new Map(), vPos=[];
@@ -217,28 +247,41 @@ function buildExpPath(lines){
     trace(a, adj[a].findIndex(h=>h.e===ei));
   });
 
-  // ---- Phase 2: order strokes — family → band → snake ----
-  const FAMBIN=Math.PI/6, FAMS=Math.round(Math.PI/FAMBIN);   // 30° bins
+  // ---- Phase 2: order strokes — movement TYPE → orientation family → band → snake ----
+  // "Order first" (user): group similar movements together and sweep them predictably, even at
+  // the cost of a few extra jumps. Type priority: straight(0) → zigzag(1) → curve(2).
+  const FAMBIN=Math.PI/6, FAMS=Math.round(Math.PI/FAMBIN);   // 30° orientation bins
   function metrics(pts){
     let len=0,cx=0,cy=0;
     for(let k=0;k<pts.length-1;k++)len+=Math.hypot(pts[k+1][0]-pts[k][0],pts[k+1][1]-pts[k][1]);
     pts.forEach(p=>{cx+=p[0];cy+=p[1];}); cx/=pts.length; cy/=pts.length;
+    // turning profile: total = Σ|deflection|, net = |Σ signed deflection|
+    let total=0,net=0;
+    for(let k=1;k<pts.length-1;k++){
+      const ax=pts[k][0]-pts[k-1][0], ay=pts[k][1]-pts[k-1][1];
+      const bx=pts[k+1][0]-pts[k][0], by=pts[k+1][1]-pts[k][1];
+      const a=Math.atan2(ax*by-ay*bx, ax*bx+ay*by); total+=Math.abs(a); net+=a;
+    }
+    // straight = barely turns; curve = turns keep the same sign (accumulate); zigzag = turns alternate
+    const type = total<0.35 ? 0 : (Math.abs(net)/total>0.6 ? 2 : 1);
+    // orientation: chord, or bbox major axis for closed/curly strokes
     let dx=pts[pts.length-1][0]-pts[0][0], dy=pts[pts.length-1][1]-pts[0][1];
-    if(Math.hypot(dx,dy)<len*0.3){                    // closed/curly stroke → use bbox major axis
+    if(Math.hypot(dx,dy)<len*0.3){
       const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
       dx=Math.max(...xs)-Math.min(...xs); dy=Math.max(...ys)-Math.min(...ys);
     }
     let ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI; if(ang>=Math.PI)ang-=Math.PI;
-    return {len,cx,cy,ang};
+    return {len,cx,cy,ang,type};
   }
   const S=strokes.map(pts=>({pts,...metrics(pts)}));
-  const famMap=new Map();
-  S.forEach(s=>{const fb=Math.round(s.ang/FAMBIN)%FAMS;
-    if(!famMap.has(fb))famMap.set(fb,[]); famMap.get(fb).push(s);});
-  const fams=[...famMap.entries()].sort((a,b)=>a[0]-b[0]).map(e=>e[1]);
+  // group by (type, orientation bin); key sorts type-major so movements of a kind stay together
+  const groups=new Map();
+  S.forEach(s=>{const fb=Math.round(s.ang/FAMBIN)%FAMS; const key=s.type*100+fb;
+    if(!groups.has(key))groups.set(key,[]); groups.get(key).push(s);});
 
   const ordered=[];
-  for(const fam of fams){
+  for(const key of [...groups.keys()].sort((a,b)=>a-b)){
+    const fam=groups.get(key);
     let sc=0,ss=0; fam.forEach(s=>{sc+=s.len*Math.cos(2*s.ang); ss+=s.len*Math.sin(2*s.ang);});
     const tf=0.5*Math.atan2(ss,sc);                   // family mean orientation (double-angle)
     const dir=[Math.cos(tf),Math.sin(tf)], perp=[-Math.sin(tf),Math.cos(tf)];
@@ -248,11 +291,22 @@ function buildExpPath(lines){
     if(!isFinite(pitch)||pitch<1e-6)pitch=1;
     const minbc=Math.min(...fam.map(s=>s.bc));
     fam.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
-    fam.sort((a,b)=> a.band-b.band || (a.band%2===0 ? a.ac-b.ac : b.ac-a.ac));   // snake
+    fam.sort((a,b)=> a.band-b.band || (a.band%2===0 ? a.ac-b.ac : b.ac-a.ac));   // snake the bands
     fam.forEach(s=>ordered.push(s));
   }
 
-  // ---- emit, picking each stroke's direction nearest the running cursor ----
+  // Orient the FIRST stroke to END near the second one, so the whole sweep flows in one
+  // direction from the start (no needless backward jump before the chain gets going).
+  if(ordered.length>1){
+    const s0=ordered[0].pts, s1=ordered[1].pts;
+    const e0=[s0[0],s0[s0.length-1]], e1=[s1[0],s1[s1.length-1]];
+    let best=Infinity, flip0=false;
+    e0.forEach((e,ei)=>e1.forEach(f=>{const d=Math.hypot(e[0]-f[0],e[1]-f[1]); if(d<best){best=d;flip0=(ei===0);}}));
+    if(flip0)ordered[0].pts=s0.slice().reverse();
+  }
+
+  // ---- emit; each stroke traversed from the end nearest the cursor → consecutive strokes
+  //      alternate direction (the S-flow for a row/column of arches) ----
   const path=[]; let cur=null, first=true;
   for(const s of ordered){
     let pts=s.pts;
@@ -294,14 +348,18 @@ function matchVertex(d,cost,maxCost){
 
 function drawExpGuide(){
   if(!curPat||!EXP_g2s)return;
-  const {ptc,dU,dV}=computeExpLayout(curPat);
+  const lay=computeExpLayout(curPat);
+  const [minU,maxU]=lay.uRange, [minV,maxV]=lay.vRange;
+  const STEP=10;                                   // one macro cell; canvas clips lines to the square
+  const u0=Math.floor(minU/STEP)*STEP, u1=Math.ceil(maxU/STEP)*STEP;
+  const v0=Math.floor(minV/STEP)*STEP, v1=Math.ceil(maxV/STEP)*STEP;
   ctx.strokeStyle='rgba(220,235,255,0.07)'; ctx.lineWidth=0.8; ctx.setLineDash([]);
-  for(let u=0;u<=ptc;u+=dU){
-    const a=EXP_g2s([u,0]),b=EXP_g2s([u,ptc]);
+  for(let u=u0;u<=u1;u+=STEP){
+    const a=EXP_g2s([u,v0]),b=EXP_g2s([u,v1]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
   }
-  for(let v=0;v<=ptc;v+=dV){
-    const a=EXP_g2s([0,v]),b=EXP_g2s([ptc,v]);
+  for(let v=v0;v<=v1;v+=STEP){
+    const a=EXP_g2s([u0,v]),b=EXP_g2s([u1,v]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
   }
 }
@@ -348,6 +406,16 @@ window.openExpPattern=function openExpPattern(idOrPat){
   document.getElementById('animView').classList.add('open');
   loadPattern(pat);
   window.scrollTo({top:0,behavior:'smooth'});
+};
+
+// Re-run the router on the current custom pattern (no redraw needed when routing rules change).
+window.rerouteExp=function rerouteExp(){
+  if(!curPat||curPat.type!=='exp')return;
+  setupExpCanvas(curPat);
+  EXP_path=buildExpPath(genTiledSegs(curPat));
+  TOTAL=EXP_path.length; PASSES=[];
+  step=0; if(playing)pause();
+  buildJumpBar(); render(0);
 };
 
 // ── My Patterns view ─────────────────────────────────────────────────────────
