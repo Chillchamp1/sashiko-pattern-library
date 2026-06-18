@@ -7,7 +7,7 @@ function buildGallery(){
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
     card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
     const thumb=document.createElement('canvas');
-    thumb.style.cssText='width:64px;height:64px;border-radius:7px';
+    thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
     card.appendChild(thumb);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
     const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
