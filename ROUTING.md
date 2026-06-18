@@ -1,6 +1,6 @@
 ﻿# Stitch-Path Routing Rules
 
-Binding rules for the **order** in which a pattern's stitches are animated / "sewn". Applies to ALL patterns. The geometry (which edges exist) is a separate concern — see `tools/pattern_extractor.py` and CLAUDE.md.
+Binding rules for the **order** in which a pattern's stitches are animated / "sewn". Applies to ALL patterns. The geometry (which edges exist) is a separate concern — see CLAUDE.md.
 
 Goal: a stitch path a human embroiderer would actually sew — as continuous as possible, minimal thread waste.
 

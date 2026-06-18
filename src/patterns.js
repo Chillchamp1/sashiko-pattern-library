@@ -24,7 +24,7 @@ const PATTERNS = [
   {
     id:'tsuzuki-yamagata', name:'Tsuzuki Yamagata', jp:'続き山形', en:'Continuous Mountains',
     type:'polyline', passes:[],
-    tip:'Overlapping mountain ranges flowing top to bottom and left to right. Stitched as continuous zigzag lines: Pass 1 marches horizontally (green), Pass 2 the same rotated 90° (blue). The two shades distinguish mirror-image rows. Geometry extracted from the book diagram (tools/pattern_extractor.py).',
+    tip:'Overlapping mountain ranges flowing top to bottom and left to right. Stitched as continuous zigzag lines: Pass 1 marches horizontally (green), Pass 2 the same rotated 90° (blue). The two shades distinguish mirror-image rows.',
   },
 ];
 
