@@ -180,9 +180,18 @@ button.ctrl.primary:hover{background:#275784}
 /* Experimental gallery cards */
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
-.filt.exp.on{background:#1e1e3a;border-color:#3a3a7a;color:#9090d4}
 .exp-del-btn{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
 .pcard.exp-card:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
+/* My Patterns button in toolbar */
+.filt.mypats-btn{background:#141828;border-color:#2a3060;color:#9090d4}
+.filt.mypats-btn:hover{background:#1a2040;border-color:#3a4a8a;color:#c0c0ee}
+/* My Patterns view overlay */
+#myPatsView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
+#myPatsView.open{display:block}
+.mypats-wrap{max-width:800px;margin:0 auto}
+.mypats-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.mypats-header h2{margin:0;font-size:17px;font-weight:600;flex:1}
+.mypats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}
 
 </style>
 </head>
@@ -204,8 +213,8 @@ button.ctrl.primary:hover{background:#275784}
       <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
       <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
-      <button class="filt exp" data-f="exp" onclick="setFilter(this)">Experimental</button>
     </div>
+    <button class="filt mypats-btn" onclick="showMyPatterns()">My Patterns →</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
 </div>
@@ -316,6 +325,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
         <div class="cad-toolbar">
           <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
+          <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
           <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
           <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
           <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
@@ -327,7 +337,20 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
       </div>
     </div>
-    <p class="tip" style="text-align:center;margin:14px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints</p>
+    <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:6px"></div>
+    <p class="tip" style="text-align:center;margin:6px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints · Arc: 3 clicks (center → radius → sweep)</p>
+  </div>
+</div>
+
+<!-- My Patterns view — full-screen overlay -->
+<div id="myPatsView">
+  <div class="mypats-wrap">
+    <div class="mypats-header">
+      <button class="back-btn" onclick="showGalleryFromMyPats()">← Gallery</button>
+      <h2>My Patterns</h2>
+      <button class="cad-save-btn" onclick="showCAD()">+ New Pattern</button>
+    </div>
+    <div class="mypats-grid" id="myPatsGrid"></div>
   </div>
 </div>
 
@@ -1213,11 +1236,6 @@ function renderThumb(canvas,pat){
 let activeFilter=0;
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
-  const newBtn=document.createElement('button');
-  newBtn.className='pcard new-pattern-card';
-  newBtn.innerHTML='<div class="pcard-new-icon">＋</div><div class="pcard-name">New Pattern</div><div class="pcard-badge gen">CAD Editor</div>';
-  newBtn.onclick=()=>showCAD();
-  grid.appendChild(newBtn);
   PATTERNS.forEach(pat=>{
     const card=document.createElement('button');
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
@@ -1240,21 +1258,16 @@ function buildGallery(){
 window.filterGallery=function(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
   let vis=0;
-  document.querySelectorAll('.pcard').forEach(card=>{
-    if(card.classList.contains('new-pattern-card')){
-      card.classList.toggle('hidden',activeFilter==='exp');
-      return;
-    }
+  document.querySelectorAll('#pgrid .pcard').forEach(card=>{
     const pat=PATTERNS.find(p=>p.id===card.dataset.id);
+    if(!pat)return;
     let mp;
     if(activeFilter===0)mp=true;
-    else if(activeFilter==='hm')mp=pat&&pat.type==='generator';
-    else if(activeFilter==='exp')mp=card.dataset.exp==='1';
-    else mp=pat&&parseInt(card.dataset.p)===activeFilter;
-    const mq=!q||(pat&&(pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
-      (pat.type==='generator'&&('koshi kaki persimmon snowflake hitomezashi lattice'.includes(q)))||
-      (pat.type==='polyline'&&('yamagata mountain continuous'.includes(q)))))||
-      (card.dataset.exp==='1'&&('experimental custom draw'.includes(q)));
+    else if(activeFilter==='hm')mp=pat.type==='generator';
+    else mp=parseInt(card.dataset.p)===activeFilter;
+    const mq=!q||pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
+      (pat.type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
+      (pat.type==='polyline'&&'yamagata mountain continuous'.includes(q));
     const show=mp&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
   });
   let nr=document.getElementById('noResults');
@@ -1265,7 +1278,7 @@ window.setFilter=function(btn){
   document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   const f=btn.dataset.f;
-  activeFilter=f==='hm'?'hm':f==='exp'?'exp':(f==='0'?0:parseInt(f));
+  activeFilter=f==='hm'?'hm':(f==='0'?0:parseInt(f));
   filterGallery();
 };
 
@@ -1277,9 +1290,15 @@ function openPattern(pat){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 window.showGallery=function(){
-  if(playing)pause();
-  document.getElementById('animView').classList.remove('open');
-  document.getElementById('galleryView').style.display='block';
+  if(isEXP){
+    document.getElementById('animView').classList.remove('open');
+    document.getElementById('myPatsView').classList.add('open');
+    rebuildMyPatsView();
+  }else{
+    if(playing)pause();
+    document.getElementById('animView').classList.remove('open');
+    document.getElementById('galleryView').style.display='block';
+  }
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -1287,11 +1306,9 @@ function getCss(v){return getComputedStyle(document.documentElement).getProperty
 function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
 
 
-
 // ── experimental.js ──────────────────────────────
 // ── Experimental patterns (localStorage) ───────────────────────────────────
 let EXP_PATTERNS=[];
-window.EXP_PATTERNS_ref=()=>EXP_PATTERNS;
 function loadExpPatterns(){try{EXP_PATTERNS=JSON.parse(localStorage.getItem('sashiko_exp')||'[]');}catch(e){EXP_PATTERNS=[];}}
 function saveExpPatterns(){localStorage.setItem('sashiko_exp',JSON.stringify(EXP_PATTERNS));}
 
@@ -1302,18 +1319,17 @@ function renderExpPattern(pat){
   const COS30=Math.cos(Math.PI/6),SIN30=Math.sin(Math.PI/6);
   const bbox=pat.bbox;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
-  const tileW=dU,tileH=dV;
   const isIso=pat.gridType==='isometric';
   let tileSize;
-  if(isIso){tileSize=Math.min(SIZE/(tileW*2*COS30+4),SIZE/(tileH*2*SIN30+4))*1.5;}
-  else{tileSize=Math.min(SIZE/(tileW+4),SIZE/(tileH+4))*1.5;}
+  if(isIso){tileSize=Math.min(SIZE/(dU*2*COS30+4),SIZE/(dV*2*SIN30+4))*1.5;}
+  else{tileSize=Math.min(SIZE/(dU+4),SIZE/(dV+4))*1.5;}
   const ox=SIZE/2,oy=SIZE/2;
   function g2s(u,v){
     if(isIso)return{x:ox+(u-v)*tileSize*COS30,y:oy+(u+v)*tileSize*SIN30};
     return{x:ox+u*tileSize,y:oy+v*tileSize};
   }
   x.lineWidth=1.5;x.lineCap='round';x.strokeStyle='#9cbcd8';
-  const over=Math.ceil(SIZE/Math.max(tileSize*tileW,tileSize*tileH,1))+2;
+  const over=Math.ceil(SIZE/Math.max(tileSize*dU,tileSize*dV,1))+2;
   for(let ou=-over;ou<=over;ou++){for(let ov=-over;ov<=over;ov++){
     pat.lines.forEach(l=>{
       const u1=l.start[0]-bbox.minU+ou*dU,v1=l.start[1]-bbox.minV+ov*dV;
@@ -1327,7 +1343,7 @@ function renderExpPattern(pat){
 window.openExpPattern=function openExpPattern(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
-  document.getElementById('galleryView').style.display='none';
+  document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.add('open');
   curPat=pat;isEXP=true;isHM=false;isPL=false;
   TOTAL=1;step=1;playing=false;
@@ -1335,10 +1351,11 @@ window.openExpPattern=function openExpPattern(idOrPat){
   document.getElementById('info').textContent=pat.name||'Custom Pattern';
   renderExpPattern(pat);
   window.scrollTo({top:0,behavior:'smooth'});
-}
+};
 
+// ── My Patterns view ────────────────────────────────────────────────────────
 function expCardHTML(pat){
-  return`<div class="pcard exp-card" data-id="${pat.id}" data-exp="1" onclick="openExpPattern('${pat.id}')">
+  return`<div class="pcard exp-card" data-id="${pat.id}" onclick="openExpPattern('${pat.id}')">
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${pat.id}"></canvas>
     <div class="pcard-body">
       <div class="pcard-name">${pat.name||'Custom'}</div>
@@ -1348,26 +1365,45 @@ function expCardHTML(pat){
   </div>`;
 }
 
-function rebuildExpGallery(){
-  document.querySelectorAll('.pcard.exp-card').forEach(c=>c.remove());
-  const grid=document.getElementById('pgrid');
+function rebuildMyPatsView(){
+  const grid=document.getElementById('myPatsGrid');
+  if(!grid)return;
+  grid.innerHTML='';
+  if(!EXP_PATTERNS.length){
+    grid.innerHTML='<p class="no-results" style="display:block;margin:24px auto">No saved patterns yet — use the CAD Editor to draw one.</p>';
+    return;
+  }
   EXP_PATTERNS.forEach(pat=>{
     grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
     const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
     if(thumb&&pat.thumbnail){const img=new Image();img.onload=()=>{const tc=thumb.getContext('2d');tc.drawImage(img,0,0,120,120);};img.src=pat.thumbnail;}
   });
-  filterGallery();
 }
+
+function rebuildExpGallery(){rebuildMyPatsView();}  // alias for cadSaveToLibrary
 
 window.removeExpPattern=function removeExpPattern(id){
   EXP_PATTERNS=EXP_PATTERNS.filter(p=>p.id!==id);
   saveExpPatterns();
-  rebuildExpGallery();
-}
+  rebuildMyPatsView();
+};
+
+window.showMyPatterns=function(){
+  document.getElementById('galleryView').style.display='none';
+  document.getElementById('cadView').classList.remove('open');
+  document.getElementById('myPatsView').classList.add('open');
+  rebuildMyPatsView();
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+window.showGalleryFromMyPats=function(){
+  document.getElementById('myPatsView').classList.remove('open');
+  document.getElementById('galleryView').style.display='block';
+};
 
 // ── CAD view switching ──────────────────────────────────────────────────────
 window.showCAD=function(){
   document.getElementById('galleryView').style.display='none';
+  document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadInit();
@@ -1375,9 +1411,9 @@ window.showCAD=function(){
 };
 window.showGalleryFromCAD=function(){
   document.getElementById('cadView').classList.remove('open');
-  document.getElementById('galleryView').style.display='block';
+  document.getElementById('myPatsView').classList.add('open');
+  rebuildMyPatsView();
 };
-
 
 
 // ── cad-engine.js ──────────────────────────────
@@ -1390,6 +1426,7 @@ let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
 let cadBase=1,cadTileSize,cadOX,cadOY;
 let cadPTile,cadPOX,cadPOY;
 let cadDrawing=false,cadStart=null,cadCur=null,cadHover=null;
+let cadArcState=0,cadArcCenter=null,cadArcStart=null; // arc tool state
 let cadLeftBuf=null,cadRightBuf=null;
 let cadInited=false;
 
@@ -1452,6 +1489,41 @@ function cadBBox(){
   cadLines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
   return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
 }
+function cadBBox2(lines){
+  if(!lines.length)return null;
+  let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
+  lines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
+  return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
+}
+
+// Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
+// Click start again for full circle. Stores result as polyline segments.
+function cadGenArc(center,start,end){
+  const r=Math.hypot(start[0]-center[0],start[1]-center[1]);
+  if(r<0.01)return[];
+  const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
+  const a2=Math.atan2(end[1]-center[1],end[0]-center[0]);
+  let sweep=a2-a1;
+  while(sweep>Math.PI)sweep-=2*Math.PI;
+  while(sweep<=-Math.PI)sweep+=2*Math.PI;
+  if(Math.hypot(end[0]-start[0],end[1]-start[1])<0.1)sweep=2*Math.PI; // full circle
+  const segs=Math.max(8,Math.floor((Math.abs(sweep)/(2*Math.PI))*32));
+  const result=[];let prev=[...start];
+  for(let i=1;i<=segs;i++){
+    const a=a1+sweep*(i/segs);
+    const next=[center[0]+r*Math.cos(a),center[1]+r*Math.sin(a)];
+    result.push({start:prev,end:next});
+    prev=next;
+  }
+  return result;
+}
+
+function cadArcLabel(){
+  const labels=['Click to place center','Click to set radius','Click to set sweep (click center-start for full circle)'];
+  const el=document.getElementById('cadArcHint');
+  if(el)el.textContent=cadArcState<3?labels[cadArcState]:'';
+}
+
 function cadBakeLeft(){
   const cv=document.getElementById('cadCanvas');if(!cv)return;
   cadLeftBuf=document.createElement('canvas');cadLeftBuf.width=500;cadLeftBuf.height=500;
@@ -1479,13 +1551,19 @@ function cadBakeRight(){
     rx.beginPath();const p3=cadG2S(-ov*CAD_MICRO,val,cadPOX,cadPOY,cadPTile),p4=cadG2S((cadPatMacro+ov)*CAD_MICRO,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
   }
 }
+
 function cadDrawWorkspace(){
   const cv=document.getElementById('cadCanvas');if(!cv)return;
   const x=cv.getContext('2d');
   x.clearRect(0,0,500,500);
   if(cadLeftBuf)x.drawImage(cadLeftBuf,0,0);
+
+  // Build full line list including previews
   const all=[...cadLines];
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
+  if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur)
+    cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>{l.preview=true;all.push(l);});
+
   const bbox=cadBBox2(all);
   if(bbox){
     x.fillStyle='rgba(255,255,255,0.08)';x.beginPath();
@@ -1493,31 +1571,68 @@ function cadDrawWorkspace(){
     const p3=cadG2S(bbox.maxU,bbox.maxV,cadOX,cadOY,cadTileSize),p4=cadG2S(bbox.minU,bbox.maxV,cadOX,cadOY,cadTileSize);
     x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);x.closePath();x.fill();
   }
+
   x.lineWidth=4;x.lineCap='round';
   cadLines.forEach((l,i)=>{
     x.strokeStyle=(cadHover&&cadHover.li===i)?'#00ffcc55':'#00ffcc';
     const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize),p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
     x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   });
+
+  // Draw tool preview
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
     const p1=cadG2S(cadStart[0],cadStart[1],cadOX,cadOY,cadTileSize),p2=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
     x.strokeStyle='rgba(0,255,204,0.5)';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   }
+
+  // Arc tool visuals
+  if(cadTool==='arc'){
+    if(cadArcState===1&&cadArcCenter&&cadCur){
+      // dashed radius line from center to cursor
+      const pc=cadG2S(cadArcCenter[0],cadArcCenter[1],cadOX,cadOY,cadTileSize);
+      const pm=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+      x.strokeStyle='rgba(255,204,0,0.6)';x.setLineDash([5,5]);
+      x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(pm.x,pm.y);x.stroke();
+      x.setLineDash([]);
+    }else if(cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur){
+      // arc preview + guide dashes
+      const arcSegs=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+      x.strokeStyle='rgba(0,255,204,0.5)';x.lineWidth=3;
+      x.beginPath();
+      arcSegs.forEach((l,idx)=>{
+        const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize);
+        const p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
+        if(idx===0)x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);
+      });
+      x.stroke();
+      const pc=cadG2S(cadArcCenter[0],cadArcCenter[1],cadOX,cadOY,cadTileSize);
+      const ps=cadG2S(cadArcStart[0],cadArcStart[1],cadOX,cadOY,cadTileSize);
+      const pe=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+      x.strokeStyle='rgba(255,204,0,0.4)';x.setLineDash([5,5]);x.lineWidth=1;
+      x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(ps.x,ps.y);x.stroke();
+      x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(pe.x,pe.y);x.stroke();
+      x.setLineDash([]);
+    }
+  }
+
   if(cadTool==='erase'&&cadHover){
     const p1=cadG2S(cadHover.start.u,cadHover.start.v,cadOX,cadOY,cadTileSize),p2=cadG2S(cadHover.end.u,cadHover.end.v,cadOX,cadOY,cadTileSize);
-    x.strokeStyle='#ff3366';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    x.lineWidth=4;x.strokeStyle='#ff3366';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   }
-  if(cadTool==='draw'&&cadCur){
+  if((cadTool==='draw'||cadTool==='arc')&&cadCur){
     const s=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
     x.fillStyle='#00ffcc';x.beginPath();x.arc(s.x,s.y,6,0,Math.PI*2);x.fill();
   }
+  if(cadTool==='arc'&&cadArcCenter){
+    const pc=cadG2S(cadArcCenter[0],cadArcCenter[1],cadOX,cadOY,cadTileSize);
+    x.fillStyle='rgba(255,204,0,0.8)';x.beginPath();x.arc(pc.x,pc.y,5,0,Math.PI*2);x.fill();
+  }
+  if(cadTool==='arc'&&cadArcStart){
+    const ps=cadG2S(cadArcStart[0],cadArcStart[1],cadOX,cadOY,cadTileSize);
+    x.fillStyle='rgba(0,255,204,0.8)';x.beginPath();x.arc(ps.x,ps.y,5,0,Math.PI*2);x.fill();
+  }
 }
-function cadBBox2(lines){
-  if(!lines.length)return null;
-  let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
-  lines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
-  return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
-}
+
 function cadDrawPattern(){
   const pv=document.getElementById('patCanvas');if(!pv)return;
   const x=pv.getContext('2d');
@@ -1525,6 +1640,8 @@ function cadDrawPattern(){
   if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
   const all=[...cadLines];
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
+  if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur)
+    cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>{l.preview=true;all.push(l);});
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
   const ptc=cadPatMacro*CAD_MICRO,ov=ptc;
@@ -1559,8 +1676,11 @@ window.cadUpdateSettings=function(){
 window.cadSetTool=function(t){
   cadTool=t;
   document.getElementById('cadBtnDraw').classList.toggle('on',t==='draw');
+  document.getElementById('cadBtnArc').classList.toggle('on',t==='arc');
   document.getElementById('cadBtnErase').classList.toggle('on',t==='erase');
-  cadDrawing=false;cadStart=null;cadHover=null;cadUpdateAll();
+  cadDrawing=false;cadStart=null;cadHover=null;
+  cadArcState=0;cadArcCenter=null;cadArcStart=null;
+  cadArcLabel();cadUpdateAll();
 };
 window.cadUndo=function(){if(cadHistory.length){cadLines=cadHistory.pop();cadUpdateAll();}};
 window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadUpdateAll();}};
@@ -1600,7 +1720,19 @@ function cadInit(){
     cv.setPointerCapture(e.pointerId);
     const pos=cadGetPos(e,cv);
     if(e.button===1||e.button===2){cadPanning=true;cadPanStart=pos;cv.style.cursor='grabbing';return;}
-    if(cadTool==='draw'){const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);cadCur=cadSnapPoint(g.u,g.v);cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];}
+    const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
+    cadCur=cadSnapPoint(g.u,g.v);
+    if(cadTool==='draw'){cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];}
+    else if(cadTool==='arc'){
+      if(cadArcState===0){cadArcCenter=[...cadCur];cadArcState=1;}
+      else if(cadArcState===1){cadArcStart=[...cadCur];cadArcState=2;}
+      else if(cadArcState===2){
+        cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+        cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>cadLines.push(l));
+        cadArcState=0;cadArcCenter=null;cadArcStart=null;
+      }
+      cadArcLabel();
+    }
     else if(cadTool==='erase'&&cadHover){
       cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
       cadLines.splice(cadHover.li,1);
@@ -1613,7 +1745,7 @@ function cadInit(){
     const pos=cadGetPos(e,cv);
     if(cadPanning){cadPanX+=pos.x-cadPanStart.x;cadPanY+=pos.y-cadPanStart.y;cadPanStart=pos;cadApplyView();cadBakeLeft();cadUpdateAll();return;}
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
-    if(cadTool==='draw')cadCur=cadSnapPoint(g.u,g.v);
+    if(cadTool==='draw'||cadTool==='arc')cadCur=cadSnapPoint(g.u,g.v);
     else{cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     cadUpdateAll();
   });
@@ -1626,19 +1758,20 @@ function cadInit(){
   });
   cv.addEventListener('pointerleave',()=>{cadDrawing=false;cadStart=null;cadCur=null;cadHover=null;cadUpdateAll();});
   document.addEventListener('keydown',e=>{
-    if(document.getElementById('cadView').classList.contains('open')&&e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
+    if(!document.getElementById('cadView').classList.contains('open'))return;
+    if(e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
+    if(e.key==='Escape'&&cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcLabel();cadUpdateAll();}
   });
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.getElementById('cadView').classList.remove('open');
 document.getElementById('animView').classList.remove('open');
+document.getElementById('myPatsView').classList.remove('open');
 document.getElementById('galleryView').style.display='block';
 initGenUI();
 loadExpPatterns();
 buildGallery();
-rebuildExpGallery();
-
 
 })();
 </script>
