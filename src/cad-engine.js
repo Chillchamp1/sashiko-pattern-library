@@ -273,7 +273,7 @@ window.cadSaveToLibrary=function(){
   const id='exp_'+Date.now();
   const lines=cadLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('patCanvas').toDataURL('image/png');
-  const pat={id,name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},thumbnail,createdAt:Date.now()};
+  const pat={id,name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now()};
   EXP_PATTERNS.unshift(pat);saveExpPatterns(pat);rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
   btn.textContent='✓ Saved!';btn.style.background='#1a5c28';
