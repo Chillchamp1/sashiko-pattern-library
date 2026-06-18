@@ -54,6 +54,30 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 #animView{display:none;flex-direction:column;align-items:center;gap:14px}
 #animView.open{display:flex}
 .back-row{width:100%;display:flex;align-items:center;gap:10px}
+.anim-body{display:flex;justify-content:center;width:100%}
+/* ── Stitching Order Settings (collapsible, exp only) ── */
+#stitchSettings{width:100%;max-width:420px;margin:0 auto}
+.settings-toggle{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:8px 14px;font-size:13px;color:var(--muted);cursor:pointer;width:100%;text-align:left;
+  transition:.15s;font:inherit;display:flex;align-items:center;gap:6px}
+.settings-toggle:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
+.settings-toggle.on{color:#e7eef6}
+.settings-body{background:var(--panel);border:1px solid var(--line);border-top:none;
+  border-radius:0 0 10px 10px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.settings-desc{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.6;margin:0;max-width:380px}
+.settings-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+/* ── Family editor elements (inside settings) ── */
+#famCanvas{display:block;border-radius:8px;background:#1a3a5c;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.fam-hint{font-size:10px;color:var(--muted);text-align:center;line-height:1.4}
+.fam-swatches{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.fam-swatch{width:20px;height:20px;border-radius:5px;border:2px solid transparent;
+  cursor:pointer;transition:.12s;box-sizing:border-box}
+.fam-swatch:hover{border-color:#fff8}
+.fam-swatch.sel{border-color:#fff;box-shadow:0 0 0 2px #fff3}
+.fam-swatch.add{background:transparent;border:1px dashed var(--line);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+.fam-swatch.add:hover{border-color:#fff8;color:#fff}
 .back-btn{background:var(--panel);border:1px solid var(--line);border-radius:9px;
   padding:7px 14px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;
   display:inline-flex;align-items:center;gap:5px}
@@ -225,10 +249,25 @@ button.ctrl.primary:hover{background:#275784}
     <button class="back-btn" onclick="showGallery()">← Patterns</button>
     <h2 class="anim-title" id="animTitle">Hitomezashi<span class="jp">一目刺し · Snowflake</span></h2>
   </div>
-  <div class="hm-frame" id="hmFrame">
-    <div class="hm-col-toggles" id="hmColToggles"></div>
-    <div class="hm-row-toggles" id="hmRowToggles"></div>
-    <div class="stage"><canvas id="cv" width="465" height="465" style="width: 372px; height: 372px;"></canvas></div>
+  <div class="anim-body" id="animBody">
+    <div class="hm-frame" id="hmFrame">
+      <div class="hm-col-toggles" id="hmColToggles"></div>
+      <div class="hm-row-toggles" id="hmRowToggles"></div>
+      <div class="stage"><canvas id="cv" width="465" height="465" style="width: 372px; height: 372px;"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Stitching Order Settings (exp patterns only, collapsed by default) -->
+  <div id="stitchSettings" style="display:none">
+    <button class="settings-toggle" id="stitchToggle" onclick="toggleStitchSettings()">⚙ Stitching Order Settings ▸</button>
+    <div class="settings-body" id="stitchBody" style="display:none">
+      <p class="settings-desc">By assigning colours to the lines you change how the animation creates the stitching orders. Often its trial and error. As soon as you have found the right settings it will be quite clear to you. Play around with it and see how the animation reacts.</p>
+      <div class="settings-row">
+        <canvas id="famCanvas" width="180" height="180"></canvas>
+        <div class="fam-swatches" id="famSwatches"></div>
+      </div>
+      <div class="fam-hint">Click + to add a colour, then click a line to assign it</div>
+    </div>
   </div>
 
   <!-- Universal size slider — always directly below the pattern, only for generator -->
@@ -877,6 +916,11 @@ let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
 let TICK_MS=160;  // default slow (~6 stitches/sec); toggle to 80 for fast
 
+const FAM_PALETTE=['#ff5555','#ff9944','#ffdd44','#55dd55','#44cccc','#5599ff','#bb55ff','#ff55aa','#ff7744','#55ddbb'];
+const FAM_DIR_LABEL={0:'V',1:'D1',2:'D2',3:'H'};
+function famColor(famIdx){return FAM_PALETTE[famIdx%FAM_PALETTE.length];}
+function famLabel(famIdx,dirCat){return 'Line '+(famIdx+1)+(dirCat!==undefined?' '+(FAM_DIR_LABEL[dirCat]||'?'):'');}
+
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
   ctx.fillStyle=getCss('--fabric'); ctx.fillRect(0,0,SIZE,SIZE);
@@ -940,8 +984,19 @@ function updateInfo(st,p,local){
   if(st===0){setIdleInfo();markJump(-1);return;}
   el.classList.remove('idle');el.onclick=null;
   if(isEXP){
-    el.innerHTML=st>=TOTAL?'<span class="muted">complete ✓</span>':`stitch <b>${st}</b><span class="muted">/${TOTAL}</span>`;
-    markJump(-1);return;
+    let famHtml='',famIdx=-1;
+    if(st<=TOTAL&&st>0&&EXP_path.length){
+      const s=EXP_path[Math.min(st-1,EXP_path.length-1)];
+      if(s.fam!==undefined){
+        const col=famColor(s.fam);
+        const lbl=famLabel(s.fam);
+        famHtml='&nbsp;<span class="pill" style="background:'+hexA(col,.16)+';color:'+col+'"><span class="dot" style="background:'+col+'"></span>'+lbl+'</span>';
+        const fams=[...new Set(EXP_path.map(p=>p.fam))].sort((a,b)=>a-b);
+        famIdx=fams.indexOf(s.fam);
+      }
+    }
+    el.innerHTML=st>=TOTAL?'<span class="muted">complete &#10003;</span>'+famHtml:'stitch <b>'+st+'</b><span class="muted">/'+TOTAL+'</span>'+famHtml;
+    markJump(famIdx);return;
   }
   const idx=(st>=TOTAL)?PASSES.length-1:p;
   const d=DIRS[PASSES[idx].dir],col=getCss(d.col);
@@ -957,6 +1012,21 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 // ── Jump bar ───────────────────────────────────────────────────────────────
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
+  if(isEXP){
+    let lastFam=-1;
+    EXP_path.forEach((s,i)=>{
+      if(s.fam!==lastFam){
+        lastFam=s.fam;
+        const b=document.createElement('button');
+        const col=famColor(s.fam);
+        b.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>Line ${s.fam+1}`;
+        b.title='Jump to family '+(s.fam+1);
+        b.onclick=()=>{pause();step=i;render(step);};
+        jb.appendChild(b);
+      }
+    });
+    return;
+  }
   if(isPL){
     PL_passes.forEach((p,i)=>{
       const b=document.createElement('button');
@@ -992,7 +1062,7 @@ function buildJumpBar(){
 function loadPattern(pat){
   // Restore default square canvas if a previous exp iso pattern changed the height.
   if(Math.round(cv.height/DPR)!==SIZE){
-    cv.height=SIZE*DPR; cv.style.height=SIZE+'px'; ctx.scale(DPR,DPR);
+    cv.height=SIZE*DPR; cv.style.height=SIZE+'px'; ctx.setTransform(DPR,0,0,DPR,0,0);
   }
 
   curPat=pat;
@@ -1001,7 +1071,9 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
-  document.getElementById('bReroute').style.display=isEXP?'':'none';  // re-route only for custom patterns
+  document.getElementById('bReroute').style.display=isEXP?'':'none';
+  document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
+  if(!isEXP)document.getElementById('famCanvas').onclick=null;
   cv.style.cursor='';
   if(isGen){
     showGenUI(true);
@@ -1016,6 +1088,10 @@ function loadPattern(pat){
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
+    document.getElementById('stitchBody').style.display='none';
+    document.getElementById('stitchToggle').textContent='⚙ Stitching Order Settings ▸';
+    document.getElementById('stitchToggle').classList.remove('on');
+    document.getElementById('famCanvas').onclick=famEditorClick;
     step=0;if(playing)pause();
     buildJumpBar();render(0);
     return;
@@ -1503,8 +1579,57 @@ function computeExpLayout(pat){
   return{sz,ox,oy,canvasH,g2s,s2g,ptc,iso,corners,planes:convexPlanes(corners),uRange:[minU,maxU],vRange:[minV,maxV]};
 }
 
-// All tiled segment instances covering the visible square, each CLIPPED to it (grid coords).
-// Anything fully off-screen is dropped — nothing routes outside the window.
+// ── Symmetry family detection ──────────────────────────────────────────────
+// Analyses the unit cell: lines that connect across tile boundaries (and
+// are therefore symmetric counterparts) form one family — routed together as zigzag.
+//
+// For each pair of lines (i,j) we test all 8 neighbouring tile-offsets (±dU,±dV).
+// If end(i) ≈ start(j)+offset (within threshold), they connect → same family.
+// Connected components = families.  Unconnected lines stay solo families.
+// Families are ordered by their smallest line-index (foundation rule).
+function detectSymmetryFamilies(pat){
+  const lines=pat.lines||[];
+  if(lines.length<=1)return lines.map((_,i)=>[i]);
+
+  const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
+  const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
+  const THRESH=0.8;  // grid-unit connection threshold
+
+  const n=lines.length;
+  const parent=[...Array(n).keys()];
+  function find(x){while(parent[x]!==x){parent[x]=parent[parent[x]];x=parent[x];}return x;}
+  function union(a,b){a=find(a);b=find(b);if(a!==b)parent[b]=a;}
+
+  for(let i=0;i<n;i++){
+    const la=lines[i];
+    for(let j=i+1;j<n;j++){
+      const lb=lines[j];
+      // Is line i's end near line j's start (or vice versa) under some tile offset?
+      let connected=false;
+      for(let du=-dU;du<=dU;du+=dU){
+        for(let dv=-dV;dv<=dV;dv+=dV){
+          const sx=lb.start[0]+du-la.end[0], sy=lb.start[1]+dv-la.end[1];
+          if(Math.hypot(sx,sy)<THRESH){connected=true;break;}
+          const ex=la.start[0]+du-lb.end[0], ey=la.start[1]+dv-lb.end[1];
+          if(Math.hypot(ex,ey)<THRESH){connected=true;break;}
+        }
+        if(connected)break;
+      }
+      if(connected)union(i,j);
+    }
+  }
+
+  // Build families from connected components, order by min line-index
+  const groups=new Map();
+  for(let i=0;i<n;i++){
+    const r=find(i);
+    if(!groups.has(r))groups.set(r,[]);
+    groups.get(r).push(i);
+  }
+  return [...groups.values()].sort((a,b)=>Math.min(...a)-Math.min(...b));
+}
+
+// ── Tiled segments (with symmetry-family assignment) ───────────────────────
 function genTiledSegs(pat){
   const lay=computeExpLayout(pat);
   const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
@@ -1512,12 +1637,26 @@ function genTiledSegs(pat){
   const [minU,maxU]=lay.uRange, [minV,maxV]=lay.vRange;
   const ou0=Math.floor((minU-bbox.maxU)/dU)*dU, ou1=Math.ceil((maxU-bbox.minU)/dU)*dU;
   const ov0=Math.floor((minV-bbox.maxV)/dV)*dV, ov1=Math.ceil((maxV-bbox.minV)/dV)*dV;
+  const families=pat.families||detectSymmetryFamilies(pat);
+  const nLines=(pat.lines||[]).length;
+  const famOfLine=new Array(nLines);
+  // Handle both flat format [0,0,-1,2] and array-of-arrays [[0,2],[1]]
+  if(families.length>0&&Array.isArray(families[0])){
+    families.forEach((group,fi)=>{group.forEach(li=>{famOfLine[li]=fi;});});
+  }else{
+    families.forEach((fi,li)=>{famOfLine[li]=fi;});
+  }
+  // Unassigned lines (-1 or undefined) each get their own family
+  let nextFam=Math.max(0,...famOfLine.filter(f=>f>=0))+1;
+  for(let li=0;li<nLines;li++){
+    if(famOfLine[li]===undefined||famOfLine[li]<0)famOfLine[li]=nextFam++;
+  }
   const segs=[];
   for(let ou=ou0;ou<=ou1;ou+=dU){
     for(let ov=ov0;ov<=ov1;ov+=dV){
-      (pat.lines||[]).forEach(l=>{
+      (pat.lines||[]).forEach((l,li)=>{
         const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
-        if(c)segs.push({start:c[0],end:c[1]});
+        if(c)segs.push({start:c[0],end:c[1],fam:famOfLine[li]});
       });
     }
   }
@@ -1529,183 +1668,359 @@ function setupExpCanvas(pat){
   const lay=computeExpLayout(pat);
   EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
   cv.height=EXP_canvasH*DPR; cv.style.height=EXP_canvasH+'px';
-  ctx.scale(DPR,DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
 }
 
-// Build animation path with "human-makable" routing.
+// ── Family editor (unit cell, inside Stitching Order Settings) ──────────
+let _famSel=0, _famCount=0;
+function initExpFamilies(pat){
+  if(!pat.families)pat.families=new Array((pat.lines||[]).length).fill(-1);
+}
+
+// Find lines that are redundant (exact duplicates or collinear overlaps)
+function findRedundant(lines){
+  if(!lines||lines.length<2)return[];
+  const Q=1e-4, PERP_THRESH=0.5; const redundant=new Set();
+  for(let i=0;i<lines.length;i++){
+    const a=lines[i];
+    const dxA=a.end[0]-a.start[0], dyA=a.end[1]-a.start[1];
+    const lenA=Math.hypot(dxA,dyA); if(lenA<Q)continue;
+    const ndxA=dxA/lenA, ndyA=dyA/lenA;
+    for(let j=i+1;j<lines.length;j++){
+      const b=lines[j];
+      const dxB=b.end[0]-b.start[0], dyB=b.end[1]-b.start[1];
+      const lenB=Math.hypot(dxB,dyB); if(lenB<Q)continue;
+      const dot=ndxA*(dxB/lenB)+ndyA*(dyB/lenB);
+      if(Math.abs(Math.abs(dot)-1)>Q)continue;
+      // Must lie on the same line: perpendicular distance of both B endpoints to A's line < threshold
+      function perpDist(p){return Math.abs((p[0]-a.start[0])*ndyA-(p[1]-a.start[1])*ndxA);}
+      if(perpDist(b.start)>PERP_THRESH||perpDist(b.end)>PERP_THRESH)continue;
+      // Project onto shared line and check overlap
+      function proj(p){return (p[0]-a.start[0])*ndxA+(p[1]-a.start[1])*ndyA;}
+      let b0=proj(b.start), b1=proj(b.end);
+      if(b0>b1)[b0,b1]=[b1,b0];
+      const ovl=Math.min(lenA,b1)-Math.max(0,b0);
+      const minLen=Math.min(lenA,lenB);
+      if(ovl>minLen*0.9){redundant.add(i);redundant.add(j);}
+    }
+  }
+  return [...redundant].sort((a,b)=>a-b);
+}
+function toggleStitchSettings(){
+  const body=document.getElementById('stitchBody');
+  const tog=document.getElementById('stitchToggle');
+  if(!body||!tog)return;
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  tog.textContent=open?'⚙ Stitching Order Settings ▸':'⚙ Stitching Order Settings ▾';
+  tog.classList.toggle('on',!open);
+  if(!open)renderFamEditor();
+}
+window.toggleStitchSettings=toggleStitchSettings;
+function renderFamEditor(){
+  if(!curPat||curPat.type!=='exp')return;
+  const fc=document.getElementById('famCanvas');
+  const sw=document.getElementById('famSwatches');
+  const body=document.getElementById('stitchBody');
+  if(!fc||!sw||!body)return;
+  if(body.style.display==='none')return;
+  initExpFamilies(curPat);
+  const lines=curPat.lines||[];
+  const fams=curPat.families;
+  const FW=180,FH=180;
+
+  // Sync _famCount: highest assigned family + 1, minimum 0
+  const assigned=fams.filter(f=>f>=0);
+  _famCount=Math.max(5,assigned.length?Math.max(...assigned)+1:0);
+
+  const x=fc.getContext('2d');
+  fc.width=FW;fc.height=FH;
+  x.fillStyle='#1a3a5c';x.fillRect(0,0,FW,FH);
+
+  if(!lines.length){sw.innerHTML='';return;}
+
+  const iso=curPat.gridType==='isometric';
+  const COS30=Math.cos(Math.PI/6),SIN30=Math.sin(Math.PI/6);
+  function toScr(u,v){
+    if(iso)return{x:(u-v)*COS30,y:(u+v)*SIN30};
+    return{x:u,y:v};
+  }
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  lines.forEach(l=>{[l.start,l.end].forEach(p=>{const s=toScr(p[0],p[1]);minX=Math.min(minX,s.x);maxX=Math.max(maxX,s.x);minY=Math.min(minY,s.y);maxY=Math.max(maxY,s.y);});});
+  const cellW=maxX-minX||1,cellH=maxY-minY||1;
+  const pad=16,sc=Math.min((FW-2*pad)/cellW,(FH-2*pad)/cellH);
+  const ox=(FW-cellW*sc)/2-minX*sc,oy=(FH-cellH*sc)/2-minY*sc;
+
+  fc._famHit=lines.map((l,li)=>{
+    const p1=toScr(l.start[0],l.start[1]),p2=toScr(l.end[0],l.end[1]);
+    return{sx:ox+p1.x*sc,sy:oy+p1.y*sc,ex:ox+p2.x*sc,ey:oy+p2.y*sc,li};
+  });
+
+  // Draw lines (gray if unassigned, family colour if assigned)
+  x.lineWidth=3.5;x.lineCap='round';
+  lines.forEach((l,li)=>{
+    const fi=fams[li];
+    x.strokeStyle=fi>=0?famColor(fi):'#556677';
+    const h=fc._famHit[li];
+    x.beginPath();x.moveTo(h.sx,h.sy);x.lineTo(h.ex,h.ey);x.stroke();
+  });
+
+  // Redundancy overlay
+  const redundant=findRedundant(lines);
+  if(redundant.length){
+    x.lineWidth=2;x.strokeStyle='#ff3333';x.setLineDash([3,3]);
+    redundant.forEach(li=>{
+      const h=fc._famHit[li];
+      x.beginPath();x.moveTo(h.sx,h.sy);x.lineTo(h.ex,h.ey);x.stroke();
+    });
+    x.setLineDash([]);
+  }
+
+  // Build swatches
+  sw.innerHTML='';
+  for(let f=0;f<_famCount;f++){
+    const b=document.createElement('button');
+    b.className='fam-swatch'+(f===_famSel?' sel':'');
+    b.style.background=famColor(f);
+    b.title='Family '+(f+1);
+    b.onclick=e=>{e.stopPropagation();_famSel=f;renderFamEditor();};
+    sw.appendChild(b);
+  }
+  const add=document.createElement('button');
+  add.className='fam-swatch add';
+  add.textContent='+';
+  add.title='Add new colour';
+  add.onclick=e=>{
+    e.stopPropagation();
+    _famCount++;
+    _famSel=_famCount-1;
+    renderFamEditor();
+  };
+  sw.appendChild(add);
+
+  // Update hint
+  const hint=document.querySelector('#stitchSettings .fam-hint');
+  if(hint){
+    const nAssigned=fams.filter(f=>f>=0).length;
+    const nRed=redundant.length;
+    let msg;
+    if(nAssigned)msg=nAssigned+'/'+lines.length+' lines assigned';
+    else if(_famCount)msg=_famCount+' colours available';
+    else msg='Click + to add a colour';
+    if(nRed)msg='<span style=\"color:#ff5555\">'+nRed+' redundant</span> &middot; '+msg;
+    hint.innerHTML=msg;
+  }
+}
+
+// Click handler: assign clicked line to selected family
+function famEditorClick(e){
+  const fc=document.getElementById('famCanvas');
+  if(!fc||!fc._famHit||!curPat)return;
+  const rect=fc.getBoundingClientRect();
+  const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  let best=-1,bd=14;
+  fc._famHit.forEach(h=>{
+    const d=distToSeg(mx,my,h.sx,h.sy,h.ex,h.ey);
+    if(d<bd){bd=d;best=h.li;}
+  });
+  if(best<0)return;
+  initExpFamilies(curPat);
+  // Toggle: if already assigned to _famSel, unassign (-1). Otherwise assign to _famSel.
+  curPat.families[best]=curPat.families[best]===_famSel?-1:_famSel;
+  // Save and re-route
+  const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
+  if(orig)orig.families=[...curPat.families];
+  _saveLocal();
+  renderFamEditor();
+  rerouteExp();
+}
+function distToSeg(px,py,ax,ay,bx,by){
+  const l2=(bx-ax)**2+(by-ay)**2;
+  if(l2===0)return Math.hypot(px-ax,py-ay);
+  let t=((px-ax)*(bx-ax)+(py-ay)*(by-ay))/l2;
+  t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-ax-t*(bx-ax),py-ay-t*(by-ay));
+}
+
+// Build animation path: family-first routing.
 //
-// Cost model we approximately minimise (priority high → low):
-//   A·(#jumps)  +  B·(total jump length)  +  C·(turn sharpness)  +  D·(retrace)
-// A ≫ B ≫ C,D — re-inserting the needle dominates, so we first form the longest
-// continuous strokes possible, then order them so every jump is short and always
-// moves into UNSTITCHED area.
-//
-// Phase 1 — stroke formation (minimises #jumps and turn sharpness together):
-//   Build a vertex/edge graph; at each vertex pair the incident edges by MINIMUM
-//   DEFLECTION (straightest through-passage). A stroke follows these pairings, so
-//   it runs straight through crossings AND smoothly along curves — a whole
-//   semicircle becomes ONE stroke regardless of how many small angles it contains.
-//   It only breaks at genuine endpoints or near-reversals (deflection > MAXTURN).
-// Phase 2 — stroke ordering (minimises jump length and retrace):
-//   Group strokes into orientation families (Rule 3 pass order), then into parallel
-//   bands; sweep bands and SNAKE (reverse alternate bands). Monotonic progress means
-//   each jump is a short hop into new territory, never back over finished stitches.
+// Foundation rule: symmetry families are routed in order (smallest line-index first).
+// Each family's tiled segments are routed with min-deflection strokes → band-snake ordering.
+// Between families: minimal jump.
 function buildExpPath(lines){
   if(!lines||!lines.length)return[];
-  const Q=1e-4;                    // vertex-merge quantum (shared endpoints are computed identically)
-  const MAXTURN=90*Math.PI/180;    // break a stroke rather than force a turn sharper than 90° (user: sharp turns should almost never happen)
 
-  // ---- vertex / edge graph ----
+  // Group segments by family
+  const famGroups=new Map();
+  lines.forEach(l=>{
+    const fi=l.fam||0;
+    if(!famGroups.has(fi))famGroups.set(fi,[]);
+    famGroups.get(fi).push(l);
+  });
+  const fams=[...famGroups.keys()].sort((a,b)=>a-b);
+
+  const path=[];
+  let cur=null;
+
+  for(const fi of fams){
+    const segs=famGroups.get(fi);
+    const strokes=buildStrokesForFamily(segs);
+    if(!strokes.length)continue;
+
+    const ordered=orderStrokesFamily(strokes);
+
+    if(cur&&ordered.length>0){
+      const s0=ordered[0].pts;
+      const dS=Math.hypot(s0[0][0]-cur[0],s0[0][1]-cur[1]);
+      const dE=Math.hypot(s0[s0.length-1][0]-cur[0],s0[s0.length-1][1]-cur[1]);
+      if(dE<dS)ordered[0].pts=s0.slice().reverse();
+    }
+
+    for(let si=0;si<ordered.length;si++){
+      let pts=ordered[si].pts;
+      if(cur){
+        const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
+        const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
+        if(dE<dS)pts=pts.slice().reverse();
+      }
+      for(let k=0;k<pts.length-1;k++){
+        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0, fam:fi});
+      }
+      cur=pts[pts.length-1];
+    }
+  }
+  return path;
+}
+
+// ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
+function buildStrokesForFamily(segs){
+  const Q=1e-4;
+  const MAXTURN=90*Math.PI/180;
+
   const vId=new Map(), vPos=[];
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
     if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
   const seen=new Set(), edges=[];
-  for(const l of lines){
+  for(const l of segs){
     const a=vidOf(l.start), b=vidOf(l.end);
     if(a===b)continue;
     const ek=a<b?a+'_'+b:b+'_'+a;
-    if(seen.has(ek))continue; seen.add(ek);          // dedupe exact-duplicate edges (overlapping tiles)
+    if(seen.has(ek))continue; seen.add(ek);
     edges.push([a,b]);
   }
   if(!edges.length)return[];
-  const adj=vPos.map(()=>[]);                         // adj[v] = [{e,to,dir:[ux,uy],tw}]
+
+  const adj=vPos.map(()=>[]);
   edges.forEach(([a,b],ei)=>{
     let dx=vPos[b][0]-vPos[a][0], dy=vPos[b][1]-vPos[a][1];
     const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
     adj[a].push({e:ei,to:b,dir:[dx,dy],tw:-1});
     adj[b].push({e:ei,to:a,dir:[-dx,-dy],tw:-1});
   });
-  {                                                   // link the two half-edges (twins) of each edge
-    const slot=new Map();
-    adj.forEach((list,v)=>list.forEach((h,li)=>{
-      const s=slot.get(h.e);
-      if(s===undefined)slot.set(h.e,{v,li});
-      else{h.tw=s.li; adj[s.v][s.li].tw=li;}
-    }));
-  }
+  {const slot=new Map();
+  adj.forEach((list,v)=>list.forEach((h,li)=>{
+    const s=slot.get(h.e);
+    if(s===undefined)slot.set(h.e,{v,li});
+    else{h.tw=s.li; adj[s.v][s.li].tw=li;}
+  }));}
 
-  // ---- Phase 1: min-deflection maximal matching at each vertex ----
   const partner=adj.map(list=>new Int32Array(list.length).fill(-1));
   adj.forEach((list,v)=>{
     const d=list.length; if(d<2)return;
-    // deflection: 0 = straight through (opposite outgoing dirs), π = fold straight back
     const cost=(i,j)=>{let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
       dt=Math.max(-1,Math.min(1,dt)); return Math.PI-Math.acos(dt);};
     partner[v].set(matchVertex(d,cost,MAXTURN));
   });
 
-  // ---- trace strokes following the pairings ----
   const usedE=new Uint8Array(edges.length), strokes=[];
   function trace(v0,li0){
     const pts=[vPos[v0].slice()]; let v=v0,li=li0;
     for(;;){
       const h=adj[v][li]; if(usedE[h.e])break; usedE[h.e]=1;
       pts.push(vPos[h.to].slice());
-      const nl=partner[h.to][h.tw];     // continue out along the partner of the arriving half-edge
-      if(nl<0)break;                    // dangling → stroke ends
+      const nl=partner[h.to][h.tw];
+      if(nl<0)break;
       v=h.to; li=nl;
     }
     if(pts.length>=2)strokes.push(pts);
   }
-  adj.forEach((list,v)=>list.forEach((h,li)=>{        // open strokes: start at unpaired half-edges
+  adj.forEach((list,v)=>list.forEach((h,li)=>{
     if(partner[v][li]<0 && !usedE[h.e])trace(v,li);
   }));
-  edges.forEach(([a],ei)=>{                           // closed loops: any remaining edges
+  edges.forEach(([a],ei)=>{
     if(usedE[ei])return;
     trace(a, adj[a].findIndex(h=>h.e===ei));
   });
 
-  // ---- Phase 2: order strokes — movement TYPE → orientation family → band → snake ----
-  // "Order first" (user): group similar movements together and sweep them predictably, even at
-  // the cost of a few extra jumps. Type priority: straight(0) → zigzag(1) → curve(2).
-  const FAMBIN=Math.PI/6, FAMS=Math.round(Math.PI/FAMBIN);   // 30° orientation bins
-  function metrics(pts){
-    let len=0,cx=0,cy=0;
-    for(let k=0;k<pts.length-1;k++)len+=Math.hypot(pts[k+1][0]-pts[k][0],pts[k+1][1]-pts[k][1]);
-    pts.forEach(p=>{cx+=p[0];cy+=p[1];}); cx/=pts.length; cy/=pts.length;
-    // turning profile: total = Σ|deflection|, net = |Σ signed deflection|
-    let total=0,net=0;
-    for(let k=1;k<pts.length-1;k++){
-      const ax=pts[k][0]-pts[k-1][0], ay=pts[k][1]-pts[k-1][1];
-      const bx=pts[k+1][0]-pts[k][0], by=pts[k+1][1]-pts[k][1];
-      const a=Math.atan2(ax*by-ay*bx, ax*bx+ay*by); total+=Math.abs(a); net+=a;
-    }
-    // straight = barely turns; curve = turns keep the same sign (accumulate); zigzag = turns alternate
-    const type = total<0.35 ? 0 : (Math.abs(net)/total>0.6 ? 2 : 1);
-    // orientation: chord, or bbox major axis for closed/curly strokes
+  return strokes;
+}
+
+// ── Stroke ordering within one super-family (ROUTING.md Rules 2+3: band-snake) ─
+function orderStrokesFamily(strokes){
+  if(strokes.length<=1)return strokes.map(pts=>({pts}));
+
+  // metrics per stroke
+  const S=strokes.map(pts=>{
+    let cx=0,cy=0;
+    pts.forEach(p=>{cx+=p[0];cy+=p[1];});
+    cx/=pts.length; cy/=pts.length;
     let dx=pts[pts.length-1][0]-pts[0][0], dy=pts[pts.length-1][1]-pts[0][1];
-    if(Math.hypot(dx,dy)<len*0.3){
+    const len=Math.hypot(dx,dy);
+    if(len<1e-6){
       const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
       dx=Math.max(...xs)-Math.min(...xs); dy=Math.max(...ys)-Math.min(...ys);
     }
     let ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI; if(ang>=Math.PI)ang-=Math.PI;
-    return {len,cx,cy,ang,type};
-  }
-  const S=strokes.map(pts=>({pts,...metrics(pts)}));
-  // group by (type, orientation bin); key sorts type-major so movements of a kind stay together
-  const groups=new Map();
-  S.forEach(s=>{const fb=Math.round(s.ang/FAMBIN)%FAMS; const key=s.type*100+fb;
-    if(!groups.has(key))groups.set(key,[]); groups.get(key).push(s);});
+    return{pts,cx,cy,ang};
+  });
 
-  const ordered=[];
-  for(const key of [...groups.keys()].sort((a,b)=>a-b)){
-    const fam=groups.get(key);
-    let sc=0,ss=0; fam.forEach(s=>{sc+=s.len*Math.cos(2*s.ang); ss+=s.len*Math.sin(2*s.ang);});
-    const tf=0.5*Math.atan2(ss,sc);                   // family mean orientation (double-angle)
-    const dir=[Math.cos(tf),Math.sin(tf)], perp=[-Math.sin(tf),Math.cos(tf)];
-    fam.forEach(s=>{s.bc=s.cx*perp[0]+s.cy*perp[1]; s.ac=s.cx*dir[0]+s.cy*dir[1];});
-    const bcs=[...new Set(fam.map(s=>Math.round(s.bc*2)/2))].sort((a,b)=>a-b);
-    let pitch=Infinity; for(let i=1;i<bcs.length;i++)pitch=Math.min(pitch,bcs[i]-bcs[i-1]);
-    if(!isFinite(pitch)||pitch<1e-6)pitch=1;
-    const minbc=Math.min(...fam.map(s=>s.bc));
-    fam.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
-    fam.sort((a,b)=> a.band-b.band || (a.band%2===0 ? a.ac-b.ac : b.ac-a.ac));   // snake the bands
-    fam.forEach(s=>ordered.push(s));
-  }
+  // mean orientation via double-angle weighting
+  let sc=0,ss=0;
+  S.forEach(s=>{const w=Math.hypot(s.pts[s.pts.length-1][0]-s.pts[0][0],s.pts[s.pts.length-1][1]-s.pts[0][1])||1; sc+=w*Math.cos(2*s.ang); ss+=w*Math.sin(2*s.ang);});
+  const tf=0.5*Math.atan2(ss,sc);
+  const dir=[Math.cos(tf),Math.sin(tf)], perp=[-Math.sin(tf),Math.cos(tf)];
 
-  // Orient the FIRST stroke to END near the second one, so the whole sweep flows in one
-  // direction from the start (no needless backward jump before the chain gets going).
-  if(ordered.length>1){
-    const s0=ordered[0].pts, s1=ordered[1].pts;
-    const e0=[s0[0],s0[s0.length-1]], e1=[s1[0],s1[s1.length-1]];
-    let best=Infinity, flip0=false;
-    e0.forEach((e,ei)=>e1.forEach(f=>{const d=Math.hypot(e[0]-f[0],e[1]-f[1]); if(d<best){best=d;flip0=(ei===0);}}));
-    if(flip0)ordered[0].pts=s0.slice().reverse();
-  }
+  // band coordinate = perpendicular projection of centroid
+  S.forEach(s=>{s.bc=s.cx*perp[0]+s.cy*perp[1]; s.ac=s.cx*dir[0]+s.cy*dir[1];});
 
-  // ---- emit; each stroke traversed from the end nearest the cursor → consecutive strokes
-  //      alternate direction (the S-flow for a row/column of arches) ----
-  const path=[]; let cur=null, first=true;
-  for(const s of ordered){
-    let pts=s.pts;
-    if(cur){
-      const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
-      const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
-      if(dE<dS)pts=pts.slice().reverse();
-    }
-    for(let k=0;k<pts.length-1;k++){ path.push({start:pts[k],end:pts[k+1],jump:!first&&k===0}); first=false; }
-    cur=pts[pts.length-1];
-  }
-  return path;
+  // detect natural band pitch
+  const bcs=[...new Set(S.map(s=>Math.round(s.bc*2)/2))].sort((a,b)=>a-b);
+  let pitch=Infinity;
+  for(let i=1;i<bcs.length;i++)pitch=Math.min(pitch,bcs[i]-bcs[i-1]);
+  if(!isFinite(pitch)||pitch<1e-6)pitch=1;
+  const minbc=Math.min(...S.map(s=>s.bc));
+  S.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
+
+  // snake the bands: even bands forward, odd bands backward
+  S.sort((a,b)=> a.band-b.band || (a.band%2===0 ? a.ac-b.ac : b.ac-a.ac));
+
+  return S;
 }
 
 // Minimum-deflection maximal matching for one (small-degree) vertex.
 // Returns partner[] of length d: pairs indices, -1 if unpaired. Maximises pairs first,
 // then minimises total deflection cost; never pairs above maxCost.
 function matchVertex(d,cost,maxCost){
-  if(d>8){                                            // greedy fallback for rare high-degree hubs
-    const arr=new Int32Array(d).fill(-1), used=new Uint8Array(d), pairs=[];
-    for(let i=0;i<d;i++)for(let j=i+1;j<d;j++){const c=cost(i,j); if(c<=maxCost)pairs.push([c,i,j]);}
-    pairs.sort((a,b)=>a[0]-b[0]);
-    for(const[,i,j]of pairs)if(!used[i]&&!used[j]){used[i]=used[j]=1;arr[i]=j;arr[j]=i;}
-    return arr;
+  if(d>8){
+    const allPairs=[];
+    for(let i=0;i<d;i++)for(let j=i+1;j<d;j++){const c=cost(i,j); if(c<=maxCost)allPairs.push([c,i,j]);}
+    if(!allPairs.length) return new Int32Array(d).fill(-1);
+    let bestPairs=-1, bestCost=Infinity, bestArr=null;
+    const ITERS=Math.min(40, Math.max(15, Math.ceil(allPairs.length/2)));
+    for(let iter=0;iter<ITERS;iter++){
+      for(let k=allPairs.length-1;k>0;k--){const r=Math.floor(Math.random()*(k+1));[allPairs[k],allPairs[r]]=[allPairs[r],allPairs[k]];}
+      const arr=new Int32Array(d).fill(-1), used=new Uint8Array(d); let prs=0, csum=0;
+      for(const[c,i,j]of allPairs){if(!used[i]&&!used[j]){used[i]=used[j]=1;arr[i]=j;arr[j]=i;prs++;csum+=c;}}
+      if(prs>bestPairs||(prs===bestPairs&&csum<bestCost)){bestPairs=prs;bestCost=csum;bestArr=arr;}
+    }
+    return bestArr||new Int32Array(d).fill(-1);
   }
   let bestPairs=-1,bestCost=Infinity,bestArr=null;
   const arr=new Int32Array(d).fill(-1), used=new Uint8Array(d);
   (function rec(start,pairs,csum){
     let i=start; while(i<d&&used[i])i++;
     if(i>=d){ if(pairs>bestPairs||(pairs===bestPairs&&csum<bestCost)){bestPairs=pairs;bestCost=csum;bestArr=arr.slice();} return; }
-    used[i]=1; arr[i]=-1; rec(i+1,pairs,csum); used[i]=0;             // leave i unpaired
+    used[i]=1; arr[i]=-1; rec(i+1,pairs,csum); used[i]=0;
     used[i]=1;
     for(let j=i+1;j<d;j++){ if(used[j])continue; const c=cost(i,j); if(c>maxCost)continue;
       used[j]=1; arr[i]=j; arr[j]=i; rec(i+1,pairs+1,csum+c); used[j]=0; arr[i]=-1; arr[j]=-1; }
@@ -1740,14 +2055,15 @@ function renderExp(step){
   for(let y=4;y<ch;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
   drawExpGuide();
   if(!EXP_path.length)return;
-  // Completed stitches
-  ctx.lineWidth=3; ctx.lineCap='round'; ctx.strokeStyle='#9cbcd8';
+  // Completed stitches — coloured by family
+  ctx.lineWidth=3; ctx.lineCap='round';
   for(let i=0;i<Math.min(step,EXP_path.length);i++){
     const s=EXP_path[i],p1=EXP_g2s(s.start),p2=EXP_g2s(s.end);
+    ctx.strokeStyle=famColor(s.fam);
     ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
   }
   // Back-thread dashes for completed jumps
-  ctx.strokeStyle='rgba(243,239,228,0.16)'; ctx.lineWidth=1.4;
+  ctx.strokeStyle='rgba(243,239,228,0.18)'; ctx.lineWidth=1.4;
   ctx.setLineDash([2,4]); ctx.lineCap='butt';
   for(let i=1;i<EXP_path.length&&i<=step;i++){
     if(EXP_path[i].jump){
@@ -1758,11 +2074,13 @@ function renderExp(step){
   ctx.setLineDash([]);
   // Needle
   if(step>0&&step<=EXP_path.length){
-    const p=EXP_g2s(EXP_path[step-1].end);
+    const s=EXP_path[step-1];
+    const col=famColor(s.fam);
+    const p=EXP_g2s(s.end);
     const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,16);
-    g.addColorStop(0,'rgba(156,188,216,0.55)');g.addColorStop(1,'rgba(156,188,216,0)');
+    g.addColorStop(0,hexA(col,0.55));g.addColorStop(1,hexA(col,0));
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,16,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#9cbcd8';ctx.beginPath();ctx.arc(p.x,p.y,3.4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,3.4,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x-1,p.y-1,1.1,0,Math.PI*2);ctx.fill();
   }
 }
@@ -1934,6 +2252,33 @@ function cadBBox2(lines){
   return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
 }
 
+// Find redundant lines (collinear overlaps >90%)
+function cadFindRedundant(){
+  const Q=1e-4, PERP_THRESH=0.5; const redundant=new Set();
+  for(let i=0;i<cadLines.length;i++){
+    const a=cadLines[i];
+    const dxA=a.end[0]-a.start[0], dyA=a.end[1]-a.start[1];
+    const lenA=Math.hypot(dxA,dyA); if(lenA<Q)continue;
+    const ndxA=dxA/lenA, ndyA=dyA/lenA;
+    for(let j=i+1;j<cadLines.length;j++){
+      const b=cadLines[j];
+      const dxB=b.end[0]-b.start[0], dyB=b.end[1]-b.start[1];
+      const lenB=Math.hypot(dxB,dyB); if(lenB<Q)continue;
+      const dot=ndxA*(dxB/lenB)+ndyA*(dyB/lenB);
+      if(Math.abs(Math.abs(dot)-1)>Q)continue;
+      function perpDist(p){return Math.abs((p[0]-a.start[0])*ndyA-(p[1]-a.start[1])*ndxA);}
+      if(perpDist(b.start)>PERP_THRESH||perpDist(b.end)>PERP_THRESH)continue;
+      function proj(p){return (p[0]-a.start[0])*ndxA+(p[1]-a.start[1])*ndyA;}
+      let b0=proj(b.start), b1=proj(b.end);
+      if(b0>b1)[b0,b1]=[b1,b0];
+      const ovl=Math.min(lenA,b1)-Math.max(0,b0);
+      const minLen=Math.min(lenA,lenB);
+      if(ovl>minLen*0.9){redundant.add(i);redundant.add(j);}
+    }
+  }
+  return [...redundant].sort((a,b)=>a-b);
+}
+
 // Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
 // Click start again for full circle. Stores result as polyline segments.
 function cadGenArc(center,start,end){
@@ -2017,6 +2362,18 @@ function cadDrawWorkspace(){
     x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   });
 
+  // Mark redundant lines in red dashed
+  const cadRed=cadFindRedundant();
+  if(cadRed.length){
+    x.strokeStyle='#ff4444';x.lineWidth=2;x.setLineDash([3,3]);
+    cadRed.forEach(i=>{
+      const l=cadLines[i];
+      const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize),p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    });
+    x.setLineDash([]);
+  }
+
   // Draw tool preview
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
     const p1=cadG2S(cadStart[0],cadStart[1],cadOX,cadOY,cadTileSize),p2=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
@@ -2095,7 +2452,16 @@ function cadDrawPattern(){
     });
   }}
 }
-function cadUpdateAll(){cadDrawWorkspace();cadDrawPattern();}
+function cadUpdateAll(){
+  cadDrawWorkspace();cadDrawPattern();
+  // Update redundancy hint
+  const el=document.getElementById('cadArcHint');
+  if(el){
+    const red=cadFindRedundant();
+    if(red.length && cadTool!=='arc')el.innerHTML='<span style=\"color:#ff5555\">'+red.length+' redundant line'+(red.length>1?'s':'')+' (red dashed) — excluded when saving</span>';
+    else if(cadTool!=='arc')el.textContent='';
+  }
+}
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
@@ -2128,8 +2494,12 @@ window.cadSaveToLibrary=function(){
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
   const id='exp_'+Date.now();
-  const lines=cadLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
-  const thumbnail=document.getElementById('patCanvas').toDataURL('image/png');
+  // Filter out redundant lines
+  const redSet=new Set(cadFindRedundant());
+  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!cleanLines.length)return;
+  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const pat={id,name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now()};
   EXP_PATTERNS.unshift(pat);saveExpPatterns(pat);rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
