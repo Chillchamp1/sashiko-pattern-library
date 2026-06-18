@@ -173,6 +173,15 @@ button.ctrl.primary:hover{background:#275784}
 /* Experimental gallery cards */
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
-.filt.exp.on{background:#1e1e3a;border-color:#3a3a7a;color:#9090d4}
 .exp-del-btn{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
 .pcard.exp-card:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
+/* My Patterns button in toolbar */
+.filt.mypats-btn{background:#141828;border-color:#2a3060;color:#9090d4}
+.filt.mypats-btn:hover{background:#1a2040;border-color:#3a4a8a;color:#c0c0ee}
+/* My Patterns view overlay */
+#myPatsView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
+#myPatsView.open{display:block}
+.mypats-wrap{max-width:800px;margin:0 auto}
+.mypats-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.mypats-header h2{margin:0;font-size:17px;font-weight:600;flex:1}
+.mypats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}

@@ -26,8 +26,8 @@
       <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
       <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
-      <button class="filt exp" data-f="exp" onclick="setFilter(this)">Experimental</button>
     </div>
+    <button class="filt mypats-btn" onclick="showMyPatterns()">My Patterns →</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
 </div>
@@ -138,6 +138,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
         <div class="cad-toolbar">
           <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
+          <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
           <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
           <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
           <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
@@ -149,7 +150,20 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
       </div>
     </div>
-    <p class="tip" style="text-align:center;margin:14px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints</p>
+    <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:6px"></div>
+    <p class="tip" style="text-align:center;margin:6px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints · Arc: 3 clicks (center → radius → sweep)</p>
+  </div>
+</div>
+
+<!-- My Patterns view — full-screen overlay -->
+<div id="myPatsView">
+  <div class="mypats-wrap">
+    <div class="mypats-header">
+      <button class="back-btn" onclick="showGalleryFromMyPats()">← Gallery</button>
+      <h2>My Patterns</h2>
+      <button class="cad-save-btn" onclick="showCAD()">+ New Pattern</button>
+    </div>
+    <div class="mypats-grid" id="myPatsGrid"></div>
   </div>
 </div>
 

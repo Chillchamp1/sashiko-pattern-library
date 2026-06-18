@@ -2,11 +2,6 @@
 let activeFilter=0;
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
-  const newBtn=document.createElement('button');
-  newBtn.className='pcard new-pattern-card';
-  newBtn.innerHTML='<div class="pcard-new-icon">＋</div><div class="pcard-name">New Pattern</div><div class="pcard-badge gen">CAD Editor</div>';
-  newBtn.onclick=()=>showCAD();
-  grid.appendChild(newBtn);
   PATTERNS.forEach(pat=>{
     const card=document.createElement('button');
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
@@ -29,21 +24,16 @@ function buildGallery(){
 window.filterGallery=function(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
   let vis=0;
-  document.querySelectorAll('.pcard').forEach(card=>{
-    if(card.classList.contains('new-pattern-card')){
-      card.classList.toggle('hidden',activeFilter==='exp');
-      return;
-    }
+  document.querySelectorAll('#pgrid .pcard').forEach(card=>{
     const pat=PATTERNS.find(p=>p.id===card.dataset.id);
+    if(!pat)return;
     let mp;
     if(activeFilter===0)mp=true;
-    else if(activeFilter==='hm')mp=pat&&pat.type==='generator';
-    else if(activeFilter==='exp')mp=card.dataset.exp==='1';
-    else mp=pat&&parseInt(card.dataset.p)===activeFilter;
-    const mq=!q||(pat&&(pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
-      (pat.type==='generator'&&('koshi kaki persimmon snowflake hitomezashi lattice'.includes(q)))||
-      (pat.type==='polyline'&&('yamagata mountain continuous'.includes(q)))))||
-      (card.dataset.exp==='1'&&('experimental custom draw'.includes(q)));
+    else if(activeFilter==='hm')mp=pat.type==='generator';
+    else mp=parseInt(card.dataset.p)===activeFilter;
+    const mq=!q||pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
+      (pat.type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
+      (pat.type==='polyline'&&'yamagata mountain continuous'.includes(q));
     const show=mp&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
   });
   let nr=document.getElementById('noResults');
@@ -54,7 +44,7 @@ window.setFilter=function(btn){
   document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   const f=btn.dataset.f;
-  activeFilter=f==='hm'?'hm':f==='exp'?'exp':(f==='0'?0:parseInt(f));
+  activeFilter=f==='hm'?'hm':(f==='0'?0:parseInt(f));
   filterGallery();
 };
 
@@ -66,12 +56,17 @@ function openPattern(pat){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 window.showGallery=function(){
-  if(playing)pause();
-  document.getElementById('animView').classList.remove('open');
-  document.getElementById('galleryView').style.display='block';
+  if(isEXP){
+    document.getElementById('animView').classList.remove('open');
+    document.getElementById('myPatsView').classList.add('open');
+    rebuildMyPatsView();
+  }else{
+    if(playing)pause();
+    document.getElementById('animView').classList.remove('open');
+    document.getElementById('galleryView').style.display='block';
+  }
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
-
