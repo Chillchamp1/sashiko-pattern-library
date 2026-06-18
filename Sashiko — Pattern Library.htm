@@ -432,7 +432,7 @@ function effectiveN(){ return GEN_rowBits.length; }
 // ── Canvas setup ───────────────────────────────────────────────────────────
 const N=7, G=50, PAD=36, SIZE=(N-1)*G+2*PAD;
 const DPR=Math.min(window.devicePixelRatio||1,2);
-const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const cv=document.getElementById('cv'); let ctx=cv.getContext('2d');
 cv.width=SIZE*DPR; cv.height=SIZE*DPR;
 cv.style.width=SIZE+'px'; cv.style.height=SIZE+'px';
 ctx.scale(DPR,DPR);
@@ -1210,26 +1210,48 @@ window.addEventListener('keydown',e=>{
   else if(e.code==='ArrowLeft'){pause();step=Math.max(0,step-1);render(step);}
 });
 
-// ── Thumbnail ──────────────────────────────────────────────────────────────
+// ── Thumbnail — renders via real animation pipeline at full SIZE, displayed scaled ──
 function renderThumb(canvas,pat){
-  if(pat.type==='generator'){renderHMThumb(canvas,[0,0,1,0,1],11);return;}
-  if(pat.type==='hitomezashi'){renderHMThumb(canvas,pat.seq,pat.thumbN||11);return;}
-  if(pat.type==='polyline'){renderPLThumb(canvas,pat);return;}
   const TDPR=Math.min(window.devicePixelRatio||1,2);
-  const TN=7,TPAD=4,TS=64,TG=(TS-2*TPAD)/(TN-1);
-  canvas.width=TS*TDPR;canvas.height=TS*TDPR;
-  canvas.style.width='64px';canvas.style.height='64px';
-  const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
-  tc.fillStyle='#1a3a5c';tc.fillRect(0,0,TS,TS);
-  tc.strokeStyle='rgba(220,235,255,0.07)';tc.lineWidth=0.5;
-  for(let i=0;i<TN;i++){tc.beginPath();tc.moveTo(TPAD+i*TG,TPAD);tc.lineTo(TPAD+i*TG,TPAD+(TN-1)*TG);tc.stroke();}
-  for(let j=0;j<TN;j++){tc.beginPath();tc.moveTo(TPAD,TPAD+j*TG);tc.lineTo(TPAD+(TN-1)*TG,TPAD+j*TG);tc.stroke();}
-  const TP=buildPasses(pat.passes,TN);
-  for(const p of TP){if(!p.order)continue;for(const[i,j]of p.order){
-    const px=TPAD+i*TG,py=TPAD+(TN-1-j)*TG,s=segPx(px,py,p.dir,TG,pat.armScale);
-    tc.strokeStyle=PHASE_COLORS[p.dir][getPhase(i,j,p.dir)];tc.lineWidth=1.3;tc.lineCap='round';
-    tc.beginPath();tc.moveTo(s[0],s[1]);tc.lineTo(s[2],s[3]);tc.stroke();
-  }}
+  canvas.width=SIZE*TDPR; canvas.height=SIZE*TDPR;
+  canvas.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
+
+  // Save all mutable global state
+  const origCtx=ctx;
+  const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
+  const sHMN=HM_N,sHMC=HM_CELL,sHMPth=HM_path,sHMFr=HM_fronts,sHMPO=HM_phase_order;
+  const sPLp=PL_path,sPLf=PL_fronts,sPLps=PL_passes,sPLN=PL_N,sPLHU=PL_HU,sPLSh=PL_shCount;
+
+  ctx=canvas.getContext('2d'); ctx.scale(TDPR,TDPR);
+  curPat=pat; playing=false;
+  isEXP=pat.type==='exp'; isPL=pat.type==='polyline';
+  isHM=pat.type==='generator'||pat.type==='hitomezashi';
+
+  try{
+    if(isPL){
+      const built=buildTsuzukiYamagata(PL_NHU);
+      PL_N=PL_NHU; PL_HU=(SIZE-2*PAD)/PL_N;
+      PL_path=built.path; PL_fronts=built.fronts;
+      PL_passes=built.passes; PL_shCount=built.shCount;
+      TOTAL=PL_fronts.length; renderPolyline(TOTAL);
+    } else if(isHM){
+      const bits=seqToBits(pat.type==='generator'?[0,0,1,0,1]:pat.seq, pat.type==='generator'?11:(pat.thumbN||11));
+      buildHMcore(bits,bits); TOTAL=HM_fronts.length; renderHM(TOTAL);
+    } else if(isEXP){
+      renderExpPattern(pat);
+    } else {
+      PASSES=buildPasses(pat.passes,N); PASSES.forEach(p=>p.count=p.order.length);
+      TOTAL=PASSES.reduce((a,p)=>a+p.count,0);
+      drawFabric(); drawGuide(); PASSES.forEach(p=>frontAll(p));
+    }
+  }catch(e){console.warn('thumb',pat.id,e);}
+
+  // Restore everything
+  ctx=origCtx;
+  curPat=sCP; PASSES=sP; TOTAL=sT; step=sSt; playing=sPl;
+  isHM=sHM; isPL=sPL; isEXP=sEX;
+  HM_N=sHMN; HM_CELL=sHMC; HM_path=sHMPth; HM_fronts=sHMFr; HM_phase_order=sHMPO;
+  PL_path=sPLp; PL_fronts=sPLf; PL_passes=sPLps; PL_N=sPLN; PL_HU=sPLHU; PL_shCount=sPLSh;
 }
 
 
@@ -1244,7 +1266,7 @@ function buildGallery(){
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
     card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
     const thumb=document.createElement('canvas');
-    thumb.style.cssText='width:64px;height:64px;border-radius:7px';
+    thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
     card.appendChild(thumb);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
     const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;

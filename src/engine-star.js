@@ -1,7 +1,7 @@
 // ── Canvas setup ───────────────────────────────────────────────────────────
 const N=7, G=50, PAD=36, SIZE=(N-1)*G+2*PAD;
 const DPR=Math.min(window.devicePixelRatio||1,2);
-const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const cv=document.getElementById('cv'); let ctx=cv.getContext('2d');
 cv.width=SIZE*DPR; cv.height=SIZE*DPR;
 cv.style.width=SIZE+'px'; cv.style.height=SIZE+'px';
 ctx.scale(DPR,DPR);
