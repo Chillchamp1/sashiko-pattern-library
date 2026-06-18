@@ -214,7 +214,7 @@ button.ctrl.primary:hover{background:#275784}
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
       <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
     </div>
-    <button class="filt mypats-btn" onclick="showMyPatterns()">My Patterns →</button>
+    <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (experimental) →</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
 </div>
@@ -347,7 +347,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   <div class="mypats-wrap">
     <div class="mypats-header">
       <button class="back-btn" onclick="showGalleryFromMyPats()">← Gallery</button>
-      <h2>My Patterns</h2>
+      <h2>Custom Patterns (experimental)</h2>
       <button class="cad-save-btn" onclick="showCAD()">+ New Pattern</button>
     </div>
     <div class="mypats-grid" id="myPatsGrid"></div>
@@ -1010,7 +1010,7 @@ function loadPattern(pat){
 
   if(isEXP){
     setupExpCanvas(pat);
-    EXP_path=buildExpPath(pat.lines||[]);
+    EXP_path=buildExpPath(genTiledSegs(pat));
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
@@ -1258,7 +1258,7 @@ function renderThumb(canvas,pat){
   try{
     if(isEXP){
       EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
-      EXP_path=buildExpPath(pat.lines||[]);
+      EXP_path=buildExpPath(genTiledSegs(pat));
       TOTAL=EXP_path.length;
       renderExp(TOTAL);
     } else if(isPL){
@@ -1453,26 +1453,43 @@ async function saveExpPatterns(pat){
 // ── EXP layout & animation helpers ───────────────────────────────────────────
 const _COS30=Math.cos(Math.PI/6), _SIN30=Math.sin(Math.PI/6);
 
-// Pure: compute scale/origin for one-tile view of pat.
+// Pure: compute tiled-view layout for pat (scale = patMacro tiles across canvas).
 function computeExpLayout(pat){
-  const bbox=pat.bbox||{minU:0,maxU:60,minV:0,maxV:60};
+  const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
   const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
+  const ptc=(pat.patMacro||5)*10; // total micro-units across canvas
   const iso=pat.gridType==='isometric';
   let sz,ox,oy,canvasH;
   if(iso){
-    sz=SIZE/((dU+dV)*_COS30);
-    ox=dV*sz*_COS30; oy=0;
-    canvasH=Math.round((dU+dV)*sz*_SIN30);
+    sz=SIZE/(2*ptc*_COS30);
+    ox=SIZE/2; oy=0;
+    canvasH=Math.round(ptc*2*sz*_SIN30); // = Math.round(SIZE/√3) ≈ 215
   }else{
-    sz=(SIZE-2*PAD)/Math.max(dU,dV);
-    ox=PAD; oy=PAD; canvasH=SIZE;
+    sz=SIZE/ptc;
+    ox=0; oy=0; canvasH=SIZE;
   }
   function g2s(p){
     const u=p[0],v=p[1];
     if(iso)return{x:ox+(u-v)*sz*_COS30,y:oy+(u+v)*sz*_SIN30};
     return{x:ox+u*sz,y:oy+v*sz};
   }
-  return{sz,ox,oy,canvasH,g2s};
+  return{sz,ox,oy,canvasH,g2s,ptc,dU,dV};
+}
+
+// Generate all tiled segment instances that cover the visible canvas area.
+function genTiledSegs(pat){
+  const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
+  const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
+  const ptc=(pat.patMacro||5)*10;
+  const segs=[];
+  for(let ou=-dU;ou<=ptc;ou+=dU){
+    for(let ov=-dV;ov<=ptc;ov+=dV){
+      (pat.lines||[]).forEach(l=>{
+        segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov]});
+      });
+    }
+  }
+  return segs;
 }
 
 // Resize cv for this exp pattern, store EXP_g2s/EXP_canvasH, re-apply DPR scale.
@@ -1552,28 +1569,15 @@ function buildExpPath(lines){
 
 function drawExpGuide(){
   if(!curPat||!EXP_g2s)return;
-  const bbox=curPat.bbox||{maxU:60,maxV:60};
-  const dU=bbox.maxU, dV=bbox.maxV;
+  const {ptc,dU,dV}=computeExpLayout(curPat);
   ctx.strokeStyle='rgba(220,235,255,0.07)'; ctx.lineWidth=0.8; ctx.setLineDash([]);
-  const STEP=10;
-  if(curPat.gridType==='isometric'){
-    for(let u=0;u<=dU;u+=STEP){
-      const a=EXP_g2s([u,0]),b=EXP_g2s([u,dV]);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
-    for(let v=0;v<=dV;v+=STEP){
-      const a=EXP_g2s([0,v]),b=EXP_g2s([dU,v]);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
-  }else{
-    for(let u=0;u<=dU;u+=STEP){
-      const a=EXP_g2s([u,0]),b=EXP_g2s([u,dV]);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
-    for(let v=0;v<=dV;v+=STEP){
-      const a=EXP_g2s([0,v]),b=EXP_g2s([dU,v]);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
+  for(let u=0;u<=ptc;u+=dU){
+    const a=EXP_g2s([u,0]),b=EXP_g2s([u,ptc]);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+  }
+  for(let v=0;v<=ptc;v+=dV){
+    const a=EXP_g2s([0,v]),b=EXP_g2s([ptc,v]);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
   }
 }
 
