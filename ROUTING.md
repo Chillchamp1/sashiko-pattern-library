@@ -2,7 +2,7 @@
 
 Binding rules for the **order** in which a pattern's stitches are animated / "sewn". Applies to ALL patterns. The geometry (which edges exist) is a separate concern — see `tools/pattern_extractor.py` and CLAUDE.md.
 
-Goal: a stitch path a human embroiderer would actually sew — as continuous as possible, minimal thread waste.
+Goal: a stitch path a human embroiderer would actually sew — as continuous as possible, minimal thread waste. For custom (exp) patterns, the additional rule is **row/column sweeping with snake ordering** (see Rule 3 extension below).
 
 ## Rule 1 — Long lines / few direction changes
 Within a continuous stroke the needle should run **straight** as long as possible and only turn at true turning points. The "zigzag legs" should be long.
@@ -18,8 +18,10 @@ When a continuous stroke ends and the next begins, the "jump" (re-inserting the 
 
 Function: `orderNN(chains)`.
 
-## Rule 3 — Pass order
-Complete one family/direction entirely (e.g. horizontal), then move to the next (vertical). Rules 1 and 2 apply within each pass. This corresponds to the numbered red arrows in the book diagrams (1-2 = first pass, 3-4 = second).
+## Rule 3 — Pass order and row sweeping
+Complete one family/direction entirely (e.g. horizontal), then move to the next (vertical). Rules 1 and 2 apply within each pass.
+
+**For custom (exp) patterns — row/column sweep:** within a direction family, segments are grouped into rows (all segs at the same perpendicular coordinate). Rows are swept in order; the needle snakes back and forth (row 0 → forward, row 1 → reverse, row 2 → forward, …) to keep row-to-row jumps short. This mirrors how a human stitcher works: complete one row, flip direction, stitch the next. Within each row, collinear chains are formed first (Rule 1), then NN-ordered (Rule 2).
 
 ## Rule 4 — Colour by translation equivalence class
 A path's colour encodes its **translation equivalence class**: same shade if and only if one path maps onto (part of) the other via a pattern symmetry translation. A path shifted purely left/right or up/down = identical. An edge-clipped piece = identical to the full path if its unclipped portion appears shifted elsewhere. A mirror image (half-period offset, NOT a lattice vector) = its own class/colour.

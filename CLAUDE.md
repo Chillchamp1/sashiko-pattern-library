@@ -9,7 +9,7 @@ Interactive Sashiko pattern library with animated stitch-by-stitch preview. All 
 **Workflow notes (important):**
 - This file (CLAUDE.md) is the project documentation — read it at the start of every session and keep it current when things change.
 - Colours ALWAYS from the **Colours** section below (`PHASE_COLORS` + fabric `#1a3a5c`).
-- New patterns from the books (`../Buecher`, PDFs): do NOT guess geometry from the image — extract it programmatically with `tools/pattern_extractor.py` (see **Pattern Extractor** section).
+- New patterns are drawn in the **CAD Editor** — geometry comes from what the user draws on the grid, not from book scans.
 - **Stitch order / routing** ALWAYS per the rules in `ROUTING.md` (long lines, short jumps). Applies to all patterns.
 
 ## Build System
@@ -271,32 +271,14 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 - **Generator always shows `step=TOTAL`:** editing/preset/order immediately renders the full pattern (preview). Play restarts the animation.
 - **Rows/columns independent:** toggles can make the pattern asymmetric. Presets restore symmetry (`rowBits === colBits`).
 - **Yamagata preset removed:** was only a Hitomezashi approximation; the real Tsuzuki Yamagata lives in the Polyline Engine/Gallery.
-- **No speed slider:** removed, fixed `TICK_MS=40`
+- **No speed slider:** toggle only — slow `TICK_MS=160` (~6 stitches/sec), fast `TICK_MS=80` (~12 stitches/sec)
 - **No `el.onclick=null`** in update functions — breaks the Reset/Play button
 - **Arc resolution in CAD editor:** max 30 segments per full circle (`Math.max(3, Math.round(sweep/2pi * 30))`) — sashiko stitching needs low-poly curves
-- **Exp pattern routing:** `buildExpPath` uses collinear-preference chain extension (ROUTING.md Rule 1) + NN ordering (Rule 2); fed tiled segments from `genTiledSegs`
+- **Exp pattern routing:** `buildExpPath` clusters segments into direction families, groups into rows by perpendicular coordinate, merges touching collinear segs into chains (Rule 1), NN-orders chains within each row (Rule 2), then snakes rows (alternating forward/reverse = how a human stitcher works a grid).
 - **Exp canvas borders:** iso patterns use canvas height = SIZE/sqrt(3) so the parallelogram diamond tips land exactly at the four canvas edges
-
----
-
-## Pattern Extractor (`tools/pattern_extractor.py`)
-
-Reusable tool to extract pattern geometry programmatically from book diagrams. Do NOT guess by eye. Deps: `pymupdf`, `opencv-python`, `numpy` (installed).
-
-Proven workflow for a new pattern:
-1. Render PDF page (Poppler is NOT installed, use PyMuPDF): `fitz.open(pdf)[page].get_pixmap(matrix=fitz.Matrix(300/72,300/72))`.
-2. Crop the diagram.
-3. `color_masks()` separates **cyan** (grid) / **black** (pattern) / **red** (stitch-order arrows).
-4. `grid_geometry()` measures grid origin + spacing.
-5. `extract_segments()` samples every candidate edge on the half-grid -> real line segments.
-6. Verify via `overlay()` / side-by-side, derive unit cell, port to JS.
-7. Cross-render the JS logic in Python BEFORE showing it to the user.
-
-Red arrows/numbers in the book = recommended stitch order (for Tsuzuki: 1-2 horizontal, 3-4 vertical).
 
 ---
 
 ## Open Items (ideas, not yet implemented)
 
-- More patterns from the books via the extractor: Kikko (Tortoiseshell), Sugi Aya (Herringbone, book p.44) would be good next additions. (Asanoha done.)
 - Export as SVG or PNG.

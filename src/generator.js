@@ -177,9 +177,9 @@ document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);re
 document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
 document.getElementById('bAll').onclick=()=>{pause();step=TOTAL;render(step);};
 document.getElementById('bSpeed').onclick=()=>{
-  TICK_MS=TICK_MS===80?40:80;
+  TICK_MS=TICK_MS===160?80:160;
   const b=document.getElementById('bSpeed');
-  b.textContent=TICK_MS===80?'🐢 Slow':'⚡ Fast';
+  b.textContent=TICK_MS===160?'🐢 Slow':'⚡ Fast';
 };
 window.addEventListener('keydown',e=>{
   if(!document.getElementById('animView').classList.contains('open'))return;

@@ -2,7 +2,7 @@
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
-let TICK_MS=80;  // default slow (~12 stitches/sec); toggle to 40 for fast
+let TICK_MS=160;  // default slow (~6 stitches/sec); toggle to 80 for fast
 
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
