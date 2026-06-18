@@ -4,6 +4,11 @@ let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
 let TICK_MS=160;  // default slow (~6 stitches/sec); toggle to 80 for fast
 
+const FAM_PALETTE=['#ff5555','#ff9944','#ffdd44','#55dd55','#44cccc','#5599ff','#bb55ff','#ff55aa','#ff7744','#55ddbb'];
+const FAM_DIR_LABEL={0:'V',1:'D1',2:'D2',3:'H'};
+function famColor(famIdx){return FAM_PALETTE[famIdx%FAM_PALETTE.length];}
+function famLabel(famIdx,dirCat){return 'Line '+(famIdx+1)+(dirCat!==undefined?' '+(FAM_DIR_LABEL[dirCat]||'?'):'');}
+
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
   ctx.fillStyle=getCss('--fabric'); ctx.fillRect(0,0,SIZE,SIZE);
@@ -67,8 +72,19 @@ function updateInfo(st,p,local){
   if(st===0){setIdleInfo();markJump(-1);return;}
   el.classList.remove('idle');el.onclick=null;
   if(isEXP){
-    el.innerHTML=st>=TOTAL?'<span class="muted">complete ✓</span>':`stitch <b>${st}</b><span class="muted">/${TOTAL}</span>`;
-    markJump(-1);return;
+    let famHtml='',famIdx=-1;
+    if(st<=TOTAL&&st>0&&EXP_path.length){
+      const s=EXP_path[Math.min(st-1,EXP_path.length-1)];
+      if(s.fam!==undefined){
+        const col=famColor(s.fam);
+        const lbl=famLabel(s.fam);
+        famHtml='&nbsp;<span class="pill" style="background:'+hexA(col,.16)+';color:'+col+'"><span class="dot" style="background:'+col+'"></span>'+lbl+'</span>';
+        const fams=[...new Set(EXP_path.map(p=>p.fam))].sort((a,b)=>a-b);
+        famIdx=fams.indexOf(s.fam);
+      }
+    }
+    el.innerHTML=st>=TOTAL?'<span class="muted">complete &#10003;</span>'+famHtml:'stitch <b>'+st+'</b><span class="muted">/'+TOTAL+'</span>'+famHtml;
+    markJump(famIdx);return;
   }
   const idx=(st>=TOTAL)?PASSES.length-1:p;
   const d=DIRS[PASSES[idx].dir],col=getCss(d.col);
@@ -84,6 +100,21 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 // ── Jump bar ───────────────────────────────────────────────────────────────
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
+  if(isEXP){
+    let lastFam=-1;
+    EXP_path.forEach((s,i)=>{
+      if(s.fam!==lastFam){
+        lastFam=s.fam;
+        const b=document.createElement('button');
+        const col=famColor(s.fam);
+        b.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>Line ${s.fam+1}`;
+        b.title='Jump to family '+(s.fam+1);
+        b.onclick=()=>{pause();step=i;render(step);};
+        jb.appendChild(b);
+      }
+    });
+    return;
+  }
   if(isPL){
     PL_passes.forEach((p,i)=>{
       const b=document.createElement('button');
@@ -119,7 +150,7 @@ function buildJumpBar(){
 function loadPattern(pat){
   // Restore default square canvas if a previous exp iso pattern changed the height.
   if(Math.round(cv.height/DPR)!==SIZE){
-    cv.height=SIZE*DPR; cv.style.height=SIZE+'px'; ctx.scale(DPR,DPR);
+    cv.height=SIZE*DPR; cv.style.height=SIZE+'px'; ctx.setTransform(DPR,0,0,DPR,0,0);
   }
 
   curPat=pat;
@@ -128,7 +159,9 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
-  document.getElementById('bReroute').style.display=isEXP?'':'none';  // re-route only for custom patterns
+  document.getElementById('bReroute').style.display=isEXP?'':'none';
+  document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
+  if(!isEXP)document.getElementById('famCanvas').onclick=null;
   cv.style.cursor='';
   if(isGen){
     showGenUI(true);
@@ -143,6 +176,10 @@ function loadPattern(pat){
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
+    document.getElementById('stitchBody').style.display='none';
+    document.getElementById('stitchToggle').textContent='⚙ Stitching Order Settings ▸';
+    document.getElementById('stitchToggle').classList.remove('on');
+    document.getElementById('famCanvas').onclick=famEditorClick;
     step=0;if(playing)pause();
     buildJumpBar();render(0);
     return;

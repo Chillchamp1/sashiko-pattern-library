@@ -77,6 +77,33 @@ function cadBBox2(lines){
   return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
 }
 
+// Find redundant lines (collinear overlaps >90%)
+function cadFindRedundant(){
+  const Q=1e-4, PERP_THRESH=0.5; const redundant=new Set();
+  for(let i=0;i<cadLines.length;i++){
+    const a=cadLines[i];
+    const dxA=a.end[0]-a.start[0], dyA=a.end[1]-a.start[1];
+    const lenA=Math.hypot(dxA,dyA); if(lenA<Q)continue;
+    const ndxA=dxA/lenA, ndyA=dyA/lenA;
+    for(let j=i+1;j<cadLines.length;j++){
+      const b=cadLines[j];
+      const dxB=b.end[0]-b.start[0], dyB=b.end[1]-b.start[1];
+      const lenB=Math.hypot(dxB,dyB); if(lenB<Q)continue;
+      const dot=ndxA*(dxB/lenB)+ndyA*(dyB/lenB);
+      if(Math.abs(Math.abs(dot)-1)>Q)continue;
+      function perpDist(p){return Math.abs((p[0]-a.start[0])*ndyA-(p[1]-a.start[1])*ndxA);}
+      if(perpDist(b.start)>PERP_THRESH||perpDist(b.end)>PERP_THRESH)continue;
+      function proj(p){return (p[0]-a.start[0])*ndxA+(p[1]-a.start[1])*ndyA;}
+      let b0=proj(b.start), b1=proj(b.end);
+      if(b0>b1)[b0,b1]=[b1,b0];
+      const ovl=Math.min(lenA,b1)-Math.max(0,b0);
+      const minLen=Math.min(lenA,lenB);
+      if(ovl>minLen*0.9){redundant.add(i);redundant.add(j);}
+    }
+  }
+  return [...redundant].sort((a,b)=>a-b);
+}
+
 // Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
 // Click start again for full circle. Stores result as polyline segments.
 function cadGenArc(center,start,end){
@@ -160,6 +187,18 @@ function cadDrawWorkspace(){
     x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   });
 
+  // Mark redundant lines in red dashed
+  const cadRed=cadFindRedundant();
+  if(cadRed.length){
+    x.strokeStyle='#ff4444';x.lineWidth=2;x.setLineDash([3,3]);
+    cadRed.forEach(i=>{
+      const l=cadLines[i];
+      const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize),p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    });
+    x.setLineDash([]);
+  }
+
   // Draw tool preview
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
     const p1=cadG2S(cadStart[0],cadStart[1],cadOX,cadOY,cadTileSize),p2=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
@@ -238,7 +277,16 @@ function cadDrawPattern(){
     });
   }}
 }
-function cadUpdateAll(){cadDrawWorkspace();cadDrawPattern();}
+function cadUpdateAll(){
+  cadDrawWorkspace();cadDrawPattern();
+  // Update redundancy hint
+  const el=document.getElementById('cadArcHint');
+  if(el){
+    const red=cadFindRedundant();
+    if(red.length && cadTool!=='arc')el.innerHTML='<span style=\"color:#ff5555\">'+red.length+' redundant line'+(red.length>1?'s':'')+' (red dashed) — excluded when saving</span>';
+    else if(cadTool!=='arc')el.textContent='';
+  }
+}
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
@@ -271,8 +319,12 @@ window.cadSaveToLibrary=function(){
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
   const id='exp_'+Date.now();
-  const lines=cadLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
-  const thumbnail=document.getElementById('patCanvas').toDataURL('image/png');
+  // Filter out redundant lines
+  const redSet=new Set(cadFindRedundant());
+  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!cleanLines.length)return;
+  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const pat={id,name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now()};
   EXP_PATTERNS.unshift(pat);saveExpPatterns(pat);rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
