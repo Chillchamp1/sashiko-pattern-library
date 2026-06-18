@@ -858,7 +858,7 @@ function renderPLThumb(canvas,pat){
   const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
   tc.fillStyle='#1a3a5c';tc.fillRect(0,0,TS,TS);
   tc.lineCap='round';
-  const TN=12, TG=(TS-2*TPAD)/TN;
+  const TN=PL_NHU, TG=(TS-2*TPAD)/TN;
   const{path}=buildTsuzukiYamagata(TN);
   tc.lineWidth=1;
   for(const seg of path){
@@ -1216,7 +1216,7 @@ function renderThumb(canvas,pat){
   if(pat.type==='hitomezashi'){renderHMThumb(canvas,pat.seq,pat.thumbN||11);return;}
   if(pat.type==='polyline'){renderPLThumb(canvas,pat);return;}
   const TDPR=Math.min(window.devicePixelRatio||1,2);
-  const TN=5,TG=12,TPAD=8,TS=(TN-1)*TG+2*TPAD;
+  const TN=7,TPAD=4,TS=64,TG=(TS-2*TPAD)/(TN-1);
   canvas.width=TS*TDPR;canvas.height=TS*TDPR;
   canvas.style.width='64px';canvas.style.height='64px';
   const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
@@ -1255,7 +1255,7 @@ function buildGallery(){
     card.append(name,jp,badge);
     card.onclick=()=>openPattern(pat);
     grid.appendChild(card);
-    requestAnimationFrame(()=>renderThumb(thumb,pat));
+    setTimeout(()=>renderThumb(thumb,pat),0);
   });
 }
 window.filterGallery=function(){

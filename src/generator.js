@@ -194,7 +194,7 @@ function renderThumb(canvas,pat){
   if(pat.type==='hitomezashi'){renderHMThumb(canvas,pat.seq,pat.thumbN||11);return;}
   if(pat.type==='polyline'){renderPLThumb(canvas,pat);return;}
   const TDPR=Math.min(window.devicePixelRatio||1,2);
-  const TN=5,TG=12,TPAD=8,TS=(TN-1)*TG+2*TPAD;
+  const TN=7,TPAD=4,TS=64,TG=(TS-2*TPAD)/(TN-1);
   canvas.width=TS*TDPR;canvas.height=TS*TDPR;
   canvas.style.width='64px';canvas.style.height='64px';
   const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
