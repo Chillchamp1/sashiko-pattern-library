@@ -87,26 +87,43 @@ async function saveExpPatterns(pat){
 // ── EXP layout & animation helpers ───────────────────────────────────────────
 const _COS30=Math.cos(Math.PI/6), _SIN30=Math.sin(Math.PI/6);
 
-// Pure: compute scale/origin for one-tile view of pat.
+// Pure: compute tiled-view layout for pat (scale = patMacro tiles across canvas).
 function computeExpLayout(pat){
-  const bbox=pat.bbox||{minU:0,maxU:60,minV:0,maxV:60};
+  const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
   const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
+  const ptc=(pat.patMacro||5)*10; // total micro-units across canvas
   const iso=pat.gridType==='isometric';
   let sz,ox,oy,canvasH;
   if(iso){
-    sz=SIZE/((dU+dV)*_COS30);
-    ox=dV*sz*_COS30; oy=0;
-    canvasH=Math.round((dU+dV)*sz*_SIN30);
+    sz=SIZE/(2*ptc*_COS30);
+    ox=SIZE/2; oy=0;
+    canvasH=Math.round(ptc*2*sz*_SIN30); // = Math.round(SIZE/√3) ≈ 215
   }else{
-    sz=(SIZE-2*PAD)/Math.max(dU,dV);
-    ox=PAD; oy=PAD; canvasH=SIZE;
+    sz=SIZE/ptc;
+    ox=0; oy=0; canvasH=SIZE;
   }
   function g2s(p){
     const u=p[0],v=p[1];
     if(iso)return{x:ox+(u-v)*sz*_COS30,y:oy+(u+v)*sz*_SIN30};
     return{x:ox+u*sz,y:oy+v*sz};
   }
-  return{sz,ox,oy,canvasH,g2s};
+  return{sz,ox,oy,canvasH,g2s,ptc,dU,dV};
+}
+
+// Generate all tiled segment instances that cover the visible canvas area.
+function genTiledSegs(pat){
+  const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
+  const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
+  const ptc=(pat.patMacro||5)*10;
+  const segs=[];
+  for(let ou=-dU;ou<=ptc;ou+=dU){
+    for(let ov=-dV;ov<=ptc;ov+=dV){
+      (pat.lines||[]).forEach(l=>{
+        segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov]});
+      });
+    }
+  }
+  return segs;
 }
 
 // Resize cv for this exp pattern, store EXP_g2s/EXP_canvasH, re-apply DPR scale.
@@ -186,28 +203,15 @@ function buildExpPath(lines){
 
 function drawExpGuide(){
   if(!curPat||!EXP_g2s)return;
-  const bbox=curPat.bbox||{maxU:60,maxV:60};
-  const dU=bbox.maxU, dV=bbox.maxV;
+  const {ptc,dU,dV}=computeExpLayout(curPat);
   ctx.strokeStyle='rgba(220,235,255,0.07)'; ctx.lineWidth=0.8; ctx.setLineDash([]);
-  const STEP=10;
-  if(curPat.gridType==='isometric'){
-    for(let u=0;u<=dU;u+=STEP){
-      const a=EXP_g2s([u,0]),b=EXP_g2s([u,dV]);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
-    for(let v=0;v<=dV;v+=STEP){
-      const a=EXP_g2s([0,v]),b=EXP_g2s([dU,v]);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
-  }else{
-    for(let u=0;u<=dU;u+=STEP){
-      const a=EXP_g2s([u,0]),b=EXP_g2s([u,dV]);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
-    for(let v=0;v<=dV;v+=STEP){
-      const a=EXP_g2s([0,v]),b=EXP_g2s([dU,v]);
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    }
+  for(let u=0;u<=ptc;u+=dU){
+    const a=EXP_g2s([u,0]),b=EXP_g2s([u,ptc]);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+  }
+  for(let v=0;v<=ptc;v+=dV){
+    const a=EXP_g2s([0,v]),b=EXP_g2s([ptc,v]);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
   }
 }
 
