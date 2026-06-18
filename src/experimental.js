@@ -134,109 +134,162 @@ function setupExpCanvas(pat){
   ctx.scale(DPR,DPR);
 }
 
-// Build animation path: row/column sweep with snake ordering.
-// Segments are clustered into direction families, grouped into rows by perpendicular
-// coordinate, merged into collinear chains, NN-ordered within each row, then snaked
-// (alternating forward/reverse) across rows. Matches how a human stitcher works a grid.
+// Build animation path with "human-makable" routing.
+//
+// Cost model we approximately minimise (priority high → low):
+//   A·(#jumps)  +  B·(total jump length)  +  C·(turn sharpness)  +  D·(retrace)
+// A ≫ B ≫ C,D — re-inserting the needle dominates, so we first form the longest
+// continuous strokes possible, then order them so every jump is short and always
+// moves into UNSTITCHED area.
+//
+// Phase 1 — stroke formation (minimises #jumps and turn sharpness together):
+//   Build a vertex/edge graph; at each vertex pair the incident edges by MINIMUM
+//   DEFLECTION (straightest through-passage). A stroke follows these pairings, so
+//   it runs straight through crossings AND smoothly along curves — a whole
+//   semicircle becomes ONE stroke regardless of how many small angles it contains.
+//   It only breaks at genuine endpoints or near-reversals (deflection > MAXTURN).
+// Phase 2 — stroke ordering (minimises jump length and retrace):
+//   Group strokes into orientation families (Rule 3 pass order), then into parallel
+//   bands; sweep bands and SNAKE (reverse alternate bands). Monotonic progress means
+//   each jump is a short hop into new territory, never back over finished stitches.
 function buildExpPath(lines){
   if(!lines||!lines.length)return[];
-  const EPS=0.001;
+  const Q=1e-4;                    // vertex-merge quantum (shared endpoints are computed identically)
+  const MAXTURN=135*Math.PI/180;   // break a stroke rather than force a turn sharper than this
 
-  // Normalize angle to [0,180) degrees
-  function segAngle(l){
-    let dx=l.end[0]-l.start[0],dy=l.end[1]-l.start[1];
-    let a=Math.atan2(dy,dx)*180/Math.PI;
-    if(a<0)a+=180; if(a>=180)a-=180; return a;
-  }
-
-  // Cluster into direction families (15° bins so floating-point angles stay in same bin)
-  const famMap=new Map();
+  // ---- vertex / edge graph ----
+  const vId=new Map(), vPos=[];
+  const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
+    if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
+  const seen=new Set(), edges=[];
   for(const l of lines){
-    const ang=segAngle(l);
-    const key=Math.round(ang/15)*15%180;
-    if(!famMap.has(key))famMap.set(key,[]);
-    famMap.get(key).push({start:[...l.start],end:[...l.end]});
+    const a=vidOf(l.start), b=vidOf(l.end);
+    if(a===b)continue;
+    const ek=a<b?a+'_'+b:b+'_'+a;
+    if(seen.has(ek))continue; seen.add(ek);          // dedupe exact-duplicate edges (overlapping tiles)
+    edges.push([a,b]);
+  }
+  if(!edges.length)return[];
+  const adj=vPos.map(()=>[]);                         // adj[v] = [{e,to,dir:[ux,uy],tw}]
+  edges.forEach(([a,b],ei)=>{
+    let dx=vPos[b][0]-vPos[a][0], dy=vPos[b][1]-vPos[a][1];
+    const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
+    adj[a].push({e:ei,to:b,dir:[dx,dy],tw:-1});
+    adj[b].push({e:ei,to:a,dir:[-dx,-dy],tw:-1});
+  });
+  {                                                   // link the two half-edges (twins) of each edge
+    const slot=new Map();
+    adj.forEach((list,v)=>list.forEach((h,li)=>{
+      const s=slot.get(h.e);
+      if(s===undefined)slot.set(h.e,{v,li});
+      else{h.tw=s.li; adj[s.v][s.li].tw=li;}
+    }));
   }
 
-  // Sort families: 0° (H-ish) first, 90° (V-ish) last
-  const famKeys=[...famMap.keys()].sort((a,b)=>a-b);
+  // ---- Phase 1: min-deflection maximal matching at each vertex ----
+  const partner=adj.map(list=>new Int32Array(list.length).fill(-1));
+  adj.forEach((list,v)=>{
+    const d=list.length; if(d<2)return;
+    // deflection: 0 = straight through (opposite outgoing dirs), π = fold straight back
+    const cost=(i,j)=>{let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
+      dt=Math.max(-1,Math.min(1,dt)); return Math.PI-Math.acos(dt);};
+    partner[v].set(matchVertex(d,cost,MAXTURN));
+  });
 
-  const path=[];
-  let firstSeg=true;
-
-  for(const angDeg of famKeys){
-    const famSegs=famMap.get(angDeg);
-    const ang=angDeg*Math.PI/180;
-    const fwdU=Math.cos(ang),fwdV=Math.sin(ang);
-    // Perpendicular axis (used to separate rows)
-    const perpU=-fwdV,perpV=fwdU;
-
-    // Group segments into rows by perpendicular coordinate of midpoint
-    const rowMap=new Map();
-    for(const s of famSegs){
-      const mu=(s.start[0]+s.end[0])/2,mv=(s.start[1]+s.end[1])/2;
-      const rowKey=Math.round((mu*perpU+mv*perpV)/EPS); // quantised
-      if(!rowMap.has(rowKey))rowMap.set(rowKey,[]);
-      rowMap.get(rowKey).push(s);
+  // ---- trace strokes following the pairings ----
+  const usedE=new Uint8Array(edges.length), strokes=[];
+  function trace(v0,li0){
+    const pts=[vPos[v0].slice()]; let v=v0,li=li0;
+    for(;;){
+      const h=adj[v][li]; if(usedE[h.e])break; usedE[h.e]=1;
+      pts.push(vPos[h.to].slice());
+      const nl=partner[h.to][h.tw];     // continue out along the partner of the arriving half-edge
+      if(nl<0)break;                    // dangling → stroke ends
+      v=h.to; li=nl;
     }
+    if(pts.length>=2)strokes.push(pts);
+  }
+  adj.forEach((list,v)=>list.forEach((h,li)=>{        // open strokes: start at unpaired half-edges
+    if(partner[v][li]<0 && !usedE[h.e])trace(v,li);
+  }));
+  edges.forEach(([a],ei)=>{                           // closed loops: any remaining edges
+    if(usedE[ei])return;
+    trace(a, adj[a].findIndex(h=>h.e===ei));
+  });
 
-    // Sort rows by perpendicular coordinate (sweep direction)
-    const rows=[...rowMap.entries()].sort((a,b)=>a[0]-b[0]);
-
-    for(let ri=0;ri<rows.length;ri++){
-      const [,rowSegs]=rows[ri];
-      const goReverse=ri%2===1; // snake
-
-      // Normalise each segment to point in the fwd direction, then sort by start position
-      const norm=rowSegs.map(s=>{
-        const dot=(s.end[0]-s.start[0])*fwdU+(s.end[1]-s.start[1])*fwdV;
-        return dot>=0?{start:[...s.start],end:[...s.end]}:{start:[...s.end],end:[...s.start]};
-      }).sort((a,b)=>(a.start[0]*fwdU+a.start[1]*fwdV)-(b.start[0]*fwdU+b.start[1]*fwdV));
-
-      // Merge touching collinear segments into point-chains (Rule 1 — long lines)
-      const chains=[];
-      for(const s of norm){
-        if(chains.length){
-          const tail=chains[chains.length-1][chains[chains.length-1].length-1];
-          if(Math.abs(s.start[0]-tail[0])<EPS*10&&Math.abs(s.start[1]-tail[1])<EPS*10){
-            chains[chains.length-1].push(s.end); continue;
-          }
-        }
-        chains.push([s.start,s.end]);
-      }
-
-      // NN-order chains within the row to minimise intra-row jumps (Rule 2)
-      if(chains.length>1){
-        const ord=[chains[0]],usedC=new Uint8Array(chains.length);usedC[0]=1;
-        for(let k=1;k<chains.length;k++){
-          const tail=ord[ord.length-1][ord[ord.length-1].length-1];
-          let best=Infinity,bi=-1,bFlip=false;
-          chains.forEach((c,ci)=>{
-            if(usedC[ci])return;
-            const d0=Math.hypot(c[0][0]-tail[0],c[0][1]-tail[1]);
-            const d1=Math.hypot(c[c.length-1][0]-tail[0],c[c.length-1][1]-tail[1]);
-            if(d0<best){best=d0;bi=ci;bFlip=false;}
-            if(d1<best){best=d1;bi=ci;bFlip=true;}
-          });
-          if(bi<0)break;
-          usedC[bi]=1; if(bFlip)chains[bi].reverse(); ord.push(chains[bi]);
-        }
-        chains.length=0; ord.forEach(c=>chains.push(c));
-      }
-
-      // Snake: reverse row direction on odd rows
-      if(goReverse){chains.reverse();chains.forEach(c=>c.reverse());}
-
-      // Flatten into path; mark jump at the start of each chain (except the very first stitch)
-      for(const chain of chains){
-        for(let k=0;k<chain.length-1;k++){
-          path.push({start:chain[k],end:chain[k+1],jump:!firstSeg&&k===0});
-          firstSeg=false;
-        }
-      }
+  // ---- Phase 2: order strokes — family → band → snake ----
+  const FAMBIN=Math.PI/6, FAMS=Math.round(Math.PI/FAMBIN);   // 30° bins
+  function metrics(pts){
+    let len=0,cx=0,cy=0;
+    for(let k=0;k<pts.length-1;k++)len+=Math.hypot(pts[k+1][0]-pts[k][0],pts[k+1][1]-pts[k][1]);
+    pts.forEach(p=>{cx+=p[0];cy+=p[1];}); cx/=pts.length; cy/=pts.length;
+    let dx=pts[pts.length-1][0]-pts[0][0], dy=pts[pts.length-1][1]-pts[0][1];
+    if(Math.hypot(dx,dy)<len*0.3){                    // closed/curly stroke → use bbox major axis
+      const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+      dx=Math.max(...xs)-Math.min(...xs); dy=Math.max(...ys)-Math.min(...ys);
     }
+    let ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI; if(ang>=Math.PI)ang-=Math.PI;
+    return {len,cx,cy,ang};
+  }
+  const S=strokes.map(pts=>({pts,...metrics(pts)}));
+  const famMap=new Map();
+  S.forEach(s=>{const fb=Math.round(s.ang/FAMBIN)%FAMS;
+    if(!famMap.has(fb))famMap.set(fb,[]); famMap.get(fb).push(s);});
+  const fams=[...famMap.entries()].sort((a,b)=>a[0]-b[0]).map(e=>e[1]);
+
+  const ordered=[];
+  for(const fam of fams){
+    let sc=0,ss=0; fam.forEach(s=>{sc+=s.len*Math.cos(2*s.ang); ss+=s.len*Math.sin(2*s.ang);});
+    const tf=0.5*Math.atan2(ss,sc);                   // family mean orientation (double-angle)
+    const dir=[Math.cos(tf),Math.sin(tf)], perp=[-Math.sin(tf),Math.cos(tf)];
+    fam.forEach(s=>{s.bc=s.cx*perp[0]+s.cy*perp[1]; s.ac=s.cx*dir[0]+s.cy*dir[1];});
+    const bcs=[...new Set(fam.map(s=>Math.round(s.bc*2)/2))].sort((a,b)=>a-b);
+    let pitch=Infinity; for(let i=1;i<bcs.length;i++)pitch=Math.min(pitch,bcs[i]-bcs[i-1]);
+    if(!isFinite(pitch)||pitch<1e-6)pitch=1;
+    const minbc=Math.min(...fam.map(s=>s.bc));
+    fam.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
+    fam.sort((a,b)=> a.band-b.band || (a.band%2===0 ? a.ac-b.ac : b.ac-a.ac));   // snake
+    fam.forEach(s=>ordered.push(s));
+  }
+
+  // ---- emit, picking each stroke's direction nearest the running cursor ----
+  const path=[]; let cur=null, first=true;
+  for(const s of ordered){
+    let pts=s.pts;
+    if(cur){
+      const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
+      const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
+      if(dE<dS)pts=pts.slice().reverse();
+    }
+    for(let k=0;k<pts.length-1;k++){ path.push({start:pts[k],end:pts[k+1],jump:!first&&k===0}); first=false; }
+    cur=pts[pts.length-1];
   }
   return path;
+}
+
+// Minimum-deflection maximal matching for one (small-degree) vertex.
+// Returns partner[] of length d: pairs indices, -1 if unpaired. Maximises pairs first,
+// then minimises total deflection cost; never pairs above maxCost.
+function matchVertex(d,cost,maxCost){
+  if(d>8){                                            // greedy fallback for rare high-degree hubs
+    const arr=new Int32Array(d).fill(-1), used=new Uint8Array(d), pairs=[];
+    for(let i=0;i<d;i++)for(let j=i+1;j<d;j++){const c=cost(i,j); if(c<=maxCost)pairs.push([c,i,j]);}
+    pairs.sort((a,b)=>a[0]-b[0]);
+    for(const[,i,j]of pairs)if(!used[i]&&!used[j]){used[i]=used[j]=1;arr[i]=j;arr[j]=i;}
+    return arr;
+  }
+  let bestPairs=-1,bestCost=Infinity,bestArr=null;
+  const arr=new Int32Array(d).fill(-1), used=new Uint8Array(d);
+  (function rec(start,pairs,csum){
+    let i=start; while(i<d&&used[i])i++;
+    if(i>=d){ if(pairs>bestPairs||(pairs===bestPairs&&csum<bestCost)){bestPairs=pairs;bestCost=csum;bestArr=arr.slice();} return; }
+    used[i]=1; arr[i]=-1; rec(i+1,pairs,csum); used[i]=0;             // leave i unpaired
+    used[i]=1;
+    for(let j=i+1;j<d;j++){ if(used[j])continue; const c=cost(i,j); if(c>maxCost)continue;
+      used[j]=1; arr[i]=j; arr[j]=i; rec(i+1,pairs+1,csum+c); used[j]=0; arr[i]=-1; arr[j]=-1; }
+    used[i]=0;
+  })(0,0,0);
+  return bestArr||new Int32Array(d).fill(-1);
 }
 
 function drawExpGuide(){

@@ -260,7 +260,8 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 | `loadPattern(pat)` | Dispatcher for all pattern types |
 | `computeExpLayout(pat)` | Tiled-view scale/origin for exp patterns (patMacro-based) |
 | `genTiledSegs(pat)` | All tile instances covering the canvas (with edge overlap) |
-| `buildExpPath(segs)` | Chain + NN routing (collinear preference, ROUTING.md rules 1+2) |
+| `buildExpPath(segs)` | Min-deflection stroke formation + family/band/snake ordering (ROUTING.md cost model) |
+| `matchVertex(d,cost,maxCost)` | Min-deflection maximal edge matching at one vertex (brute force ≤8, greedy above) |
 | `renderExp(step)` | Animated render for custom exp patterns |
 
 ---
@@ -274,7 +275,7 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 - **No speed slider:** toggle only — slow `TICK_MS=160` (~6 stitches/sec), fast `TICK_MS=80` (~12 stitches/sec)
 - **No `el.onclick=null`** in update functions — breaks the Reset/Play button
 - **Arc resolution in CAD editor:** max 30 segments per full circle (`Math.max(3, Math.round(sweep/2pi * 30))`) — sashiko stitching needs low-poly curves
-- **Exp pattern routing:** `buildExpPath` clusters segments into direction families, groups into rows by perpendicular coordinate, merges touching collinear segs into chains (Rule 1), NN-orders chains within each row (Rule 2), then snakes rows (alternating forward/reverse = how a human stitcher works a grid).
+- **Exp pattern routing (human-makability cost):** `buildExpPath` minimises `A·jumps + B·jumpLen + C·turnSharpness + D·retrace` (A≫B≫C,D). Phase 1: build a vertex/edge graph, pair edges at each vertex by **minimum deflection** (`matchVertex`), trace strokes following the pairings — so a whole curve = one stroke (breaks only at endpoints or turns > 135°). Phase 2: group strokes into 30° orientation families (H before V — Rule 3), then into parallel bands by centroid, sweep bands with a **snake** (reverse alternate bands) so jumps always move into unstitched area. Verified: 100% edge coverage; a 4-arch row routes as 4 strokes (3 jumps), not ~44. See `ROUTING.md`.
 - **Exp canvas borders:** iso patterns use canvas height = SIZE/sqrt(3) so the parallelogram diamond tips land exactly at the four canvas edges
 
 ---
