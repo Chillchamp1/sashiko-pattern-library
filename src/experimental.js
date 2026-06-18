@@ -134,15 +134,15 @@ function setupExpCanvas(pat){
   ctx.scale(DPR,DPR);
 }
 
-// Build animation path from pat.lines: chain connected segments, NN-order chains.
+// Build animation path: ROUTING.md rules applied.
+// Rule 1 — long lines: at each junction prefer the collinear continuation (tracePaired logic).
+// Rule 2 — short jumps: NN-order the resulting chains.
 function buildExpPath(lines){
   if(!lines||!lines.length)return[];
-  // Work on copies so we don't mutate the saved pattern.
   const segs=lines.map(l=>({start:[...l.start],end:[...l.end]}));
   const n=segs.length;
   const EPS=0.01;
   function key(p){return Math.round(p[0]/EPS)+','+Math.round(p[1]/EPS);}
-  // adj: endpoint key → [{i, atStart}]
   const adj=new Map();
   segs.forEach((s,i)=>{
     [key(s.start),key(s.end)].forEach((k,ki)=>{
@@ -150,23 +150,47 @@ function buildExpPath(lines){
       adj.get(k).push({i,atStart:ki===0});
     });
   });
+
+  // Pick the most collinear unused neighbour at a junction (Rule 1).
+  function pickNext(candidates,dir){
+    if(!candidates.length)return null;
+    const dl=Math.hypot(dir[0],dir[1]);
+    if(dl<1e-9)return candidates[0];
+    let best=candidates[0],bestDot=-2;
+    for(const c of candidates){
+      const s=segs[c.i];
+      const cd=c.atStart?[s.end[0]-s.start[0],s.end[1]-s.start[1]]:[s.start[0]-s.end[0],s.start[1]-s.end[1]];
+      const cl=Math.hypot(cd[0],cd[1]);
+      if(cl<1e-9)continue;
+      const dot=(dir[0]*cd[0]+dir[1]*cd[1])/(dl*cl);
+      if(dot>bestDot){bestDot=dot;best=c;}
+    }
+    return best;
+  }
+
   const used=new Uint8Array(n);
   const chains=[];
   for(let s=0;s<n;s++){
     if(used[s])continue;
     used[s]=1;
     const chain=[s];
-    // Extend forward (from end)
+    // Extend forward — collinear preference
     for(;;){
-      const nb=(adj.get(key(segs[chain[chain.length-1]].end))||[]).find(c=>!used[c.i]);
+      const last=segs[chain[chain.length-1]];
+      const dir=[last.end[0]-last.start[0],last.end[1]-last.start[1]];
+      const cands=(adj.get(key(last.end))||[]).filter(c=>!used[c.i]);
+      const nb=pickNext(cands,dir);
       if(!nb)break;
       used[nb.i]=1;
       if(!nb.atStart)[segs[nb.i].start,segs[nb.i].end]=[segs[nb.i].end,segs[nb.i].start];
       chain.push(nb.i);
     }
-    // Extend backward (from start)
+    // Extend backward — collinear preference (reversed direction)
     for(;;){
-      const nb=(adj.get(key(segs[chain[0]].start))||[]).find(c=>!used[c.i]);
+      const first=segs[chain[0]];
+      const dir=[first.start[0]-first.end[0],first.start[1]-first.end[1]];
+      const cands=(adj.get(key(first.start))||[]).filter(c=>!used[c.i]);
+      const nb=pickNext(cands,dir);
       if(!nb)break;
       used[nb.i]=1;
       if(nb.atStart)[segs[nb.i].start,segs[nb.i].end]=[segs[nb.i].end,segs[nb.i].start];
@@ -174,8 +198,8 @@ function buildExpPath(lines){
     }
     chains.push(chain);
   }
-  // NN-order chains
-  const usedC=new Uint8Array(chains.length), ordered=[chains[0]];
+  // Rule 2 — NN-order chains
+  const usedC=new Uint8Array(chains.length),ordered=[chains[0]];
   usedC[0]=1;
   function ep(chain,fromEnd){const si=fromEnd?chain[chain.length-1]:chain[0];return fromEnd?segs[si].end:segs[si].start;}
   for(let k=1;k<chains.length;k++){
@@ -193,7 +217,6 @@ function buildExpPath(lines){
     if(bFlip){chains[bi].reverse();chains[bi].forEach(i=>{[segs[i].start,segs[i].end]=[segs[i].end,segs[i].start];});}
     ordered.push(chains[bi]);
   }
-  // Flatten with jump markers
   const path=[];
   ordered.forEach((chain,ci)=>{
     chain.forEach((si,k)=>path.push({start:segs[si].start,end:segs[si].end,jump:ci>0&&k===0}));

@@ -88,7 +88,7 @@ function cadGenArc(center,start,end){
   while(sweep>Math.PI)sweep-=2*Math.PI;
   while(sweep<=-Math.PI)sweep+=2*Math.PI;
   if(Math.hypot(end[0]-start[0],end[1]-start[1])<0.1)sweep=2*Math.PI; // full circle
-  const segs=Math.max(8,Math.floor((Math.abs(sweep)/(2*Math.PI))*32));
+  const segs=Math.max(3,Math.round((Math.abs(sweep)/(2*Math.PI))*30)); // max 30 segs per full circle
   const result=[];let prev=[...start];
   for(let i=1;i<=segs;i++){
     const a=a1+sweep*(i/segs);
