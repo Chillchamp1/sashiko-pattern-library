@@ -1,12 +1,12 @@
 // ── Firebase config — paste your firebaseConfig values here ─────────────────
 // Get these from: Firebase Console → Project Settings → Your apps → Web app
 const FIREBASE_CONFIG = {
-  apiKey:            "PASTE_YOUR_apiKey_HERE",
-  authDomain:        "PASTE_YOUR_authDomain_HERE",
-  projectId:         "PASTE_YOUR_projectId_HERE",
-  storageBucket:     "PASTE_YOUR_storageBucket_HERE",
-  messagingSenderId: "PASTE_YOUR_messagingSenderId_HERE",
-  appId:             "PASTE_YOUR_appId_HERE"
+  apiKey:            "AIzaSyAUk0RJKsZYaI5K6ixr7tBGe3yxmwBbWgk",
+  authDomain:        "sashiko-library.firebaseapp.com",
+  projectId:         "sashiko-library",
+  storageBucket:     "sashiko-library.firebasestorage.app",
+  messagingSenderId: "478200546173",
+  appId:             "1:478200546173:web:1b2b0f3fb98ef969600214"
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
