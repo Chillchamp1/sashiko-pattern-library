@@ -1398,24 +1398,33 @@ function renderExpPattern(pat){
   x.fillStyle='#1a3a5c';x.fillRect(0,0,SIZE,SIZE);
   const COS30=Math.cos(Math.PI/6),SIN30=Math.sin(Math.PI/6);
   const bbox=pat.bbox;
-  const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
+  const dU=Math.max(bbox.maxU-bbox.minU,0.01),dV=Math.max(bbox.maxV-bbox.minV,0.01);
   const isIso=pat.gridType==='isometric';
-  let tileSize;
-  if(isIso){tileSize=Math.min(SIZE/(dU*2*COS30+4),SIZE/(dV*2*SIN30+4))*1.5;}
-  else{tileSize=Math.min(SIZE/(dU+4),SIZE/(dV+4))*1.5;}
-  const ox=SIZE/2,oy=SIZE/2;
+  // Use the same tiling scale as patCanvas did when the user saved.
+  // patMacro * CAD_MICRO = total micro-units across the 500px patCanvas.
+  const micro=10, ptc=(pat.patMacro||5)*micro;
+  let tileSize, ox, oy;
+  if(isIso){
+    tileSize=SIZE/(2*ptc*COS30);
+    ox=SIZE/2; oy=(SIZE-(ptc*2*tileSize*SIN30))/2;
+  }else{
+    tileSize=SIZE/ptc;
+    ox=0; oy=0;
+  }
   function g2s(u,v){
     if(isIso)return{x:ox+(u-v)*tileSize*COS30,y:oy+(u+v)*tileSize*SIN30};
     return{x:ox+u*tileSize,y:oy+v*tileSize};
   }
   x.lineWidth=1.5;x.lineCap='round';x.strokeStyle='#9cbcd8';
-  const over=Math.ceil(SIZE/Math.max(tileSize*dU,tileSize*dV,1))+2;
-  for(let ou=-over;ou<=over;ou++){for(let ov=-over;ov<=over;ov++){
+  const over=ptc;
+  for(let ou=-over;ou<=ptc+over;ou+=dU){for(let ov=-over;ov<=ptc+over;ov+=dV){
     pat.lines.forEach(l=>{
-      const u1=l.start[0]-bbox.minU+ou*dU,v1=l.start[1]-bbox.minV+ov*dV;
-      const u2=l.end[0]-bbox.minU+ou*dU,v2=l.end[1]-bbox.minV+ov*dV;
+      const u1=l.start[0]+ou,v1=l.start[1]+ov;
+      const u2=l.end[0]+ou,v2=l.end[1]+ov;
       const p1=g2s(u1,v1),p2=g2s(u2,v2);
-      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+      if((p1.x>-50&&p1.x<SIZE+50&&p1.y>-50&&p1.y<SIZE+50)||(p2.x>-50&&p2.x<SIZE+50&&p2.y>-50&&p2.y<SIZE+50)){
+        x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+      }
     });
   }}
 }
@@ -1777,7 +1786,7 @@ window.cadSaveToLibrary=function(){
   const id='exp_'+Date.now();
   const lines=cadLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('patCanvas').toDataURL('image/png');
-  const pat={id,name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},thumbnail,createdAt:Date.now()};
+  const pat={id,name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now()};
   EXP_PATTERNS.unshift(pat);saveExpPatterns(pat);rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
   btn.textContent='✓ Saved!';btn.style.background='#1a5c28';
