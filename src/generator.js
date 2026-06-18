@@ -191,22 +191,34 @@ window.addEventListener('keydown',e=>{
 // ── Thumbnail — renders via real animation pipeline at full SIZE, displayed scaled ──
 function renderThumb(canvas,pat){
   const TDPR=Math.min(window.devicePixelRatio||1,2);
-  canvas.width=SIZE*TDPR; canvas.height=SIZE*TDPR;
-  canvas.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
+  const isExpPat=pat.type==='exp';
+  const expLay=isExpPat?computeExpLayout(pat):null;
+  const thumbH=isExpPat?expLay.canvasH:SIZE;
+
+  canvas.width=SIZE*TDPR; canvas.height=thumbH*TDPR;
+  canvas.style.cssText=isExpPat
+    ?'width:100%;height:auto;border-radius:7px;display:block'
+    :'width:100%;aspect-ratio:1;border-radius:7px;display:block';
 
   // Save all mutable global state
   const origCtx=ctx;
   const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
   const sHMN=HM_N,sHMC=HM_CELL,sHMPth=HM_path,sHMFr=HM_fronts,sHMPO=HM_phase_order;
   const sPLp=PL_path,sPLf=PL_fronts,sPLps=PL_passes,sPLN=PL_N,sPLHU=PL_HU,sPLSh=PL_shCount;
+  const sEXpath=EXP_path,sEXg2s=EXP_g2s,sEXh=EXP_canvasH;
 
   ctx=canvas.getContext('2d'); ctx.scale(TDPR,TDPR);
   curPat=pat; playing=false;
-  isEXP=pat.type==='exp'; isPL=pat.type==='polyline';
+  isEXP=isExpPat; isPL=pat.type==='polyline';
   isHM=pat.type==='generator'||pat.type==='hitomezashi';
 
   try{
-    if(isPL){
+    if(isEXP){
+      EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
+      EXP_path=buildExpPath(pat.lines||[]);
+      TOTAL=EXP_path.length;
+      renderExp(TOTAL);
+    } else if(isPL){
       const built=buildTsuzukiYamagata(PL_NHU);
       PL_N=PL_NHU; PL_HU=(SIZE-2*PAD)/PL_N;
       PL_path=built.path; PL_fronts=built.fronts;
@@ -215,8 +227,6 @@ function renderThumb(canvas,pat){
     } else if(isHM){
       const bits=seqToBits(pat.type==='generator'?[0,0,1,0,1]:pat.seq, pat.type==='generator'?11:(pat.thumbN||11));
       buildHMcore(bits,bits); TOTAL=HM_fronts.length; renderHM(TOTAL);
-    } else if(isEXP){
-      renderExpPattern(pat);
     } else {
       PASSES=buildPasses(pat.passes,N); PASSES.forEach(p=>p.count=p.order.length);
       TOTAL=PASSES.reduce((a,p)=>a+p.count,0);
@@ -230,5 +240,6 @@ function renderThumb(canvas,pat){
   isHM=sHM; isPL=sPL; isEXP=sEX;
   HM_N=sHMN; HM_CELL=sHMC; HM_path=sHMPth; HM_fronts=sHMFr; HM_phase_order=sHMPO;
   PL_path=sPLp; PL_fronts=sPLf; PL_passes=sPLps; PL_N=sPLN; PL_HU=sPLHU; PL_shCount=sPLSh;
+  EXP_path=sEXpath; EXP_g2s=sEXg2s; EXP_canvasH=sEXh;
 }
 

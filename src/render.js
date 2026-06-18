@@ -51,7 +51,7 @@ window.onInfoClick=function(){if(!playing&&step===0)play();};
 function render(st){
   if(isHM){renderHM(st);return;}
   if(isPL){renderPolyline(st);return;}
-  if(isEXP){renderExpPattern(curPat);return;}
+  if(isEXP){renderExp(st);updateInfo(st,0,0);return;}
   drawFabric(); drawGuide();
   const{p,local}=locate(st);
   for(let k=0;k<p;k++)frontAll(PASSES[k]);
@@ -66,6 +66,10 @@ function updateInfo(st,p,local){
   const el=document.getElementById('info');
   if(st===0){setIdleInfo();markJump(-1);return;}
   el.classList.remove('idle');el.onclick=null;
+  if(isEXP){
+    el.innerHTML=st>=TOTAL?'<span class="muted">complete ✓</span>':`stitch <b>${st}</b><span class="muted">/${TOTAL}</span>`;
+    markJump(-1);return;
+  }
   const idx=(st>=TOTAL)?PASSES.length-1:p;
   const d=DIRS[PASSES[idx].dir],col=getCss(d.col);
   const pill=`<span class="pill" style="background:${hexA(col,.16)};color:${col}"><span class="dot" style="background:${col}"></span>pass ${idx+1}/${PASSES.length} · ${d.label} ${d.glyph}</span>`;
@@ -113,6 +117,11 @@ function buildJumpBar(){
 
 // ── Load pattern ───────────────────────────────────────────────────────────
 function loadPattern(pat){
+  // Restore default square canvas if a previous exp iso pattern changed the height.
+  if(Math.round(cv.height/DPR)!==SIZE){
+    cv.height=SIZE*DPR; cv.style.height=SIZE+'px'; ctx.scale(DPR,DPR);
+  }
+
   curPat=pat;
   isEXP=pat.type==='exp';
   const isGen=pat.type==='generator';
@@ -126,6 +135,18 @@ function loadPattern(pat){
     return;
   }
   showGenUI(false);
+
+  if(isEXP){
+    setupExpCanvas(pat);
+    EXP_path=buildExpPath(pat.lines||[]);
+    TOTAL=EXP_path.length; PASSES=[];
+    document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
+    document.getElementById('animTip').textContent='';
+    step=0;if(playing)pause();
+    buildJumpBar();render(0);
+    return;
+  }
+
   if(isPL){
     let built;
     PL_N=PL_NHU; PL_guideStep=2; built=buildTsuzukiYamagata(PL_NHU);
