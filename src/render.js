@@ -128,6 +128,7 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
+  document.getElementById('bReroute').style.display=isEXP?'':'none';  // re-route only for custom patterns
   cv.style.cursor='';
   if(isGen){
     showGenUI(true);

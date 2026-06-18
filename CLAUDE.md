@@ -258,11 +258,13 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 | `buildAsanoha(NQ)` | Per family tracePaired+orderNN -> 4 passes |
 | `buildPasses(pl, n)` | Star-arm passes with permutation optimisation |
 | `loadPattern(pat)` | Dispatcher for all pattern types |
-| `computeExpLayout(pat)` | Tiled-view scale/origin for exp patterns (patMacro-based) |
-| `genTiledSegs(pat)` | All tile instances covering the canvas (with edge overlap) |
-| `buildExpPath(segs)` | Min-deflection stroke formation + family/band/snake ordering (ROUTING.md cost model) |
+| `computeExpLayout(pat)` | Square tiled-view layout for exp patterns; visible square as a convex (u,v) region (`planes`) |
+| `convexPlanes(poly)` / `clipSegConvex(p0,p1,planes)` | Build inward half-planes / clip a segment to the visible region |
+| `genTiledSegs(pat)` | Tile instances covering the square, each clipped to it (no off-screen routing) |
+| `buildExpPath(segs)` | Min-deflection strokes + type/family/band/snake ordering ("order first", ROUTING.md) |
 | `matchVertex(d,cost,maxCost)` | Min-deflection maximal edge matching at one vertex (brute force ≤8, greedy above) |
 | `renderExp(step)` | Animated render for custom exp patterns |
+| `rerouteExp()` | Re-run the router on the current custom pattern (🔀 Re-route button) |
 
 ---
 
@@ -275,8 +277,8 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 - **No speed slider:** toggle only — slow `TICK_MS=160` (~6 stitches/sec), fast `TICK_MS=80` (~12 stitches/sec)
 - **No `el.onclick=null`** in update functions — breaks the Reset/Play button
 - **Arc resolution in CAD editor:** max 30 segments per full circle (`Math.max(3, Math.round(sweep/2pi * 30))`) — sashiko stitching needs low-poly curves
-- **Exp pattern routing (human-makability cost):** `buildExpPath` minimises `A·jumps + B·jumpLen + C·turnSharpness + D·retrace` (A≫B≫C,D). Phase 1: build a vertex/edge graph, pair edges at each vertex by **minimum deflection** (`matchVertex`), trace strokes following the pairings — so a whole curve = one stroke (breaks only at endpoints or turns > 135°). Phase 2: group strokes into 30° orientation families (H before V — Rule 3), then into parallel bands by centroid, sweep bands with a **snake** (reverse alternate bands) so jumps always move into unstitched area. Verified: 100% edge coverage; a 4-arch row routes as 4 strokes (3 jumps), not ~44. See `ROUTING.md`.
-- **Exp canvas borders:** iso patterns use canvas height = SIZE/sqrt(3) so the parallelogram diamond tips land exactly at the four canvas edges
+- **Exp pattern routing (human-makability cost, "order first"):** `buildExpPath` minimises `A·jumps + B·jumpLen + C·turnSharpness + D·retrace` but prioritises a predictable ordered sweep over raw jump count. Phase 1: vertex/edge graph; pair edges at each vertex by **minimum deflection** (`matchVertex`), trace strokes along the pairings — a whole curve = one stroke; breaks only at endpoints or turns sharper than **90°** (`MAXTURN`, user: sharp turns should almost never happen). Phase 2: group strokes by **movement type** (straight → zigzag → curve, via the turning profile), then by 30° orientation family, then parallel bands swept with a **snake**; the first stroke is oriented to flow into the second. Consecutive strokes traverse from the nearest end → arches in a row/column flow like an S. Verified: 100% coverage; a 4-arch scallop column routes as one continuous march (0 jump length).
+- **Exp canvas = full square + clip:** both grids fill the whole SIZE×SIZE square. `computeExpLayout` expresses the visible square as a convex region in grid (u,v) space (`planes`); `genTiledSegs` tiles to cover it and **clips every segment to it** (`clipSegConvex`) — nothing routes off-screen. Iso routing runs in (u,v) so the sweep follows the iso grid lines; the lattice is tiled+clipped (no inscribed-diamond gaps).
 
 ---
 
