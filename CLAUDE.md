@@ -12,6 +12,35 @@ Interaktive Sashiko-Muster-Bibliothek mit animierter Stich-Vorschau. Alle Logik,
 - Neue Muster aus den Büchern (`../Bücher`, PDFs): Geometrie NICHT aus dem Bild raten, sondern mit `tools/pattern_extractor.py` programmatisch extrahieren (siehe Abschnitt **Pattern-Extraktor**).
 - **Stickreihenfolge/Routing** IMMER nach den Regeln in `ROUTING.md` (lange Linien, kurze Sprünge). Gilt für alle Muster.
 
+## Build-System
+
+**Quellcode:** `src/` — aufgeteilt in kleine, gezielte Dateien:
+
+| Datei | Inhalt | Zeilen |
+|---|---|---|
+| `src/template.html` | HTML-Skelett mit Injection-Markern | ~163 |
+| `src/styles.css` | Alle CSS-Styles | ~178 |
+| `src/patterns.js` | `PATTERNS`-Array + Generator-Presets | ~65 |
+| `src/engine-star.js` | Canvas-Setup + Star-Arm-Engine | ~54 |
+| `src/engine-hm.js` | Hitomezashi-Engine | ~153 |
+| `src/engine-polyline.js` | Tsuzuki Yamagata Polyline-Engine | ~225 |
+| `src/render.js` | Animations-State, Render-Dispatcher, `loadPattern` | ~147 |
+| `src/generator.js` | Generator-UI, Playback, Thumbnails | ~212 |
+| `src/gallery.js` | `buildGallery`, `filterGallery`, View-Switching | ~77 |
+| `src/experimental.js` | Experimentelle Muster (localStorage) | ~89 |
+| `src/cad-engine.js` | CAD-Editor + Init | ~259 |
+
+**Build:** `python build.py` → schreibt `Sashiko — Pattern Library.htm` + `index.html` (identisch).
+
+**GitHub Actions** (`.github/workflows/build.yml`): Läuft automatisch bei jedem Push nach `src/` → baut und committed die Deliverable-Dateien → GitHub Pages deployed `index.html` live.
+
+**Editier-Workflow:**
+1. Gewünschte `src/`-Datei bearbeiten (z.B. `src/cad-engine.js` für CAD-Änderungen)
+2. `python build.py` lokal testen
+3. Pushen → Actions baut + deployed automatisch
+
+**NIE** `Sashiko — Pattern Library.htm` oder `index.html` direkt bearbeiten — das sind Build-Artefakte.
+
 ---
 
 ## Architektur
@@ -48,8 +77,10 @@ const shy = j => PAD + j*HM_CELL   // j=0 oben (nicht gespiegelt!)
 
 **Preset → Bits:** `seqToBits(seq, N)` kachelt eine Periodensequenz auf N explizite Bits und zentriert sie über `findSymOffset(seq, N)` (Palindrom-Offset, sonst 0) — so sieht ein Preset aus wie früher. Danach sind die Bits explizit und einzeln umschaltbar. **Kein N-Snapping mehr** (`nearestSymN` entfernt): jede Gittergröße ist erlaubt; Presets werden bei Größenänderung neu gekachelt. `buildHitomezashi(pat)` ist nur noch ein Wrapper: `buildHMcore(seqToBits(pat.seq,N), …)` für seq-basierte Muster.
 
-### 3. Polyline Engine (Tsuzuki Yamagata)
-Für `tsuzuki-yamagata` (`type:'polyline'`). Geometrie programmatisch aus dem Buch-Diagramm extrahiert (siehe **Pattern-Extraktor**), nicht geraten.
+### 3. Polyline Engine (Tsuzuki Yamagata + Asanoha)
+Für `type:'polyline'` (Tsuzuki Yamagata und Asanoha). Geometrie programmatisch aus dem Buch-Diagramm extrahiert (siehe **Pattern-Extraktor**), nicht geraten.
+
+**Generisches N-Pass-Modell:** `PL_passes = [{start, label, glyph, col}]` beschreibt die Pässe (col = `PHASE_COLORS`-Key). TY hat 2 Pässe, Asanoha 4. `buildJumpBar`, `updateInfoPL` und der Jump-Bar lesen `PL_passes` (kein hartkodiertes 2-Pass mehr; `PL_shCount` bleibt nur als Alias = `passes[1].start`). Rendering-Skala pro Muster: `PL_N` (Einheiten über Canvas), `PL_HU=(SIZE-2*PAD)/PL_N`, `PL_guideStep` (Gitterlinien alle n Einheiten) — in `loadPattern` je nach `pat.engine` gesetzt. `tracePaired`/`orderNN`/`renderPolyline`/`drawPLFront` sind geteilt.
 
 Das Muster ist die Vereinigung gerader Running-Stitch-Linien in vier Steigungen: **flach ±1/2** (breite Rauten 2×1, fließen horizontal) und **steil ±2** (hohe Rauten 1×2, fließen vertikal). Die Linien kreuzen sich → Bergketten-Mesh. Kodiert auf einem **Halbraster** als 16-Kanten-Einheitszelle `TY_CELL` + Generatoren `TY_G1=[4,4]`, `TY_G2=[8,0]`. Verifiziert: reproduziert den extrahierten Kanten-Datensatz zu 100 % (0 false positives).
 
@@ -64,6 +95,14 @@ plPx(c) = PAD + c*PL_HU
 - `buildTsuzukiYamagata(NHU)` — steile Kanten → horizontal marschierende Zickzacks (Pass 1), flache → dasselbe um 90° gedreht (Pass 2).
 - **Pass 1 = horizontal** (grüne `H`-Töne), **Pass 2 = vertikal** (blaue `V`-Töne). Zwei Töne je Familie = die zwei Translations-Klassen (siehe **Farb-Zuordnung**). Grenze bei `PL_shCount`. Ausschnitt: `PL_NHU=28`.
 
+#### Asanoha (麻の葉, Hemp Leaf) — `engine:'asanoha'`
+Geometrie aus **Essential Sashiko S.13** extrahiert (`tools/asanoha_extract.py`), verifiziert 100 % Recall / 98 % Precision (rotes Overlay liegt exakt auf jeder schwarzen Linie). Ineinandergreifende sechszackige Hanfblatt-Sterne.
+
+- **Quadratraster, Einheit = Gitterquadrat/4** (im Buch 84px → u=21px). Vertikale Gitterlinien alle 4u, horizontale alle 2u (Buchzelle 2:1 breit, 168×84px).
+- Vier Kantenfamilien: **V (0,1)**, **H (1,0)**, **flache Diagonale (2,±1)** (Steigung ½, lange „Speichen"-Linien), **steile Diagonale (2,±3)** (Steigung 1½, kurze „Blatt"-Zickzacks — knicken an den Blattspitzen, gerade durch die Naben). 12-strahlige Sterne an den Naben.
+- **34-Kanten-Einheitszelle `ASA_CELL` + Generatoren `ASA_G1=[8,4]`, `ASA_G2=[0,8]`** (in u). `genAsanohaEdges(NQ)` kachelt sie. Ausschnitt: `ASA_NQ=32`.
+- **4 Pässe in traditioneller Stickreihenfolge** (Buch): ① Vertikale `V`, ② flache Diagonalen `D1`, ③ steile Blatt-Zickzacks `D2`, ④ Horizontale `H` (zuletzt, hinter dem Stoff geführt). Je Diagonal-Pass 2 Töne = die zwei Schräglagen (Spiegelklassen). `buildAsanoha(NQ)` tract jede Familie einzeln mit `tracePaired`+`orderNN`.
+
 ---
 
 ## Galerie-Patterns
@@ -74,7 +113,8 @@ const PATTERNS = [
   { id:'juji',              passes:['V','H'],  ... },
   { id:'naname',            passes:['D1','D2'], ... },
   { id:'komesashi',         passes:['V','H','D1','D2'], ... },
-  { id:'tsuzuki-yamagata',  type:'polyline',  ... },   // Polyline Engine, s.o.
+  { id:'tsuzuki-yamagata',  type:'polyline',  ... },                   // Polyline Engine, 2 Pässe
+  { id:'asanoha',           type:'polyline', engine:'asanoha', ... },  // Polyline Engine, 4 Pässe
 ];
 ```
 
@@ -174,7 +214,7 @@ let raf = null;
 
 ## Jump-Bar
 
-Springt direkt zu Pass-Grenzen. Beim HM-Muster: Pass 1 (horizontal) vs. Pass 2 (vertikal). Bei Tsuzuki Yamagata: Pass 1 (horizontal/flach) vs. Pass 2 (vertikal/steil), Grenze bei `PL_shCount`.
+Springt direkt zu Pass-Grenzen. Beim HM-Muster: Pass 1 (horizontal) vs. Pass 2 (vertikal). Bei Polyline-Mustern: ein Button je `PL_passes`-Eintrag (TY 2, Asanoha 4) — Grenzen aus `PL_passes[i].start`.
 
 ---
 
@@ -187,7 +227,9 @@ data-f="4"  → 4 Pässe
 data-f="hm" → Hitomezashi (nur Generator-Card)
 ```
 
-Suche matcht auf: name, jp, en, id, plus Generator-Keywords (`koshi kaki persimmon lattice snowflake hitomezashi yamagata mountain 山形 格子 柿の花 雪`).
+Suche matcht auf: name, jp, en, id, plus Generator-Keywords (`koshi kaki persimmon lattice snowflake hitomezashi`) und Polyline-Keywords (`yamagata mountain continuous asanoha hemp leaf star 麻の葉 続き山形`).
+
+Polyline-Muster (TY, Asanoha) haben `passes.length===0` → erscheinen nur unter „Alle" (nicht unter den Pass-Zahl-Filtern). Badge: Asanoha „Hemp leaf", TY „Continuous".
 
 ---
 
@@ -197,7 +239,7 @@ Suche matcht auf: name, jp, en, id, plus Generator-Keywords (`koshi kaki persimm
 function renderThumb(canvas, pat) {
   if (pat.type === 'generator') → renderHMThumb(canvas, [0,0,1,0,1], 11);
   if (pat.type === 'hitomezashi') → renderHMThumb(canvas, pat.seq, pat.thumbN||11);
-  if (pat.type === 'polyline')  → renderPLThumb(canvas);   // Tsuzuki Yamagata Mesh
+  if (pat.type === 'polyline')  → renderPLThumb(canvas, pat);   // TY-Mesh oder Asanoha (pat.engine)
   default: → Star-Arm-Thumbnails (5×5 Grid)
 }
 ```
@@ -219,7 +261,9 @@ function renderThumb(canvas, pat) {
 | `applyGenerator()` | Legacy-Alias → `refreshGen(true)` |
 | `snowSeq(ord)` / `snowHalf(ord)` | Fibonacci-Snowflake-Sequenz (Order 1/2/3) |
 | `genTYedges(NHU)` | Tsuzuki Yamagata: Einheitszelle kacheln → Kanten im Halbraster |
-| `buildTsuzukiYamagata(NHU)` | Kanten → gerade Linien → 2 Pässe (PL_path, PL_fronts, PL_shCount) |
+| `buildTsuzukiYamagata(NHU)` | Kanten → Zickzacks → 2 Pässe (PL_path, PL_fronts, PL_passes) |
+| `genAsanohaEdges(NQ)` | Asanoha: `ASA_CELL` über `ASA_G1/G2` kacheln → Kanten (V/H/A/B) |
+| `buildAsanoha(NQ)` | Pro Familie `tracePaired`+`orderNN` → 4 Pässe (PL_passes) |
 | `buildPasses(pl, n)` | Star-Arm Pässe mit Permutations-Optimierung |
 | `loadPattern(pat)` | Dispatcher für alle Pattern-Typen |
 
@@ -232,6 +276,7 @@ function renderThumb(canvas, pat) {
 - **Reihen/Spalten unabhängig:** Toggles können das Muster asymmetrisch machen (genau das gewünschte freie Explorieren). Presets stellen die Symmetrie wieder her (`rowBits === colBits`).
 - **Yamagata-Preset entfernt:** war nur eine Hitomezashi-Annäherung; der echte Tsuzuki Yamagata lebt in der Polyline-Engine/Gallery.
 - **Tsuzuki Yamagata in Gallery:** Polyline-Engine, Geometrie aus Buch S.44 extrahiert (Essential Sashiko: "mountain ranges overlap and flow"). Verifiziert 100 % gegen Original.
+- **Asanoha in Gallery:** Polyline-Engine (4 Pässe), Geometrie aus Essential Sashiko S.13 extrahiert (`tools/asanoha_extract.py`). Quadratraster Einheit=Gitterquadrat/4; Familien V/H/(2,±1)/(2,±3); 34-Kanten-Zelle. Verifiziert 100 % Recall / 98 % Precision. Steile (2,±3)-Familie erst auf dem Viertelraster gefunden — bei „Familie fehlt" feiner abtasten.
 - **Kein Speed-Slider:** entfernt, feste `TICK_MS=40`
 - **Kein `el.onclick=null`** in update-Funktionen, weil das den Reset-Play-Button bricht
 
@@ -256,5 +301,5 @@ Die roten Pfeile/Zahlen im Buch = empfohlene Stich-Reihenfolge (bei Tsuzuki: 1-2
 
 ## Noch offene Punkte (als Ideen, nicht implementiert)
 
-- Weitere Muster aus `../Bücher` per Extraktor: Asanoha (Hemp Leaf), Kikko (Tortoiseshell), Sugi Aya (Herringbone, Buch S.44) wären gute nächste Additions.
+- Weitere Muster aus `../Bücher` per Extraktor: Kikko (Tortoiseshell), Sugi Aya (Herringbone, Buch S.44) wären gute nächste Additions. (Asanoha ✓ erledigt.)
 - Export als SVG oder PNG.

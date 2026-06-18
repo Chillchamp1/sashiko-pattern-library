@@ -1,5 +1,8 @@
 # Copyrighted book scans — never publish these
 *.pdf
-tools/ty2.png
+# Extraction debug images (book-derived crops/renders) — keep the .py tools only
+tools/*.png
 tools/__pycache__/
 .claude/
+__pycache__/
+*.pyc

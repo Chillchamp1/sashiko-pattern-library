@@ -1,0 +1,178 @@
+:root{
+  --fabric:#1a3a5c;--bg:#0e1c2b;--panel:#16293c;--panel2:#1c3045;
+  --muted:#8aa3bd;--line:#27425e;
+  --accent-v:#7fb0ff;--accent-h:#7ee0b8;--accent-d1:#ffcf7a;--accent-d2:#ff9bb0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#e7eef6;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:800px;margin:0 auto;padding:24px 16px 56px}
+
+/* ── Gallery ── */
+#galleryView{display:block}
+.g-head{margin:0 0 6px}
+.g-title{font-size:20px;font-weight:600;margin:0;display:inline}
+.g-sub{font-size:14px;font-weight:400;color:var(--muted);margin-left:8px}
+.g-intro{font-size:13px;color:var(--muted);margin:4px 0 20px;line-height:1.6;max-width:600px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:8px 14px;color:#e7eef6;font-size:13px;outline:none}
+.search::placeholder{color:var(--muted)}
+.search:focus{border-color:#33557a}
+.filt-row{display:flex;gap:5px;flex-wrap:wrap}
+.filt{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;transition:.15s}
+.filt:hover{border-color:#33557a;color:#e7eef6}
+.filt.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
+.filt.hm.on{background:#17302c;border-color:#2a5247;color:#7ecfc4}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}
+.pcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:10px 8px 9px;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;gap:5px;transition:.15s;text-align:center}
+.pcard:hover{background:#1d3850;border-color:#2f5577;transform:translateY(-1px);
+  box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.pcard:active{transform:scale(.97)}
+.pcard.gen-card{border-color:#2a4a30;background:#141f18}
+.pcard.gen-card:hover{background:#1a2c20;border-color:#3a6a44}
+.pcard canvas{border-radius:7px;display:block}
+.pcard-name{font-size:12px;font-weight:600;color:#e7eef6;line-height:1.3}
+.pcard-jp{font-size:10.5px;color:var(--muted)}
+.pcard-badge{font-size:10px;padding:2px 7px;border-radius:5px;background:#1f3548;color:#7aa0be}
+.pcard-badge.gen{background:#1c2e10;color:#8cd46a}
+.pcard.hidden{display:none}
+.no-results{font-size:13px;color:var(--muted);padding:20px 0;grid-column:1/-1}
+
+/* ── Animation view ── */
+#animView{display:none;flex-direction:column;align-items:center;gap:14px}
+#animView.open{display:flex}
+.back-row{width:100%;display:flex;align-items:center;gap:10px}
+.back-btn{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+  padding:7px 14px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;
+  display:inline-flex;align-items:center;gap:5px}
+.back-btn:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
+.anim-title{font-size:18px;font-weight:600;margin:0}
+.anim-title .jp{font-size:13px;font-weight:400;color:var(--muted);margin-left:8px}
+.stage{position:relative;border-radius:16px;overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04)}
+canvas#cv{display:block}
+/* Info bar — clickable when idle */
+.info{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--line);border-radius:30px;
+  padding:8px 18px;font-size:13px;min-height:30px;min-width:280px;text-align:center;
+  cursor:default}
+.info.idle{cursor:pointer;transition:background .12s}
+.info.idle:hover{background:#1d3850}
+.info-play{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.info-play span{color:#8aa3bd}
+.pill{padding:3px 11px;border-radius:14px;font-size:12px;font-weight:600;
+  display:inline-flex;align-items:center;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;vertical-align:middle}
+.muted{color:var(--muted)}
+.jumpbar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.jumpbar button{background:var(--panel);color:#e7eef6;border:1px solid var(--line);
+  border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;transition:.15s}
+.jumpbar button:hover{background:#1d3850}
+.jumpbar button.on{background:#214a72;border-color:#3a6ea3}
+.ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+button.ctrl{background:var(--panel);color:#e7eef6;border:1px solid var(--line);
+  border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:.15s;line-height:1}
+button.ctrl:hover{background:#1d3850;border-color:#33557a}
+button.ctrl:active{transform:scale(.97)}
+button.ctrl.primary{min-width:90px;justify-content:center;background:#214a72;border-color:#2f6699}
+button.ctrl.primary:hover{background:#275784}
+.ico{width:16px;height:16px;display:inline-block;vertical-align:middle}
+.tip{font-size:12px;color:var(--muted);max-width:560px;text-align:center;
+  line-height:1.7;border-top:1px solid var(--line);padding-top:14px;margin-top:2px}
+
+/* ── Generator UI ── */
+#genUI{flex-direction:column;align-items:center;gap:10px;width:100%;max-width:420px;
+  border-top:1px solid var(--line);padding-top:12px}
+.gen-label{font-size:10.5px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+.gen-presets{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.gen-btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:6px 13px;font-size:12px;color:var(--muted);cursor:pointer;
+  transition:.15s;font:inherit;display:inline-flex;align-items:center;gap:5px}
+.gen-btn:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
+.gen-btn.on{background:#1e3a52;border-color:#3a6ea3;color:#c8dff4}
+.gen-bits-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.gen-bits{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+.gen-bit{width:32px;height:32px;border:1px solid var(--line);border-radius:7px;
+  font-size:14px;font-weight:700;font-family:ui-monospace,monospace;cursor:pointer;
+  background:var(--panel);color:var(--muted);transition:.12s;
+  display:inline-flex;align-items:center;justify-content:center}
+.gen-bit.on{background:#1b3a2a;border-color:#3a6a4a;color:#88c4a4}
+.gen-adv-btn{background:none;border:none;color:var(--muted);font-size:12px;
+  cursor:pointer;padding:4px 8px;border-radius:6px;transition:.12s;font:inherit}
+.gen-adv-btn:hover{background:var(--panel);color:#e7eef6}
+.gen-adv{flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:12px 16px;width:100%}
+.gen-srow{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.gen-srow input{flex:1;accent-color:#7ee0b8}
+.gen-sval{min-width:28px;font-size:12px;color:#e7eef6;text-align:right;
+  font-family:ui-monospace,monospace}
+/* Snowflake info card replaces line toggles */
+#genSnowInfo{background:var(--panel);border:1px solid #2a3a5a;border-radius:12px;
+  padding:10px 16px;font-size:12px;color:var(--muted);line-height:1.7;width:100%;max-width:360px;text-align:center}
+#genSnowInfo b{color:#9bbee8}
+
+/* ── Graphical line-toggle editor (toggles wrap the live preview) ── */
+.hm-frame{display:inline-grid;grid-template-columns:var(--gut) auto;grid-template-rows:var(--gut) auto;
+  --gut:0px;align-items:center;justify-items:center}
+.hm-frame.hm-on{--gut:30px}
+.hm-col-toggles{grid-area:1/2;position:relative;width:100%;height:100%}
+.hm-row-toggles{grid-area:2/1;position:relative;width:100%;height:100%}
+.stage{grid-area:2/2}
+.hm-frame:not(.hm-on) .hm-col-toggles,.hm-frame:not(.hm-on) .hm-row-toggles{display:none}
+.hm-tog{position:absolute;border-radius:6px;border:1px solid var(--line);background:var(--panel);
+  color:#5f7894;cursor:pointer;padding:0;line-height:1;font-family:ui-monospace,monospace;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .1s,background .12s,border-color .12s,color .12s}
+.hm-tog:hover{border-color:#5a7da6;color:#cfe0f2;z-index:2}
+.hm-tog:active{transform:scale(.85)}
+.hm-tog.h.on{background:#1b3a2a;border-color:#3a6a4a;color:#9ad9b6}  /* row → green horizontal stitches */
+.hm-tog.v.on{background:#19314c;border-color:#3a5a82;color:#a9c8e6}  /* col → blue vertical stitches */
+/* Grid control + hint */
+.gen-grid-ctl{display:flex;flex-direction:column;gap:9px;width:100%;max-width:330px;align-items:center}
+.gen-grid-ctl .gen-srow{width:100%}
+.gen-hint{font-size:11px;color:var(--muted);text-align:center;line-height:1.65}
+.gen-hint .hm-g{color:#9ad9b6;font-weight:600}
+.gen-hint .hm-b{color:#a9c8e6;font-weight:600}
+/* Slider below pattern */
+#genSlider{width:100%;max-width:330px}
+#genSlider .gen-srow{width:100%}
+#genSlider #genSliderLabel{min-width:28px;font-size:12px;color:var(--muted)}
+
+/* ── CAD Pattern Editor overlay ── */
+#cadView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
+#cadView.open{display:block}
+.cad-wrap{max-width:900px;margin:0 auto}
+.cad-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.cad-header h2{margin:0;font-size:17px;font-weight:600;flex:1;min-width:120px}
+.cad-name-input{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 12px;color:#e7eef6;font-size:13px;outline:none;width:180px}
+.cad-name-input:focus{border-color:#33557a}
+.cad-save-btn{background:#163d20;border:1px solid #2a6a36;color:#88d4a0;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
+.cad-save-btn:hover{background:#1d5229;color:#aaeabb}
+.cad-settings-bar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-settings-bar label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.cad-settings-bar select{background:var(--panel2,#1c3045);color:#e7eef6;border:1px solid var(--line);padding:4px 8px;border-radius:6px;font-size:12px;outline:none}
+.cad-workspace{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.cad-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-width:300px;max-width:440px}
+.cad-canvas-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center}
+.cad-canvas-wrap{border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);background:#22222a;aspect-ratio:1;width:100%}
+.cad-canvas-wrap canvas{display:block;width:100%;height:100%}
+.cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
+.cad-tool:hover{background:#1d3850;color:#e7eef6}
+.cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
+/* New Pattern / CAD button card */
+.pcard.new-pattern-card{border:2px dashed #2a4a2a;background:#111a11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:100px}
+.pcard.new-pattern-card:hover{background:#162016;border-color:#3a6a3a}
+.pcard-new-icon{font-size:32px;line-height:1;color:#4a9a4a;font-weight:300}
+/* Experimental gallery cards */
+.pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
+.pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
+.filt.exp.on{background:#1e1e3a;border-color:#3a3a7a;color:#9090d4}
+.exp-del-btn{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
+.pcard.exp-card:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
