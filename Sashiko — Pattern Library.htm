@@ -348,7 +348,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   <div id="stitchSettings" style="display:none">
     <button class="settings-toggle" id="stitchToggle" onclick="toggleStitchSettings()">⚙ Stitching Order Settings ▸</button>
     <div class="settings-body" id="stitchBody" style="display:none">
-      <p class="settings-desc">By assigning colours to the lines you change how the animation creates the stitching orders. Often its trial and error. As soon as you have found the right settings it will be quite clear to you. Play around with it and see how the animation reacts.</p>
+      <p class="settings-desc">By assigning colours to the lines you change how the animation creates the stitching order. The aim is to find a combination that is easy and fun to stitch. Just play around with the colors and see how the animation reacts. As soon as you have found the right combination it will be quite obvious because a complicated geometry will be broken down into easy to follow lines or curves.</p>
       <div class="settings-row">
         <canvas id="famCanvas" width="180" height="180"></canvas>
         <div class="fam-swatches" id="famSwatches"></div>
@@ -952,6 +952,7 @@ let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
 let TICK_MS=160;
 let _famToggles={};
+let _famPainting=false;
 
 const FAM_PALETTE=['#ff5555','#ff9944','#ffdd44','#55dd55','#44cccc','#5599ff','#bb55ff','#ff55aa','#ff7744','#55ddbb'];
 const FAM_DIR_LABEL={0:'V',1:'D1',2:'D2',3:'H'};
@@ -1114,7 +1115,12 @@ function loadPattern(pat){
   isPL=pat.type==='polyline';
 
   document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
-  if(!isEXP)document.getElementById('famCanvas').onclick=null;
+  if(!isEXP){
+    document.getElementById('famCanvas').onclick=null;
+    document.getElementById('famCanvas').onmousedown=null;
+    document.getElementById('famCanvas').onmousemove=null;
+    document.getElementById('famCanvas').onmouseup=null;
+  }
   cv.style.cursor='';
   if(isGen){
     showGenUI(true);
@@ -1133,6 +1139,10 @@ function loadPattern(pat){
     document.getElementById('stitchToggle').innerHTML='⚙ Stitching Order Settings ▸';
     document.getElementById('stitchToggle').classList.remove('on');
     document.getElementById('famCanvas').onclick=famEditorClick;
+    document.getElementById('famCanvas').onmousedown=e=>{_famPainting=true;famEditorClick(e);};
+    document.getElementById('famCanvas').onmousemove=e=>{if(_famPainting)famEditorClick(e);};
+    document.getElementById('famCanvas').onmouseup=()=>{_famPainting=false;};
+    document.getElementById('famCanvas').onmouseleave=()=>{_famPainting=false;};
     _famToggles={};
     updateProfileBadge();
     step=0;if(playing)pause();
@@ -2101,6 +2111,8 @@ function famEditorClick(e){
     if(d<bd){bd=d;best=h.li;}
   });
   if(best<0)return;
+  if(best===fc._lastPainted&&_famPainting)return; // skip if same line during drag
+  fc._lastPainted=best;
   initExpFamilies(curPat);
   // Toggle: if already assigned to _famSel, unassign (-1). Otherwise assign to _famSel.
   curPat.families[best]=curPat.families[best]===_famSel?-1:_famSel;
@@ -2108,11 +2120,14 @@ function famEditorClick(e){
   const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
   if(orig)orig.families=[...curPat.families];
   _saveLocal();
-  // Sync to Firestore (update the pattern doc with latest families)
   if(_firebaseReady&&orig) _pushToFirestore(orig);
   renderFamEditor();
-  rerouteExp();
+  if(!_famPainting) rerouteExp(); // only reroute on click, not during drag
 }
+// On mouseup after drag, do the final reroute
+document.addEventListener('mouseup',()=>{
+  if(_famPainting){_famPainting=false;if(curPat&&curPat.type==='exp')rerouteExp();}
+});
 
 // ── Profile sharing ──────────────────────────────────────────────────────
 async function saveStitchingProfile(){
