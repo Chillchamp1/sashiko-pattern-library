@@ -2,7 +2,8 @@
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
-let TICK_MS=160;  // default slow (~6 stitches/sec); toggle to 80 for fast
+let TICK_MS=160;
+let _famToggles={};
 
 const FAM_PALETTE=['#ff5555','#ff9944','#ffdd44','#55dd55','#44cccc','#5599ff','#bb55ff','#ff55aa','#ff7744','#55ddbb'];
 const FAM_DIR_LABEL={0:'V',1:'D1',2:'D2',3:'H'};
@@ -107,9 +108,14 @@ function buildJumpBar(){
         lastFam=s.fam;
         const b=document.createElement('button');
         const col=famColor(s.fam);
+        const on=_famToggles[s.fam]!==false;
+        b.className=on?'':'off';
+        b.style.background=on?col+'33':'';
+        b.style.borderColor=on?col:'';
+        b.style.color=on?'#e7eef6':'';
         b.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>Line ${s.fam+1}`;
-        b.title='Jump to family '+(s.fam+1);
-        b.onclick=()=>{pause();step=i;render(step);};
+        b.title='Toggle family '+(s.fam+1);
+        b.onclick=()=>{_famToggles[s.fam]=!_famToggles[s.fam];step=TOTAL;if(playing)pause();render(step);buildJumpBar();};
         jb.appendChild(b);
       }
     });
@@ -159,7 +165,6 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
-  document.getElementById('bReroute').style.display=isEXP?'':'none';
   document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
   if(!isEXP)document.getElementById('famCanvas').onclick=null;
   cv.style.cursor='';
@@ -177,9 +182,11 @@ function loadPattern(pat){
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
     document.getElementById('stitchBody').style.display='none';
-    document.getElementById('stitchToggle').textContent='⚙ Stitching Order Settings ▸';
+    document.getElementById('stitchToggle').innerHTML='⚙ Stitching Order Settings ▸';
     document.getElementById('stitchToggle').classList.remove('on');
     document.getElementById('famCanvas').onclick=famEditorClick;
+    _famToggles={};
+    updateProfileBadge();
     step=0;if(playing)pause();
     buildJumpBar();render(0);
     return;

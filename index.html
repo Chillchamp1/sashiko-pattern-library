@@ -62,6 +62,8 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
   transition:.15s;font:inherit;display:flex;align-items:center;gap:6px}
 .settings-toggle:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
 .settings-toggle.on{color:#e7eef6}
+.prof-badge{display:inline-block;background:#2a4a3a;color:#88d4a0;font-size:10px;
+  padding:1px 7px;border-radius:8px;margin-left:4px;font-weight:600}
 .settings-body{background:var(--panel);border:1px solid var(--line);border-top:none;
   border-radius:0 0 10px 10px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .settings-desc{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.6;margin:0;max-width:380px}
@@ -78,6 +80,35 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .fam-swatch.add{background:transparent;border:1px dashed var(--line);color:var(--muted);
   display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
 .fam-swatch.add:hover{border-color:#fff8;color:#fff}
+/* ── Stitching profiles (community) ── */
+.profile-list{width:100%;display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto}
+.profile-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center;padding:2px 0}
+.profile-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--panel2,#1c3045);
+  border-radius:8px;font-size:11px;color:var(--muted)}
+.profile-item .fam-dots{display:flex;gap:2px;flex-shrink:0}
+.profile-item .fam-dots span{width:8px;height:8px;border-radius:2px;display:inline-block}
+.profile-item .prof-info{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-item .prof-votes{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.profile-item .prof-votes button{background:none;border:none;cursor:pointer;font-size:13px;padding:1px 3px;
+  color:var(--muted);border-radius:3px;line-height:1;transition:.12s}
+.profile-item .prof-votes button:hover{color:#e7eef6;background:var(--line)}
+.profile-item .prof-votes button.liked{color:#55dd55}
+.profile-item .prof-votes button.disliked{color:#ff5555}
+.profile-item .prof-votes .vc{font-size:10px;min-width:14px;text-align:center}
+.cat-avatar-wrap{flex-shrink:0;width:48px;height:48px;overflow:hidden}
+.cat-avatar-wrap canvas{display:block}
+.profile-item .prof-actions{display:flex;gap:3px;flex-shrink:0}
+.profile-item .prof-actions button{background:none;border:1px solid var(--line);cursor:pointer;
+  font-size:10px;padding:2px 6px;color:var(--muted);border-radius:4px;transition:.12s;font:inherit}
+.profile-item .prof-actions button:hover{color:#e7eef6;border-color:#fff8}
+.profile-save-btn{background:var(--panel2,#1c3045);border:1px dashed var(--line);border-radius:8px;
+  padding:6px 12px;font-size:11px;color:var(--muted);cursor:pointer;width:100%;
+  transition:.15s;font:inherit;margin-top:4px}
+.profile-save-btn:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
+.avatar-cycle-btn{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:8px;
+  padding:5px 8px;font-size:11px;color:var(--muted);cursor:pointer;width:100%;
+  transition:.15s;font:inherit}
+.avatar-cycle-btn:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
 .back-btn{background:var(--panel);border:1px solid var(--line);border-radius:9px;
   padding:7px 14px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;
   display:inline-flex;align-items:center;gap:5px}
@@ -105,6 +136,9 @@ canvas#cv{display:block}
   border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;transition:.15s}
 .jumpbar button:hover{background:#1d3850}
 .jumpbar button.on{background:#214a72;border-color:#3a6ea3}
+.jumpbar button.off{opacity:0.35;text-decoration:line-through}
+.speed-btn{font-size:11px!important;padding:6px 10px!important}
+.speed-btn.sel{background:#214a72;border-color:#3a6ea3;color:#e7eef6}
 .ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 button.ctrl{background:var(--panel);color:#e7eef6;border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;
@@ -238,7 +272,7 @@ button.ctrl.primary:hover{background:#275784}
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
       <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
     </div>
-    <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (experimental) →</button>
+    <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
 </div>
@@ -257,19 +291,6 @@ button.ctrl.primary:hover{background:#275784}
     </div>
   </div>
 
-  <!-- Stitching Order Settings (exp patterns only, collapsed by default) -->
-  <div id="stitchSettings" style="display:none">
-    <button class="settings-toggle" id="stitchToggle" onclick="toggleStitchSettings()">⚙ Stitching Order Settings ▸</button>
-    <div class="settings-body" id="stitchBody" style="display:none">
-      <p class="settings-desc">By assigning colours to the lines you change how the animation creates the stitching orders. Often its trial and error. As soon as you have found the right settings it will be quite clear to you. Play around with it and see how the animation reacts.</p>
-      <div class="settings-row">
-        <canvas id="famCanvas" width="180" height="180"></canvas>
-        <div class="fam-swatches" id="famSwatches"></div>
-      </div>
-      <div class="fam-hint">Click + to add a colour, then click a line to assign it</div>
-    </div>
-  </div>
-
   <!-- Universal size slider — always directly below the pattern, only for generator -->
   <div id="genSlider" style="display:none">
     <label class="gen-srow">
@@ -279,7 +300,25 @@ button.ctrl.primary:hover{background:#275784}
     </label>
   </div>
 
-  <!-- Info bar — idle state is clickable (triggers Play) -->
+  <div class="ctrls">
+    <button class="ctrl" id="bReset" title="Reset">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+    </button>
+    <button class="ctrl" id="bBack" title="Step back">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20 9 12l10-8z"></path><path d="M5 19V5"></path></svg>
+    </button>
+    <button class="ctrl primary" id="bPlay">
+      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
+    </button>
+    <button class="ctrl" id="bFwd" title="Step forward">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
+    </button>
+    <button class="ctrl speed-btn" data-speed="slow">🐢 Slow</button>
+    <button class="ctrl speed-btn sel" data-speed="medium">Medium</button>
+    <button class="ctrl speed-btn" data-speed="fast">⚡ Fast</button>
+  </div>
+
+  <!-- Info bar -->
   <div class="info" id="info" onclick="onInfoClick()"><span class="muted">complete ✓</span> &nbsp;<span class="pill" style="background:rgba(205,224,244,0.18);color:#cde0f4"><span class="dot" style="background:#cde0f4"></span>pass 2/2 · vertical ↑</span></div>
 
   <div class="jumpbar" id="jumpbar"><button title="All horizontal rows" class="">1 · →</button><button title="All vertical columns" class="on">2 · ↑</button></div>
@@ -301,29 +340,26 @@ button.ctrl.primary:hover{background:#275784}
     </div>
   </div>
 
-  <div class="ctrls">
-    <button class="ctrl" id="bReset" title="Reset">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
-    </button>
-    <button class="ctrl" id="bBack" title="Step back">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20 9 12l10-8z"></path><path d="M5 19V5"></path></svg>
-    </button>
-    <button class="ctrl primary" id="bPlay">
-      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
-    </button>
-    <button class="ctrl" id="bFwd" title="Step forward">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
-    </button>
-    <button class="ctrl" id="bAll" title="Show complete">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-      <span>Done</span>
-    </button>
-    <button class="ctrl" id="bSpeed" title="Toggle animation speed" style="font-size:12px;padding:6px 10px">🐢 Slow</button>
-    <button class="ctrl" id="bReroute" title="Re-run routing on this pattern" onclick="rerouteExp()" style="display:none;font-size:12px;padding:6px 10px">🔀 Re-route</button>
-  </div>
   <p class="tip" id="animTip">Fibonacci Snowflake order 2. Phase
 sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element
 palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
+
+  <!-- Stitching Order Settings (exp patterns only, collapsed by default) -->
+  <div id="stitchSettings" style="display:none">
+    <button class="settings-toggle" id="stitchToggle" onclick="toggleStitchSettings()">⚙ Stitching Order Settings ▸</button>
+    <div class="settings-body" id="stitchBody" style="display:none">
+      <p class="settings-desc">By assigning colours to the lines you change how the animation creates the stitching orders. Often its trial and error. As soon as you have found the right settings it will be quite clear to you. Play around with it and see how the animation reacts.</p>
+      <div class="settings-row">
+        <canvas id="famCanvas" width="180" height="180"></canvas>
+        <div class="fam-swatches" id="famSwatches"></div>
+      </div>
+      <div class="fam-hint">Click + to add a colour, then click a line to assign it</div>
+      <div id="profileList" class="profile-list"></div>
+      <button class="profile-save-btn" id="profileSaveBtn" onclick="saveStitchingProfile()">⊕ Share this stitching order</button>
+      <button class="avatar-cycle-btn" onclick="cycleAvatar()" title="Change your cat avatar">🎲 New Avatar</button>
+      <button class="profile-save-btn" onclick="publishToLibrary()" style="border-color:#ff9944;color:#ff9944">📌 Publish to library (only admin)</button>
+    </div>
+  </div>
 </div>
 
 <!-- CAD Pattern Editor — full-screen overlay -->
@@ -387,7 +423,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   <div class="mypats-wrap">
     <div class="mypats-header">
       <button class="back-btn" onclick="showGalleryFromMyPats()">← Gallery</button>
-      <h2>Custom Patterns (experimental)</h2>
+      <h2>Custom Patterns (Sandbox)</h2>
       <button class="cad-save-btn" onclick="showCAD()">+ New Pattern</button>
     </div>
     <div class="mypats-grid" id="myPatsGrid"></div>
@@ -914,7 +950,8 @@ function renderPLThumb(canvas,pat){
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
-let TICK_MS=160;  // default slow (~6 stitches/sec); toggle to 80 for fast
+let TICK_MS=160;
+let _famToggles={};
 
 const FAM_PALETTE=['#ff5555','#ff9944','#ffdd44','#55dd55','#44cccc','#5599ff','#bb55ff','#ff55aa','#ff7744','#55ddbb'];
 const FAM_DIR_LABEL={0:'V',1:'D1',2:'D2',3:'H'};
@@ -1019,9 +1056,14 @@ function buildJumpBar(){
         lastFam=s.fam;
         const b=document.createElement('button');
         const col=famColor(s.fam);
+        const on=_famToggles[s.fam]!==false;
+        b.className=on?'':'off';
+        b.style.background=on?col+'33':'';
+        b.style.borderColor=on?col:'';
+        b.style.color=on?'#e7eef6':'';
         b.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>Line ${s.fam+1}`;
-        b.title='Jump to family '+(s.fam+1);
-        b.onclick=()=>{pause();step=i;render(step);};
+        b.title='Toggle family '+(s.fam+1);
+        b.onclick=()=>{_famToggles[s.fam]=!_famToggles[s.fam];step=TOTAL;if(playing)pause();render(step);buildJumpBar();};
         jb.appendChild(b);
       }
     });
@@ -1071,7 +1113,6 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
-  document.getElementById('bReroute').style.display=isEXP?'':'none';
   document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
   if(!isEXP)document.getElementById('famCanvas').onclick=null;
   cv.style.cursor='';
@@ -1089,9 +1130,11 @@ function loadPattern(pat){
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
     document.getElementById('stitchBody').style.display='none';
-    document.getElementById('stitchToggle').textContent='⚙ Stitching Order Settings ▸';
+    document.getElementById('stitchToggle').innerHTML='⚙ Stitching Order Settings ▸';
     document.getElementById('stitchToggle').classList.remove('on');
     document.getElementById('famCanvas').onclick=famEditorClick;
+    _famToggles={};
+    updateProfileBadge();
     step=0;if(playing)pause();
     buildJumpBar();render(0);
     return;
@@ -1296,12 +1339,16 @@ bPlay.onclick=()=>playing?pause():play();
 document.getElementById('bReset').onclick=()=>{pause();step=0;render(step);};
 document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);render(step);};
 document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
-document.getElementById('bAll').onclick=()=>{pause();step=TOTAL;render(step);};
-document.getElementById('bSpeed').onclick=()=>{
-  TICK_MS=TICK_MS===160?80:160;
-  const b=document.getElementById('bSpeed');
-  b.textContent=TICK_MS===160?'🐢 Slow':'⚡ Fast';
-};
+document.querySelectorAll('.speed-btn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.speed-btn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');
+    const s=b.dataset.speed;
+    if(s==='slow')TICK_MS=240;
+    else if(s==='fast')TICK_MS=40;
+    else TICK_MS=160;
+  };
+});
 window.addEventListener('keydown',e=>{
   if(!document.getElementById('animView').classList.contains('open'))return;
   if(e.code==='Space'){e.preventDefault();playing?pause():play();}
@@ -1389,20 +1436,45 @@ function buildGallery(){
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
+  // Published custom patterns
+  EXP_PATTERNS.filter(p=>p.published).forEach(pat=>{
+    const card=document.createElement('button');
+    card.className='pcard exp-card';
+    card.dataset.id=pat.id;card.dataset.p='0';card.dataset.type='exp';
+    const thumb=document.createElement('canvas');
+    thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
+    card.appendChild(thumb);
+    const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
+    const badge=document.createElement('div');badge.className='pcard-badge';badge.textContent=pat.gridType==='isometric'?'Isometric':'Square';
+    card.append(name,badge);
+    card.onclick=()=>openExpPattern(pat);
+    grid.appendChild(card);
+    setTimeout(()=>renderThumb(thumb,pat),0);
+  });
 }
 window.filterGallery=function(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
   let vis=0;
   document.querySelectorAll('#pgrid .pcard').forEach(card=>{
-    const pat=PATTERNS.find(p=>p.id===card.dataset.id);
+    const id=card.dataset.id, type=card.dataset.type||'';
+    let pat=PATTERNS.find(p=>p.id===id);
+    if(!pat)pat=EXP_PATTERNS.find(p=>p.id===id);
     if(!pat)return;
     let mp;
     if(activeFilter===0)mp=true;
-    else if(activeFilter==='hm')mp=pat.type==='generator';
+    else if(activeFilter==='hm')mp=type==='generator';
+    else if(type==='exp')mp=false;
     else mp=parseInt(card.dataset.p)===activeFilter;
-    const mq=!q||pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
-      (pat.type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
-      (pat.type==='polyline'&&'yamagata mountain continuous'.includes(q));
+    let mq=!q;
+    if(q){
+      if(type==='exp'){
+        mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q);
+      }else{
+        mq=pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
+          (type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
+          (type==='polyline'&&'yamagata mountain continuous'.includes(q));
+      }
+    }
     const show=mp&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
   });
   let nr=document.getElementById('noResults');
@@ -1473,14 +1545,172 @@ function _initFirebase(){
   }catch(e){console.warn('Firebase init failed:',e);}
 }
 
-// ── Persistence helpers ──────────────────────────────────────────────────────
+// ── Cat name generator ─────────────────────────────────────────────────
+const CAT_FIRST=['Sir','Lady','Captain','Prof','Dr','Mr','Miss','Prince','Princess','Duke','Duchess','Lord','Baron','Count','Madame','Chef','DJ','King','Queen','Emperor'];
+const CAT_SECOND=['Fluffington','Whiskerface','Meowington','Pawsley','Furball','Snugglepuss','Cuddlebug','Purrington','Tailsworth','Clawdia','Scratchington','Nibbles','Socks','Mittens','Patches','Smudge','Pounce','Biscuit','Muffin','Crumpet','Waffles','Sprinkles'];
+function _hashUID(uid){
+  let h=0;for(let i=0;i<uid.length;i++)h=((h<<5)-h)+uid.charCodeAt(i)|0;
+  return Math.abs(h);
+}
+function _catName(uid,seed){
+  const s=seed!==undefined?seed:_avatarSeed();
+  const h=_hashUID(uid+'_'+s);
+  return CAT_FIRST[h%CAT_FIRST.length]+' '+CAT_SECOND[(h*7+3)%CAT_SECOND.length];
+}
+
+// ── Cat avatar: tuxedo-style (two-tone face, horizontal split) ────────
+const CAT_COATS=['#e67e22','#d35400','#bdc3c7','#7f8c8d','#2c3e50','#ecf0f1','#8d6e63','#5d4037','#f39c12','#9b59b6'];
+
+function _avatarSeed(){
+  let s=parseInt(localStorage.getItem('sashiko_avseed')||'0');
+  return s;
+}
+function _nextAvatarSeed(){
+  let s=_avatarSeed()+1;
+  localStorage.setItem('sashiko_avseed',s);
+  return s;
+}
+function cycleAvatar(){
+  _nextAvatarSeed();
+  renderFamEditor();
+  _renderCatAvatars();
+}
+window.cycleAvatar=cycleAvatar;
+
+function _drawCatAvatar(canvas,uid){
+  const seed=_avatarSeed();
+  const h=_hashUID(uid+'_'+seed);
+  const S=48;canvas.width=S;canvas.height=S;
+  const x=canvas.getContext('2d');
+  x.clearRect(0,0,S,S);
+
+  const fur=CAT_COATS[h%CAT_COATS.length];
+  const eyeC=CAT_COATS[(h*4+3)%CAT_COATS.length];
+
+  function g(xx,yy,c){x.fillStyle=c;x.fillRect(xx*2,yy*2,2,2);}
+  function b(xx,yy,w,h,c){x.fillStyle=c;x.fillRect(xx*2,yy*2,w*2,h*2);}
+
+  // Head (wide rectangular)
+  b(4,7,16,12,fur);b(3,8,1,10,fur);b(20,8,1,10,fur);
+  b(5,6,14,1,fur);b(6,5,12,1,fur);b(7,4,10,1,fur);
+  b(4,19,16,1,fur);b(6,20,12,1,fur);b(7,21,10,1,fur);b(8,22,8,1,fur);
+
+  // Two-tone face (horizontal split)
+  b(3,16,18,6,'#fff');
+
+  // Ears
+  b(6,0,1,2,fur);b(5,2,2,1,fur);b(4,3,3,2,fur);b(4,5,2,1,fur);
+  g(5,3,'#ffccbb');g(6,2,'#ffccbb');
+  b(17,0,1,2,fur);b(17,2,2,1,fur);b(17,3,3,2,fur);b(18,5,2,1,fur);
+  g(17,3,'#ffccbb');g(18,2,'#ffccbb');
+
+  // Eyes
+  b(6,9,4,3,'#fff');b(14,9,4,3,'#fff');
+  b(7,10,2,2,eyeC);b(15,10,2,2,eyeC);
+  g(7,10,'#111');g(16,10,'#111');g(6,9,'#fff');g(14,9,'#fff');
+
+  // Nose + mouth
+  g(11,13,'#ff8888');g(12,13,'#ff8888');g(11,14,'#ff8888');g(12,14,'#ff8888');
+  g(11,15,'#555');g(12,15,'#555');g(10,16,'#555');g(13,16,'#555');
+
+  // Whiskers
+  const wc=fur==='#ecf0f1'?'#aaa':'#ddd';
+  b(1,10,2,1,wc);b(0,11,2,1,wc);b(1,12,2,1,wc);b(1,14,2,1,wc);b(0,15,2,1,wc);
+  b(21,10,2,1,wc);b(22,11,2,1,wc);b(21,12,2,1,wc);b(21,14,2,1,wc);b(22,15,2,1,wc);
+
+  // Blush
+  if(!((h>>6)%2)){b(3,13,2,2,'#ee7777');b(19,13,2,2,'#ee7777');}
+}
+
+function _catAvatarHTML(uid,seed){
+  const s=seed!==undefined?' data-seed="'+seed+'"':'';
+  return '<canvas class="cat-avatar" width="48" height="48" data-uid="'+uid+'"'+s+' style="width:48px;height:48px"></canvas>';
+}
+function _renderCatAvatars(){
+  document.querySelectorAll('.cat-avatar').forEach(c=>{
+    const uid=c.dataset.uid;
+    const seed=c.dataset.seed;
+    if(uid){
+      if(seed!==undefined){
+        const saved=_avatarSeed();
+        localStorage.setItem('sashiko_avseed',seed);
+        _drawCatAvatar(c,uid);
+        localStorage.setItem('sashiko_avseed',saved);
+      }else{
+        _drawCatAvatar(c,uid);
+      }
+    }
+  });
+}
 // localStorage is always kept as a local cache so the page works offline.
 function _saveLocal(){
-  // Don't cache thumbnails in Firestore (too large); keep them only in localStorage.
   try{localStorage.setItem('sashiko_exp',JSON.stringify(EXP_PATTERNS));}catch(e){}
 }
 function _loadLocal(){
   try{EXP_PATTERNS=JSON.parse(localStorage.getItem('sashiko_exp')||'[]');}catch(e){EXP_PATTERNS=[];}
+}
+function _getUserId(){
+  let id=localStorage.getItem('sashiko_uid');
+  if(!id){id='u'+Math.random().toString(36).slice(2,12);localStorage.setItem('sashiko_uid',id);}
+  return id;
+}
+
+// ── Stitching profiles (per-pattern community submissions) ────────────────
+// Subcollection: patterns/{patternId}/profiles/{profileId}
+// Each profile: { families, creatorId, creatorLabel, created, likeCount, likedBy:[], dislikeCount, dislikedBy:[] }
+async function _saveProfileToFirestore(patternId, families){
+  if(!_db){
+    console.warn('Firebase not ready — profile saved locally only');
+    return;
+  }
+  const uid=_getUserId();
+  const id='sp_'+Date.now();
+  const doc={
+    id, families, creatorId:uid,
+    creatorLabel:_catName(uid),
+    avatarSeed:_avatarSeed(),
+    created:Date.now(),
+    likeCount:0, likedBy:[],
+    dislikeCount:0, dislikedBy:[]
+  };
+  try{await _db.collection('patterns').doc(patternId).collection('profiles').doc(id).set(doc);}
+  catch(e){console.warn('Profile save failed:',e);throw e;}
+}
+async function _fetchProfilesFromFirestore(patternId){
+  if(!_db)return[];
+  try{
+    const snap=await _db.collection('patterns').doc(patternId).collection('profiles')
+      .orderBy('created','desc').get();
+    return snap.docs.map(d=>d.data());
+  }catch(e){console.warn('Profile fetch failed:',e);return[];}
+}
+async function _deleteProfileFromFirestore(patternId, profileId){
+  if(!_db)return;
+  try{await _db.collection('patterns').doc(patternId).collection('profiles').doc(profileId).delete();}
+  catch(e){console.warn('Profile delete failed:',e);}
+}
+async function _voteProfile(patternId, profileId, delta){
+  if(!_db)return;
+  const uid=_getUserId();
+  const ref=_db.collection('patterns').doc(patternId).collection('profiles').doc(profileId);
+  try{
+    await _db.runTransaction(async t=>{
+      const snap=await t.get(ref);
+      if(!snap.exists)return;
+      const d=snap.data();
+      const likedBy=d.likedBy||[], dislikedBy=d.dislikedBy||[];
+      let lc=d.likeCount||0, dc=d.dislikeCount||0;
+      // Remove existing votes by this user
+      const wasLiked=likedBy.indexOf(uid);
+      if(wasLiked>=0){likedBy.splice(wasLiked,1);lc--;}
+      const wasDisliked=dislikedBy.indexOf(uid);
+      if(wasDisliked>=0){dislikedBy.splice(wasDisliked,1);dc--;}
+      // Add new vote
+      if(delta===1 && wasLiked<0){likedBy.push(uid);lc++;}
+      if(delta===-1 && wasDisliked<0){dislikedBy.push(uid);dc++;}
+      t.update(ref,{likeCount:lc,dislikeCount:dc,likedBy,dislikedBy});
+    });
+  }catch(e){console.warn('Vote failed:',e);}
 }
 
 // Upload a single pattern to Firestore (thumbnail stored separately via data URL → stripped before upload)
@@ -1712,11 +1942,23 @@ function toggleStitchSettings(){
   if(!body||!tog)return;
   const open=body.style.display!=='none';
   body.style.display=open?'none':'block';
-  tog.textContent=open?'⚙ Stitching Order Settings ▸':'⚙ Stitching Order Settings ▾';
+  const badge=tog.querySelector('.prof-badge')?.textContent||'';
+  tog.innerHTML='⚙ Stitching Order Settings '+(open?'▸':'▾')+(badge?' <span class=\"prof-badge\">'+badge+'</span>':'');
   tog.classList.toggle('on',!open);
   if(!open)renderFamEditor();
 }
 window.toggleStitchSettings=toggleStitchSettings;
+
+async function updateProfileBadge(){
+  const tog=document.getElementById('stitchToggle');
+  if(!curPat||!curPat.id||!_firebaseReady||!tog)return;
+  try{
+    const profiles=await _fetchProfilesFromFirestore(curPat.id);
+    const badge=profiles.length?' <span class=\"prof-badge\">'+profiles.length+'</span>':'';
+    const open=document.getElementById('stitchBody')?.style.display!=='none';
+    tog.innerHTML='⚙ Stitching Order Settings '+(open?'▾':'▸')+badge;
+  }catch(e){}
+}
 function renderFamEditor(){
   if(!curPat||curPat.type!=='exp')return;
   const fc=document.getElementById('famCanvas');
@@ -1810,6 +2052,41 @@ function renderFamEditor(){
     if(nRed)msg='<span style=\"color:#ff5555\">'+nRed+' redundant</span> &middot; '+msg;
     hint.innerHTML=msg;
   }
+
+  // Fetch and render community profiles (async)
+  if(curPat.id&&_firebaseReady){
+    _fetchProfilesFromFirestore(curPat.id).then(profiles=>renderProfileList(profiles));
+  }else{
+    renderProfileList([]);
+  }
+}
+
+function renderProfileList(profiles){
+  const el=document.getElementById('profileList');
+  if(!el)return;
+  const uid=_getUserId();
+  profiles.sort((a,b)=>(b.likeCount-b.dislikeCount)-(a.likeCount-a.dislikeCount)||b.created-a.created);
+  if(!profiles.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="profile-title">Community stitching profiles</div>'+profiles.map(p=>{
+    const score=p.likeCount-p.dislikeCount;
+    const isOwn=p.creatorId===uid;
+    const wasLiked=(p.likedBy||[]).includes(uid);
+    const wasDisliked=(p.dislikedBy||[]).includes(uid);
+    return`<div class="profile-item">
+      <div class="cat-avatar-wrap">`+_catAvatarHTML(p.creatorId,p.avatarSeed)+`</div>
+      <div class="prof-info">${p.creatorLabel||'Anonymous'}</div>
+      <div class="prof-votes">
+        <button class="${wasLiked?'liked':''}" onclick="voteProfile('${p.id}',1)" title="Like">👍</button>
+        <span class="vc">${score>0?'+'+score:score}</span>
+        <button class="${wasDisliked?'disliked':''}" onclick="voteProfile('${p.id}',-1)" title="Dislike">👎</button>
+      </div>
+      <div class="prof-actions">
+        <button onclick="loadStitchingProfile('${p.id}')" title="Apply">Load</button>
+        ${isOwn?'<button onclick="deleteStitchingProfile(\''+p.id+'\')" title="Delete">✕</button>':''}
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(_renderCatAvatars,0);
 }
 
 // Click handler: assign clicked line to selected family
@@ -1831,9 +2108,78 @@ function famEditorClick(e){
   const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
   if(orig)orig.families=[...curPat.families];
   _saveLocal();
+  // Sync to Firestore (update the pattern doc with latest families)
+  if(_firebaseReady&&orig) _pushToFirestore(orig);
   renderFamEditor();
   rerouteExp();
 }
+
+// ── Profile sharing ──────────────────────────────────────────────────────
+async function saveStitchingProfile(){
+  if(!curPat||!curPat.id)return;
+  initExpFamilies(curPat);
+  const btn=document.getElementById('profileSaveBtn');
+  if(!btn)return;
+  if(!_firebaseReady){btn.textContent='Firebase not connected';setTimeout(()=>{btn.textContent='⊕ Share this stitching order';btn.disabled=false;},2000);return;}
+  btn.textContent='Saving…';btn.disabled=true;
+  try{
+    // Ensure pattern exists in Firestore first
+    await _pushToFirestore(curPat);
+    await _saveProfileToFirestore(curPat.id, [...curPat.families]);
+    btn.textContent='✓ Shared!';
+  }catch(e){
+    console.error('Share failed:',e);
+    btn.textContent='Failed — retry';
+  }
+  setTimeout(()=>{btn.textContent='⊕ Share this stitching order';btn.disabled=false;},2000);
+  renderFamEditor();
+  updateProfileBadge();
+}
+window.saveStitchingProfile=saveStitchingProfile;
+window.loadStitchingProfile=async function(profileId){
+  if(!curPat)return;
+  const profiles=await _fetchProfilesFromFirestore(curPat.id);
+  const prof=profiles.find(p=>p.id===profileId);
+  if(!prof)return;
+  curPat.families=[...prof.families];
+  const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
+  if(orig)orig.families=[...curPat.families];
+  _saveLocal();
+  _famToggles={};
+  setupExpCanvas(curPat);
+  EXP_path=buildExpPath(genTiledSegs(curPat));
+  TOTAL=EXP_path.length; PASSES=[];
+  step=TOTAL;
+  if(playing)pause();
+  buildJumpBar();render(step);
+  renderFamEditor();
+};
+window.deleteStitchingProfile=async function(profileId){
+  if(!curPat||!confirm('Delete this stitching order?'))return;
+  await _deleteProfileFromFirestore(curPat.id,profileId);
+  renderFamEditor();
+};
+window.voteProfile=async function(profileId,delta){
+  if(!curPat)return;
+  if(!_firebaseReady){alert('Firebase not connected — cannot vote.');return;}
+  await _voteProfile(curPat.id,profileId,delta);
+  renderFamEditor();
+};
+// ── Publish to main library ────────────────────────────────────────────
+function publishToLibrary(){
+  const pw=prompt('Admin password:');
+  if(pw!=='111'){alert('Wrong password');return;}
+  if(!curPat||!curPat.id)return;
+  initExpFamilies(curPat);
+  const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
+  if(orig){
+    orig.published=true;
+    _saveLocal();
+    if(_firebaseReady) _pushToFirestore(orig);
+    alert('Published! Visible in main gallery.');
+  }
+}
+window.publishToLibrary=publishToLibrary;
 function distToSeg(px,py,ax,ay,bx,by){
   const l2=(bx-ax)**2+(by-ay)**2;
   if(l2===0)return Math.hypot(px-ax,py-ay);
@@ -2055,33 +2401,38 @@ function renderExp(step){
   for(let y=4;y<ch;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
   drawExpGuide();
   if(!EXP_path.length)return;
-  // Completed stitches — coloured by family
+  // Completed stitches — coloured by family (skip toggled-off)
   ctx.lineWidth=3; ctx.lineCap='round';
   for(let i=0;i<Math.min(step,EXP_path.length);i++){
-    const s=EXP_path[i],p1=EXP_g2s(s.start),p2=EXP_g2s(s.end);
+    const s=EXP_path[i];
+    if(_famToggles[s.fam]===false)continue;
+    const p1=EXP_g2s(s.start),p2=EXP_g2s(s.end);
     ctx.strokeStyle=famColor(s.fam);
     ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
   }
-  // Back-thread dashes for completed jumps
+  // Back-thread dashes (skip toggled-off)
   ctx.strokeStyle='rgba(243,239,228,0.18)'; ctx.lineWidth=1.4;
   ctx.setLineDash([2,4]); ctx.lineCap='butt';
   for(let i=1;i<EXP_path.length&&i<=step;i++){
     if(EXP_path[i].jump){
+      if(_famToggles[EXP_path[i].fam]===false)continue;
       const p1=EXP_g2s(EXP_path[i-1].end),p2=EXP_g2s(EXP_path[i].start);
       ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
     }
   }
   ctx.setLineDash([]);
-  // Needle
+  // Needle (skip if toggled off)
   if(step>0&&step<=EXP_path.length){
     const s=EXP_path[step-1];
-    const col=famColor(s.fam);
-    const p=EXP_g2s(s.end);
-    const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,16);
-    g.addColorStop(0,hexA(col,0.55));g.addColorStop(1,hexA(col,0));
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,16,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,3.4,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x-1,p.y-1,1.1,0,Math.PI*2);ctx.fill();
+    if(_famToggles[s.fam]!==false){
+      const col=famColor(s.fam);
+      const p=EXP_g2s(s.end);
+      const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,16);
+      g.addColorStop(0,hexA(col,0.55));g.addColorStop(1,hexA(col,0));
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,16,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,3.4,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x-1,p.y-1,1.1,0,Math.PI*2);ctx.fill();
+    }
   }
 }
 

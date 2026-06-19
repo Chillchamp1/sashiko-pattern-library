@@ -55,6 +55,8 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
   transition:.15s;font:inherit;display:flex;align-items:center;gap:6px}
 .settings-toggle:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
 .settings-toggle.on{color:#e7eef6}
+.prof-badge{display:inline-block;background:#2a4a3a;color:#88d4a0;font-size:10px;
+  padding:1px 7px;border-radius:8px;margin-left:4px;font-weight:600}
 .settings-body{background:var(--panel);border:1px solid var(--line);border-top:none;
   border-radius:0 0 10px 10px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .settings-desc{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.6;margin:0;max-width:380px}
@@ -71,6 +73,35 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .fam-swatch.add{background:transparent;border:1px dashed var(--line);color:var(--muted);
   display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
 .fam-swatch.add:hover{border-color:#fff8;color:#fff}
+/* ── Stitching profiles (community) ── */
+.profile-list{width:100%;display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto}
+.profile-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center;padding:2px 0}
+.profile-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--panel2,#1c3045);
+  border-radius:8px;font-size:11px;color:var(--muted)}
+.profile-item .fam-dots{display:flex;gap:2px;flex-shrink:0}
+.profile-item .fam-dots span{width:8px;height:8px;border-radius:2px;display:inline-block}
+.profile-item .prof-info{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-item .prof-votes{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.profile-item .prof-votes button{background:none;border:none;cursor:pointer;font-size:13px;padding:1px 3px;
+  color:var(--muted);border-radius:3px;line-height:1;transition:.12s}
+.profile-item .prof-votes button:hover{color:#e7eef6;background:var(--line)}
+.profile-item .prof-votes button.liked{color:#55dd55}
+.profile-item .prof-votes button.disliked{color:#ff5555}
+.profile-item .prof-votes .vc{font-size:10px;min-width:14px;text-align:center}
+.cat-avatar-wrap{flex-shrink:0;width:48px;height:48px;overflow:hidden}
+.cat-avatar-wrap canvas{display:block}
+.profile-item .prof-actions{display:flex;gap:3px;flex-shrink:0}
+.profile-item .prof-actions button{background:none;border:1px solid var(--line);cursor:pointer;
+  font-size:10px;padding:2px 6px;color:var(--muted);border-radius:4px;transition:.12s;font:inherit}
+.profile-item .prof-actions button:hover{color:#e7eef6;border-color:#fff8}
+.profile-save-btn{background:var(--panel2,#1c3045);border:1px dashed var(--line);border-radius:8px;
+  padding:6px 12px;font-size:11px;color:var(--muted);cursor:pointer;width:100%;
+  transition:.15s;font:inherit;margin-top:4px}
+.profile-save-btn:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
+.avatar-cycle-btn{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:8px;
+  padding:5px 8px;font-size:11px;color:var(--muted);cursor:pointer;width:100%;
+  transition:.15s;font:inherit}
+.avatar-cycle-btn:hover{background:#1d3850;color:#e7eef6;border-color:#33557a}
 .back-btn{background:var(--panel);border:1px solid var(--line);border-radius:9px;
   padding:7px 14px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;
   display:inline-flex;align-items:center;gap:5px}
@@ -98,6 +129,9 @@ canvas#cv{display:block}
   border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;transition:.15s}
 .jumpbar button:hover{background:#1d3850}
 .jumpbar button.on{background:#214a72;border-color:#3a6ea3}
+.jumpbar button.off{opacity:0.35;text-decoration:line-through}
+.speed-btn{font-size:11px!important;padding:6px 10px!important}
+.speed-btn.sel{background:#214a72;border-color:#3a6ea3;color:#e7eef6}
 .ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 button.ctrl{background:var(--panel);color:#e7eef6;border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;
