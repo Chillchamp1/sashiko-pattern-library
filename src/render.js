@@ -4,6 +4,7 @@ let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
 let TICK_MS=160;
 let _famToggles={};
+let _famPainting=false;
 
 const FAM_PALETTE=['#ff5555','#ff9944','#ffdd44','#55dd55','#44cccc','#5599ff','#bb55ff','#ff55aa','#ff7744','#55ddbb'];
 const FAM_DIR_LABEL={0:'V',1:'D1',2:'D2',3:'H'};
@@ -166,7 +167,12 @@ function loadPattern(pat){
   isPL=pat.type==='polyline';
 
   document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
-  if(!isEXP)document.getElementById('famCanvas').onclick=null;
+  if(!isEXP){
+    document.getElementById('famCanvas').onclick=null;
+    document.getElementById('famCanvas').onmousedown=null;
+    document.getElementById('famCanvas').onmousemove=null;
+    document.getElementById('famCanvas').onmouseup=null;
+  }
   cv.style.cursor='';
   if(isGen){
     showGenUI(true);
@@ -185,6 +191,10 @@ function loadPattern(pat){
     document.getElementById('stitchToggle').innerHTML='⚙ Stitching Order Settings ▸';
     document.getElementById('stitchToggle').classList.remove('on');
     document.getElementById('famCanvas').onclick=famEditorClick;
+    document.getElementById('famCanvas').onmousedown=e=>{_famPainting=true;famEditorClick(e);};
+    document.getElementById('famCanvas').onmousemove=e=>{if(_famPainting)famEditorClick(e);};
+    document.getElementById('famCanvas').onmouseup=()=>{_famPainting=false;};
+    document.getElementById('famCanvas').onmouseleave=()=>{_famPainting=false;};
     _famToggles={};
     updateProfileBadge();
     step=0;if(playing)pause();

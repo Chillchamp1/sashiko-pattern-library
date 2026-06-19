@@ -585,6 +585,8 @@ function famEditorClick(e){
     if(d<bd){bd=d;best=h.li;}
   });
   if(best<0)return;
+  if(best===fc._lastPainted&&_famPainting)return; // skip if same line during drag
+  fc._lastPainted=best;
   initExpFamilies(curPat);
   // Toggle: if already assigned to _famSel, unassign (-1). Otherwise assign to _famSel.
   curPat.families[best]=curPat.families[best]===_famSel?-1:_famSel;
@@ -592,11 +594,14 @@ function famEditorClick(e){
   const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
   if(orig)orig.families=[...curPat.families];
   _saveLocal();
-  // Sync to Firestore (update the pattern doc with latest families)
   if(_firebaseReady&&orig) _pushToFirestore(orig);
   renderFamEditor();
-  rerouteExp();
+  if(!_famPainting) rerouteExp(); // only reroute on click, not during drag
 }
+// On mouseup after drag, do the final reroute
+document.addEventListener('mouseup',()=>{
+  if(_famPainting){_famPainting=false;if(curPat&&curPat.type==='exp')rerouteExp();}
+});
 
 // ── Profile sharing ──────────────────────────────────────────────────────
 async function saveStitchingProfile(){
