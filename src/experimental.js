@@ -29,14 +29,172 @@ function _initFirebase(){
   }catch(e){console.warn('Firebase init failed:',e);}
 }
 
-// ── Persistence helpers ──────────────────────────────────────────────────────
+// ── Cat name generator ─────────────────────────────────────────────────
+const CAT_FIRST=['Sir','Lady','Captain','Prof','Dr','Mr','Miss','Prince','Princess','Duke','Duchess','Lord','Baron','Count','Madame','Chef','DJ','King','Queen','Emperor'];
+const CAT_SECOND=['Fluffington','Whiskerface','Meowington','Pawsley','Furball','Snugglepuss','Cuddlebug','Purrington','Tailsworth','Clawdia','Scratchington','Nibbles','Socks','Mittens','Patches','Smudge','Pounce','Biscuit','Muffin','Crumpet','Waffles','Sprinkles'];
+function _hashUID(uid){
+  let h=0;for(let i=0;i<uid.length;i++)h=((h<<5)-h)+uid.charCodeAt(i)|0;
+  return Math.abs(h);
+}
+function _catName(uid,seed){
+  const s=seed!==undefined?seed:_avatarSeed();
+  const h=_hashUID(uid+'_'+s);
+  return CAT_FIRST[h%CAT_FIRST.length]+' '+CAT_SECOND[(h*7+3)%CAT_SECOND.length];
+}
+
+// ── Cat avatar: tuxedo-style (two-tone face, horizontal split) ────────
+const CAT_COATS=['#e67e22','#d35400','#bdc3c7','#7f8c8d','#2c3e50','#ecf0f1','#8d6e63','#5d4037','#f39c12','#9b59b6'];
+
+function _avatarSeed(){
+  let s=parseInt(localStorage.getItem('sashiko_avseed')||'0');
+  return s;
+}
+function _nextAvatarSeed(){
+  let s=_avatarSeed()+1;
+  localStorage.setItem('sashiko_avseed',s);
+  return s;
+}
+function cycleAvatar(){
+  _nextAvatarSeed();
+  renderFamEditor();
+  _renderCatAvatars();
+}
+window.cycleAvatar=cycleAvatar;
+
+function _drawCatAvatar(canvas,uid){
+  const seed=_avatarSeed();
+  const h=_hashUID(uid+'_'+seed);
+  const S=48;canvas.width=S;canvas.height=S;
+  const x=canvas.getContext('2d');
+  x.clearRect(0,0,S,S);
+
+  const fur=CAT_COATS[h%CAT_COATS.length];
+  const eyeC=CAT_COATS[(h*4+3)%CAT_COATS.length];
+
+  function g(xx,yy,c){x.fillStyle=c;x.fillRect(xx*2,yy*2,2,2);}
+  function b(xx,yy,w,h,c){x.fillStyle=c;x.fillRect(xx*2,yy*2,w*2,h*2);}
+
+  // Head (wide rectangular)
+  b(4,7,16,12,fur);b(3,8,1,10,fur);b(20,8,1,10,fur);
+  b(5,6,14,1,fur);b(6,5,12,1,fur);b(7,4,10,1,fur);
+  b(4,19,16,1,fur);b(6,20,12,1,fur);b(7,21,10,1,fur);b(8,22,8,1,fur);
+
+  // Two-tone face (horizontal split)
+  b(3,16,18,6,'#fff');
+
+  // Ears
+  b(6,0,1,2,fur);b(5,2,2,1,fur);b(4,3,3,2,fur);b(4,5,2,1,fur);
+  g(5,3,'#ffccbb');g(6,2,'#ffccbb');
+  b(17,0,1,2,fur);b(17,2,2,1,fur);b(17,3,3,2,fur);b(18,5,2,1,fur);
+  g(17,3,'#ffccbb');g(18,2,'#ffccbb');
+
+  // Eyes
+  b(6,9,4,3,'#fff');b(14,9,4,3,'#fff');
+  b(7,10,2,2,eyeC);b(15,10,2,2,eyeC);
+  g(7,10,'#111');g(16,10,'#111');g(6,9,'#fff');g(14,9,'#fff');
+
+  // Nose + mouth
+  g(11,13,'#ff8888');g(12,13,'#ff8888');g(11,14,'#ff8888');g(12,14,'#ff8888');
+  g(11,15,'#555');g(12,15,'#555');g(10,16,'#555');g(13,16,'#555');
+
+  // Whiskers
+  const wc=fur==='#ecf0f1'?'#aaa':'#ddd';
+  b(1,10,2,1,wc);b(0,11,2,1,wc);b(1,12,2,1,wc);b(1,14,2,1,wc);b(0,15,2,1,wc);
+  b(21,10,2,1,wc);b(22,11,2,1,wc);b(21,12,2,1,wc);b(21,14,2,1,wc);b(22,15,2,1,wc);
+
+  // Blush
+  if(!((h>>6)%2)){b(3,13,2,2,'#ee7777');b(19,13,2,2,'#ee7777');}
+}
+
+function _catAvatarHTML(uid,seed){
+  const s=seed!==undefined?' data-seed="'+seed+'"':'';
+  return '<canvas class="cat-avatar" width="48" height="48" data-uid="'+uid+'"'+s+' style="width:48px;height:48px"></canvas>';
+}
+function _renderCatAvatars(){
+  document.querySelectorAll('.cat-avatar').forEach(c=>{
+    const uid=c.dataset.uid;
+    const seed=c.dataset.seed;
+    if(uid){
+      if(seed!==undefined){
+        const saved=_avatarSeed();
+        localStorage.setItem('sashiko_avseed',seed);
+        _drawCatAvatar(c,uid);
+        localStorage.setItem('sashiko_avseed',saved);
+      }else{
+        _drawCatAvatar(c,uid);
+      }
+    }
+  });
+}
 // localStorage is always kept as a local cache so the page works offline.
 function _saveLocal(){
-  // Don't cache thumbnails in Firestore (too large); keep them only in localStorage.
   try{localStorage.setItem('sashiko_exp',JSON.stringify(EXP_PATTERNS));}catch(e){}
 }
 function _loadLocal(){
   try{EXP_PATTERNS=JSON.parse(localStorage.getItem('sashiko_exp')||'[]');}catch(e){EXP_PATTERNS=[];}
+}
+function _getUserId(){
+  let id=localStorage.getItem('sashiko_uid');
+  if(!id){id='u'+Math.random().toString(36).slice(2,12);localStorage.setItem('sashiko_uid',id);}
+  return id;
+}
+
+// ── Stitching profiles (per-pattern community submissions) ────────────────
+// Subcollection: patterns/{patternId}/profiles/{profileId}
+// Each profile: { families, creatorId, creatorLabel, created, likeCount, likedBy:[], dislikeCount, dislikedBy:[] }
+async function _saveProfileToFirestore(patternId, families){
+  if(!_db){
+    console.warn('Firebase not ready — profile saved locally only');
+    return;
+  }
+  const uid=_getUserId();
+  const id='sp_'+Date.now();
+  const doc={
+    id, families, creatorId:uid,
+    creatorLabel:_catName(uid),
+    avatarSeed:_avatarSeed(),
+    created:Date.now(),
+    likeCount:0, likedBy:[],
+    dislikeCount:0, dislikedBy:[]
+  };
+  try{await _db.collection('patterns').doc(patternId).collection('profiles').doc(id).set(doc);}
+  catch(e){console.warn('Profile save failed:',e);throw e;}
+}
+async function _fetchProfilesFromFirestore(patternId){
+  if(!_db)return[];
+  try{
+    const snap=await _db.collection('patterns').doc(patternId).collection('profiles')
+      .orderBy('created','desc').get();
+    return snap.docs.map(d=>d.data());
+  }catch(e){console.warn('Profile fetch failed:',e);return[];}
+}
+async function _deleteProfileFromFirestore(patternId, profileId){
+  if(!_db)return;
+  try{await _db.collection('patterns').doc(patternId).collection('profiles').doc(profileId).delete();}
+  catch(e){console.warn('Profile delete failed:',e);}
+}
+async function _voteProfile(patternId, profileId, delta){
+  if(!_db)return;
+  const uid=_getUserId();
+  const ref=_db.collection('patterns').doc(patternId).collection('profiles').doc(profileId);
+  try{
+    await _db.runTransaction(async t=>{
+      const snap=await t.get(ref);
+      if(!snap.exists)return;
+      const d=snap.data();
+      const likedBy=d.likedBy||[], dislikedBy=d.dislikedBy||[];
+      let lc=d.likeCount||0, dc=d.dislikeCount||0;
+      // Remove existing votes by this user
+      const wasLiked=likedBy.indexOf(uid);
+      if(wasLiked>=0){likedBy.splice(wasLiked,1);lc--;}
+      const wasDisliked=dislikedBy.indexOf(uid);
+      if(wasDisliked>=0){dislikedBy.splice(wasDisliked,1);dc--;}
+      // Add new vote
+      if(delta===1 && wasLiked<0){likedBy.push(uid);lc++;}
+      if(delta===-1 && wasDisliked<0){dislikedBy.push(uid);dc++;}
+      t.update(ref,{likeCount:lc,dislikeCount:dc,likedBy,dislikedBy});
+    });
+  }catch(e){console.warn('Vote failed:',e);}
 }
 
 // Upload a single pattern to Firestore (thumbnail stored separately via data URL → stripped before upload)
@@ -268,11 +426,23 @@ function toggleStitchSettings(){
   if(!body||!tog)return;
   const open=body.style.display!=='none';
   body.style.display=open?'none':'block';
-  tog.textContent=open?'⚙ Stitching Order Settings ▸':'⚙ Stitching Order Settings ▾';
+  const badge=tog.querySelector('.prof-badge')?.textContent||'';
+  tog.innerHTML='⚙ Stitching Order Settings '+(open?'▸':'▾')+(badge?' <span class=\"prof-badge\">'+badge+'</span>':'');
   tog.classList.toggle('on',!open);
   if(!open)renderFamEditor();
 }
 window.toggleStitchSettings=toggleStitchSettings;
+
+async function updateProfileBadge(){
+  const tog=document.getElementById('stitchToggle');
+  if(!curPat||!curPat.id||!_firebaseReady||!tog)return;
+  try{
+    const profiles=await _fetchProfilesFromFirestore(curPat.id);
+    const badge=profiles.length?' <span class=\"prof-badge\">'+profiles.length+'</span>':'';
+    const open=document.getElementById('stitchBody')?.style.display!=='none';
+    tog.innerHTML='⚙ Stitching Order Settings '+(open?'▾':'▸')+badge;
+  }catch(e){}
+}
 function renderFamEditor(){
   if(!curPat||curPat.type!=='exp')return;
   const fc=document.getElementById('famCanvas');
@@ -366,6 +536,41 @@ function renderFamEditor(){
     if(nRed)msg='<span style=\"color:#ff5555\">'+nRed+' redundant</span> &middot; '+msg;
     hint.innerHTML=msg;
   }
+
+  // Fetch and render community profiles (async)
+  if(curPat.id&&_firebaseReady){
+    _fetchProfilesFromFirestore(curPat.id).then(profiles=>renderProfileList(profiles));
+  }else{
+    renderProfileList([]);
+  }
+}
+
+function renderProfileList(profiles){
+  const el=document.getElementById('profileList');
+  if(!el)return;
+  const uid=_getUserId();
+  profiles.sort((a,b)=>(b.likeCount-b.dislikeCount)-(a.likeCount-a.dislikeCount)||b.created-a.created);
+  if(!profiles.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="profile-title">Community stitching profiles</div>'+profiles.map(p=>{
+    const score=p.likeCount-p.dislikeCount;
+    const isOwn=p.creatorId===uid;
+    const wasLiked=(p.likedBy||[]).includes(uid);
+    const wasDisliked=(p.dislikedBy||[]).includes(uid);
+    return`<div class="profile-item">
+      <div class="cat-avatar-wrap">`+_catAvatarHTML(p.creatorId,p.avatarSeed)+`</div>
+      <div class="prof-info">${p.creatorLabel||'Anonymous'}</div>
+      <div class="prof-votes">
+        <button class="${wasLiked?'liked':''}" onclick="voteProfile('${p.id}',1)" title="Like">👍</button>
+        <span class="vc">${score>0?'+'+score:score}</span>
+        <button class="${wasDisliked?'disliked':''}" onclick="voteProfile('${p.id}',-1)" title="Dislike">👎</button>
+      </div>
+      <div class="prof-actions">
+        <button onclick="loadStitchingProfile('${p.id}')" title="Apply">Load</button>
+        ${isOwn?'<button onclick="deleteStitchingProfile(\''+p.id+'\')" title="Delete">✕</button>':''}
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(_renderCatAvatars,0);
 }
 
 // Click handler: assign clicked line to selected family
@@ -387,9 +592,78 @@ function famEditorClick(e){
   const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
   if(orig)orig.families=[...curPat.families];
   _saveLocal();
+  // Sync to Firestore (update the pattern doc with latest families)
+  if(_firebaseReady&&orig) _pushToFirestore(orig);
   renderFamEditor();
   rerouteExp();
 }
+
+// ── Profile sharing ──────────────────────────────────────────────────────
+async function saveStitchingProfile(){
+  if(!curPat||!curPat.id)return;
+  initExpFamilies(curPat);
+  const btn=document.getElementById('profileSaveBtn');
+  if(!btn)return;
+  if(!_firebaseReady){btn.textContent='Firebase not connected';setTimeout(()=>{btn.textContent='⊕ Share this stitching order';btn.disabled=false;},2000);return;}
+  btn.textContent='Saving…';btn.disabled=true;
+  try{
+    // Ensure pattern exists in Firestore first
+    await _pushToFirestore(curPat);
+    await _saveProfileToFirestore(curPat.id, [...curPat.families]);
+    btn.textContent='✓ Shared!';
+  }catch(e){
+    console.error('Share failed:',e);
+    btn.textContent='Failed — retry';
+  }
+  setTimeout(()=>{btn.textContent='⊕ Share this stitching order';btn.disabled=false;},2000);
+  renderFamEditor();
+  updateProfileBadge();
+}
+window.saveStitchingProfile=saveStitchingProfile;
+window.loadStitchingProfile=async function(profileId){
+  if(!curPat)return;
+  const profiles=await _fetchProfilesFromFirestore(curPat.id);
+  const prof=profiles.find(p=>p.id===profileId);
+  if(!prof)return;
+  curPat.families=[...prof.families];
+  const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
+  if(orig)orig.families=[...curPat.families];
+  _saveLocal();
+  _famToggles={};
+  setupExpCanvas(curPat);
+  EXP_path=buildExpPath(genTiledSegs(curPat));
+  TOTAL=EXP_path.length; PASSES=[];
+  step=TOTAL;
+  if(playing)pause();
+  buildJumpBar();render(step);
+  renderFamEditor();
+};
+window.deleteStitchingProfile=async function(profileId){
+  if(!curPat||!confirm('Delete this stitching order?'))return;
+  await _deleteProfileFromFirestore(curPat.id,profileId);
+  renderFamEditor();
+};
+window.voteProfile=async function(profileId,delta){
+  if(!curPat)return;
+  if(!_firebaseReady){alert('Firebase not connected — cannot vote.');return;}
+  await _voteProfile(curPat.id,profileId,delta);
+  renderFamEditor();
+};
+// ── Publish to main library ────────────────────────────────────────────
+function publishToLibrary(){
+  const pw=prompt('Admin password:');
+  if(pw!=='111'){alert('Wrong password');return;}
+  if(!curPat||!curPat.id)return;
+  initExpFamilies(curPat);
+  const orig=EXP_PATTERNS.find(p=>p.id===curPat.id);
+  if(orig){
+    orig.published=true;
+    _saveLocal();
+    if(_firebaseReady) _pushToFirestore(orig);
+    alert('Published! Visible in main gallery.');
+  }
+}
+window.publishToLibrary=publishToLibrary;
 function distToSeg(px,py,ax,ay,bx,by){
   const l2=(bx-ax)**2+(by-ay)**2;
   if(l2===0)return Math.hypot(px-ax,py-ay);
@@ -611,33 +885,38 @@ function renderExp(step){
   for(let y=4;y<ch;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
   drawExpGuide();
   if(!EXP_path.length)return;
-  // Completed stitches — coloured by family
+  // Completed stitches — coloured by family (skip toggled-off)
   ctx.lineWidth=3; ctx.lineCap='round';
   for(let i=0;i<Math.min(step,EXP_path.length);i++){
-    const s=EXP_path[i],p1=EXP_g2s(s.start),p2=EXP_g2s(s.end);
+    const s=EXP_path[i];
+    if(_famToggles[s.fam]===false)continue;
+    const p1=EXP_g2s(s.start),p2=EXP_g2s(s.end);
     ctx.strokeStyle=famColor(s.fam);
     ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
   }
-  // Back-thread dashes for completed jumps
+  // Back-thread dashes (skip toggled-off)
   ctx.strokeStyle='rgba(243,239,228,0.18)'; ctx.lineWidth=1.4;
   ctx.setLineDash([2,4]); ctx.lineCap='butt';
   for(let i=1;i<EXP_path.length&&i<=step;i++){
     if(EXP_path[i].jump){
+      if(_famToggles[EXP_path[i].fam]===false)continue;
       const p1=EXP_g2s(EXP_path[i-1].end),p2=EXP_g2s(EXP_path[i].start);
       ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
     }
   }
   ctx.setLineDash([]);
-  // Needle
+  // Needle (skip if toggled off)
   if(step>0&&step<=EXP_path.length){
     const s=EXP_path[step-1];
-    const col=famColor(s.fam);
-    const p=EXP_g2s(s.end);
-    const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,16);
-    g.addColorStop(0,hexA(col,0.55));g.addColorStop(1,hexA(col,0));
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,16,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,3.4,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x-1,p.y-1,1.1,0,Math.PI*2);ctx.fill();
+    if(_famToggles[s.fam]!==false){
+      const col=famColor(s.fam);
+      const p=EXP_g2s(s.end);
+      const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,16);
+      g.addColorStop(0,hexA(col,0.55));g.addColorStop(1,hexA(col,0));
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,16,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,3.4,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x-1,p.y-1,1.1,0,Math.PI*2);ctx.fill();
+    }
   }
 }
 

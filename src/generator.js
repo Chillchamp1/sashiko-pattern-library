@@ -175,12 +175,16 @@ bPlay.onclick=()=>playing?pause():play();
 document.getElementById('bReset').onclick=()=>{pause();step=0;render(step);};
 document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);render(step);};
 document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
-document.getElementById('bAll').onclick=()=>{pause();step=TOTAL;render(step);};
-document.getElementById('bSpeed').onclick=()=>{
-  TICK_MS=TICK_MS===160?80:160;
-  const b=document.getElementById('bSpeed');
-  b.textContent=TICK_MS===160?'🐢 Slow':'⚡ Fast';
-};
+document.querySelectorAll('.speed-btn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.speed-btn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');
+    const s=b.dataset.speed;
+    if(s==='slow')TICK_MS=240;
+    else if(s==='fast')TICK_MS=40;
+    else TICK_MS=160;
+  };
+});
 window.addEventListener('keydown',e=>{
   if(!document.getElementById('animView').classList.contains('open'))return;
   if(e.code==='Space'){e.preventDefault();playing?pause():play();}

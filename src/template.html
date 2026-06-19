@@ -27,7 +27,7 @@
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
       <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
     </div>
-    <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (experimental) →</button>
+    <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
 </div>
@@ -46,19 +46,6 @@
     </div>
   </div>
 
-  <!-- Stitching Order Settings (exp patterns only, collapsed by default) -->
-  <div id="stitchSettings" style="display:none">
-    <button class="settings-toggle" id="stitchToggle" onclick="toggleStitchSettings()">⚙ Stitching Order Settings ▸</button>
-    <div class="settings-body" id="stitchBody" style="display:none">
-      <p class="settings-desc">By assigning colours to the lines you change how the animation creates the stitching orders. Often its trial and error. As soon as you have found the right settings it will be quite clear to you. Play around with it and see how the animation reacts.</p>
-      <div class="settings-row">
-        <canvas id="famCanvas" width="180" height="180"></canvas>
-        <div class="fam-swatches" id="famSwatches"></div>
-      </div>
-      <div class="fam-hint">Click + to add a colour, then click a line to assign it</div>
-    </div>
-  </div>
-
   <!-- Universal size slider — always directly below the pattern, only for generator -->
   <div id="genSlider" style="display:none">
     <label class="gen-srow">
@@ -68,7 +55,25 @@
     </label>
   </div>
 
-  <!-- Info bar — idle state is clickable (triggers Play) -->
+  <div class="ctrls">
+    <button class="ctrl" id="bReset" title="Reset">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+    </button>
+    <button class="ctrl" id="bBack" title="Step back">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20 9 12l10-8z"></path><path d="M5 19V5"></path></svg>
+    </button>
+    <button class="ctrl primary" id="bPlay">
+      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
+    </button>
+    <button class="ctrl" id="bFwd" title="Step forward">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
+    </button>
+    <button class="ctrl speed-btn" data-speed="slow">🐢 Slow</button>
+    <button class="ctrl speed-btn sel" data-speed="medium">Medium</button>
+    <button class="ctrl speed-btn" data-speed="fast">⚡ Fast</button>
+  </div>
+
+  <!-- Info bar -->
   <div class="info" id="info" onclick="onInfoClick()"><span class="muted">complete ✓</span> &nbsp;<span class="pill" style="background:rgba(205,224,244,0.18);color:#cde0f4"><span class="dot" style="background:#cde0f4"></span>pass 2/2 · vertical ↑</span></div>
 
   <div class="jumpbar" id="jumpbar"><button title="All horizontal rows" class="">1 · →</button><button title="All vertical columns" class="on">2 · ↑</button></div>
@@ -90,29 +95,26 @@
     </div>
   </div>
 
-  <div class="ctrls">
-    <button class="ctrl" id="bReset" title="Reset">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
-    </button>
-    <button class="ctrl" id="bBack" title="Step back">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20 9 12l10-8z"></path><path d="M5 19V5"></path></svg>
-    </button>
-    <button class="ctrl primary" id="bPlay">
-      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
-    </button>
-    <button class="ctrl" id="bFwd" title="Step forward">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
-    </button>
-    <button class="ctrl" id="bAll" title="Show complete">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-      <span>Done</span>
-    </button>
-    <button class="ctrl" id="bSpeed" title="Toggle animation speed" style="font-size:12px;padding:6px 10px">🐢 Slow</button>
-    <button class="ctrl" id="bReroute" title="Re-run routing on this pattern" onclick="rerouteExp()" style="display:none;font-size:12px;padding:6px 10px">🔀 Re-route</button>
-  </div>
   <p class="tip" id="animTip">Fibonacci Snowflake order 2. Phase
 sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element
 palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
+
+  <!-- Stitching Order Settings (exp patterns only, collapsed by default) -->
+  <div id="stitchSettings" style="display:none">
+    <button class="settings-toggle" id="stitchToggle" onclick="toggleStitchSettings()">⚙ Stitching Order Settings ▸</button>
+    <div class="settings-body" id="stitchBody" style="display:none">
+      <p class="settings-desc">By assigning colours to the lines you change how the animation creates the stitching orders. Often its trial and error. As soon as you have found the right settings it will be quite clear to you. Play around with it and see how the animation reacts.</p>
+      <div class="settings-row">
+        <canvas id="famCanvas" width="180" height="180"></canvas>
+        <div class="fam-swatches" id="famSwatches"></div>
+      </div>
+      <div class="fam-hint">Click + to add a colour, then click a line to assign it</div>
+      <div id="profileList" class="profile-list"></div>
+      <button class="profile-save-btn" id="profileSaveBtn" onclick="saveStitchingProfile()">⊕ Share this stitching order</button>
+      <button class="avatar-cycle-btn" onclick="cycleAvatar()" title="Change your cat avatar">🎲 New Avatar</button>
+      <button class="profile-save-btn" onclick="publishToLibrary()" style="border-color:#ff9944;color:#ff9944">📌 Publish to library (only admin)</button>
+    </div>
+  </div>
 </div>
 
 <!-- CAD Pattern Editor — full-screen overlay -->
@@ -176,7 +178,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   <div class="mypats-wrap">
     <div class="mypats-header">
       <button class="back-btn" onclick="showGalleryFromMyPats()">← Gallery</button>
-      <h2>Custom Patterns (experimental)</h2>
+      <h2>Custom Patterns (Sandbox)</h2>
       <button class="cad-save-btn" onclick="showCAD()">+ New Pattern</button>
     </div>
     <div class="mypats-grid" id="myPatsGrid"></div>
