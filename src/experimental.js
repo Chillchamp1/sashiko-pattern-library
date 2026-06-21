@@ -1006,7 +1006,7 @@ function drawExpGuide(){
   if(!curPat||!EXP_g2s)return;
   const lay=computeExpLayout(curPat);
   const [minU,maxU]=lay.uRange, [minV,maxV]=lay.vRange;
-  const STEP=10;                                   // one macro cell; canvas clips lines to the square
+  const STEP=10;
   const u0=Math.floor(minU/STEP)*STEP, u1=Math.ceil(maxU/STEP)*STEP;
   const v0=Math.floor(minV/STEP)*STEP, v1=Math.ceil(maxV/STEP)*STEP;
   ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=zlw(0.8); ctx.setLineDash([]);
@@ -1017,6 +1017,18 @@ function drawExpGuide(){
   for(let v=v0;v<=v1;v+=STEP){
     const a=EXP_g2s([u0,v]),b=EXP_g2s([u1,v]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+  }
+  // Sub-grid dots
+  ctx.fillStyle='rgba(160,160,184,0.25)';
+  const sds=zds(1.5), mds=zds(2.5);
+  for(let u=u0;u<=u1;u++){
+    for(let v=v0;v<=v1;v++){
+      const onMain=(u%STEP===0)&&(v%STEP===0);
+      if(!onMain&&(u%STEP!==0||v%STEP!==0))continue;
+      const p=EXP_g2s([u,v]);
+      const d=onMain?mds:sds;
+      ctx.fillRect(p.x-d/2,p.y-d/2,d,d);
+    }
   }
 }
 

@@ -177,12 +177,17 @@ function drawPLGuide(){
     ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,e);ctx.stroke();
     ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(e,p);ctx.stroke();
   }
-  // Dot grid
-  ctx.fillStyle='rgba(160,160,184,0.4)';
-  const ds=zds(3);
-  for(let i=0;i<=PL_N;i+=PL_guideStep)
-    for(let j=0;j<=PL_N;j+=PL_guideStep)
-      ctx.fillRect(PAD+i*PL_HU-ds/2,PAD+j*PL_HU-ds/2,ds,ds);
+  // Dot grid: sub-grid dots + main grid dots
+  ctx.fillStyle='rgba(160,160,184,0.25)';
+  const sds=zds(2), mds=zds(3);
+  for(let i=0;i<=PL_N;i++){
+    for(let j=0;j<=PL_N;j++){
+      const onMain=(i%PL_guideStep===0)&&(j%PL_guideStep===0);
+      if(!onMain&&(i%PL_guideStep!==0||j%PL_guideStep!==0))continue; // skip non-grid points
+      const d=onMain?mds:sds;
+      ctx.fillRect(PAD+i*PL_HU-d/2,PAD+j*PL_HU-d/2,d,d);
+    }
+  }
 }
 function drawPLFront(seg){
   const x1=plPx(seg.x1),y1=plPx(seg.y1),x2=plPx(seg.x2),y2=plPx(seg.y2);
