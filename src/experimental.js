@@ -1018,13 +1018,12 @@ function drawExpGuide(){
     const a=EXP_g2s([u0,v]),b=EXP_g2s([u1,v]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
   }
-  // Sub-grid dots
+  // Sub-grid dots everywhere, main intersections larger
   ctx.fillStyle='rgba(160,160,184,0.25)';
-  const sds=zds(1.5), mds=zds(2.5);
+  const sds=zds(1.5), mds=zds(2.8);
   for(let u=u0;u<=u1;u++){
     for(let v=v0;v<=v1;v++){
       const onMain=(u%STEP===0)&&(v%STEP===0);
-      if(!onMain&&(u%STEP!==0||v%STEP!==0))continue;
       const p=EXP_g2s([u,v]);
       const d=onMain?mds:sds;
       ctx.fillRect(p.x-d/2,p.y-d/2,d,d);
