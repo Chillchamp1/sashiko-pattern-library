@@ -205,9 +205,9 @@ function cadBakeRight(){
       rx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
     }
   }
-  // Main grid lines
+  // Grid lines at every macro step
   rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.12)';
-  for(let i=-ov;i<=cadPatMacro+ov;i+=cadPatMacro){
+  for(let i=-ov;i<=cadPatMacro+ov;i++){
     const val=i*CAD_MICRO;
     rx.beginPath();const p1=cadG2S(val,-ov*CAD_MICRO,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,(cadPatMacro+ov)*CAD_MICRO,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
     rx.beginPath();const p3=cadG2S(-ov*CAD_MICRO,val,cadPOX,cadPOY,cadPTile),p4=cadG2S((cadPatMacro+ov)*CAD_MICRO,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
@@ -411,21 +411,63 @@ window.cadSaveToLibrary=function(){
   setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
 };
 
-// ── Tile preview play → opens in animation view ──────────────────────────
+// ── Tile preview play → animates inline on right canvas ──────────────────
+let _tpOn=false,_tpStep=0,_tpLines=[],_tpRAF=null,_tpLast=0;
 window.cadTilePlay=function(){
+  if(_tpOn){_stopTilePlay();return;}
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
   const redSet=new Set(cadFindRedundant());
-  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
-  if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
-  const pat={id:'preview_'+Date.now(),name:'Preview',type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro};
-  pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
-  document.getElementById('cadView').classList.remove('open');
-  document.getElementById('animView').classList.add('open');
-  loadPattern(pat);
-  window.scrollTo({top:0,behavior:'smooth'});
+  const clean=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!clean.length)return;
+  // Translate lines to tile preview coords (0,0 based)
+  const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
+  _tpLines=clean.map((l,i)=>({
+    u1:l.start[0]-bbox.minU, v1:l.start[1]-bbox.minV,
+    u2:l.end[0]-bbox.minU,   v2:l.end[1]-bbox.minV,
+    fam:cadFamilies.filter((_,j)=>!redSet.has(j))[i]||0
+  }));
+  _tpStep=0;_tpOn=true;_tpLast=0;
+  document.getElementById('cadBtnTilePlay').textContent='⏹ Stop';
+  document.getElementById('cadBtnTilePlay').style.color='#ff8888';
+  _renderTileFrame();
+  _tpRAF=requestAnimationFrame(_tpLoop);
 };
+function _stopTilePlay(){
+  _tpOn=false;
+  if(_tpRAF){cancelAnimationFrame(_tpRAF);_tpRAF=null;}
+  document.getElementById('cadBtnTilePlay').textContent='▶ Play';
+  document.getElementById('cadBtnTilePlay').style.color='#88cc88';
+  cadDrawPattern();
+}
+function _renderTileFrame(){
+  const pv=document.getElementById('patCanvas');if(!pv||!_tpLines)return;
+  const x=pv.getContext('2d');
+  // Draw grid background
+  x.clearRect(0,0,500,500);
+  if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
+  // Tile the pattern across the preview
+  const dU=Math.max(..._tpLines.map(l=>Math.max(l.u1,l.u2)))-Math.min(..._tpLines.map(l=>Math.min(l.u1,l.u2)))||4;
+  const dV=Math.max(..._tpLines.map(l=>Math.max(l.v1,l.v2)))-Math.min(..._tpLines.map(l=>Math.min(l.v1,l.v2)))||4;
+  const ptc=cadPatMacro*CAD_MICRO;
+  x.lineWidth=2.5;x.lineCap='round';
+  let drawn=0;
+  for(let ou=0;ou<=ptc;ou+=dU){for(let ov=0;ov<=ptc;ov+=dV){
+    _tpLines.forEach((l)=>{
+      if(drawn>=_tpStep)return;
+      const p1=cadG2S(l.u1+ou,l.v1+ov,cadPOX,cadPOY,cadPTile);
+      const p2=cadG2S(l.u2+ou,l.v2+ov,cadPOX,cadPOY,cadPTile);
+      x.strokeStyle=FAM_PALETTE[l.fam%FAM_PALETTE.length];
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+      drawn++;
+    });
+  }}
+}
+function _tpLoop(t){
+  if(!_tpOn)return;
+  if(t-_tpLast>=40){_tpLast=t;_tpStep++;_renderTileFrame();}
+  _tpRAF=requestAnimationFrame(_tpLoop);
+}
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
 function cadInit(){
   if(cadInited)return;cadInited=true;
