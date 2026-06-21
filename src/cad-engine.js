@@ -2,9 +2,7 @@
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5;
 const CAD_MICRO=10;
-const CAD_DPR=Math.min(window.devicePixelRatio||1,2);
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
-const CAD_SIZE=500;
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
 let cadBase=1,cadTileSize,cadOX,cadOY;
 let cadPTile,cadPOX,cadPOY;
@@ -16,11 +14,10 @@ let cadInited=false;
 function cadApplyView(){
   cadTileSize=cadBase*cadZoom;
   const tc=Math.ceil(cadMacro*CAD_MICRO);
-  const half=CAD_SIZE/2;
   if(cadGridType==='isometric'){
-    cadOX=half+cadPanX;
-    cadOY=(CAD_SIZE-(tc*2*cadTileSize*CAD_SIN30))/2+cadPanY;
-  }else{cadOX=(CAD_SIZE-tc*cadTileSize)/2+cadPanX;cadOY=(CAD_SIZE-tc*cadTileSize)/2+cadPanY;}
+    cadOX=250+cadPanX;
+    cadOY=(500-(tc*2*cadTileSize*CAD_SIN30))/2+cadPanY;
+  }else{cadOX=(500-tc*cadTileSize)/2+cadPanX;cadOY=(500-tc*cadTileSize)/2+cadPanY;}
 }
 function cadG2S(u,v,ox,oy,sz){
   if(cadGridType==='isometric')return{x:ox+(u-v)*sz*CAD_COS30,y:oy+(u+v)*sz*CAD_SIN30};
@@ -163,8 +160,6 @@ function cadGenArc(center,start,end){
   }
   return result;
 }
-  return result;
-}
 
 function cadArcLabel(){
   const labels=['Click to place center','Click to set radius','Click to set sweep (click center-start for full circle)'];
@@ -174,8 +169,8 @@ function cadArcLabel(){
 
 function cadBakeLeft(){
   const cv=document.getElementById('cadCanvas');if(!cv)return;
-  cadLeftBuf=document.createElement('canvas');cadLeftBuf.width=CAD_SIZE*CAD_DPR;cadLeftBuf.height=CAD_SIZE*CAD_DPR;
-  const lx=cadLeftBuf.getContext('2d');lx.scale(CAD_DPR,CAD_DPR);
+  cadLeftBuf=document.createElement('canvas');cadLeftBuf.width=500;cadLeftBuf.height=500;
+  const lx=cadLeftBuf.getContext('2d');
   const tc=cadMacro*CAD_MICRO;
   lx.fillStyle='#a0a0b8';
   for(let u=0;u<=tc;u++)for(let v=0;v<=tc;v++){
@@ -189,8 +184,8 @@ function cadBakeLeft(){
   }
 }
 function cadBakeRight(){
-  cadRightBuf=document.createElement('canvas');cadRightBuf.width=CAD_SIZE*CAD_DPR;cadRightBuf.height=CAD_SIZE*CAD_DPR;
-  const rx=cadRightBuf.getContext('2d');rx.scale(CAD_DPR,CAD_DPR);
+  cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
+  const rx=cadRightBuf.getContext('2d');
   rx.lineWidth=1.5;rx.strokeStyle='#3a3a4a';
   const ptc=cadPatMacro*CAD_MICRO,ov=cadPatMacro;
   for(let i=-ov;i<=cadPatMacro+ov;i++){
@@ -203,8 +198,8 @@ function cadBakeRight(){
 function cadDrawWorkspace(){
   const cv=document.getElementById('cadCanvas');if(!cv)return;
   const x=cv.getContext('2d');
-  x.clearRect(0,0,CAD_SIZE,CAD_SIZE);
-  if(cadLeftBuf)x.drawImage(cadLeftBuf,0,0,CAD_SIZE,CAD_SIZE);
+  x.clearRect(0,0,500,500);
+  if(cadLeftBuf)x.drawImage(cadLeftBuf,0,0);
 
   // Build full line list including previews
   const all=[...cadLines];
@@ -298,8 +293,8 @@ function cadDrawWorkspace(){
 function cadDrawPattern(){
   const pv=document.getElementById('patCanvas');if(!pv)return;
   const x=pv.getContext('2d');
-  x.clearRect(0,0,CAD_SIZE,CAD_SIZE);
-  if(cadRightBuf)x.drawImage(cadRightBuf,0,0,CAD_SIZE,CAD_SIZE);
+  x.clearRect(0,0,500,500);
+  if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
   const all=[...cadLines];
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
   if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur)
@@ -339,13 +334,12 @@ window.cadUpdateSettings=function(){
   cadPatMacro=parseInt(document.getElementById('cadPatSize').value);
   cadZoom=1;cadPanX=0;cadPanY=0;
   const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*CAD_MICRO;
-  const half=CAD_SIZE/2;
   if(cadGridType==='isometric'){
-    cadBase=(CAD_SIZE-40)/(2*tc*CAD_COS30);
-    cadPTile=CAD_SIZE/(2*ptc*CAD_COS30);cadPOX=half;cadPOY=(CAD_SIZE-(ptc*2*cadPTile*CAD_SIN30))/2;
+    cadBase=460/(2*tc*CAD_COS30);
+    cadPTile=500/(2*ptc*CAD_COS30);cadPOX=250;cadPOY=(500-(ptc*2*cadPTile*CAD_SIN30))/2;
   }else{
-    cadBase=(CAD_SIZE-40)/tc;
-    cadPTile=CAD_SIZE/ptc;cadPOX=0;cadPOY=0;
+    cadBase=460/tc;
+    cadPTile=500/ptc;cadPOX=0;cadPOY=0;
   }
   cadApplyView();cadBakeLeft();cadBakeRight();cadUpdateAll();
 };
@@ -397,95 +391,10 @@ window.cadSaveToLibrary=function(){
   btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
 };
-window.cadPreviewAnim=function(){
-  if(!cadLines.length)return;
-  const bbox=cadBBox();if(!bbox)return;
-  const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
-  const redSet=new Set(cadFindRedundant());
-  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
-  if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
-  const pat={id:'preview_'+Date.now(),name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro};
-  pat.families=[...cadFamilies];
-  document.getElementById('cadView').classList.remove('open');
-  document.getElementById('animView').classList.add('open');
-  loadPattern(pat);
-  window.scrollTo({top:0,behavior:'smooth'});
-};
-
-// ── Inline preview on CAD canvas ─────────────────────────────────────────
-let _cadPrevOn=false, _cadPrevStep=0, _cadPrevPath=[], _cadPrevRAF=null, _cadPrevSts=[];
-window.cadTogglePreview=function(){
-  if(_cadPrevOn){_stopCadPreview();return;}
-  if(!cadLines.length)return;
-  const bbox=cadBBox();if(!bbox)return;
-  const redSet=new Set(cadFindRedundant());
-  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
-  if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro};
-  const segs=genTiledSegs(pat);
-  _cadPrevPath=buildExpPath(segs);
-  // Compute bounding box of all stitch endpoints in screen space
-  let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
-  _cadPrevPath.forEach(s=>{
-    mx=Math.min(mx,s.p0[0],s.p1[0]);Mx=Math.max(Mx,s.p0[0],s.p1[0]);
-    my=Math.min(my,s.p0[1],s.p1[1]);My=Math.max(My,s.p0[1],s.p1[1]);
-  });
-  if(!isFinite(mx)||!_cadPrevPath.length){_cadPrevOn=false;return;}
-  const pw=Mx-mx||1,ph=My-my||1;
-  const pad=20,sc=Math.min((CAD_SIZE-2*pad)/pw,(CAD_SIZE-2*pad)/ph);
-  const ox=(CAD_SIZE-pw*sc)/2-mx*sc,oy=(CAD_SIZE-ph*sc)/2-my*sc;
-  _cadPrevSts=_cadPrevPath.map(s=>({
-    fam:s.fam,
-    x1:ox+s.p0[0]*sc,y1:oy+s.p0[1]*sc,
-    x2:ox+s.p1[0]*sc,y2:oy+s.p1[1]*sc
-  }));
-  _cadPrevStep=0;_cadPrevOn=true;
-  document.getElementById('cadBtnPlay').textContent='⏹ Stop';
-  document.getElementById('cadBtnPlay').style.color='#ff8888';
-  _renderCadPreview();
-  _cadPrevRAF=requestAnimationFrame(_cadPrevLoop);
-};
-function _stopCadPreview(){
-  _cadPrevOn=false;
-  if(_cadPrevRAF){cancelAnimationFrame(_cadPrevRAF);_cadPrevRAF=null;}
-  document.getElementById('cadBtnPlay').textContent='▶ Play';
-  document.getElementById('cadBtnPlay').style.color='#88cc88';
-  cadDrawWorkspace();
-}
-function _renderCadPreview(){
-  const cv=document.getElementById('cadCanvas');if(!cv)return;
-  const x=cv.getContext('2d');
-  x.save();x.setTransform(1,0,0,1,0,0);
-  x.clearRect(0,0,cv.width,cv.height);
-  x.fillStyle='#1a3a5c';x.fillRect(0,0,cv.width,cv.height);x.restore();
-  if(!_cadPrevSts)return;
-  _cadPrevSts.forEach((s,i)=>{
-    if(i>=_cadPrevStep)return;
-    const col=famColor(s.fam);
-    x.strokeStyle=col;x.lineWidth=2.5;x.lineCap='round';
-    x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
-  });
-}
-let _cadPrevLast=0;
-function _cadPrevLoop(t){
-  if(!_cadPrevOn)return;
-  if(t-_cadPrevLast>=40){_cadPrevLast=t;_cadPrevStep++;_renderCadPreview();}
-  if(_cadPrevStep>=_cadPrevPath.length){_stopCadPreview();return;}
-  _cadPrevRAF=requestAnimationFrame(_cadPrevLoop);
-}
-function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*CAD_SIZE/r.width,y:(e.clientY-r.top)*CAD_SIZE/r.height};}
+function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
 function cadInit(){
   if(cadInited)return;cadInited=true;
   const cv=document.getElementById('cadCanvas');
-  cv.width=CAD_SIZE*CAD_DPR;cv.height=CAD_SIZE*CAD_DPR;
-  cv.style.width=CAD_SIZE+'px';cv.style.height=CAD_SIZE+'px';
-  cv.getContext('2d').scale(CAD_DPR,CAD_DPR);
-  const pv=document.getElementById('patCanvas');
-  pv.width=CAD_SIZE*CAD_DPR;pv.height=CAD_SIZE*CAD_DPR;
-  pv.style.width=CAD_SIZE+'px';pv.style.height=CAD_SIZE+'px';
-  pv.getContext('2d').scale(CAD_DPR,CAD_DPR);
   cadUpdateSettings();
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   cv.addEventListener('wheel',e=>{
@@ -496,9 +405,8 @@ function cadInit(){
     if(nz===cadZoom)return;
     const ratio=nz/cadZoom;
     const tc=cadMacro*CAD_MICRO;
-    const half=CAD_SIZE/2;
-    if(cadGridType==='isometric'){const dx=half,dy=(CAD_SIZE-(tc*2*(cadBase*nz)*CAD_SIN30))/2;cadPanX=pos.x-(pos.x-cadOX)*ratio-dx;cadPanY=pos.y-(pos.y-cadOY)*ratio-dy;}
-    else{const dx=(CAD_SIZE-tc*(cadBase*nz))/2,dy=(CAD_SIZE-tc*(cadBase*nz))/2;cadPanX=pos.x-(pos.x-cadOX)*ratio-dx;cadPanY=pos.y-(pos.y-cadOY)*ratio-dy;}
+    if(cadGridType==='isometric'){const dx=250,dy=(500-(tc*2*(cadBase*nz)*CAD_SIN30))/2;cadPanX=pos.x-(pos.x-cadOX)*ratio-dx;cadPanY=pos.y-(pos.y-cadOY)*ratio-dy;}
+    else{const dx=(500-tc*(cadBase*nz))/2,dy=(500-tc*(cadBase*nz))/2;cadPanX=pos.x-(pos.x-cadOX)*ratio-dx;cadPanY=pos.y-(pos.y-cadOY)*ratio-dy;}
     cadZoom=nz;cadApplyView();cadBakeLeft();cadUpdateAll();
   },{passive:false});
   cv.addEventListener('pointerdown',e=>{
