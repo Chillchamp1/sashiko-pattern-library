@@ -1238,8 +1238,9 @@ function _setupCanvasSize(w,h){
 }
 function _resetZoom(){_zoom=1;_panX=0;_panY=0;_setupCanvasSize(SIZE,SIZE);}
 function _clampPan(){
+  if(_zoom<=1){_panX=0;_panY=0;return;}
   const ch=EXP_canvasH||SIZE;
-  const minVis=60; // at least 60px of pattern must remain visible
+  const minVis=60;
   const maxPX=SIZE*_zoom-minVis, maxPY=ch*_zoom-minVis;
   _panX=Math.max(-maxPX,Math.min(minVis*_zoom,_panX));
   _panY=Math.max(-maxPY,Math.min(minVis*_zoom,_panY));
@@ -1251,7 +1252,7 @@ function initAnimZoom(){
     if(!document.getElementById('animView').classList.contains('open'))return;
     e.preventDefault();
     const delta=e.deltaY>0?0.9:1.1;
-    const nz=Math.max(0.25,Math.min(_zoom*delta,8));
+    const nz=Math.max(1,Math.min(_zoom*delta,8));
     if(nz===_zoom)return;
     // Zoom centered: keep visual center fixed
     const ch=EXP_canvasH||SIZE;
