@@ -187,7 +187,6 @@ function drawPLGuide(){
       ctx.fillRect(PAD+i*PL_HU-d/2,PAD+j*PL_HU-d/2,d,d);
     }
   }
-  }
 }
 function drawPLFront(seg){
   const x1=plPx(seg.x1),y1=plPx(seg.y1),x2=plPx(seg.x2),y2=plPx(seg.y2);
