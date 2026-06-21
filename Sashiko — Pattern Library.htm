@@ -700,7 +700,6 @@ function renderHM(st){
   ctx.setLineDash([]);
   drawFabric(); drawHMGuide();
   const pos=(st===0)?-1:HM_fronts[st-1];
-  for(let p=0;p<=pos;p++){const s=HM_path[p];if(s.t==='b')drawHMBack(s);}
   for(let p=0;p<=pos;p++){const s=HM_path[p];if(s.t==='f')drawHMFront(s);}
   if(pos>=0){const s=HM_path[pos];drawNeedleAt(s.x2,s.y2,s.phase==='H'?PHASE_COLORS.H[s.lp]:PHASE_COLORS.V[s.lp]);}
   updateInfoHM(st);
@@ -1056,7 +1055,7 @@ function render(st){
   const{p,local}=locate(st);
   for(let k=0;k<p;k++)frontAll(PASSES[k]);
   if(p<PASSES.length){
-    const cur=PASSES[p];drawBack(cur,local);
+    const cur=PASSES[p];
     for(let k=0;k<local;k++){const[i,j]=cur.order[k];drawStitch(i,j,cur.dir,k===local-1,PHASE_COLORS[cur.dir][getPhase(i,j,cur.dir)]);}
     if(local>0){const[i,j]=cur.order[local-1];drawNeedle(i,j,cur.dir);}
   }
@@ -2688,17 +2687,6 @@ function renderExp(step){
     ctx.strokeStyle=famColor(s.fam);
     ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
   }
-  // Back-thread dashes (skip toggled-off)
-  ctx.strokeStyle='rgba(243,239,228,0.18)'; ctx.lineWidth=zlw(1.4);
-  ctx.setLineDash([2,4]); ctx.lineCap='butt';
-  for(let i=1;i<EXP_path.length&&i<=step;i++){
-    if(EXP_path[i].jump){
-      if(_famToggles[EXP_path[i].fam]===false)continue;
-      const p1=EXP_g2s(EXP_path[i-1].end),p2=EXP_g2s(EXP_path[i].start);
-      ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
-    }
-  }
-  ctx.setLineDash([]);
   // Needle (skip if toggled off)
   if(step>0&&step<=EXP_path.length){
     const s=EXP_path[step-1];

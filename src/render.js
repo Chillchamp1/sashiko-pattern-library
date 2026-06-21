@@ -74,7 +74,7 @@ function render(st){
   const{p,local}=locate(st);
   for(let k=0;k<p;k++)frontAll(PASSES[k]);
   if(p<PASSES.length){
-    const cur=PASSES[p];drawBack(cur,local);
+    const cur=PASSES[p];
     for(let k=0;k<local;k++){const[i,j]=cur.order[k];drawStitch(i,j,cur.dir,k===local-1,PHASE_COLORS[cur.dir][getPhase(i,j,cur.dir)]);}
     if(local>0){const[i,j]=cur.order[local-1];drawNeedle(i,j,cur.dir);}
   }
