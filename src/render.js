@@ -262,12 +262,13 @@ function initAnimZoom(){
     const delta=e.deltaY>0?0.9:1.1;
     const nz=Math.max(1,Math.min(_zoom*delta,8));
     if(nz===_zoom)return;
-    // Zoom centered: keep visual center fixed
+    // Zoom centered on current view (respects pan)
     const ch=EXP_canvasH||SIZE;
-    const cx=SIZE/2*_zoom+_panX, cy=ch/2*_zoom+_panY;
+    const vcx=SIZE/2, vcy=ch/2; // visual center of container
+    const lcx=(vcx-_panX)/_zoom, lcy=(vcy-_panY)/_zoom; // local point at visual center
     _zoom=nz;
-    _panX=cx-SIZE/2*_zoom;
-    _panY=cy-ch/2*_zoom;
+    _panX=vcx-lcx*_zoom;
+    _panY=vcy-lcy*_zoom;
     _setupCanvasSize(SIZE,ch);
     _clampPan();_setupCanvasSize(SIZE,ch);
     render(step);
