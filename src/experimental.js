@@ -285,15 +285,17 @@ async function _fetchFromFirestore(){
   try{
     const snap=await _db.collection('patterns').orderBy('createdAt','desc').get();
     const remote=snap.docs.map(d=>d.data());
-    // Merge: remote is the base, but keep local entries that are not yet in remote
-    // and preserve local data for patterns that exist locally with a thumbnail (recently saved here).
+    // Local always wins for patterns that exist here (more recent edits).
     const localById=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p]));
     const remoteIds=new Set(remote.map(p=>p.id));
-    const merged=remote.map(p=>({
-      ...p,
-      thumbnail:(localById[p.id]&&localById[p.id].thumbnail)||null,
-      families:localById[p.id]?localById[p.id].families||p.families:p.families
-    }));
+    const merged=[];
+    for(const p of remote){
+      if(localById[p.id]){
+        merged.push({...localById[p.id]});
+      }else{
+        merged.push({...p,thumbnail:null});
+      }
+    }
     for(const p of EXP_PATTERNS){
       if(!remoteIds.has(p.id))merged.push(p);
     }
