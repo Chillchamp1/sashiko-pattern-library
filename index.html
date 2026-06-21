@@ -225,7 +225,7 @@ button.ctrl.primary:hover{background:#275784}
 .cad-workspace{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .cad-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-width:300px;max-width:440px}
 .cad-canvas-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center}
-.cad-canvas-wrap{border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);background:#22222a;aspect-ratio:1;width:100%}
+.cad-canvas-wrap{border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);background:#1a3a5c;aspect-ratio:1;width:100%}
 .cad-canvas-wrap canvas{display:block;width:100%;height:100%}
 .cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
@@ -2979,11 +2979,17 @@ function cadBakeLeft(){
   cadLeftBuf=document.createElement('canvas');cadLeftBuf.width=500;cadLeftBuf.height=500;
   const lx=cadLeftBuf.getContext('2d');
   const tc=cadMacro*CAD_MICRO;
-  lx.fillStyle='#a0a0b8';
+  // Dark fabric background
+  lx.fillStyle='#1a3a5c';lx.fillRect(0,0,500,500);
+  // Sub-grid dots everywhere
+  lx.fillStyle='rgba(160,160,184,0.25)';
   for(let u=0;u<=tc;u++)for(let v=0;v<=tc;v++){
-    if(u%CAD_MICRO!==0&&v%CAD_MICRO!==0){const p=cadG2S(u,v,cadOX,cadOY,cadTileSize);lx.fillRect(p.x-1.5,p.y-1.5,3,3);}
+    const onMain=(u%CAD_MICRO===0)&&(v%CAD_MICRO===0);
+    const p=cadG2S(u,v,cadOX,cadOY,cadTileSize);
+    lx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
   }
-  lx.lineWidth=2;lx.strokeStyle='#c5c5d5';
+  // Main grid lines
+  lx.lineWidth=1.5;lx.strokeStyle='rgba(220,235,255,0.15)';
   for(let i=0;i<=cadMacro;i++){
     const val=i*CAD_MICRO;
     lx.beginPath();const p1=cadG2S(val,0,cadOX,cadOY,cadTileSize),p2=cadG2S(val,tc,cadOX,cadOY,cadTileSize);lx.moveTo(p1.x,p1.y);lx.lineTo(p2.x,p2.y);lx.stroke();
@@ -2993,9 +2999,22 @@ function cadBakeLeft(){
 function cadBakeRight(){
   cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
   const rx=cadRightBuf.getContext('2d');
-  rx.lineWidth=1.5;rx.strokeStyle='#3a3a4a';
+  // Dark fabric background
+  rx.fillStyle='#1a3a5c';rx.fillRect(0,0,500,500);
+  // Sub-grid dots
+  rx.fillStyle='rgba(160,160,184,0.2)';
   const ptc=cadPatMacro*CAD_MICRO,ov=cadPatMacro;
   for(let i=-ov;i<=cadPatMacro+ov;i++){
+    for(let j=-ov;j<=cadPatMacro+ov;j++){
+      const u=i*CAD_MICRO,v=j*CAD_MICRO;
+      const onMain=(u%CAD_MICRO===0)&&(v%CAD_MICRO===0);
+      const p=cadG2S(u,v,cadPOX,cadPOY,cadPTile);
+      rx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
+    }
+  }
+  // Main grid lines
+  rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.12)';
+  for(let i=-ov;i<=cadPatMacro+ov;i+=cadPatMacro){
     const val=i*CAD_MICRO;
     rx.beginPath();const p1=cadG2S(val,-ov*CAD_MICRO,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,(cadPatMacro+ov)*CAD_MICRO,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
     rx.beginPath();const p3=cadG2S(-ov*CAD_MICRO,val,cadPOX,cadPOY,cadPTile),p4=cadG2S((cadPatMacro+ov)*CAD_MICRO,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
