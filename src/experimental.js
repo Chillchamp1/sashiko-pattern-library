@@ -1009,7 +1009,7 @@ function drawExpGuide(){
   const STEP=10;                                   // one macro cell; canvas clips lines to the square
   const u0=Math.floor(minU/STEP)*STEP, u1=Math.ceil(maxU/STEP)*STEP;
   const v0=Math.floor(minV/STEP)*STEP, v1=Math.ceil(maxV/STEP)*STEP;
-  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=0.8; ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=zlw(0.8); ctx.setLineDash([]);
   for(let u=u0;u<=u1;u+=STEP){
     const a=EXP_g2s([u,v0]),b=EXP_g2s([u,v1]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
@@ -1024,12 +1024,12 @@ function renderExp(step){
   const ch=EXP_canvasH||SIZE;
   // Fabric background
   ctx.fillStyle='#1a3a5c'; ctx.fillRect(0,0,SIZE,ch);
-  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1; ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=zlw(1); ctx.setLineDash([]);
   for(let y=4;y<ch;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
   drawExpGuide();
   if(!EXP_path.length)return;
   // Completed stitches — coloured by family (skip toggled-off)
-  ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.lineWidth=zlw(3); ctx.lineCap='round';
   for(let i=0;i<Math.min(step,EXP_path.length);i++){
     const s=EXP_path[i];
     if(_famToggles[s.fam]===false)continue;
@@ -1038,7 +1038,7 @@ function renderExp(step){
     ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
   }
   // Back-thread dashes (skip toggled-off)
-  ctx.strokeStyle='rgba(243,239,228,0.18)'; ctx.lineWidth=1.4;
+  ctx.strokeStyle='rgba(243,239,228,0.18)'; ctx.lineWidth=zlw(1.4);
   ctx.setLineDash([2,4]); ctx.lineCap='butt';
   for(let i=1;i<EXP_path.length&&i<=step;i++){
     if(EXP_path[i].jump){

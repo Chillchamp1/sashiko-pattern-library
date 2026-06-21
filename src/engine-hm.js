@@ -83,20 +83,20 @@ function buildHMcore(rowBits,colBits){
 }
 
 function drawHMGuide(){
-  ctx.strokeStyle='rgba(220,235,255,0.07)'; ctx.lineWidth=0.5; ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=zlw(0.5); ctx.setLineDash([]);
   for(let i=0;i<HM_N;i++){ctx.beginPath();ctx.moveTo(shx(i),shy(0));ctx.lineTo(shx(i),shy(HM_N-1));ctx.stroke();}
   for(let j=0;j<HM_N;j++){ctx.beginPath();ctx.moveTo(shx(0),shy(j));ctx.lineTo(shx(HM_N-1),shy(j));ctx.stroke();}
 }
 function drawHMFront(s){
   const col=s.phase==='H'?PHASE_COLORS.H[s.lp]:PHASE_COLORS.V[s.lp];
   ctx.lineCap='round'; ctx.setLineDash([]);
-  ctx.strokeStyle='rgba(0,8,20,0.45)'; ctx.lineWidth=4.8;
+  ctx.strokeStyle='rgba(0,8,20,0.45)'; ctx.lineWidth=zlw(4.8);
   ctx.beginPath();ctx.moveTo(s.x1,s.y1+0.9);ctx.lineTo(s.x2,s.y2+0.9);ctx.stroke();
-  ctx.strokeStyle=col; ctx.lineWidth=3;
+  ctx.strokeStyle=col; ctx.lineWidth=zlw(3);
   ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.stroke();
 }
 function drawHMBack(s){
-  ctx.strokeStyle='rgba(243,239,228,0.15)'; ctx.lineWidth=1.3;
+  ctx.strokeStyle='rgba(243,239,228,0.15)'; ctx.lineWidth=zlw(1.3);
   ctx.setLineDash([2,4]); ctx.lineCap='butt';
   ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.stroke();
   ctx.setLineDash([]);
