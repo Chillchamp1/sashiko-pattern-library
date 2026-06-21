@@ -2,7 +2,7 @@
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
-let TICK_MS=160, _zoom=1, _zoomInited=false;
+let TICK_MS=160, _zoom=1, _panX=0, _panY=0, _zoomInited=false;
 let _famToggles={};
 let _famPainting=false;
 
@@ -229,15 +229,24 @@ function _setupCanvasSize(w,h){
   cv.style.width=w+'px';
   cv.style.height=h+'px';
   ctx.setTransform(DPR*_zoom,0,0,DPR*_zoom,0,0);
+  // Visual zoom via CSS transform on stage (clipped by anim-body overflow:hidden)
+  const s=document.querySelector('#animBody .stage');
+  if(s){s.style.transform=`translate(${_panX}px,${_panY}px) scale(${_zoom})`;s.style.transformOrigin='0 0';}
 }
-function _resetZoom(){_zoom=1;_setupCanvasSize(SIZE,SIZE);}
+function _resetZoom(){_zoom=1;_panX=0;_panY=0;_setupCanvasSize(SIZE,SIZE);}
 function initAnimZoom(){
   if(_zoomInited)return;_zoomInited=true;
   cv.addEventListener('wheel',e=>{
     if(!document.getElementById('animView').classList.contains('open'))return;
     e.preventDefault();
-    const nz=Math.max(0.25,Math.min(_zoom*(e.deltaY>0?0.9:1.1),8));
+    const r=cv.getBoundingClientRect();
+    const mx=e.clientX-r.left,my=e.clientY-r.top;
+    const delta=e.deltaY>0?0.9:1.1;
+    const nz=Math.max(0.25,Math.min(_zoom*delta,8));
     if(nz===_zoom)return;
+    const ratio=nz/_zoom;
+    _panX=mx-(mx-_panX)*ratio;
+    _panY=my-(my-_panY)*ratio;
     _zoom=nz;
     const ch=EXP_canvasH||SIZE;
     _setupCanvasSize(SIZE,ch);
