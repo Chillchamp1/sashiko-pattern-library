@@ -391,6 +391,60 @@ window.cadSaveToLibrary=function(){
   btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
 };
+
+// ── Tile preview animation ────────────────────────────────────────────────
+let _tpOn=false,_tpStep=0,_tpSts=[],_tpRAF=null,_tpLast=0;
+window.cadTilePlay=function(){
+  if(_tpOn){_stopTilePlay();return;}
+  if(!cadLines.length)return;
+  const bbox=cadBBox();if(!bbox)return;
+  const redSet=new Set(cadFindRedundant());
+  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!cleanLines.length)return;
+  const lines=cleanLines.map(l=>({start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]}));
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro};
+  pat.families=[...cadFamilies];
+  const segs=genTiledSegs(pat);
+  const path=buildExpPath(segs);
+  // Scale stitches to fit tile canvas
+  let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
+  path.forEach(s=>{mx=Math.min(mx,s.p0[0],s.p1[0]);Mx=Math.max(Mx,s.p0[0],s.p1[0]);my=Math.min(my,s.p0[1],s.p1[1]);My=Math.max(My,s.p0[1],s.p1[1]);});
+  if(!isFinite(mx)||!path.length)return;
+  const pw=Mx-mx||1,ph=My-my||1;
+  const pad=16,sc=Math.min((500-2*pad)/pw,(500-2*pad)/ph);
+  const ox=(500-pw*sc)/2-mx*sc,oy=(500-ph*sc)/2-my*sc;
+  _tpSts=path.map(s=>({fam:s.fam,x1:ox+s.p0[0]*sc,y1:oy+s.p0[1]*sc,x2:ox+s.p1[0]*sc,y2:oy+s.p1[1]*sc}));
+  _tpStep=0;_tpOn=true;_tpLast=0;
+  document.getElementById('cadBtnTilePlay').textContent='⏹ Stop';
+  document.getElementById('cadBtnTilePlay').style.color='#ff8888';
+  _renderTileFrame();
+  _tpRAF=requestAnimationFrame(_tpLoop);
+};
+function _stopTilePlay(){
+  _tpOn=false;
+  if(_tpRAF){cancelAnimationFrame(_tpRAF);_tpRAF=null;}
+  document.getElementById('cadBtnTilePlay').textContent='▶ Play';
+  document.getElementById('cadBtnTilePlay').style.color='#88cc88';
+  cadDrawPattern();
+}
+function _renderTileFrame(){
+  const pv=document.getElementById('patCanvas');if(!pv||!_tpSts)return;
+  const x=pv.getContext('2d');
+  x.clearRect(0,0,500,500);
+  if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
+  x.lineWidth=2.5;x.lineCap='round';
+  _tpSts.forEach((s,i)=>{
+    if(i>=_tpStep)return;
+    x.strokeStyle=FAM_PALETTE[s.fam%FAM_PALETTE.length];
+    x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
+  });
+}
+function _tpLoop(t){
+  if(!_tpOn)return;
+  if(t-_tpLast>=40){_tpLast=t;_tpStep++;_renderTileFrame();}
+  if(_tpStep>=_tpSts.length){_stopTilePlay();return;}
+  _tpRAF=requestAnimationFrame(_tpLoop);
+}
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
 function cadInit(){
   if(cadInited)return;cadInited=true;
