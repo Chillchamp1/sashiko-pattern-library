@@ -1129,6 +1129,7 @@ window.showCAD=function(){
   window.scrollTo({top:0,behavior:'smooth'});
 };
 window.showGalleryFromCAD=function(){
+  cadEditId=null;
   document.getElementById('cadView').classList.remove('open');
   document.getElementById('myPatsView').classList.add('open');
   rebuildMyPatsView();
