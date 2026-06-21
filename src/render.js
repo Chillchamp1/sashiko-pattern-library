@@ -234,6 +234,14 @@ function _setupCanvasSize(w,h){
   if(s){s.style.transform=`translate(${_panX}px,${_panY}px) scale(${_zoom})`;s.style.transformOrigin='0 0';}
 }
 function _resetZoom(){_zoom=1;_panX=0;_panY=0;_setupCanvasSize(SIZE,SIZE);}
+function _clampPan(){
+  const ch=EXP_canvasH||SIZE;
+  const minVis=60; // at least 60px of pattern must remain visible
+  const maxPX=SIZE*_zoom-minVis, maxPY=ch*_zoom-minVis;
+  _panX=Math.max(-maxPX,Math.min(minVis*_zoom,_panX));
+  _panY=Math.max(-maxPY,Math.min(minVis*_zoom,_panY));
+}
+let _panning=false,_panStartX=0,_panStartY=0,_panOrigX=0,_panOrigY=0;
 function initAnimZoom(){
   if(_zoomInited)return;_zoomInited=true;
   cv.addEventListener('wheel',e=>{
@@ -250,7 +258,31 @@ function initAnimZoom(){
     _zoom=nz;
     const ch=EXP_canvasH||SIZE;
     _setupCanvasSize(SIZE,ch);
+    _clampPan();_setupCanvasSize(SIZE,ch);
     render(step);
   },{passive:false});
+  // Pan via middle/right mouse drag
+  cv.addEventListener('pointerdown',e=>{
+    if(!document.getElementById('animView').classList.contains('open'))return;
+    if(e.button===1||e.button===2||(e.button===0&&e.ctrlKey)){
+      e.preventDefault();cv.setPointerCapture(e.pointerId);
+      _panning=true;_panStartX=e.clientX;_panStartY=e.clientY;
+      _panOrigX=_panX;_panOrigY=_panY;
+      cv.style.cursor='grabbing';
+    }
+  });
+  cv.addEventListener('pointermove',e=>{
+    if(!_panning)return;
+    _panX=_panOrigX+(e.clientX-_panStartX);
+    _panY=_panOrigY+(e.clientY-_panStartY);
+    _clampPan();_setupCanvasSize(SIZE,EXP_canvasH||SIZE);
+  });
+  cv.addEventListener('pointerup',e=>{
+    if(_panning){_panning=false;cv.style.cursor='';cv.releasePointerCapture(e.pointerId);}
+  });
+  cv.addEventListener('pointerleave',()=>{
+    if(_panning){_panning=false;cv.style.cursor='';}
+  });
+  cv.addEventListener('contextmenu',e=>e.preventDefault());
 }
 
