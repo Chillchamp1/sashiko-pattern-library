@@ -2496,10 +2496,11 @@ function buildExpPath(lines){
     const ordered=orderStrokesFamily(strokes);
 
     if(cur&&ordered.length>0){
-      const s0=ordered[0].pts;
-      const dS=Math.hypot(s0[0][0]-cur[0],s0[0][1]-cur[1]);
-      const dE=Math.hypot(s0[s0.length-1][0]-cur[0],s0[s0.length-1][1]-cur[1]);
-      if(dE<dS)ordered[0].pts=s0.slice().reverse();
+      // Compare front-of-family vs back-of-family entry to preserve the snake
+      const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
+      const dFront=Math.hypot(sFirst[0][0]-cur[0],sFirst[0][1]-cur[1]);
+      const dBack =Math.hypot(sLast[sLast.length-1][0]-cur[0],sLast[sLast.length-1][1]-cur[1]);
+      if(dBack<dFront){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
     }
 
     for(let si=0;si<ordered.length;si++){
@@ -2610,7 +2611,7 @@ function orderStrokesFamily(strokes){
   S.forEach(s=>{s.bc=s.cx*perp[0]+s.cy*perp[1]; s.ac=s.cx*dir[0]+s.cy*dir[1];});
 
   // detect natural band pitch
-  const bcs=[...new Set(S.map(s=>Math.round(s.bc*2)/2))].sort((a,b)=>a-b);
+  const bcs=[...new Set(S.map(s=>Math.round(s.bc)))].sort((a,b)=>a-b);
   let pitch=Infinity;
   for(let i=1;i<bcs.length;i++)pitch=Math.min(pitch,bcs[i]-bcs[i-1]);
   if(!isFinite(pitch)||pitch<1e-6)pitch=1;
@@ -2628,18 +2629,14 @@ function orderStrokesFamily(strokes){
 // then minimises total deflection cost; never pairs above maxCost.
 function matchVertex(d,cost,maxCost){
   if(d>8){
+    // Deterministic greedy: sort pairs by cost ascending, pick cheapest available
     const allPairs=[];
     for(let i=0;i<d;i++)for(let j=i+1;j<d;j++){const c=cost(i,j); if(c<=maxCost)allPairs.push([c,i,j]);}
     if(!allPairs.length) return new Int32Array(d).fill(-1);
-    let bestPairs=-1, bestCost=Infinity, bestArr=null;
-    const ITERS=Math.min(40, Math.max(15, Math.ceil(allPairs.length/2)));
-    for(let iter=0;iter<ITERS;iter++){
-      for(let k=allPairs.length-1;k>0;k--){const r=Math.floor(Math.random()*(k+1));[allPairs[k],allPairs[r]]=[allPairs[r],allPairs[k]];}
-      const arr=new Int32Array(d).fill(-1), used=new Uint8Array(d); let prs=0, csum=0;
-      for(const[c,i,j]of allPairs){if(!used[i]&&!used[j]){used[i]=used[j]=1;arr[i]=j;arr[j]=i;prs++;csum+=c;}}
-      if(prs>bestPairs||(prs===bestPairs&&csum<bestCost)){bestPairs=prs;bestCost=csum;bestArr=arr;}
-    }
-    return bestArr||new Int32Array(d).fill(-1);
+    allPairs.sort((a,b)=>a[0]-b[0]);
+    const arr=new Int32Array(d).fill(-1), used=new Uint8Array(d);
+    for(const[c,i,j]of allPairs){if(!used[i]&&!used[j]){used[i]=used[j]=1;arr[i]=j;arr[j]=i;}}
+    return arr;
   }
   let bestPairs=-1,bestCost=Infinity,bestArr=null;
   const arr=new Int32Array(d).fill(-1), used=new Uint8Array(d);
