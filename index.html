@@ -423,6 +423,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
           <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
           <button class="cad-tool" onclick="cadResetView()">🔍 Reset View</button>
+          <button class="cad-tool" id="cadBtnPlay" onclick="cadTogglePreview()" style="color:#88cc88">▶ Play</button>
         </div>
       </div>
       <div class="cad-panel">
@@ -2868,7 +2869,14 @@ function cadAutoAssign(){
   if(!cadLines.length)return;
   const iso=cadGridType==='isometric';
   const THRESH=5*Math.PI/180;
+  const groups=[];
+  // All arc-tagged lines share one family
+  const arcIdxs=[];
+  for(let i=0;i<cadLines.length;i++){if(cadLines[i].arc)arcIdxs.push(i);}
+  if(arcIdxs.length)groups.push({angle:-1,members:arcIdxs});
+  // Group remaining (non-arc) lines by orientation angle
   const angles=cadLines.map(l=>{
+    if(l.arc)return -1;
     const du=l.end[0]-l.start[0], dv=l.end[1]-l.start[1];
     let dx=du, dy=dv;
     if(iso){dx=du-dv; dy=du+dv;}
@@ -2877,15 +2885,16 @@ function cadAutoAssign(){
     return a<0?a+Math.PI:a;
   });
   function ad(a,b){let d=Math.abs(a-b);if(d>Math.PI/2)d=Math.PI-d;return d;}
-  const groups=[];
   for(let i=0;i<cadLines.length;i++){
+    if(cadLines[i].arc)continue;
     let found=false;
     for(const g of groups){
+      if(g.angle<0)continue;
       if(ad(angles[i],g.angle)<THRESH){g.members.push(i);found=true;break;}
     }
     if(!found)groups.push({angle:angles[i],members:[i]});
   }
-  groups.sort((a,b)=>a.angle-b.angle);
+  groups.sort((a,b)=>(a.angle<0?1:b.angle<0?-1:a.angle-b.angle));
   groups.forEach((g,fi)=>{g.members.forEach(i=>{cadFamilies[i]=fi;});});
 }
 
@@ -2899,15 +2908,17 @@ function cadGenArc(center,start,end){
   let sweep=a2-a1;
   while(sweep>Math.PI)sweep-=2*Math.PI;
   while(sweep<=-Math.PI)sweep+=2*Math.PI;
-  if(Math.hypot(end[0]-start[0],end[1]-start[1])<0.1)sweep=2*Math.PI; // full circle
-  const segs=Math.max(3,Math.round((Math.abs(sweep)/(2*Math.PI))*30)); // max 30 segs per full circle
+  if(Math.hypot(end[0]-start[0],end[1]-start[1])<0.1)sweep=2*Math.PI;
+  const segs=Math.max(3,Math.round((Math.abs(sweep)/(2*Math.PI))*30));
   const result=[];let prev=[...start];
   for(let i=1;i<=segs;i++){
     const a=a1+sweep*(i/segs);
     const next=[center[0]+r*Math.cos(a),center[1]+r*Math.sin(a)];
-    result.push({start:prev,end:next});
+    result.push({start:prev,end:next,arc:true});
     prev=next;
   }
+  return result;
+}
   return result;
 }
 
@@ -2948,8 +2959,8 @@ function cadBakeRight(){
 function cadDrawWorkspace(){
   const cv=document.getElementById('cadCanvas');if(!cv)return;
   const x=cv.getContext('2d');
-  x.clearRect(0,0,CAD_SIZE*CAD_DPR,CAD_SIZE*CAD_DPR);
-  if(cadLeftBuf)x.drawImage(cadLeftBuf,0,0);
+  x.clearRect(0,0,CAD_SIZE,CAD_SIZE);
+  if(cadLeftBuf)x.drawImage(cadLeftBuf,0,0,CAD_SIZE,CAD_SIZE);
 
   // Build full line list including previews
   const all=[...cadLines];
@@ -3043,8 +3054,8 @@ function cadDrawWorkspace(){
 function cadDrawPattern(){
   const pv=document.getElementById('patCanvas');if(!pv)return;
   const x=pv.getContext('2d');
-  x.clearRect(0,0,CAD_SIZE*CAD_DPR,CAD_SIZE*CAD_DPR);
-  if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
+  x.clearRect(0,0,CAD_SIZE,CAD_SIZE);
+  if(cadRightBuf)x.drawImage(cadRightBuf,0,0,CAD_SIZE,CAD_SIZE);
   const all=[...cadLines];
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
   if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur)
@@ -3157,6 +3168,69 @@ window.cadPreviewAnim=function(){
   loadPattern(pat);
   window.scrollTo({top:0,behavior:'smooth'});
 };
+
+// ── Inline preview on CAD canvas ─────────────────────────────────────────
+let _cadPrevOn=false, _cadPrevStep=0, _cadPrevPath=[], _cadPrevRAF=null, _cadPrevSts=[];
+window.cadTogglePreview=function(){
+  if(_cadPrevOn){_stopCadPreview();return;}
+  if(!cadLines.length)return;
+  const bbox=cadBBox();if(!bbox)return;
+  const redSet=new Set(cadFindRedundant());
+  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!cleanLines.length)return;
+  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro};
+  const segs=genTiledSegs(pat);
+  _cadPrevPath=buildExpPath(segs);
+  // Compute bounding box of all stitch endpoints in screen space
+  let mx=-Infinity,Mx=Infinity,my=-Infinity,My=Infinity;
+  _cadPrevPath.forEach(s=>{
+    mx=Math.min(mx,s.p0[0],s.p1[0]);Mx=Math.max(Mx,s.p0[0],s.p1[0]);
+    my=Math.min(my,s.p0[1],s.p1[1]);My=Math.max(My,s.p0[1],s.p1[1]);
+  });
+  if(!isFinite(mx)){_cadPrevOn=false;return;}
+  const pw=Mx-mx||1,ph=My-my||1;
+  const pad=20,sc=Math.min((CAD_SIZE-2*pad)/pw,(CAD_SIZE-2*pad)/ph);
+  const ox=(CAD_SIZE-pw*sc)/2-mx*sc,oy=(CAD_SIZE-ph*sc)/2-my*sc;
+  _cadPrevSts=_cadPrevPath.map(s=>({
+    fam:s.fam,
+    x1:ox+s.p0[0]*sc,y1:oy+s.p0[1]*sc,
+    x2:ox+s.p1[0]*sc,y2:oy+s.p1[1]*sc
+  }));
+  _cadPrevStep=0;_cadPrevOn=true;
+  document.getElementById('cadBtnPlay').textContent='⏹ Stop';
+  document.getElementById('cadBtnPlay').style.color='#ff8888';
+  _renderCadPreview();
+  _cadPrevRAF=requestAnimationFrame(_cadPrevLoop);
+};
+function _stopCadPreview(){
+  _cadPrevOn=false;
+  if(_cadPrevRAF){cancelAnimationFrame(_cadPrevRAF);_cadPrevRAF=null;}
+  document.getElementById('cadBtnPlay').textContent='▶ Play';
+  document.getElementById('cadBtnPlay').style.color='#88cc88';
+  cadDrawWorkspace();
+}
+function _renderCadPreview(){
+  const cv=document.getElementById('cadCanvas');if(!cv)return;
+  const x=cv.getContext('2d');
+  x.save();x.setTransform(1,0,0,1,0,0);
+  x.clearRect(0,0,CV_SIZE_PX(),CV_SIZE_PX());
+  x.fillStyle='#1a3a5c';x.fillRect(0,0,cv.width,cv.height);x.restore();
+  _cadPrevSts.forEach((s,i)=>{
+    if(i>=_cadPrevStep)return;
+    const col=famColor(s.fam);
+    x.strokeStyle=col;x.lineWidth=2.5;x.lineCap='round';
+    x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
+  });
+}
+function CV_SIZE_PX(){return CAD_SIZE*CAD_DPR;}
+let _cadPrevLast=0;
+function _cadPrevLoop(t){
+  if(!_cadPrevOn)return;
+  if(t-_cadPrevLast>=40){_cadPrevLast=t;_cadPrevStep++;_renderCadPreview();}
+  if(_cadPrevStep>=_cadPrevPath.length){_stopCadPreview();return;}
+  _cadPrevRAF=requestAnimationFrame(_cadPrevLoop);
+}
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*CAD_SIZE/r.width,y:(e.clientY-r.top)*CAD_SIZE/r.height};}
 function cadInit(){
   if(cadInited)return;cadInited=true;
