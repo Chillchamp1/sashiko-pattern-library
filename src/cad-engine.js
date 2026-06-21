@@ -428,12 +428,21 @@ window.cadTilePlay=function(){
   const segs=genTiledSegs(pat);
   const path=buildExpPath(segs);
   if(!path.length)return;
+  // Convert path grid coords to screen coords for bounding box
+  const lay=computeExpLayout(pat);
   let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
-  path.forEach(s=>{mx=Math.min(mx,s.p0[0],s.p1[0]);Mx=Math.max(Mx,s.p0[0],s.p1[0]);my=Math.min(my,s.p0[1],s.p1[1]);My=Math.max(My,s.p0[1],s.p1[1]);});
+  path.forEach(s=>{
+    const a=lay.g2s(s.start),b=lay.g2s(s.end);
+    mx=Math.min(mx,a.x,b.x);Mx=Math.max(Mx,a.x,b.x);
+    my=Math.min(my,a.y,b.y);My=Math.max(My,a.y,b.y);
+  });
   const pw=Mx-mx||1,ph=My-my||1;
   const pad=12,sc=Math.min((500-2*pad)/pw,(500-2*pad)/ph);
   const ox=(500-pw*sc)/2-mx*sc,oy=(500-ph*sc)/2-my*sc;
-  _tpSts=path.map(s=>({fam:s.fam,x1:ox+s.p0[0]*sc,y1:oy+s.p0[1]*sc,x2:ox+s.p1[0]*sc,y2:oy+s.p1[1]*sc}));
+  _tpSts=path.map(s=>{
+    const a=lay.g2s(s.start),b=lay.g2s(s.end);
+    return{fam:s.fam,x1:ox+a.x*sc,y1:oy+a.y*sc,x2:ox+b.x*sc,y2:oy+b.y*sc};
+  });
   _tpStep=0;_tpOn=true;_tpLast=0;
   document.getElementById('cadBtnTilePlay').textContent='⏹ Stop';
   document.getElementById('cadBtnTilePlay').style.color='#ff8888';
