@@ -3183,12 +3183,12 @@ window.cadTogglePreview=function(){
   const segs=genTiledSegs(pat);
   _cadPrevPath=buildExpPath(segs);
   // Compute bounding box of all stitch endpoints in screen space
-  let mx=-Infinity,Mx=Infinity,my=-Infinity,My=Infinity;
+  let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
   _cadPrevPath.forEach(s=>{
     mx=Math.min(mx,s.p0[0],s.p1[0]);Mx=Math.max(Mx,s.p0[0],s.p1[0]);
     my=Math.min(my,s.p0[1],s.p1[1]);My=Math.max(My,s.p0[1],s.p1[1]);
   });
-  if(!isFinite(mx)){_cadPrevOn=false;return;}
+  if(!isFinite(mx)||!_cadPrevPath.length){_cadPrevOn=false;return;}
   const pw=Mx-mx||1,ph=My-my||1;
   const pad=20,sc=Math.min((CAD_SIZE-2*pad)/pw,(CAD_SIZE-2*pad)/ph);
   const ox=(CAD_SIZE-pw*sc)/2-mx*sc,oy=(CAD_SIZE-ph*sc)/2-my*sc;
@@ -3214,8 +3214,9 @@ function _renderCadPreview(){
   const cv=document.getElementById('cadCanvas');if(!cv)return;
   const x=cv.getContext('2d');
   x.save();x.setTransform(1,0,0,1,0,0);
-  x.clearRect(0,0,CV_SIZE_PX(),CV_SIZE_PX());
+  x.clearRect(0,0,cv.width,cv.height);
   x.fillStyle='#1a3a5c';x.fillRect(0,0,cv.width,cv.height);x.restore();
+  if(!_cadPrevSts)return;
   _cadPrevSts.forEach((s,i)=>{
     if(i>=_cadPrevStep)return;
     const col=famColor(s.fam);
@@ -3223,7 +3224,6 @@ function _renderCadPreview(){
     x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
   });
 }
-function CV_SIZE_PX(){return CAD_SIZE*CAD_DPR;}
 let _cadPrevLast=0;
 function _cadPrevLoop(t){
   if(!_cadPrevOn)return;
