@@ -1253,8 +1253,12 @@ function initAnimZoom(){
     const delta=e.deltaY>0?0.9:1.1;
     const nz=Math.max(0.25,Math.min(_zoom*delta,8));
     if(nz===_zoom)return;
-    _zoom=nz;
+    // Zoom centered: keep visual center fixed
     const ch=EXP_canvasH||SIZE;
+    const cx=SIZE/2*_zoom+_panX, cy=ch/2*_zoom+_panY;
+    _zoom=nz;
+    _panX=cx-SIZE/2*_zoom;
+    _panY=cy-ch/2*_zoom;
     _setupCanvasSize(SIZE,ch);
     _clampPan();_setupCanvasSize(SIZE,ch);
     render(step);
