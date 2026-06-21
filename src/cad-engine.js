@@ -343,7 +343,7 @@ window.cadSaveToLibrary=function(){
     EXP_PATTERNS.unshift(pat);
   }
   _saveLocal();
-  if(_firebaseReady&&typeof _pushToFirestore==='function')_pushToFirestore(pat);
+  if(_firebaseReady)_pushToFirestore(pat);
   rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
   btn.textContent='✓ Saved!';btn.style.background='#1a5c28';

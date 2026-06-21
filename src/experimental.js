@@ -285,9 +285,19 @@ async function _fetchFromFirestore(){
   try{
     const snap=await _db.collection('patterns').orderBy('createdAt','desc').get();
     const remote=snap.docs.map(d=>d.data());
-    // Merge: remote is the truth, but re-attach thumbnails from local cache where available.
-    const localMap=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p.thumbnail]));
-    EXP_PATTERNS=remote.map(p=>({...p,thumbnail:localMap[p.id]||null}));
+    // Merge: remote is the base, but keep local entries that are not yet in remote
+    // and preserve local data for patterns that exist locally with a thumbnail (recently saved here).
+    const localById=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p]));
+    const remoteIds=new Set(remote.map(p=>p.id));
+    const merged=remote.map(p=>({
+      ...p,
+      thumbnail:(localById[p.id]&&localById[p.id].thumbnail)||null,
+      families:localById[p.id]?localById[p.id].families||p.families:p.families
+    }));
+    for(const p of EXP_PATTERNS){
+      if(!remoteIds.has(p.id))merged.push(p);
+    }
+    EXP_PATTERNS=merged;
     _saveLocal();
   }catch(e){console.warn('Firestore fetch failed, using local cache:',e);}
 }
