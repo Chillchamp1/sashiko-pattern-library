@@ -1,6 +1,6 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
-let cadGridType='isometric',cadMacro=3,cadPatMacro=5;
+let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -320,9 +320,10 @@ function cadDrawPattern(){
     cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>{l.preview=true;all.push(l);});
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
+  const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
   const ptc=cadPatMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
-  for(let ou=-ov;ou<=ptc+ov;ou+=dU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=dV){
+  for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){
     all.forEach((l,li)=>{
       if(l.preview)return;
       const u1=l.start[0]-bbox.minU+ou,v1=l.start[1]-bbox.minV+ov2;
@@ -351,6 +352,7 @@ window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
   cadPatMacro=parseInt(document.getElementById('cadPatSize').value);
+  cadSpacing=parseInt(document.getElementById('cadSpacing').value);
   cadZoom=1;cadPanX=0;cadPanY=0;
   const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*CAD_MICRO;
   if(cadGridType==='isometric'){
@@ -449,10 +451,11 @@ function _renderTileFrame(){
   // Tile the pattern across the preview
   const dU=Math.max(..._tpLines.map(l=>Math.max(l.u1,l.u2)))-Math.min(..._tpLines.map(l=>Math.min(l.u1,l.u2)))||4;
   const dV=Math.max(..._tpLines.map(l=>Math.max(l.v1,l.v2)))-Math.min(..._tpLines.map(l=>Math.min(l.v1,l.v2)))||4;
+  const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
   const ptc=cadPatMacro*CAD_MICRO;
   x.lineWidth=2.5;x.lineCap='round';
   let drawn=0;
-  for(let ou=0;ou<=ptc;ou+=dU){for(let ov=0;ov<=ptc;ov+=dV){
+  for(let ou=0;ou<=ptc;ou+=stepU){for(let ov=0;ov<=ptc;ov+=stepV){
     _tpLines.forEach((l)=>{
       if(drawn>=_tpStep)return;
       const p1=cadG2S(l.u1+ou,l.v1+ov,cadPOX,cadPOY,cadPTile);
