@@ -1,5 +1,5 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
-let cadLines=[],cadHistory=[],cadTool='draw',cadEditId=null;
+let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
@@ -104,6 +104,33 @@ function cadFindRedundant(){
   return [...redundant].sort((a,b)=>a-b);
 }
 
+// Auto-assign families for CAD lines based on screen orientation angle
+function cadAutoAssign(){
+  cadFamilies=new Array(cadLines.length).fill(-1);
+  if(!cadLines.length)return;
+  const iso=cadGridType==='isometric';
+  const THRESH=5*Math.PI/180;
+  const angles=cadLines.map(l=>{
+    const du=l.end[0]-l.start[0], dv=l.end[1]-l.start[1];
+    let dx=du, dy=dv;
+    if(iso){dx=du-dv; dy=du+dv;}
+    if(!dx&&!dy)return 0;
+    const a=Math.atan2(dy,dx);
+    return a<0?a+Math.PI:a;
+  });
+  function ad(a,b){let d=Math.abs(a-b);if(d>Math.PI/2)d=Math.PI-d;return d;}
+  const groups=[];
+  for(let i=0;i<cadLines.length;i++){
+    let found=false;
+    for(const g of groups){
+      if(ad(angles[i],g.angle)<THRESH){g.members.push(i);found=true;break;}
+    }
+    if(!found)groups.push({angle:angles[i],members:[i]});
+  }
+  groups.sort((a,b)=>a.angle-b.angle);
+  groups.forEach((g,fi)=>{g.members.forEach(i=>{cadFamilies[i]=fi;});});
+}
+
 // Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
 // Click start again for full circle. Stores result as polyline segments.
 function cadGenArc(center,start,end){
@@ -182,7 +209,9 @@ function cadDrawWorkspace(){
 
   x.lineWidth=4;x.lineCap='round';
   cadLines.forEach((l,i)=>{
-    x.strokeStyle=(cadHover&&cadHover.li===i)?'#00ffcc55':'#00ffcc';
+    const fi=cadFamilies[i];
+    const col=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
+    x.strokeStyle=(cadHover&&cadHover.li===i)?col+'55':col;
     const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize),p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
     x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   });
@@ -278,6 +307,7 @@ function cadDrawPattern(){
   }}
 }
 function cadUpdateAll(){
+  cadAutoAssign();
   cadDrawWorkspace();cadDrawPattern();
   // Update redundancy hint
   const el=document.getElementById('cadArcHint');
@@ -337,10 +367,10 @@ window.cadSaveToLibrary=function(){
       if(oldFams.length===pat.lines.length)pat.families=oldFams;
       else autoAssignFamilies(pat);
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();autoAssignFamilies(pat);EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.families=[...cadFamilies];EXP_PATTERNS.unshift(pat);}
   }else{
     pat.id='exp_'+Date.now();
-    autoAssignFamilies(pat);
+    pat.families=[...cadFamilies];
     EXP_PATTERNS.unshift(pat);
   }
   _saveLocal();
