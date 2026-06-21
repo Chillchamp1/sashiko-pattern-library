@@ -177,16 +177,16 @@ function drawPLGuide(){
     ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,e);ctx.stroke();
     ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(e,p);ctx.stroke();
   }
-  // Dot grid: sub-grid dots + main grid dots
+  // Dot grid: sub-grid dots everywhere, main intersections larger
   ctx.fillStyle='rgba(160,160,184,0.25)';
-  const sds=zds(2), mds=zds(3);
+  const sds=zds(2), mds=zds(3.5);
   for(let i=0;i<=PL_N;i++){
     for(let j=0;j<=PL_N;j++){
       const onMain=(i%PL_guideStep===0)&&(j%PL_guideStep===0);
-      if(!onMain&&(i%PL_guideStep!==0||j%PL_guideStep!==0))continue; // skip non-grid points
       const d=onMain?mds:sds;
       ctx.fillRect(PAD+i*PL_HU-d/2,PAD+j*PL_HU-d/2,d,d);
     }
+  }
   }
 }
 function drawPLFront(seg){

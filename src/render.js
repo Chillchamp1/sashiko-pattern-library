@@ -17,15 +17,14 @@ function zds(s){return Math.max(0.5,s/_zoom);}
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
   ctx.fillStyle=getCss('--fabric'); ctx.fillRect(0,0,SIZE,SIZE);
-  // Dot grid: sub-grid dots everywhere, main grid dots slightly larger
+  // Dot grid: sub-grid dots everywhere, main intersections larger
   ctx.fillStyle='rgba(160,160,184,0.25)';
-  const ds=zds(2), SUB=5; // sub-grid every 5px
+  const SUB=5, sds=zds(2), mds=zds(3.5);
   for(let x=PAD;x<=SIZE-PAD;x+=SUB){
     for(let y=PAD;y<=SIZE-PAD;y+=SUB){
-      const onMainX=((x-PAD)%G===0), onMainY=((y-PAD)%G===0);
-      const isMain=onMainX&&onMainY;
-      const d=isMain?zds(3):ds;
-      if(!onMainX&&!onMainY||isMain)ctx.fillRect(x-d/2,y-d/2,d,d);
+      const onMain=((x-PAD)%G===0)&&((y-PAD)%G===0);
+      const d=onMain?mds:sds;
+      ctx.fillRect(x-d/2,y-d/2,d,d);
     }
   }
 }
