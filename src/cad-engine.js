@@ -378,10 +378,10 @@ window.cadSaveToLibrary=function(){
       if(oldFams.length===pat.lines.length)pat.families=oldFams;
       else autoAssignFamilies(pat);
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.families=[...cadFamilies];EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
   }else{
     pat.id='exp_'+Date.now();
-    pat.families=[...cadFamilies];
+    pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
     EXP_PATTERNS.unshift(pat);
   }
   _saveLocal();
@@ -403,7 +403,7 @@ window.cadTilePlay=function(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]}));
   const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro};
-  pat.families=[...cadFamilies];
+  pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const path=buildExpPath(segs);
   // Scale stitches to fit tile canvas
