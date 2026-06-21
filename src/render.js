@@ -2,7 +2,7 @@
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
-let TICK_MS=160;
+let TICK_MS=160, _zoom=1, _zoomInited=false;
 let _famToggles={};
 let _famPainting=false;
 
@@ -155,9 +155,10 @@ function buildJumpBar(){
 
 // ── Load pattern ───────────────────────────────────────────────────────────
 function loadPattern(pat){
+  _resetZoom();
   // Restore default square canvas if a previous exp iso pattern changed the height.
   if(Math.round(cv.height/DPR)!==SIZE){
-    cv.height=SIZE*DPR; cv.style.height=SIZE+'px'; ctx.setTransform(DPR,0,0,DPR,0,0);
+    _setupCanvasSize(SIZE,SIZE);
   }
 
   curPat=pat;
@@ -219,5 +220,28 @@ function loadPattern(pat){
   document.getElementById('animTip').textContent=pat.tip||'';
   step=0;if(playing)pause();
   buildJumpBar();render(0);
+}
+
+// ── Zoom (mouse wheel, canvas resolution) ─────────────────────────────────
+function _setupCanvasSize(w,h){
+  cv.width=Math.round(w*DPR*_zoom);
+  cv.height=Math.round(h*DPR*_zoom);
+  cv.style.width=w+'px';
+  cv.style.height=h+'px';
+  ctx.setTransform(DPR*_zoom,0,0,DPR*_zoom,0,0);
+}
+function _resetZoom(){_zoom=1;_setupCanvasSize(SIZE,SIZE);}
+function initAnimZoom(){
+  if(_zoomInited)return;_zoomInited=true;
+  cv.addEventListener('wheel',e=>{
+    if(!document.getElementById('animView').classList.contains('open'))return;
+    e.preventDefault();
+    const nz=Math.max(0.25,Math.min(_zoom*(e.deltaY>0?0.9:1.1),8));
+    if(nz===_zoom)return;
+    _zoom=nz;
+    const ch=EXP_canvasH||SIZE;
+    _setupCanvasSize(SIZE,ch);
+    render(step);
+  },{passive:false});
 }
 

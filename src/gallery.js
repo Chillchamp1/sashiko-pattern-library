@@ -28,6 +28,10 @@ function buildGallery(){
     const thumb=document.createElement('canvas');
     thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
     card.appendChild(thumb);
+    const editBtn=document.createElement('button');
+    editBtn.className='exp-edit-btn';editBtn.title='Edit (admin)';editBtn.textContent='✎';
+    editBtn.onclick=e=>{e.stopPropagation();editExpPattern(pat);};
+    card.appendChild(editBtn);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
     const badge=document.createElement('div');badge.className='pcard-badge';badge.textContent=pat.gridType==='isometric'?'Isometric':'Square';
     card.append(name,badge);
@@ -75,6 +79,7 @@ window.setFilter=function(btn){
 
 // ── View switching ─────────────────────────────────────────────────────────
 function openPattern(pat){
+  history.replaceState(null,'','#'+pat.id);
   document.getElementById('galleryView').style.display='none';
   document.getElementById('animView').classList.add('open');
   loadPattern(pat);
@@ -90,6 +95,7 @@ window.showGallery=function(){
     document.getElementById('animView').classList.remove('open');
     document.getElementById('galleryView').style.display='block';
   }
+  history.replaceState(null,'',location.pathname);
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

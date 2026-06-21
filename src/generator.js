@@ -181,7 +181,7 @@ document.querySelectorAll('.speed-btn').forEach(b=>{
     b.classList.add('sel');
     const s=b.dataset.speed;
     if(s==='slow')TICK_MS=240;
-    else if(s==='fast')TICK_MS=40;
+    else if(s==='fast')TICK_MS=13;
     else TICK_MS=160;
   };
 });
