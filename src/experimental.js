@@ -1024,8 +1024,6 @@ function renderExp(step){
   const ch=EXP_canvasH||SIZE;
   // Fabric background
   ctx.fillStyle='#1a3a5c'; ctx.fillRect(0,0,SIZE,ch);
-  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=zlw(1); ctx.setLineDash([]);
-  for(let y=4;y<ch;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
   drawExpGuide();
   if(!EXP_path.length)return;
   // Completed stitches — coloured by family (skip toggled-off)

@@ -17,8 +17,6 @@ function zds(s){return Math.max(0.5,s/_zoom);}
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
   ctx.fillStyle=getCss('--fabric'); ctx.fillRect(0,0,SIZE,SIZE);
-  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=zlw(1); ctx.setLineDash([]);
-  for(let y=4;y<SIZE;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
   // Dot grid at intersections
   ctx.fillStyle='rgba(160,160,184,0.4)';
   const ds=zds(3);
