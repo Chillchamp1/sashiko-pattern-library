@@ -170,7 +170,7 @@ function buildTsuzukiYamagata(NHU){
 
 function plPx(coord){return PAD+coord*PL_HU;}
 function drawPLGuide(){
-  ctx.strokeStyle='rgba(220,235,255,0.07)';ctx.lineWidth=1;ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(220,235,255,0.15)';ctx.lineWidth=1;ctx.setLineDash([]);
   const e=PAD+PL_N*PL_HU;
   for(let i=0;i<=PL_N;i+=PL_guideStep){
     const p=PAD+i*PL_HU;

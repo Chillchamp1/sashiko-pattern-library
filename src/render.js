@@ -14,11 +14,11 @@ function famLabel(famIdx,dirCat){return 'Line '+(famIdx+1)+(dirCat!==undefined?'
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
   ctx.fillStyle=getCss('--fabric'); ctx.fillRect(0,0,SIZE,SIZE);
-  ctx.strokeStyle='rgba(255,255,255,0.025)'; ctx.lineWidth=1; ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1; ctx.setLineDash([]);
   for(let y=4;y<SIZE;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
 }
 function drawGuide(){
-  ctx.strokeStyle='rgba(220,235,255,0.07)'; ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=1;
   for(let i=0;i<N;i++){ctx.beginPath();ctx.moveTo(sx(i),sy(0));ctx.lineTo(sx(i),sy(N-1));ctx.stroke();}
   for(let j=0;j<N;j++){ctx.beginPath();ctx.moveTo(sx(0),sy(j));ctx.lineTo(sx(N-1),sy(j));ctx.stroke();}
 }
