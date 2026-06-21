@@ -337,13 +337,14 @@ window.cadSaveToLibrary=function(){
       else autoAssignFamilies(pat);
       EXP_PATTERNS[idx]=pat;
     }else{pat.id='exp_'+Date.now();autoAssignFamilies(pat);EXP_PATTERNS.unshift(pat);}
-    cadEditId=null;
   }else{
     pat.id='exp_'+Date.now();
     autoAssignFamilies(pat);
     EXP_PATTERNS.unshift(pat);
   }
-  saveExpPatterns(pat);rebuildExpGallery();
+  _saveLocal();
+  if(_firebaseReady&&typeof _pushToFirestore==='function')_pushToFirestore(pat);
+  rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
   btn.textContent='✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
