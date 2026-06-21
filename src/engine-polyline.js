@@ -170,20 +170,26 @@ function buildTsuzukiYamagata(NHU){
 
 function plPx(coord){return PAD+coord*PL_HU;}
 function drawPLGuide(){
-  ctx.strokeStyle='rgba(220,235,255,0.15)';ctx.lineWidth=1;ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(220,235,255,0.15)';ctx.lineWidth=zlw(1);ctx.setLineDash([]);
   const e=PAD+PL_N*PL_HU;
   for(let i=0;i<=PL_N;i+=PL_guideStep){
     const p=PAD+i*PL_HU;
     ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,e);ctx.stroke();
     ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(e,p);ctx.stroke();
   }
+  // Dot grid
+  ctx.fillStyle='rgba(160,160,184,0.4)';
+  const ds=zds(3);
+  for(let i=0;i<=PL_N;i+=PL_guideStep)
+    for(let j=0;j<=PL_N;j+=PL_guideStep)
+      ctx.fillRect(PAD+i*PL_HU-ds/2,PAD+j*PL_HU-ds/2,ds,ds);
 }
 function drawPLFront(seg){
   const x1=plPx(seg.x1),y1=plPx(seg.y1),x2=plPx(seg.x2),y2=plPx(seg.y2);
   ctx.lineCap='round';ctx.setLineDash([]);
-  ctx.strokeStyle='rgba(0,8,20,0.45)';ctx.lineWidth=3.6;
+  ctx.strokeStyle='rgba(0,8,20,0.45)';ctx.lineWidth=zlw(3.6);
   ctx.beginPath();ctx.moveTo(x1,y1+0.7);ctx.lineTo(x2,y2+0.7);ctx.stroke();
-  ctx.strokeStyle=seg.col;ctx.lineWidth=2.3;
+  ctx.strokeStyle=seg.col;ctx.lineWidth=zlw(2.3);
   ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
 }
 function renderPolyline(st){

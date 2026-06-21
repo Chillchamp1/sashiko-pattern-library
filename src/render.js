@@ -11,27 +11,36 @@ const FAM_DIR_LABEL={0:'V',1:'D1',2:'D2',3:'H'};
 function famColor(famIdx){return FAM_PALETTE[famIdx%FAM_PALETTE.length];}
 function famLabel(famIdx,dirCat){return 'Line '+(famIdx+1)+(dirCat!==undefined?' '+(FAM_DIR_LABEL[dirCat]||'?'):'');}
 
+function zlw(w){return Math.max(0.5,w/_zoom);}
+function zds(s){return Math.max(0.5,s/_zoom);}
+
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
   ctx.fillStyle=getCss('--fabric'); ctx.fillRect(0,0,SIZE,SIZE);
-  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1; ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=zlw(1); ctx.setLineDash([]);
   for(let y=4;y<SIZE;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
+  // Dot grid at intersections
+  ctx.fillStyle='rgba(160,160,184,0.4)';
+  const ds=zds(3);
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    ctx.fillRect(sx(i)-ds/2,sy(j)-ds/2,ds,ds);
+  }
 }
 function drawGuide(){
-  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=zlw(1);
   for(let i=0;i<N;i++){ctx.beginPath();ctx.moveTo(sx(i),sy(0));ctx.lineTo(sx(i),sy(N-1));ctx.stroke();}
   for(let j=0;j<N;j++){ctx.beginPath();ctx.moveTo(sx(0),sy(j));ctx.lineTo(sx(N-1),sy(j));ctx.stroke();}
 }
 function drawStitch(i,j,dir,head,col){
   const s=segPx(sx(i),sy(j),dir,G,curPat.armScale);
-  if(head){ctx.strokeStyle='rgba(255,255,255,0.28)';ctx.lineWidth=8;ctx.lineCap='round';ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(s[0],s[1]);ctx.lineTo(s[2],s[3]);ctx.stroke();}
-  ctx.strokeStyle=col||getCss('--thread'); ctx.lineWidth=3.1; ctx.lineCap='round'; ctx.setLineDash([]);
+  if(head){ctx.strokeStyle='rgba(255,255,255,0.28)';ctx.lineWidth=zlw(8);ctx.lineCap='round';ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(s[0],s[1]);ctx.lineTo(s[2],s[3]);ctx.stroke();}
+  ctx.strokeStyle=col||getCss('--thread'); ctx.lineWidth=zlw(3.1); ctx.lineCap='round'; ctx.setLineDash([]);
   ctx.beginPath();ctx.moveTo(s[0],s[1]);ctx.lineTo(s[2],s[3]);ctx.stroke();
 }
 function frontAll(p){for(const[i,j]of p.order)drawStitch(i,j,p.dir,false,PHASE_COLORS[p.dir][getPhase(i,j,p.dir)]);}
 function drawBack(p,upto){
   if(upto<2)return;
-  ctx.strokeStyle='rgba(243,239,228,0.16)';ctx.lineWidth=1.4;ctx.setLineDash([2,4]);ctx.lineCap='butt';
+  ctx.strokeStyle='rgba(243,239,228,0.16)';ctx.lineWidth=zlw(1.4);ctx.setLineDash([2,4]);ctx.lineCap='butt';
   ctx.beginPath();let[i0,j0]=p.order[0];ctx.moveTo(sx(i0),sy(j0));
   for(let k=1;k<upto;k++){const[i,j]=p.order[k];ctx.lineTo(sx(i),sy(j));}
   ctx.stroke();ctx.setLineDash([]);
