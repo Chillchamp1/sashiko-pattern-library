@@ -2049,17 +2049,34 @@ function autoAssignFamilies(pat){
   const lines=pat.lines||[];
   if(!lines.length)return;
   const iso=pat.gridType==='isometric';
-  pat.families=lines.map(l=>{
+  const THRESH=5*Math.PI/180; // 5 degrees
+  // Compute orientation angle in [0,π) — opposite directions are the same line
+  const angles=lines.map(l=>{
     const du=l.end[0]-l.start[0], dv=l.end[1]-l.start[1];
     let dx=du, dy=dv;
     if(iso){dx=du-dv; dy=du+dv;}
     if(!dx&&!dy)return 0;
-    const a=Math.abs(Math.atan2(dy,dx));
-    if(a<0.3927||a>2.7489)return 0; // horizontal
-    if(a>1.1781&&a<1.9635)return 1; // vertical
-    if(a<Math.PI/2)return 2;         // diag down-right to top-left
-    return 3;                         // diag down-left to top-right
+    const a=Math.atan2(dy,dx);
+    return a<0?a+Math.PI:a;
   });
+  function angDist(a,b){
+    let d=Math.abs(a-b);
+    if(d>Math.PI/2)d=Math.PI-d;
+    return d;
+  }
+  // Greedy grouping: each line joins the first existing group within threshold
+  const groups=[];
+  for(let i=0;i<lines.length;i++){
+    let found=false;
+    for(const g of groups){
+      if(angDist(angles[i],g.angle)<THRESH){g.members.push(i);found=true;break;}
+    }
+    if(!found)groups.push({angle:angles[i],members:[i]});
+  }
+  // Assign families sorted by angle
+  groups.sort((a,b)=>a.angle-b.angle);
+  pat.families=new Array(lines.length).fill(-1);
+  groups.forEach((g,fi)=>{g.members.forEach(i=>{pat.families[i]=fi;});});
 }
 
 // Find lines that are redundant (exact duplicates or collinear overlaps)
