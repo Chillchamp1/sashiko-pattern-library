@@ -3232,7 +3232,7 @@ window.cadSaveToLibrary=function(){
 };
 
 // ── Tile preview play → animates inline on right canvas ──────────────────
-let _tpOn=false,_tpStep=0,_tpLines=[],_tpRAF=null,_tpLast=0;
+let _tpOn=false,_tpStep=0,_tpSts=[],_tpRAF=null,_tpLast=0;
 window.cadTilePlay=function(){
   if(_tpOn){_stopTilePlay();return;}
   if(!cadLines.length)return;
@@ -3240,13 +3240,18 @@ window.cadTilePlay=function(){
   const redSet=new Set(cadFindRedundant());
   const clean=cadLines.filter((_,i)=>!redSet.has(i));
   if(!clean.length)return;
-  // Translate lines to tile preview coords (0,0 based)
-  const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
-  _tpLines=clean.map((l,i)=>({
-    u1:l.start[0]-bbox.minU, v1:l.start[1]-bbox.minV,
-    u2:l.end[0]-bbox.minU,   v2:l.end[1]-bbox.minV,
-    fam:cadFamilies.filter((_,j)=>!redSet.has(j))[i]||0
-  }));
+  const lines=clean.map(l=>({start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]}));
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro};
+  pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+  const segs=genTiledSegs(pat);
+  const path=buildExpPath(segs);
+  if(!path.length)return;
+  let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
+  path.forEach(s=>{mx=Math.min(mx,s.p0[0],s.p1[0]);Mx=Math.max(Mx,s.p0[0],s.p1[0]);my=Math.min(my,s.p0[1],s.p1[1]);My=Math.max(My,s.p0[1],s.p1[1]);});
+  const pw=Mx-mx||1,ph=My-my||1;
+  const pad=12,sc=Math.min((500-2*pad)/pw,(500-2*pad)/ph);
+  const ox=(500-pw*sc)/2-mx*sc,oy=(500-ph*sc)/2-my*sc;
+  _tpSts=path.map(s=>({fam:s.fam,x1:ox+s.p0[0]*sc,y1:oy+s.p0[1]*sc,x2:ox+s.p1[0]*sc,y2:oy+s.p1[1]*sc}));
   _tpStep=0;_tpOn=true;_tpLast=0;
   document.getElementById('cadBtnTilePlay').textContent='⏹ Stop';
   document.getElementById('cadBtnTilePlay').style.color='#ff8888';
@@ -3261,28 +3266,16 @@ function _stopTilePlay(){
   cadDrawPattern();
 }
 function _renderTileFrame(){
-  const pv=document.getElementById('patCanvas');if(!pv||!_tpLines)return;
+  const pv=document.getElementById('patCanvas');if(!pv||!_tpSts)return;
   const x=pv.getContext('2d');
-  // Draw grid background
   x.clearRect(0,0,500,500);
   if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
-  // Tile the pattern across the preview
-  const dU=Math.max(..._tpLines.map(l=>Math.max(l.u1,l.u2)))-Math.min(..._tpLines.map(l=>Math.min(l.u1,l.u2)))||4;
-  const dV=Math.max(..._tpLines.map(l=>Math.max(l.v1,l.v2)))-Math.min(..._tpLines.map(l=>Math.min(l.v1,l.v2)))||4;
-  const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
-  const ptc=cadPatMacro*CAD_MICRO;
   x.lineWidth=2.5;x.lineCap='round';
-  let drawn=0;
-  for(let ou=0;ou<=ptc;ou+=stepU){for(let ov=0;ov<=ptc;ov+=stepV){
-    _tpLines.forEach((l)=>{
-      if(drawn>=_tpStep)return;
-      const p1=cadG2S(l.u1+ou,l.v1+ov,cadPOX,cadPOY,cadPTile);
-      const p2=cadG2S(l.u2+ou,l.v2+ov,cadPOX,cadPOY,cadPTile);
-      x.strokeStyle=FAM_PALETTE[l.fam%FAM_PALETTE.length];
-      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
-      drawn++;
-    });
-  }}
+  _tpSts.forEach((s,i)=>{
+    if(i>=_tpStep)return;
+    x.strokeStyle=FAM_PALETTE[s.fam%FAM_PALETTE.length];
+    x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
+  });
 }
 function _tpLoop(t){
   if(!_tpOn)return;
