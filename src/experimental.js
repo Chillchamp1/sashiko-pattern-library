@@ -1009,7 +1009,7 @@ function drawExpGuide(){
   const STEP=10;                                   // one macro cell; canvas clips lines to the square
   const u0=Math.floor(minU/STEP)*STEP, u1=Math.ceil(maxU/STEP)*STEP;
   const v0=Math.floor(minV/STEP)*STEP, v1=Math.ceil(maxV/STEP)*STEP;
-  ctx.strokeStyle='rgba(220,235,255,0.07)'; ctx.lineWidth=0.8; ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=0.8; ctx.setLineDash([]);
   for(let u=u0;u<=u1;u+=STEP){
     const a=EXP_g2s([u,v0]),b=EXP_g2s([u,v1]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
@@ -1024,7 +1024,7 @@ function renderExp(step){
   const ch=EXP_canvasH||SIZE;
   // Fabric background
   ctx.fillStyle='#1a3a5c'; ctx.fillRect(0,0,SIZE,ch);
-  ctx.strokeStyle='rgba(255,255,255,0.025)'; ctx.lineWidth=1; ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1; ctx.setLineDash([]);
   for(let y=4;y<ch;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
   drawExpGuide();
   if(!EXP_path.length)return;
