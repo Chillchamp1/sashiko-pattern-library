@@ -325,6 +325,7 @@ window.cadSaveToLibrary=function(){
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now()};
+  const wasEdit=!!cadEditId;
   if(cadEditId){
     // Update existing pattern — preserve families if line count unchanged
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -346,7 +347,7 @@ window.cadSaveToLibrary=function(){
   if(_firebaseReady)_pushToFirestore(pat);
   rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
-  btn.textContent='✓ Saved!';btn.style.background='#1a5c28';
+  btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
 };
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
