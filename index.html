@@ -921,12 +921,17 @@ function drawPLGuide(){
     ctx.beginPath();ctx.moveTo(p,PAD);ctx.lineTo(p,e);ctx.stroke();
     ctx.beginPath();ctx.moveTo(PAD,p);ctx.lineTo(e,p);ctx.stroke();
   }
-  // Dot grid
-  ctx.fillStyle='rgba(160,160,184,0.4)';
-  const ds=zds(3);
-  for(let i=0;i<=PL_N;i+=PL_guideStep)
-    for(let j=0;j<=PL_N;j+=PL_guideStep)
-      ctx.fillRect(PAD+i*PL_HU-ds/2,PAD+j*PL_HU-ds/2,ds,ds);
+  // Dot grid: sub-grid dots everywhere, main intersections larger
+  ctx.fillStyle='rgba(160,160,184,0.25)';
+  const sds=zds(2), mds=zds(3.5);
+  for(let i=0;i<=PL_N;i++){
+    for(let j=0;j<=PL_N;j++){
+      const onMain=(i%PL_guideStep===0)&&(j%PL_guideStep===0);
+      const d=onMain?mds:sds;
+      ctx.fillRect(PAD+i*PL_HU-d/2,PAD+j*PL_HU-d/2,d,d);
+    }
+  }
+  }
 }
 function drawPLFront(seg){
   const x1=plPx(seg.x1),y1=plPx(seg.y1),x2=plPx(seg.x2),y2=plPx(seg.y2);
@@ -995,13 +1000,15 @@ function zds(s){return Math.max(0.5,s/_zoom);}
 // ── Drawing (star patterns) ────────────────────────────────────────────────
 function drawFabric(){
   ctx.fillStyle=getCss('--fabric'); ctx.fillRect(0,0,SIZE,SIZE);
-  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=zlw(1); ctx.setLineDash([]);
-  for(let y=4;y<SIZE;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
-  // Dot grid at intersections
-  ctx.fillStyle='rgba(160,160,184,0.4)';
-  const ds=zds(3);
-  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
-    ctx.fillRect(sx(i)-ds/2,sy(j)-ds/2,ds,ds);
+  // Dot grid: sub-grid dots everywhere, main intersections larger
+  ctx.fillStyle='rgba(160,160,184,0.25)';
+  const SUB=5, sds=zds(2), mds=zds(3.5);
+  for(let x=PAD;x<=SIZE-PAD;x+=SUB){
+    for(let y=PAD;y<=SIZE-PAD;y+=SUB){
+      const onMain=((x-PAD)%G===0)&&((y-PAD)%G===0);
+      const d=onMain?mds:sds;
+      ctx.fillRect(x-d/2,y-d/2,d,d);
+    }
   }
 }
 function drawGuide(){
@@ -2642,7 +2649,7 @@ function drawExpGuide(){
   if(!curPat||!EXP_g2s)return;
   const lay=computeExpLayout(curPat);
   const [minU,maxU]=lay.uRange, [minV,maxV]=lay.vRange;
-  const STEP=10;                                   // one macro cell; canvas clips lines to the square
+  const STEP=10;
   const u0=Math.floor(minU/STEP)*STEP, u1=Math.ceil(maxU/STEP)*STEP;
   const v0=Math.floor(minV/STEP)*STEP, v1=Math.ceil(maxV/STEP)*STEP;
   ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=zlw(0.8); ctx.setLineDash([]);
@@ -2654,14 +2661,23 @@ function drawExpGuide(){
     const a=EXP_g2s([u0,v]),b=EXP_g2s([u1,v]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
   }
+  // Sub-grid dots everywhere, main intersections larger
+  ctx.fillStyle='rgba(160,160,184,0.25)';
+  const sds=zds(1.5), mds=zds(2.8);
+  for(let u=u0;u<=u1;u++){
+    for(let v=v0;v<=v1;v++){
+      const onMain=(u%STEP===0)&&(v%STEP===0);
+      const p=EXP_g2s([u,v]);
+      const d=onMain?mds:sds;
+      ctx.fillRect(p.x-d/2,p.y-d/2,d,d);
+    }
+  }
 }
 
 function renderExp(step){
   const ch=EXP_canvasH||SIZE;
   // Fabric background
   ctx.fillStyle='#1a3a5c'; ctx.fillRect(0,0,SIZE,ch);
-  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=zlw(1); ctx.setLineDash([]);
-  for(let y=4;y<ch;y+=5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(SIZE,y);ctx.stroke();}
   drawExpGuide();
   if(!EXP_path.length)return;
   // Completed stitches — coloured by family (skip toggled-off)
