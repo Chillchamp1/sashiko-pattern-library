@@ -23,12 +23,12 @@ Interactive Sashiko pattern library with animated stitch-by-stitch preview. All 
 | `src/patterns.js` | `PATTERNS` array + generator presets | ~65 |
 | `src/engine-star.js` | Canvas setup + star-arm engine | ~54 |
 | `src/engine-hm.js` | Hitomezashi engine | ~153 |
-| `src/engine-polyline.js` | Tsuzuki Yamagata polyline engine | ~225 |
-| `src/render.js` | Animation state, render dispatcher, `loadPattern` | ~170 |
+| `src/engine-polyline.js` | Tsuzuki Yamagata polyline engine | ~235 |
+| `src/render.js` | Animation state, render dispatcher, `loadPattern`, zoom/pan | ~300 |
 | `src/generator.js` | Generator UI, playback, thumbnails | ~240 |
-| `src/gallery.js` | `buildGallery`, `filterGallery`, view switching | ~77 |
-| `src/experimental.js` | Custom Patterns (experimental), Firebase sync, CAD save/open | ~300 |
-| `src/cad-engine.js` | CAD editor + init | ~320 |
+| `src/gallery.js` | `buildGallery`, `filterGallery`, view switching | ~101 |
+| `src/experimental.js` | Custom Patterns (experimental), Firebase sync, family auto-assignment, trash, edit-pattern, deep links | ~1175 |
+| `src/cad-engine.js` | CAD editor, family colors, play animation, spacing, init | ~560 |
 
 **Build:** `python build.py` writes `Sashiko — Pattern Library.htm` + `index.html` (identical).
 
@@ -188,7 +188,8 @@ Implementation (Tsuzuki Yamagata, 2 classes per family):
 ## Animation Engine
 
 ```javascript
-const TICK_MS = 40;  // fixed speed, ~25 stitches/sec
+let TICK_MS = 160;  // medium speed, ~6 stitches/sec (was 40=fast before speed changes)
+// Speeds: slow=240ms, medium=160ms, fast=13ms (~75 stitches/sec)
 
 let step = 0;        // 0 = start, TOTAL = finished
 let playing = false;
@@ -198,6 +199,25 @@ let raf = null;
 **Keyboard:** Space = Play/Pause, ArrowLeft/Right = one stitch forward/back.
 
 **Idle info-bar:** `onInfoClick()` checks `classList.contains('idle')` — onclick stays set always, `setIdleInfo()` restores the `idle` class (prevents onclick from breaking after Reset).
+
+### Zoom & Pan
+
+Mouse wheel over the animation canvas zooms in/out (1×–8×). Zoom is always centered on the current view position (respects pan). Middle/right-click or Ctrl+left-click drag to pan. Pan is clamped so at least 60px of the pattern remains visible. At minimum zoom (1×), pan is locked to center.
+
+Zoom uses **both** canvas resolution scaling (for sharpness) and CSS `transform: scale()` on `.stage` (for visual enlargement). Line widths and dot grid sizes scale inversely with zoom via helpers `zlw(w)` and `zds(s)` so they maintain consistent visual thickness regardless of zoom level.
+
+**Zoom state in `render.js`:**
+```javascript
+let _zoom = 1, _panX = 0, _panY = 0;
+function _setupCanvasSize(w, h)  // applies canvas resolution + CSS transform
+function _clampPan()             // constrains pan so pattern stays visible
+function _resetZoom()            // called at start of every loadPattern
+function initAnimZoom()          // attaches wheel + pointer listeners to cv
+```
+
+### Dot Grid & Fabric
+
+No more horizontal fabric lines. All pattern types have a dot grid — sub-grid dots everywhere, larger dots at main guide line intersections. Guide lines (star, polyline, exp) at 0.15 opacity.
 
 ---
 
@@ -270,15 +290,67 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 
 ## Known Decisions / Constraints
 
+- **Speed modes:** slow `TICK_MS=240` (~4 st/s), medium `160` (~6 st/s), fast `13` (~75 st/s)
 - **Line width scales with HM_CELL:** `lw = max(1, min(3, HM_CELL * 0.15))` — looks good from Order 1 (100px cells) to Order 3 (4.5px cells)
 - **Generator always shows `step=TOTAL`:** editing/preset/order immediately renders the full pattern (preview). Play restarts the animation.
-- **Rows/columns independent:** toggles can make the pattern asymmetric. Presets restore symmetry (`rowBits === colBits`).
-- **Yamagata preset removed:** was only a Hitomezashi approximation; the real Tsuzuki Yamagata lives in the Polyline Engine/Gallery.
-- **No speed slider:** toggle only — slow `TICK_MS=160` (~6 stitches/sec), fast `TICK_MS=80` (~12 stitches/sec)
+- **Back-thread / jump lines REMOVED** — no dotted lines showing needle jumps between stitches (drawBack, drawHMBack, renderExp back-thread all stripped)
 - **No `el.onclick=null`** in update functions — breaks the Reset/Play button
 - **Arc resolution in CAD editor:** max 30 segments per full circle (`Math.max(3, Math.round(sweep/2pi * 30))`) — sashiko stitching needs low-poly curves
-- **Exp pattern routing (human-makability cost, "order first"):** `buildExpPath` minimises `A·jumps + B·jumpLen + C·turnSharpness + D·retrace`. **Phase 1:** edge-graph; min-deflection pairing at each vertex (`matchVertex`, iterated greedy for d>8); trace strokes along pairings; breaks at >90° turns. **Phase 2:** group strokes by movement type (straight→zigzag→curve), then 30° orientation bins, then parallel bands with START-POINT perpendicular projection and natural-gap band detection (2.5× median gap). Snake the bands. Per-family colouring via `FAM_PALETTE`/`famColor()`. Verified: 100% coverage; scallop column = one march (0 jump).
-- **Exp canvas = full square + clip:** both grids fill the whole SIZE×SIZE square. `computeExpLayout` expresses the visible square as a convex region in grid (u,v) space (`planes`); `genTiledSegs` tiles to cover it and **clips every segment to it** (`clipSegConvex`) — nothing routes off-screen. Iso routing runs in (u,v) so the sweep follows the iso grid lines; the lattice is tiled+clipped (no inscribed-diamond gaps).
+
+## Custom Pattern Features (Experimental)
+
+### Family Auto-Assignment (`autoAssignFamilies`)
+When saving a new pattern from the CAD editor, lines are automatically grouped into families by screen-space orientation angle:
+- Angles mapped to `[0, π)` — opposite directions (same stitch line drawn backwards) share the same color
+- Lines within **5°** of each other get the same family
+- Arc segments (drawn with arc tool) all share **one** family regardless of their segment angles
+- Families are numbered 0,1,2,… sorted by angle
+- Palette: `FAM_PALETTE` (10 colors) in `render.js`
+
+### CAD Editor Family Colors
+Lines are colored by family in real-time as you draw. Both the Draw canvas and Live Tiling panel show family colors. The color assignment is stored in `cadFamilies[]` and recomputed via `cadAutoAssign()` on every change (called from `cadUpdateAll()`).
+
+### Edit Pattern (Admin)
+- ✎ button on custom pattern cards (gallery + My Patterns) — requires admin password `'111'`
+- Loads pattern lines into CAD editor; grid/macro sizes clamped to valid select options
+- Save updates the **existing** pattern (preserves ID, createdAt, published status)
+- Families preserved if line count unchanged; otherwise auto-assigned
+- `cadEditId` tracks which pattern is being edited; only cleared when leaving CAD view
+
+### Stitching Order Settings
+- Click a color swatch to select, then click lines on the unit cell canvas to assign
+- Toggle families on/off via jump bar buttons
+- Community profiles: save/share/load stitching orders per pattern
+- Cat avatar system for profile creators
+
+### Trash Can
+- Deleting a pattern moves it to trash (localStorage `sashiko_trash`) with 1-week retention
+- Confirmation dialog before deletion
+- Trash section in My Patterns view with Restore / Permanent Delete buttons
+- Auto-cleanup of expired entries on page load
+
+### Deep Links
+- URL hash `#pattern-id` opens that pattern directly (e.g. `#juji`, `#exp_123`)
+- Hash updated when opening a pattern, cleared when returning to gallery
+- Works with both built-in and custom patterns
+
+### CAD Tile Preview Play
+- ▶ Play button below the Live Tiling panel
+- Animates stitch-by-stitch on the right canvas using the **same** `genTiledSegs` + `buildExpPath` routing as the main animation view
+- Stitches scaled to fit the 500×500 tile canvas with the grid background visible
+
+### CAD Spacing Control
+- Dropdown (0–12) adds padding between tiled pattern units in both Live Tiling and Play views
+- Stored in `cadSpacing` variable, read by `cadUpdateSettings()`
+
+## Known Issues / Gotchas
+
+- **Syntax errors are fatal** — the entire script is one IIFE; an extra `}` anywhere (like the one found in `drawPLGuide`) prevents ALL JavaScript from executing, causing "is not defined" for every onclick handler
+- **Build artifacts cause merge conflicts** — CI rebuilds on every push; always use `git stash; git pull --rebase; git stash pop` before pushing
+- **`file://` protocol may block Firebase CDN scripts** — test via `http://localhost` or GitHub Pages URL
+- **`genTiledSegs` / `buildExpPath` path entries use `start`/`end` (grid `[u,v]`), NOT `p0`/`p1` (screen `{x,y}`)** — convert with `lay.g2s()` if needed
+- **CAD `cadFamilies` includes redundant lines** — always filter with `cadFamilies.filter((_,i)=>!redSet.has(i))` when creating pattern families
+- **Zoom constants in `render.js`:** `_zoom` range 1–8, helper functions `zlw(w)` and `zds(s)` for zoom-aware line widths and dot sizes
 
 ---
 
