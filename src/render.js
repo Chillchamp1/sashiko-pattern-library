@@ -258,14 +258,9 @@ function initAnimZoom(){
   cv.addEventListener('wheel',e=>{
     if(!document.getElementById('animView').classList.contains('open'))return;
     e.preventDefault();
-    const r=cv.getBoundingClientRect();
-    const mx=e.clientX-r.left,my=e.clientY-r.top;
     const delta=e.deltaY>0?0.9:1.1;
     const nz=Math.max(0.25,Math.min(_zoom*delta,8));
     if(nz===_zoom)return;
-    const ratio=nz/_zoom;
-    _panX=mx-(mx-_panX)*ratio;
-    _panY=my-(my-_panY)*ratio;
     _zoom=nz;
     const ch=EXP_canvasH||SIZE;
     _setupCanvasSize(SIZE,ch);
