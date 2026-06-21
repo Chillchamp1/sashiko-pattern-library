@@ -71,7 +71,7 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .fam-swatch:hover{border-color:#fff8}
 .fam-swatch.sel{border-color:#fff;box-shadow:0 0 0 2px #fff3}
 .fam-swatch.add{background:transparent;border:1px dashed var(--line);color:var(--muted);
-  display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+  display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;cursor:pointer}
 .fam-swatch.add:hover{border-color:#fff8;color:#fff}
 /* ── Stitching profiles (community) ── */
 .profile-list{width:100%;display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto}
@@ -233,6 +233,8 @@ button.ctrl.primary:hover{background:#275784}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
 .exp-del-btn{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
 .pcard.exp-card:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
+.exp-edit-btn{position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:50%;background:rgba(80,140,200,.8);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
+.pcard.exp-card:hover .exp-edit-btn{display:flex;align-items:center;justify-content:center}
 /* My Patterns button in toolbar */
 .filt.mypats-btn{background:#141828;border-color:#2a3060;color:#9090d4}
 .filt.mypats-btn:hover{background:#1a2040;border-color:#3a4a8a;color:#c0c0ee}
@@ -243,3 +245,15 @@ button.ctrl.primary:hover{background:#275784}
 .mypats-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
 .mypats-header h2{margin:0;font-size:17px;font-weight:600;flex:1}
 .mypats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}
+/* Trash */
+.trash-btn{background:none;border:1px solid #553030;color:#cc7777;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font:inherit}
+.trash-btn:hover{background:#2a1515;border-color:#883030}
+.trash-section{margin-top:24px;padding-top:16px;border-top:1px solid #2a2040}
+.trash-section h3{font-size:12px;color:#886666;margin:0 0 12px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.trash-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#1a1520;border:1px solid #302040;border-radius:8px;margin-bottom:6px}
+.trash-item .trash-name{flex:1;font-size:12px;color:#ccaa88}
+.trash-item .trash-meta{font-size:10px;color:#775555;white-space:nowrap}
+.trash-restore-btn{background:#2a3a20;border:1px solid #3a5a30;color:#88bb88;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:10px;font:inherit}
+.trash-restore-btn:hover{background:#3a4a30;border-color:#4a6a40}
+.trash-perm-del-btn{background:none;border:1px solid #402020;color:#996666;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:10px;font:inherit}
+.trash-perm-del-btn:hover{background:#2a1515;border-color:#603030;color:#cc7777}

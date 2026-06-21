@@ -138,6 +138,72 @@ function _getUserId(){
   if(!id){id='u'+Math.random().toString(36).slice(2,12);localStorage.setItem('sashiko_uid',id);}
   return id;
 }
+// ── Trash (1-week retention) ──────────────────────────────────────────────
+const TRASH_KEY='sashiko_trash';
+const WEEK_MS=7*24*60*60*1000;
+function _loadTrash(){
+  try{return JSON.parse(localStorage.getItem(TRASH_KEY)||'[]');}catch(e){return[];}
+}
+function _saveTrash(trash){
+  try{localStorage.setItem(TRASH_KEY,JSON.stringify(trash));}catch(e){}
+}
+function cleanTrash(){
+  const trash=_loadTrash();
+  const now=Date.now();
+  const kept=trash.filter(t=>now-t.deletedAt<WEEK_MS);
+  if(kept.length!==trash.length)_saveTrash(kept);
+}
+function moveToTrash(pat){
+  const trash=_loadTrash();
+  trash.unshift({pattern:pat,deletedAt:Date.now()});
+  _saveTrash(trash);
+}
+window.toggleTrash=function(){
+  const sec=document.getElementById('trashSection');
+  if(!sec)return;
+  const open=sec.style.display!=='none';
+  sec.style.display=open?'none':'block';
+  if(!open)renderTrash();
+};
+window.restoreFromTrash=function(idx){
+  const trash=_loadTrash();
+  if(idx<0||idx>=trash.length)return;
+  const restored=trash.splice(idx,1)[0].pattern;
+  _saveTrash(trash);
+  EXP_PATTERNS.unshift(restored);
+  _saveLocal();
+  if(_firebaseReady)_pushToFirestore(restored);
+  rebuildMyPatsView();
+  renderTrash();
+};
+window.permDeleteFromTrash=function(idx){
+  if(!confirm('Permanently delete this pattern? This cannot be undone.'))return;
+  const trash=_loadTrash();
+  if(idx<0||idx>=trash.length)return;
+  trash.splice(idx,1);
+  _saveTrash(trash);
+  renderTrash();
+};
+function renderTrash(){
+  cleanTrash();
+  const el=document.getElementById('trashList');
+  if(!el)return;
+  const trash=_loadTrash();
+  if(!trash.length){el.innerHTML='<p style="font-size:11px;color:#665555;text-align:center;padding:12px">Trash is empty.</p>';return;}
+  const now=Date.now();
+  el.innerHTML=trash.map((t,i)=>{
+    const pat=t.pattern;
+    const remaining=Math.max(0,WEEK_MS-(now-t.deletedAt));
+    const days=Math.ceil(remaining/(24*60*60*1000));
+    const meta=days<=0?'expires soon':days+'d left';
+    return`<div class="trash-item">
+      <span class="trash-name">${(pat.name||'Custom').replace(/[<>"'&]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'}[c]))}</span>
+      <span class="trash-meta">${meta}</span>
+      <button class="trash-restore-btn" onclick="event.stopPropagation();restoreFromTrash(${i})">Restore</button>
+      <button class="trash-perm-del-btn" onclick="event.stopPropagation();permDeleteFromTrash(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
 
 // ── Stitching profiles (per-pattern community submissions) ────────────────
 // Subcollection: patterns/{patternId}/profiles/{profileId}
@@ -229,6 +295,7 @@ async function _fetchFromFirestore(){
 // ── Public API ───────────────────────────────────────────────────────────────
 function loadExpPatterns(){
   _loadLocal();
+  cleanTrash();
   _initFirebase();
   // Async fetch from Firestore; updates UI once done
   if(_firebaseReady){
@@ -381,14 +448,29 @@ function genTiledSegs(pat){
 function setupExpCanvas(pat){
   const lay=computeExpLayout(pat);
   EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
-  cv.height=EXP_canvasH*DPR; cv.style.height=EXP_canvasH+'px';
-  ctx.setTransform(DPR,0,0,DPR,0,0);
+  _setupCanvasSize(SIZE,EXP_canvasH);
 }
 
 // ── Family editor (unit cell, inside Stitching Order Settings) ──────────
 let _famSel=0, _famCount=0;
 function initExpFamilies(pat){
   if(!pat.families)pat.families=new Array((pat.lines||[]).length).fill(-1);
+}
+function autoAssignFamilies(pat){
+  const lines=pat.lines||[];
+  if(!lines.length)return;
+  const iso=pat.gridType==='isometric';
+  pat.families=lines.map(l=>{
+    const du=l.end[0]-l.start[0], dv=l.end[1]-l.start[1];
+    let dx=du, dy=dv;
+    if(iso){dx=du-dv; dy=du+dv;}
+    if(!dx&&!dy)return 0;
+    const a=Math.abs(Math.atan2(dy,dx));
+    if(a<0.3927||a>2.7489)return 0; // horizontal
+    if(a>1.1781&&a<1.9635)return 1; // vertical
+    if(a<Math.PI/2)return 2;         // diag down-right to top-left
+    return 3;                         // diag down-left to top-right
+  });
 }
 
 // Find lines that are redundant (exact duplicates or collinear overlaps)
@@ -502,13 +584,13 @@ function renderFamEditor(){
     x.setLineDash([]);
   }
 
-  // Build swatches
+  // Build swatches (click to select, click a line to assign)
   sw.innerHTML='';
   for(let f=0;f<_famCount;f++){
     const b=document.createElement('button');
     b.className='fam-swatch'+(f===_famSel?' sel':'');
     b.style.background=famColor(f);
-    b.title='Family '+(f+1);
+    b.title='Family '+(f+1)+' — click line to assign';
     b.onclick=e=>{e.stopPropagation();_famSel=f;renderFamEditor();};
     sw.appendChild(b);
   }
@@ -669,6 +751,33 @@ function publishToLibrary(){
   }
 }
 window.publishToLibrary=publishToLibrary;
+window.editExpPattern=function(idOrPat){
+  const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
+  if(!pat)return;
+  const pw=prompt('Admin password:');
+  if(pw!=='111'){alert('Wrong password');return;}
+  cadLines=pat.lines.map(l=>({start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]}));
+  cadHistory=[];
+  cadTool='draw';
+  cadArcState=0;cadArcCenter=null;cadArcStart=null;
+  document.getElementById('cadGridType').value=pat.gridType||'isometric';
+  const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
+  const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
+  document.getElementById('cadGridSize').value=macroVal;
+  const pmOpts=[3,4,5,8,12];let bestPM=5,bestD=Infinity;
+  pmOpts.forEach(o=>{const d=Math.abs(o-(pat.patMacro||5));if(d<bestD){bestD=d;bestPM=o;}});
+  document.getElementById('cadPatSize').value=bestPM;
+  document.getElementById('cadPatName').value=pat.name||'Custom Pattern';
+  cadEditId=pat.id;
+  cadInited=false;
+  document.getElementById('galleryView').style.display='none';
+  document.getElementById('myPatsView').classList.remove('open');
+  document.getElementById('animView').classList.remove('open');
+  document.getElementById('cadView').classList.add('open');
+  cadInit();
+  cadSetTool('draw');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
 function distToSeg(px,py,ax,ay,bx,by){
   const l2=(bx-ax)**2+(by-ay)**2;
   if(l2===0)return Math.hypot(px-ax,py-ay);
@@ -928,6 +1037,7 @@ function renderExp(step){
 window.openExpPattern=function openExpPattern(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
+  history.replaceState(null,'','#'+pat.id);
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.add('open');
   loadPattern(pat);
@@ -953,6 +1063,7 @@ function expCardHTML(pat){
       <div class="pcard-name">${esc(pat.name||'Custom')}</div>
       <span class="pcard-badge">${pat.gridType==='isometric'?'Isometric':'Square'}</span>
     </div>
+    <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();editExpPattern('${esc(pat.id)}')">✎</button>
     <button class="exp-del-btn" title="Delete" onclick="event.stopPropagation();removeExpPattern('${esc(pat.id)}')">✕</button>
   </div>`;
 }
@@ -964,18 +1075,25 @@ function rebuildMyPatsView(){
   if(!EXP_PATTERNS.length){
     const offline=!_firebaseReady?' (offline — patterns sync when Firebase is configured)':'';
     grid.innerHTML=`<p class="no-results" style="display:block;margin:24px auto">No saved patterns yet — use the CAD Editor to draw one.${offline}</p>`;
-    return;
+  }else{
+    EXP_PATTERNS.forEach(pat=>{
+      grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
+      const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
+      if(thumb)setTimeout(()=>renderThumb(thumb,pat),0);
+    });
   }
-  EXP_PATTERNS.forEach(pat=>{
-    grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
-    const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
-    if(thumb)setTimeout(()=>renderThumb(thumb,pat),0);
-  });
+  const trash=_loadTrash();
+  const tbtn=document.getElementById('trashToggleBtn');
+  if(tbtn)tbtn.textContent=trash.length?'🗑 Trash ('+trash.length+')':'🗑 Trash';
 }
 
 function rebuildExpGallery(){rebuildMyPatsView();}
 
 window.removeExpPattern=async function removeExpPattern(id){
+  if(!confirm('Move this pattern to trash? It can be restored within 1 week.'))return;
+  const pat=EXP_PATTERNS.find(p=>p.id===id);
+  if(!pat)return;
+  moveToTrash(pat);
   EXP_PATTERNS=EXP_PATTERNS.filter(p=>p.id!==id);
   _saveLocal();
   await _deleteFromFirestore(id);
@@ -986,6 +1104,10 @@ window.showMyPatterns=function(){
   document.getElementById('galleryView').style.display='none';
   document.getElementById('cadView').classList.remove('open');
   document.getElementById('myPatsView').classList.add('open');
+  const trash=_loadTrash();
+  const tbtn=document.getElementById('trashToggleBtn');
+  if(tbtn)tbtn.textContent=trash.length?'🗑 Trash ('+trash.length+')':'🗑 Trash';
+  document.getElementById('trashSection').style.display='none';
   // Always refresh from Firestore when opening the view
   if(_firebaseReady){_fetchFromFirestore().then(()=>rebuildMyPatsView());}
   else{rebuildMyPatsView();}
@@ -1002,6 +1124,7 @@ window.showCAD=function(){
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
+  cadEditId=null;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
 };

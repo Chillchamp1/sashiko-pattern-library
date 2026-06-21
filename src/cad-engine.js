@@ -1,5 +1,5 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
-let cadLines=[],cadHistory=[],cadTool='draw';
+let cadLines=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
@@ -318,15 +318,32 @@ window.cadSaveToLibrary=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
-  const id='exp_'+Date.now();
   // Filter out redundant lines
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={id,name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now()};
-  EXP_PATTERNS.unshift(pat);saveExpPatterns(pat);rebuildExpGallery();
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now()};
+  if(cadEditId){
+    // Update existing pattern — preserve families if line count unchanged
+    const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
+    if(idx>=0){
+      pat.id=cadEditId;
+      pat.createdAt=EXP_PATTERNS[idx].createdAt;
+      pat.published=EXP_PATTERNS[idx].published;
+      const oldFams=EXP_PATTERNS[idx].families||[];
+      if(oldFams.length===pat.lines.length)pat.families=oldFams;
+      else autoAssignFamilies(pat);
+      EXP_PATTERNS[idx]=pat;
+    }else{pat.id='exp_'+Date.now();autoAssignFamilies(pat);EXP_PATTERNS.unshift(pat);}
+    cadEditId=null;
+  }else{
+    pat.id='exp_'+Date.now();
+    autoAssignFamilies(pat);
+    EXP_PATTERNS.unshift(pat);
+  }
+  saveExpPatterns(pat);rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
   btn.textContent='✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
@@ -403,5 +420,16 @@ document.getElementById('animView').classList.remove('open');
 document.getElementById('myPatsView').classList.remove('open');
 document.getElementById('galleryView').style.display='block';
 initGenUI();
+initAnimZoom();
 loadExpPatterns();
 buildGallery();
+// Deep-link: open pattern from URL hash (#pattern-id)
+if(location.hash){
+  const id=location.hash.slice(1);
+  const pat=PATTERNS.find(p=>p.id===id);
+  if(pat){openPattern(pat);}
+  else{
+    const exp=EXP_PATTERNS.find(p=>p.id===id);
+    if(exp)openExpPattern(exp);
+  }
+}
