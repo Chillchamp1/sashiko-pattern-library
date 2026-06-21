@@ -1046,17 +1046,6 @@ function renderExp(step){
     ctx.strokeStyle=famColor(s.fam);
     ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
   }
-  // Back-thread dashes (skip toggled-off)
-  ctx.strokeStyle='rgba(243,239,228,0.18)'; ctx.lineWidth=zlw(1.4);
-  ctx.setLineDash([2,4]); ctx.lineCap='butt';
-  for(let i=1;i<EXP_path.length&&i<=step;i++){
-    if(EXP_path[i].jump){
-      if(_famToggles[EXP_path[i].fam]===false)continue;
-      const p1=EXP_g2s(EXP_path[i-1].end),p2=EXP_g2s(EXP_path[i].start);
-      ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
-    }
-  }
-  ctx.setLineDash([]);
   // Needle (skip if toggled off)
   if(step>0&&step<=EXP_path.length){
     const s=EXP_path[step-1];

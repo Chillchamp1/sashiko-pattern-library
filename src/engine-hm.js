@@ -112,7 +112,6 @@ function renderHM(st){
   ctx.setLineDash([]);
   drawFabric(); drawHMGuide();
   const pos=(st===0)?-1:HM_fronts[st-1];
-  for(let p=0;p<=pos;p++){const s=HM_path[p];if(s.t==='b')drawHMBack(s);}
   for(let p=0;p<=pos;p++){const s=HM_path[p];if(s.t==='f')drawHMFront(s);}
   if(pos>=0){const s=HM_path[pos];drawNeedleAt(s.x2,s.y2,s.phase==='H'?PHASE_COLORS.H[s.lp]:PHASE_COLORS.V[s.lp]);}
   updateInfoHM(st);
