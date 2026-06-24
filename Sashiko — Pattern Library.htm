@@ -1850,6 +1850,7 @@ function _getUserId(){
   if(!id){id='u'+Math.random().toString(36).slice(2,12);localStorage.setItem('sashiko_uid',id);}
   return id;
 }
+═══════════════════════════════════════════════════════════════════════════════ */
 // ── Trash (1-week retention) ──────────────────────────────────────────────
 const TRASH_KEY='sashiko_trash';
 const WEEK_MS=7*24*60*60*1000;
@@ -1917,6 +1918,7 @@ function renderTrash(){
   }).join('');
 }
 
+/* ═══ CONTINUED: STITCHING PROFILES + FAMILY EDITOR (commented out) ═══ */
 // ── Stitching profiles (per-pattern community submissions) ────────────────
 // Subcollection: patterns/{patternId}/profiles/{profileId}
 // Each profile: { families, creatorId, creatorLabel, created, likeCount, likedBy:[], dislikeCount, dislikedBy:[] }
