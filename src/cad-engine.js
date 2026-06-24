@@ -109,7 +109,15 @@ function cadFindRedundant(){
 
 // Auto-assign families for CAD lines based on screen orientation angle
 function cadAutoAssign(){
-  if(cadFamsLocked)return;
+  if(cadFamsLocked){
+    // Locked: only extend to match line count, new lines get no family (-1)
+    while(cadFamilies.length<cadLines.length)cadFamilies.push(-1);
+    if(cadFamilies.length>cadLines.length)cadFamilies.length=cadLines.length;
+    // Ensure cadFamOrder contains all used families
+    const used=[...new Set(cadFamilies.filter(f=>f>=0))];
+    if(!cadFamOrder.every(f=>used.includes(f)))cadFamOrder=[...used];
+    return;
+  }
   cadFamilies=new Array(cadLines.length).fill(-1);
   if(!cadLines.length)return;
   const iso=cadGridType==='isometric';
@@ -414,6 +422,13 @@ window.cadMoveFam=function(dir){
   cadFamSel=oi;cadFamsLocked=true;
   cadUpdateAll();
 };
+window.cadAddFam=function(){
+  // Find next available family number that's not in use
+  const used=new Set(cadFamOrder);
+  let nf=0;while(used.has(nf))nf++;
+  cadFamOrder.push(nf);cadFamSel=cadFamOrder.length-1;cadFamsLocked=true;
+  cadUpdateAll();
+};
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
@@ -642,7 +657,7 @@ function cadInit(){
       else if(cadArcState===2){
         cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
         cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>cadLines.push(l));
-        cadFamsLocked=false;cadFamSel=-1;
+        cadFamSel=-1;
         cadArcState=0;cadArcCenter=null;cadArcStart=null;
       }
       cadArcLabel();
@@ -651,7 +666,7 @@ function cadInit(){
       cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
       cadLines.splice(cadHover.li,1);
       for(let i=0;i<cadHover.all.length-1;i++)if(i!==cadHover.ci)cadLines.push({start:[cadHover.all[i].u,cadHover.all[i].v],end:[cadHover.all[i+1].u,cadHover.all[i+1].v]});
-      cadHover=null;cadFamsLocked=false;cadFamSel=-1;
+      cadHover=null;cadFamSel=-1;
     }
     cadUpdateAll();
   });
@@ -666,7 +681,7 @@ function cadInit(){
   cv.addEventListener('pointerup',e=>{
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;}
+      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines.push({start:cadStart,end:cadCur});cadFamSel=-1;}
     }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
