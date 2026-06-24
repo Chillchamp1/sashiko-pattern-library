@@ -1,6 +1,7 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
+let cadFamSel=-1;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -378,6 +379,7 @@ function cadDrawPattern(){
 function cadUpdateAll(){
   cadAutoAssign();
   cadDrawWorkspace();cadDrawPattern();
+  cadBuildFamBar();
   // Update redundancy hint
   const el=document.getElementById('cadArcHint');
   if(el){
@@ -386,6 +388,31 @@ function cadUpdateAll(){
     else if(cadTool!=='arc')el.textContent='';
   }
 }
+function cadBuildFamBar(){
+  const c=document.getElementById('cadFamSwatches');if(!c)return;
+  const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
+  if(!unique.length){c.innerHTML='';return;}
+  c.innerHTML=unique.map(f=>{
+    const col=FAM_PALETTE[f%FAM_PALETTE.length];
+    const cls='cad-fam-swatch'+(cadFamSel===f?' sel':'');
+    return '<button class="'+cls+'" onclick="cadSelectFam('+f+')" style="background:'+col+'" title="Family '+(f+1)+'"></button>';
+  }).join('');
+}
+window.cadSelectFam=function(f){cadFamSel=cadFamSel===f?-1:f;cadUpdateAll();};
+window.cadMoveFam=function(dir){
+  if(cadFamSel<0)return;
+  const sorted=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
+  const idx=sorted.indexOf(cadFamSel);if(idx<0)return;
+  const oi=idx+dir;if(oi<0||oi>=sorted.length)return;
+  const other=sorted[oi];
+  cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+  for(let i=0;i<cadFamilies.length;i++){
+    if(cadFamilies[i]===cadFamSel)cadFamilies[i]=other;
+    else if(cadFamilies[i]===other)cadFamilies[i]=cadFamSel;
+  }
+  cadFamSel=other;
+  cadUpdateAll();
+};
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
