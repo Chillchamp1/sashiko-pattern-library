@@ -2881,7 +2881,7 @@ window.showCAD=function(){
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
-  cadEditId=null;cadManualBBox=null;cadBBoxP1=null;
+  cadEditId=null;cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
 };
@@ -2897,7 +2897,9 @@ window.showGalleryFromCAD=function(){
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
-let cadManualBBox=null,cadBBoxP1=null;
+let cadManualBBox=null,cadBBoxState=0,cadBBoxP1=null,cadBBoxP2=null,cadBBoxWidth=0,cadBBoxCurScr=null;
+// cadBBoxState: 0=idle, 1=dragging first edge, 2=stretching width
+const CAD_BBOX_DIRS_G=[[1,0],[0,1],[1,1],[1,-1]]; // grid-space sensible edge directions
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -3113,6 +3115,59 @@ function cadBakeRight(){
   }
 }
 
+// ── Manual BBox helpers ──────────────────────────────────────────────────────
+function _cadBBoxScreenDirs(){
+  const iso=cadGridType==='isometric';
+  const ts=cadTileSize, a=CAD_COS30*ts, b=CAD_SIN30*ts;
+  if(iso) return [[a,b],[-a,b],[0,2*b],[2*a,0]];   // u, v, u+v(vert), u-v(horiz)
+  return [[ts,0],[0,ts],[ts,ts],[ts,-ts]];            // horz, vert, diag, antidiag
+}
+function _cadSnapEdgeDir(sx,sy){
+  const dirs=_cadBBoxScreenDirs();
+  let best=0,bestD=-Infinity;
+  for(let i=0;i<dirs.length;i++){
+    const L=Math.hypot(dirs[i][0],dirs[i][1])||1;
+    const dot=(sx*dirs[i][0]+sy*dirs[i][1])/L;
+    if(dot>bestD){bestD=dot;best=i;}
+  }
+  return dirs[best];
+}
+function _cadSnapPointAlong(curX,curY,orgX,orgY,dirX,dirY){
+  // Snap cursor to nearest grid point along screen direction (dirX,dirY) from origin
+  const go=cadS2G(orgX,orgY,cadOX,cadOY,cadTileSize);
+  const gc=cadS2G(curX,curY,cadOX,cadOY,cadTileSize);
+  const gdu=gc.u-go.u, gdv=gc.v-go.v;
+  const gd=cadS2G(cadOX+dirX,cadOY+dirY,cadOX,cadOY,cadTileSize);
+  const gdx=gd.u, gdy=gd.v;
+  const gLen=Math.hypot(gdx,gdy)||1;
+  const proj=(gdu*gdx+gdv*gdy)/(gLen*gLen);
+  const steps=Math.round(proj);
+  const ru=go.u+steps*gdx, rv=go.v+steps*gdy;
+  const rp=cadG2S(ru,rv,cadOX,cadOY,cadTileSize);
+  return{rp, gu:ru, gv:rv};
+}
+function _cadBBoxRectFromEdge(edgeStartScr,edgeEndScr,width){
+  const ex=edgeEndScr.x-edgeStartScr.x, ey=edgeEndScr.y-edgeStartScr.y;
+  const eLen=Math.hypot(ex,ey)||1;
+  const px=-ey/eLen, py=ex/eLen; // unit perpendicular in screen space
+  const A={x:edgeStartScr.x,y:edgeStartScr.y};
+  const B={x:edgeEndScr.x,y:edgeEndScr.y};
+  const w=Math.abs(width)<2?2:width; // minimum width 2px so rect is always visible
+  const C={x:edgeEndScr.x+px*w,y:edgeEndScr.y+py*w};
+  const D={x:edgeStartScr.x+px*w,y:edgeStartScr.y+py*w};
+  return [A,B,C,D];
+}
+function _cadScreenCornersToBBox(corners){
+  // Convert 4 screen corners to grid-space axis-aligned bbox
+  let mnU=Infinity,mxU=-Infinity,mnV=Infinity,mxV=-Infinity;
+  corners.forEach(p=>{
+    const g=cadS2G(p.x,p.y,cadOX,cadOY,cadTileSize);
+    mnU=Math.min(mnU,g.u);mxU=Math.max(mxU,g.u);
+    mnV=Math.min(mnV,g.v);mxV=Math.max(mxV,g.v);
+  });
+  return{minU:mnU,maxU:mxU,minV:mnV,maxV:mxV};
+}
+
 function cadDrawWorkspace(){
   const cv=document.getElementById('cadCanvas');if(!cv)return;
   const x=cv.getContext('2d');
@@ -3133,14 +3188,31 @@ function cadDrawWorkspace(){
    x.beginPath();x.moveTo(wa[0].x,wa[0].y);for(let i=1;i<4;i++)x.lineTo(wa[i].x,wa[i].y);x.closePath();x.stroke();
    x.setLineDash([]);}
   // BBox preview during manual drawing
-  if(cadTool==='bbox'&&cadBBoxP1&&cadCur){
-    const mu=Math.min(cadBBoxP1[0],cadCur[0]),Mu=Math.max(cadBBoxP1[0],cadCur[0]);
-    const mv=Math.min(cadBBoxP1[1],cadCur[1]),Mv=Math.max(cadBBoxP1[1],cadCur[1]);
-    const p1=cadG2S(mu,mv,cadOX,cadOY,cadTileSize),p2=cadG2S(Mu,mv,cadOX,cadOY,cadTileSize);
-    const p3=cadG2S(Mu,Mv,cadOX,cadOY,cadTileSize),p4=cadG2S(mu,Mv,cadOX,cadOY,cadTileSize);
-    x.strokeStyle='rgba(100,200,255,0.55)';x.lineWidth=1.5;x.setLineDash([5,3]);
-    x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);x.closePath();x.stroke();
-    x.setLineDash([]);
+  if(cadTool==='bbox'){
+    // State 1: dragging first edge
+    if(cadBBoxState===1&&cadBBoxP1&&cadBBoxCurScr){
+      const sx=cadBBoxCurScr.x-cadBBoxP1.x, sy=cadBBoxCurScr.y-cadBBoxP1.y;
+      const [sdx,sdy]=_cadSnapEdgeDir(sx,sy);
+      const snap=_cadSnapPointAlong(cadBBoxCurScr.x,cadBBoxCurScr.y,cadBBoxP1.x,cadBBoxP1.y,sdx,sdy);
+      x.strokeStyle='rgba(100,200,255,0.6)';x.lineWidth=2;x.setLineDash([6,3]);
+      x.beginPath();x.moveTo(cadBBoxP1.x,cadBBoxP1.y);x.lineTo(snap.rp.x,snap.rp.y);x.stroke();
+      x.setLineDash([]);
+      x.fillStyle='rgba(100,200,255,0.8)';
+      x.beginPath();x.arc(cadBBoxP1.x,cadBBoxP1.y,5,0,Math.PI*2);x.fill();
+      x.beginPath();x.arc(snap.rp.x,snap.rp.y,5,0,Math.PI*2);x.fill();
+    }
+    // State 2: stretching width
+    else if(cadBBoxState===2&&cadBBoxP1&&cadBBoxP2){
+      const rect=_cadBBoxRectFromEdge(cadBBoxP1,cadBBoxP2,cadBBoxWidth);
+      x.strokeStyle='rgba(100,200,255,0.55)';x.lineWidth=1.5;x.setLineDash([5,3]);
+      x.beginPath();x.moveTo(rect[0].x,rect[0].y);
+      for(let i=1;i<4;i++)x.lineTo(rect[i].x,rect[i].y);
+      x.closePath();x.stroke();
+      x.setLineDash([]);x.fillStyle='rgba(100,200,255,0.06)';
+      x.beginPath();x.moveTo(rect[0].x,rect[0].y);
+      for(let i=1;i<4;i++)x.lineTo(rect[i].x,rect[i].y);
+      x.closePath();x.fill();
+    }
   }
   // Pattern bounding box + spacing: show the effective repeating unit
   const bbox=cadBBox2(all);
@@ -3300,7 +3372,7 @@ window.cadUpdateSettings=function(){
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
   cadPatMacro=parseInt(document.getElementById('cadPatSize').value);
   cadSpacing=parseInt(document.getElementById('cadSpacing').value);
-  cadZoom=1;cadPanX=0;cadPanY=0;cadManualBBox=null;cadBBoxP1=null;
+  cadZoom=1;cadPanX=0;cadPanY=0;cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;
   const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*CAD_MICRO;
   if(cadGridType==='isometric'){
     cadBase=460/(2*tc*CAD_COS30);
@@ -3312,7 +3384,7 @@ window.cadUpdateSettings=function(){
   cadApplyView();cadBakeLeft();cadBakeRight();cadUpdateAll();
 };
 window.cadSetTool=function(t){
-  if(cadTool==='bbox'&&t==='bbox'&&cadManualBBox){cadManualBBox=null;cadBBoxP1=null;cadUpdateAll();return;}
+  if(cadTool==='bbox'&&t==='bbox'&&cadManualBBox){cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;cadUpdateAll();return;}
   cadTool=t;
   document.getElementById('cadBtnDraw').classList.toggle('on',t==='draw');
   document.getElementById('cadBtnArc').classList.toggle('on',t==='arc');
@@ -3320,13 +3392,13 @@ window.cadSetTool=function(t){
   const bb=document.getElementById('cadBtnBBox');
   if(bb)bb.classList.toggle('on',t==='bbox');
   cadDrawing=false;cadStart=null;cadHover=null;
-  cadBBoxP1=null;
+  cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   cadArcLabel();cadUpdateAll();
 };
 window.cadUndo=function(){if(cadHistory.length){cadLines=cadHistory.pop();cadUpdateAll();}};
-window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadManualBBox=null;cadBBoxP1=null;cadUpdateAll();}};
-window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadManualBBox=null;cadBBoxP1=null;cadApplyView();cadBakeLeft();cadUpdateAll();};
+window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;cadUpdateAll();}};
+window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;cadApplyView();cadBakeLeft();cadUpdateAll();};
 window.cadToggleBBoxRotate=function(){
   cadBBoxRotated=!cadBBoxRotated;
   const btn=document.getElementById('cadBtnBBoxRot');
@@ -3348,7 +3420,7 @@ window.cadRotate45=function(){
   cadLines=cadLines.map(l=>({...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]}));
   cadUpdateAll();
 };
-window.cadClearManualBBox=function(){cadManualBBox=null;cadBBoxP1=null;cadUpdateAll();};
+window.cadClearManualBBox=function(){cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;cadUpdateAll();};
 window.cadSaveToLibrary=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
@@ -3488,11 +3560,18 @@ function cadInit(){
       cadHover=null;
     }
     else if(cadTool==='bbox'){
-      if(!cadBBoxP1){cadBBoxP1=[cadCur[0],cadCur[1]];}
-      else{
-        const mu=Math.min(cadBBoxP1[0],cadCur[0]),Mu=Math.max(cadBBoxP1[0],cadCur[0]);
-        const mv=Math.min(cadBBoxP1[1],cadCur[1]),Mv=Math.max(cadBBoxP1[1],cadCur[1]);
-        cadManualBBox={minU:mu,maxU:Mu,minV:mv,maxV:Mv};cadBBoxP1=null;cadCur=null;
+      if(cadBBoxState===0){
+        // Start drawing edge: snap click to grid, store screen position
+        const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
+        const sp=cadSnapPoint(g.u,g.v);
+        cadBBoxP1=cadG2S(sp[0],sp[1],cadOX,cadOY,cadTileSize);
+        cadBBoxState=1;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr={x:pos.x,y:pos.y};
+        cadCur=[sp[0],sp[1]];
+      }else if(cadBBoxState===2){
+        // Finalize rectangle: convert 4 screen corners to grid-space bbox
+        const rect=_cadBBoxRectFromEdge(cadBBoxP1,cadBBoxP2,cadBBoxWidth);
+        if(rect)cadManualBBox=_cadScreenCornersToBBox(rect);
+        cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;cadCur=null;
       }
     }
     cadUpdateAll();
@@ -3502,7 +3581,24 @@ function cadInit(){
     if(cadPanning){cadPanX+=pos.x-cadPanStart.x;cadPanY+=pos.y-cadPanStart.y;cadPanStart=pos;cadApplyView();cadBakeLeft();cadUpdateAll();return;}
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     if(cadTool==='draw'||cadTool==='arc')cadCur=cadSnapPoint(g.u,g.v);
-    else if(cadTool==='bbox'&&cadBBoxP1){cadCur=cadSnapPoint(g.u,g.v);cv.style.cursor='crosshair';}
+    else if(cadTool==='bbox'){
+      cadBBoxCurScr={x:pos.x,y:pos.y};
+      if(cadBBoxState===1&&cadBBoxP1){
+        const sx=pos.x-cadBBoxP1.x, sy=pos.y-cadBBoxP1.y;
+        const [sdx,sdy]=_cadSnapEdgeDir(sx,sy);
+        const snap=_cadSnapPointAlong(pos.x,pos.y,cadBBoxP1.x,cadBBoxP1.y,sdx,sdy);
+        cadBBoxP2=snap.rp;cadCur=[snap.gu,snap.gv];
+      }else if(cadBBoxState===2&&cadBBoxP2){
+        const ex=cadBBoxP2.x-cadBBoxP1.x, ey=cadBBoxP2.y-cadBBoxP1.y;
+        const eLen=Math.hypot(ex,ey)||1;
+        const px=-ey/eLen, py=ex/eLen;
+        const dx=pos.x-cadBBoxP1.x, dy=pos.y-cadBBoxP1.y;
+        cadBBoxWidth=px*dx+py*dy;
+        const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
+        cadCur=[g.u,g.v];
+      }
+      cv.style.cursor='crosshair';
+    }
     else{cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     cadUpdateAll();
   });
@@ -3511,15 +3607,16 @@ function cadInit(){
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
       if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines.push({start:cadStart,end:cadCur});}
     }
+    else if(cadTool==='bbox'&&cadBBoxState===1&&cadBBoxP2){cadBBoxState=2;cadBBoxWidth=20;}
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
-  cv.addEventListener('pointerleave',()=>{cadDrawing=false;cadStart=null;cadCur=null;cadHover=null;cadBBoxP1=null;cadUpdateAll();});
+  cv.addEventListener('pointerleave',()=>{cadDrawing=false;cadStart=null;cadCur=null;cadHover=null;cadBBoxCurScr=null;cadUpdateAll();});
   document.addEventListener('keydown',e=>{
     if(!document.getElementById('cadView').classList.contains('open'))return;
     if(e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
     if(e.key==='Escape'){
       if(cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcLabel();cadUpdateAll();}
-      else if(cadTool==='bbox'){cadBBoxP1=null;if(cadManualBBox){cadManualBBox=null;}cadUpdateAll();}
+      else if(cadTool==='bbox'){cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;if(cadManualBBox){cadManualBBox=null;}cadCur=null;cadUpdateAll();}
     }
   });
 }
