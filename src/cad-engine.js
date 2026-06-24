@@ -416,9 +416,13 @@ function cadDrawWorkspace(){
     const p1=cadG2S(cadHover.start.u,cadHover.start.v,cadOX,cadOY,cadTileSize),p2=cadG2S(cadHover.end.u,cadHover.end.v,cadOX,cadOY,cadTileSize);
     x.lineWidth=4;x.strokeStyle='#ff3366';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   }
-  if((cadTool==='draw'||cadTool==='arc'||cadTool==='bbox')&&cadCur){
+  if((cadTool==='draw'||cadTool==='arc')&&cadCur){
     const s=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
     x.fillStyle='#00ffcc';x.beginPath();x.arc(s.x,s.y,6,0,Math.PI*2);x.fill();
+  }
+  if(cadTool==='bbox'&&cadCur){
+    const s=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+    x.fillStyle='rgba(100,200,255,0.9)';x.beginPath();x.arc(s.x,s.y,7,0,Math.PI*2);x.fill();
   }
   if(cadTool==='arc'&&cadArcCenter){
     const pc=cadG2S(cadArcCenter[0],cadArcCenter[1],cadOX,cadOY,cadTileSize);
@@ -510,7 +514,7 @@ window.cadSetTool=function(t){
   document.getElementById('cadBtnErase').classList.toggle('on',t==='erase');
   const bb=document.getElementById('cadBtnBBox');
   if(bb)bb.classList.toggle('on',t==='bbox');
-  cadDrawing=false;cadStart=null;cadHover=null;
+  cadDrawing=false;cadStart=null;cadHover=null;cadCur=null;
   cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   cadArcLabel();cadUpdateAll();
@@ -729,7 +733,14 @@ function cadInit(){
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
       if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines.push({start:cadStart,end:cadCur});}
     }
-    else if(cadTool==='bbox'&&cadBBoxState===1&&cadBBoxP2){cadBBoxState=2;cadBBoxWidth=20;}
+    else if(cadTool==='bbox'&&cadBBoxState===1&&cadBBoxP2){
+      // Auto-detect 45° rotation from edge direction
+      const g1=cadS2G(cadBBoxP1.x,cadBBoxP1.y,cadOX,cadOY,cadTileSize);
+      const g2=cadS2G(cadBBoxP2.x,cadBBoxP2.y,cadOX,cadOY,cadTileSize);
+      const du=Math.abs(g2.u-g1.u), dv=Math.abs(g2.v-g1.v);
+      cadBBoxRotated=du>0.5&&dv>0.5;
+      cadBBoxState=2;cadBBoxWidth=20;
+    }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
   cv.addEventListener('pointerleave',()=>{cadDrawing=false;cadStart=null;cadCur=null;cadHover=null;cadBBoxCurScr=null;cadUpdateAll();});
