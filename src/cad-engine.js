@@ -205,25 +205,21 @@ function cadBakeLeft(){
 function cadBakeRight(){
   cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
   const rx=cadRightBuf.getContext('2d');
-  // Dark fabric background
   rx.fillStyle='#1a3a5c';rx.fillRect(0,0,500,500);
-  // Sub-grid dots
-  rx.fillStyle='rgba(160,160,184,0.2)';
-  const ptc=cadPatMacro*CAD_MICRO,ov=cadPatMacro;
-  for(let i=-ov;i<=cadPatMacro+ov;i++){
-    for(let j=-ov;j<=cadPatMacro+ov;j++){
-      const u=i*CAD_MICRO,v=j*CAD_MICRO;
-      const onMain=(u%CAD_MICRO===0)&&(v%CAD_MICRO===0);
-      const p=cadG2S(u,v,cadPOX,cadPOY,cadPTile);
-      rx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
-    }
+  // Same dot-grid style as draw canvas
+  const ptc=cadPatMacro*CAD_MICRO;
+  rx.fillStyle='rgba(160,160,184,0.25)';
+  for(let u=0;u<=ptc;u++)for(let v=0;v<=ptc;v++){
+    const onMain=(u%CAD_MICRO===0)&&(v%CAD_MICRO===0);
+    const p=cadG2S(u,v,cadPOX,cadPOY,cadPTile);
+    rx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
   }
-  // Grid lines at every macro step
-  rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.12)';
-  for(let i=-ov;i<=cadPatMacro+ov;i++){
+  // Grid lines at macro steps — same style as draw canvas
+  rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.15)';
+  for(let i=0;i<=cadPatMacro;i++){
     const val=i*CAD_MICRO;
-    rx.beginPath();const p1=cadG2S(val,-ov*CAD_MICRO,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,(cadPatMacro+ov)*CAD_MICRO,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
-    rx.beginPath();const p3=cadG2S(-ov*CAD_MICRO,val,cadPOX,cadPOY,cadPTile),p4=cadG2S((cadPatMacro+ov)*CAD_MICRO,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
+    rx.beginPath();const p1=cadG2S(val,0,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,ptc,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
+    rx.beginPath();const p3=cadG2S(0,val,cadPOX,cadPOY,cadPTile),p4=cadG2S(ptc,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
   }
 }
 
