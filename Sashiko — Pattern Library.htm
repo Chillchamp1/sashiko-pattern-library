@@ -513,6 +513,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <button class="cad-save-btn" onclick="showCAD()">+ New Pattern</button>
       <button class="trash-btn" onclick="toggleTrash()" id="trashToggleBtn">🗑 Trash</button>
       <button class="trash-btn" id="cloudSyncBtn" onclick="syncPatternsToCloud()" style="border-color:#6aabff;color:#6aabff" title="Upload all local patterns to Firebase so they appear on every device">☁ Sync to Cloud</button>
+      <button class="trash-btn" id="importBackupBtn" onclick="importFromBackup()" style="border-color:#88c4a4;color:#88c4a4" title="Import patterns from backup-patterns.json">⬆ Import Backup</button>
     </div>
     <div id="syncWarning" style="display:none;background:rgba(255,180,50,0.12);border:1px solid rgba(255,180,50,0.4);border-radius:6px;padding:8px 14px;margin:8px 0;font-size:12px;color:#ffcf7a">
       ⚠ Opened via <b>file://</b> — patterns are saved locally only. Open via <a href="https://chillchamp1.github.io/Sashiko-Code/" style="color:#ffcf7a" target="_blank">GitHub Pages</a> or <b>http://localhost</b> to enable cloud sync.
@@ -2113,6 +2114,38 @@ window.syncPatternsToCloud=async function(){
   await _fetchFromFirestore();
   rebuildMyPatsView();
   if(btn){btn.textContent='✓ Synced!';btn.disabled=false;setTimeout(()=>{if(btn)btn.textContent='☁ Sync to Cloud';},2500);}
+};
+
+// Import patterns from backup-patterns.json (fetched from same origin)
+window.importFromBackup=async function(){
+  const btn=document.getElementById('importBackupBtn');
+  if(btn){btn.textContent='⬆ Importing…';btn.disabled=true;}
+  try{
+    const res=await fetch('./backup-patterns.json');
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const pats=data.patterns||[];
+    const uid=_getUserId();
+    let added=0;
+    const existingIds=new Set(EXP_PATTERNS.map(p=>p.id));
+    for(const p of pats){
+      if(!p.id)continue;
+      if(existingIds.has(p.id))continue; // don't overwrite local
+      if(!p.creatorId)p.creatorId=uid;
+      EXP_PATTERNS.push(p);
+      existingIds.add(p.id);
+      added++;
+    }
+    _saveLocal();
+    if(_firebaseReady)await _syncLocalToFirestore();
+    rebuildMyPatsView();
+    if(btn){btn.textContent=added?'✓ '+added+' imported':'✓ Up to date';btn.disabled=false;
+      setTimeout(()=>{if(btn)btn.textContent='⬆ Import Backup';},2500);}
+  }catch(e){
+    console.error('Import failed:',e);
+    alert('Import failed: '+e.message+'\n\nMake sure backup-patterns.json exists in the same folder.');
+    if(btn){btn.textContent='⬆ Import Backup';btn.disabled=false;}
+  }
 };
 
 async function saveExpPatterns(pat){
