@@ -2574,7 +2574,7 @@ window.editExpPattern=function(idOrPat){
   cadFamsLocked=cadFamilies.some(f=>f>=0);
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
-  cadSpacing=pat.spacing||0;
+  cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
   const pmOpts=[3,4,5,8,12];let bestPM=5,bestD=Infinity;
