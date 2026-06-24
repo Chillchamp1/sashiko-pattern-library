@@ -445,14 +445,7 @@ function genTiledSegs(pat){
   for(let li=0;li<nLines;li++){
     if(famOfLine[li]===undefined||famOfLine[li]<0)famOfLine[li]=nextFam++;
   }
-  // Normalize line coords so tiling behaves like CAD preview
-  const lines=(pat.lines||[]).map(l=>({
-    start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],
-    end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]
-  }));
-  // Adjust offsets for normalized bbox
-  const bMinU=bbox.minU, bMinV=bbox.minV;
-  const nb={minU:0,maxU:dU,minV:0,maxV:dV};
+  const lines=pat.lines||[];
   const segs=[];
   if(pat.bboxRotated){
     // 45° rotated diamond tiling: use p=u+v, q=u-v axes
@@ -478,10 +471,8 @@ function genTiledSegs(pat){
       }
     }
   }else{
-    const adjMinU=minU-bMinU, adjMaxU=maxU-bMinU;
-    const adjMinV=minV-bMinV, adjMaxV=maxV-bMinV;
-    const ou0=Math.floor((adjMinU-nb.maxU)/dU)*dU, ou1=Math.ceil((adjMaxU-nb.minU)/dU)*dU;
-    const ov0=Math.floor((adjMinV-nb.maxV)/dV)*dV, ov1=Math.ceil((adjMaxV-nb.minV)/dV)*dV;
+    const ou0=Math.floor((minU-bbox.maxU)/dU)*dU, ou1=Math.ceil((maxU-bbox.minU)/dU)*dU;
+    const ov0=Math.floor((minV-bbox.maxV)/dV)*dV, ov1=Math.ceil((maxV-bbox.minV)/dV)*dV;
     for(let ou=ou0;ou<=ou1;ou+=dU){
       for(let ov=ov0;ov<=ov1;ov+=dV){
         lines.forEach((l,li)=>{

@@ -2171,14 +2171,7 @@ function genTiledSegs(pat){
   for(let li=0;li<nLines;li++){
     if(famOfLine[li]===undefined||famOfLine[li]<0)famOfLine[li]=nextFam++;
   }
-  // Normalize line coords so tiling behaves like CAD preview
-  const lines=(pat.lines||[]).map(l=>({
-    start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],
-    end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]
-  }));
-  // Adjust offsets for normalized bbox
-  const bMinU=bbox.minU, bMinV=bbox.minV;
-  const nb={minU:0,maxU:dU,minV:0,maxV:dV};
+  const lines=pat.lines||[];
   const segs=[];
   if(pat.bboxRotated){
     // 45° rotated diamond tiling: use p=u+v, q=u-v axes
@@ -2204,10 +2197,8 @@ function genTiledSegs(pat){
       }
     }
   }else{
-    const adjMinU=minU-bMinU, adjMaxU=maxU-bMinU;
-    const adjMinV=minV-bMinV, adjMaxV=maxV-bMinV;
-    const ou0=Math.floor((adjMinU-nb.maxU)/dU)*dU, ou1=Math.ceil((adjMaxU-nb.minU)/dU)*dU;
-    const ov0=Math.floor((adjMinV-nb.maxV)/dV)*dV, ov1=Math.ceil((adjMaxV-nb.minV)/dV)*dV;
+    const ou0=Math.floor((minU-bbox.maxU)/dU)*dU, ou1=Math.ceil((maxU-bbox.minU)/dU)*dU;
+    const ov0=Math.floor((minV-bbox.maxV)/dV)*dV, ov1=Math.ceil((maxV-bbox.minV)/dV)*dV;
     for(let ou=ou0;ou<=ou1;ou+=dU){
       for(let ov=ov0;ov<=ov1;ov+=dV){
         lines.forEach((l,li)=>{
@@ -3615,9 +3606,9 @@ window.cadSaveToLibrary=function(){
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>({start:[parseFloat(l.start[0].toFixed(3)),parseFloat(l.start[1].toFixed(3))],end:[parseFloat(l.end[0].toFixed(3)),parseFloat(l.end[1].toFixed(3))]}));
+  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:bbox.minU,maxU:bbox.maxU,minV:bbox.minV,maxV:bbox.maxV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -3657,9 +3648,9 @@ window.cadPublishToLibrary=function(){
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>({start:[parseFloat(l.start[0].toFixed(3)),parseFloat(l.start[1].toFixed(3))],end:[parseFloat(l.end[0].toFixed(3)),parseFloat(l.end[1].toFixed(3))]}));
+  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:bbox.minU,maxU:bbox.maxU,minV:bbox.minV,maxV:bbox.maxV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional,published:true};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional,published:true};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -3693,8 +3684,8 @@ window.cadTilePlay=function(){
   const redSet=new Set(cadFindRedundant());
   const clean=cadLines.filter((_,i)=>!redSet.has(i));
   if(!clean.length)return;
-  const lines=clean.map(l=>({start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]}));
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:bbox.minU,maxU:bbox.maxU,minV:bbox.minV,maxV:bbox.maxV},patMacro:cadPatMacro,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder]};
+  const lines=clean.map(l=>({start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]}));
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder]};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const path=buildExpPath(segs,pat.famOrder);
