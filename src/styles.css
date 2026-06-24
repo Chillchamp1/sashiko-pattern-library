@@ -256,7 +256,7 @@ button.ctrl.primary:hover{background:#275784}
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
 .exp-del-btn{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
-.pcard.exp-card:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
+.pcard:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
 .exp-edit-btn{position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:50%;background:rgba(80,140,200,.8);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
 .pcard.exp-card:hover .exp-edit-btn{display:flex;align-items:center;justify-content:center}
 /* My Patterns button in toolbar */

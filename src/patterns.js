@@ -6,16 +6,6 @@ const PATTERNS = [
     id:'generator', name:'Hitomezashi', jp:'一目刺し', en:'Generator',
     type:'generator', passes:['H','V'], armScale:1.0,
   },
-  {
-    id:'naname', name:'Naname Jūji-zashi', jp:'斜め十字刺し', en:'Diagonal Cross',
-    passes:['D1','D2'], armScale:1.0,
-    tip:'The 45° counterpart to the cross stitch. 2 diagonal passes. An × cross forms at every grid point.'
-  },
-  {
-    id:'tsuzuki-yamagata', name:'Tsuzuki Yamagata', jp:'続き山形', en:'Continuous Mountains',
-    type:'polyline', passes:[],
-    tip:'Overlapping mountain ranges flowing top to bottom and left to right. Stitched as continuous zigzag lines: Pass 1 marches horizontally (green), Pass 2 the same rotated 90° (blue). The two shades distinguish mirror-image rows.',
-  },
 ];
 
 // ── Generator presets ──────────────────────────────────────────────────────

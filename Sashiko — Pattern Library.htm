@@ -263,7 +263,7 @@ button.ctrl.primary:hover{background:#275784}
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
 .exp-del-btn{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
-.pcard.exp-card:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
+.pcard:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
 .exp-edit-btn{position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:50%;background:rgba(80,140,200,.8);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
 .pcard.exp-card:hover .exp-edit-btn{display:flex;align-items:center;justify-content:center}
 /* My Patterns button in toolbar */
@@ -534,16 +534,6 @@ const PATTERNS = [
   {
     id:'generator', name:'Hitomezashi', jp:'一目刺し', en:'Generator',
     type:'generator', passes:['H','V'], armScale:1.0,
-  },
-  {
-    id:'naname', name:'Naname Jūji-zashi', jp:'斜め十字刺し', en:'Diagonal Cross',
-    passes:['D1','D2'], armScale:1.0,
-    tip:'The 45° counterpart to the cross stitch. 2 diagonal passes. An × cross forms at every grid point.'
-  },
-  {
-    id:'tsuzuki-yamagata', name:'Tsuzuki Yamagata', jp:'続き山形', en:'Continuous Mountains',
-    type:'polyline', passes:[],
-    tip:'Overlapping mountain ranges flowing top to bottom and left to right. Stitched as continuous zigzag lines: Pass 1 marches horizontally (green), Pass 2 the same rotated 90° (blue). The two shades distinguish mirror-image rows.',
   },
 ];
 
