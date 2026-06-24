@@ -1224,7 +1224,7 @@ window.showCAD=function(){
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
-  cadEditId=null;cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;
+  cadEditId=null;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
 };
