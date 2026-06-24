@@ -345,7 +345,7 @@ function cadDrawWorkspace(){
         mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
         epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
       }
-      const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
+      const sP=Math.max(mxP-mnP+cadSpacing,4),sQ=Math.max(mxQ-mnQ+cadSpacing,4);
       const midP=(mnP+mxP)/2,midQ=(mnQ+mxQ)/2;
       const g45=(p,q)=>cadG2S((p+q)/2,(p-q)/2,cadOX,cadOY,cadTileSize);
       const ps=[g45(midP-sP/2,midQ-sQ/2),g45(midP+sP/2,midQ-sQ/2),g45(midP+sP/2,midQ+sQ/2),g45(midP-sP/2,midQ+sQ/2)];
@@ -471,7 +471,7 @@ function cadDrawPattern(){
       mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
       epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
     }
-    const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
+    const sP=Math.max(mxP-mnP+cadSpacing,4),sQ=Math.max(mxQ-mnQ+cadSpacing,4);
     const base_u=(mnP+mnQ)/2,base_v=(mnP-mnQ)/2;
     const N=Math.ceil(2*(ptc+ov)/Math.min(sP,sQ))+3;
     for(let a=-N;a<=N;a++){for(let b=-N;b<=N;b++){
@@ -516,11 +516,12 @@ window.cadSetTool=function(t){
   if(bb)bb.classList.toggle('on',t==='bbox');
   cadDrawing=false;cadStart=null;cadHover=null;cadCur=null;
   cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;
+  if(t!=='bbox')cadBBoxRotated=false;
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   cadArcLabel();cadUpdateAll();
 };
 window.cadUndo=function(){if(cadHistory.length){cadLines=cadHistory.pop();cadUpdateAll();}};
-window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;cadUpdateAll();}};
+window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadManualBBox=null;cadBBoxRotated=false;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;cadUpdateAll();}};
 window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadManualBBox=null;cadBBoxState=0;cadBBoxP1=null;cadBBoxP2=null;cadBBoxWidth=0;cadBBoxCurScr=null;cadApplyView();cadBakeLeft();cadUpdateAll();};
 window.cadToggleBBoxRotate=function(){
   cadBBoxRotated=!cadBBoxRotated;
