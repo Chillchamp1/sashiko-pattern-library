@@ -220,6 +220,12 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch{width:22px;height:22px;border-radius:4px;border:1px solid transparent;cursor:pointer;margin:0 2px;transition:.15s}
 .cad-fam-swatch:hover{border-color:#fff}
 .cad-fam-swatch.sel{border:3px solid #fff}
+/* ── Move pattern panel ── */
+.cad-move-panel{display:flex;align-items:center;gap:8px;justify-content:center;padding:4px 0}
+.cad-move-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.cad-move-arrows{display:flex;flex-direction:column;align-items:center;gap:1px}
+.cad-move-arrows .cad-tool{width:28px;height:22px;padding:0;text-align:center;font-size:14px;line-height:1}
+.cad-move-arrows div{display:flex;gap:1px}
 .cad-workspace{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .cad-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-width:300px;max-width:440px}
 .cad-canvas-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center}
