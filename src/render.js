@@ -181,6 +181,10 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
+  // Update back button label
+  const bb=document.querySelector('#animView .back-btn');
+  if(bb)bb.textContent='← '+(isEXP?'Sandbox':'Gallery');
+
   const ss=document.getElementById('stitchSettings');if(ss)ss.style.display='none'; // commented out for later reuse
   if(!isEXP){
     const lr2=document.getElementById('likeRow');if(lr2)lr2.style.display='none';

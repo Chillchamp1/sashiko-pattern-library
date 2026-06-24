@@ -1209,6 +1209,10 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
+  // Update back button label
+  const bb=document.querySelector('#animView .back-btn');
+  if(bb)bb.textContent='← '+(isEXP?'Sandbox':'Gallery');
+
   const ss=document.getElementById('stitchSettings');if(ss)ss.style.display='none'; // commented out for later reuse
   if(!isEXP){
     const lr2=document.getElementById('likeRow');if(lr2)lr2.style.display='none';
@@ -1622,7 +1626,7 @@ function buildGallery(){
     delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
     delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
     card.appendChild(delBtn);
-    card.onclick=()=>openPattern(pat);
+    card.onclick=()=>{window.open('#'+pat.id,'_blank');};
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
