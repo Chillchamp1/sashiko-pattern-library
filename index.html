@@ -3158,14 +3158,18 @@ function _cadBBoxRectFromEdge(edgeStartScr,edgeEndScr,width){
   return [A,B,C,D];
 }
 function _cadScreenCornersToBBox(corners){
-  // Convert 4 screen corners to grid-space axis-aligned bbox
+  // Convert 4 screen corners to grid-space bbox including p=u+v, q=u-v ranges
   let mnU=Infinity,mxU=-Infinity,mnV=Infinity,mxV=-Infinity;
+  let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
   corners.forEach(p=>{
     const g=cadS2G(p.x,p.y,cadOX,cadOY,cadTileSize);
     mnU=Math.min(mnU,g.u);mxU=Math.max(mxU,g.u);
     mnV=Math.min(mnV,g.v);mxV=Math.max(mxV,g.v);
+    const pp=g.u+g.v, qq=g.u-g.v;
+    mnP=Math.min(mnP,pp);mxP=Math.max(mxP,pp);
+    mnQ=Math.min(mnQ,qq);mxQ=Math.max(mxQ,qq);
   });
-  return{minU:mnU,maxU:mxU,minV:mnV,maxV:mxV};
+  return{minU:mnU,maxU:mxU,minV:mnV,maxV:mxV, mnP,mxP,mnQ,mxQ};
 }
 
 function cadDrawWorkspace(){
@@ -3228,10 +3232,15 @@ function cadDrawWorkspace(){
       const p3=cadG2S(cu+sU/2,cv+sV/2,cadOX,cadOY,cadTileSize),p4=cadG2S(cu-sU/2,cv+sV/2,cadOX,cadOY,cadTileSize);
       x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);
     }else{
-      // Project all endpoints onto 45°-rotated axes p=u+v, q=u-v
-      const epts=[];cadLines.forEach(l=>epts.push(l.start,l.end));
-      let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
-      epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
+      // Project endpoints onto 45°-rotated axes p=u+v, q=u-v; use manual bbox p/q if set
+      let mnP,mxP,mnQ,mxQ;
+      if(cadManualBBox&&cadManualBBox.mnP!==undefined){
+        mnP=cadManualBBox.mnP;mxP=cadManualBBox.mxP;mnQ=cadManualBBox.mnQ;mxQ=cadManualBBox.mxQ;
+      }else{
+        const epts=[];cadLines.forEach(l=>epts.push(l.start,l.end));
+        mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
+        epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
+      }
       const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
       const midP=(mnP+mxP)/2,midQ=(mnQ+mxQ)/2;
       const g45=(p,q)=>cadG2S((p+q)/2,(p-q)/2,cadOX,cadOY,cadTileSize);
@@ -3345,9 +3354,15 @@ function cadDrawPattern(){
   if(!cadBBoxRotated){
     for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){_renderAt(ou,ov2);}}
   }else{
-    const epts=[];all.forEach(l=>{if(!l.preview)epts.push(l.start,l.end);});
-    let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
-    epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
+    let mnP,mxP,mnQ,mxQ;
+    if(cadManualBBox&&cadManualBBox.mnP!==undefined){
+      mnP=cadManualBBox.mnP;mxP=cadManualBBox.mxP;
+      mnQ=cadManualBBox.mnQ;mxQ=cadManualBBox.mxQ;
+    }else{
+      const epts=[];all.forEach(l=>{if(!l.preview)epts.push(l.start,l.end);});
+      mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
+      epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
+    }
     const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
     const base_u=(mnP+mnQ)/2,base_v=(mnP-mnQ)/2;
     const N=Math.ceil(2*(ptc+ov)/Math.min(sP,sQ))+3;
@@ -3592,10 +3607,13 @@ function cadInit(){
         const ex=cadBBoxP2.x-cadBBoxP1.x, ey=cadBBoxP2.y-cadBBoxP1.y;
         const eLen=Math.hypot(ex,ey)||1;
         const px=-ey/eLen, py=ex/eLen;
-        const dx=pos.x-cadBBoxP1.x, dy=pos.y-cadBBoxP1.y;
-        cadBBoxWidth=px*dx+py*dy;
+        // Snap cursor to grid point, then compute perpendicular width
         const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
-        cadCur=[g.u,g.v];
+        const sp=cadSnapPoint(g.u,g.v);
+        const snp=cadG2S(sp[0],sp[1],cadOX,cadOY,cadTileSize);
+        const dx=snp.x-cadBBoxP1.x, dy=snp.y-cadBBoxP1.y;
+        cadBBoxWidth=px*dx+py*dy;
+        cadCur=[sp[0],sp[1]];
       }
       cv.style.cursor='crosshair';
     }
