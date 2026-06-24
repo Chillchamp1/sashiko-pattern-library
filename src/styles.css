@@ -222,11 +222,17 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch.sel{border:3px solid #fff}
 /* ── Panel-top steppers (above canvases) ── */
 .cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.cad-panel-stepper{display:inline-flex;align-items:center;gap:3px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:2px 6px}
+.cad-panel-stepper{display:inline-flex;align-items:center;gap:4px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:3px 8px}
 .cad-panel-stepper-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
-.cad-panel-stepper input{background:transparent;color:#e7eef6;border:none;padding:2px 0;font-size:12px;outline:none;text-align:center;width:28px;-moz-appearance:textfield}
+.cad-panel-stepper input{background:transparent;color:#e7eef6;border:none;padding:1px 0;font-size:12px;outline:none;text-align:center;width:24px;-moz-appearance:textfield}
 .cad-panel-stepper input::-webkit-outer-spin-button,.cad-panel-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.cad-step-btn{width:16px;height:14px;padding:0;font-size:8px;line-height:1;text-align:center;border-radius:3px}
+/* ── Stepper arrow buttons ── */
+.cad-step-arrows{display:inline-flex;flex-direction:column;gap:0;height:22px}
+.cad-step-arrows button{width:0;height:0;padding:0;margin:0;border:none;background:none;cursor:pointer;position:relative}
+.cad-step-arrows button:first-child{border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:7px solid var(--muted)}
+.cad-step-arrows button:last-child{border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--muted)}
+.cad-step-arrows button:hover:first-child{border-bottom-color:#e7eef6}
+.cad-step-arrows button:hover:last-child{border-top-color:#e7eef6}
 /* ── Move pattern panel ── */
 .cad-move-panel{display:flex;align-items:center;gap:8px;justify-content:center;padding:4px 0}
 .cad-move-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
