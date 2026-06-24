@@ -227,11 +227,13 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch{width:22px;height:22px;border-radius:4px;border:1px solid transparent;cursor:pointer;margin:0 2px;transition:.15s}
 .cad-fam-swatch:hover{border-color:#fff}
 .cad-fam-swatch.sel{border:3px solid #fff}
-.cad-stepper{display:inline-flex;align-items:center;gap:2px}
-.cad-stepper input{background:var(--panel2,#1c3045);color:#e7eef6;border:1px solid var(--line);padding:4px 4px;border-radius:6px;font-size:12px;outline:none;text-align:center;-moz-appearance:textfield}
-.cad-stepper input::-webkit-outer-spin-button,.cad-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.cad-stepper-btns{display:flex;flex-direction:column;gap:0}
-.cad-step-btn{width:18px;height:14px;padding:0;font-size:8px;line-height:1;text-align:center;border-radius:4px}
+/* ── Panel-top steppers (above canvases) ── */
+.cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.cad-panel-stepper{display:inline-flex;align-items:center;gap:3px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:2px 6px}
+.cad-panel-stepper-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.cad-panel-stepper input{background:transparent;color:#e7eef6;border:none;padding:2px 0;font-size:12px;outline:none;text-align:center;width:28px;-moz-appearance:textfield}
+.cad-panel-stepper input::-webkit-outer-spin-button,.cad-panel-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.cad-step-btn{width:16px;height:14px;padding:0;font-size:8px;line-height:1;text-align:center;border-radius:3px}
 /* ── Move pattern panel ── */
 .cad-move-panel{display:flex;align-items:center;gap:8px;justify-content:center;padding:4px 0}
 .cad-move-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
@@ -427,34 +429,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <option value="square">Square (90°)</option>
         </select>
       </label>
-      <label>Work Size:
-        <select id="cadGridSize" onchange="cadUpdateSettings()">
-          <option value="2">2×2</option>
-          <option value="3" selected>3×3</option>
-          <option value="4">4×4</option>
-          <option value="5">5×5</option>
-          <option value="6">6×6</option>
-        </select>
-      </label>
-      <label>Tile Preview:
-        <select id="cadPatSize" onchange="cadUpdateSettings()">
-          <option value="2">2×2</option>
-          <option value="3">3×3</option>
-          <option value="4">4×4</option>
-          <option value="5" selected>5×5</option>
-          <option value="8">8×8</option>
-          <option value="12">12×12</option>
-        </select>
-      </label>
-      <label>Spacing:
-        <span class="cad-stepper">
-          <input type="number" id="cadSpacing" value="0" min="0" max="12" onchange="cadUpdateSettings()" style="width:36px">
-          <span class="cad-stepper-btns">
-            <button class="cad-tool cad-step-btn" onclick="cadStepSpacing(1)" title="More spacing">▲</button>
-            <button class="cad-tool cad-step-btn" onclick="cadStepSpacing(-1)" title="Less spacing">▼</button>
-          </span>
-        </span>
-      </label>
       <label>BBox: <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="Rotate tiling unit 45° (diagonal lattice)">◇ 45°</button></label>
       <label style="gap:4px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
     </div>
@@ -467,7 +441,15 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     </div>
     <div class="cad-workspace">
       <div class="cad-panel">
-        <div class="cad-canvas-label">Draw</div>
+        <div class="cad-panel-top">
+          <div class="cad-canvas-label">Draw</div>
+          <span class="cad-panel-stepper">
+            <span class="cad-panel-stepper-label">Size</span>
+            <input type="number" id="cadGridSize" value="3" min="2" max="6" onchange="cadUpdateSettings()">
+            <button class="cad-tool cad-step-btn" onclick="cadStepMacro(1)" title="Larger">▲</button>
+            <button class="cad-tool cad-step-btn" onclick="cadStepMacro(-1)" title="Smaller">▼</button>
+          </span>
+        </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
         <div class="cad-move-panel">
           <span class="cad-move-label">Move pattern on grid</span>
@@ -491,7 +473,21 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </div>
       </div>
       <div class="cad-panel">
-        <div class="cad-canvas-label">Live Tiling</div>
+        <div class="cad-panel-top">
+          <div class="cad-canvas-label">Live Tiling</div>
+          <span class="cad-panel-stepper">
+            <span class="cad-panel-stepper-label">Tiles</span>
+            <input type="number" id="cadPatSize" value="5" min="2" max="12" onchange="cadUpdateSettings()">
+            <button class="cad-tool cad-step-btn" onclick="cadStepPatMacro(1)" title="More tiles">▲</button>
+            <button class="cad-tool cad-step-btn" onclick="cadStepPatMacro(-1)" title="Fewer tiles">▼</button>
+          </span>
+          <span class="cad-panel-stepper">
+            <span class="cad-panel-stepper-label">Spacing</span>
+            <input type="number" id="cadSpacing" value="0" min="0" max="12" onchange="cadUpdateSettings()">
+            <button class="cad-tool cad-step-btn" onclick="cadStepSpacing(1)" title="More spacing">▲</button>
+            <button class="cad-tool cad-step-btn" onclick="cadStepSpacing(-1)" title="Less spacing">▼</button>
+          </span>
+        </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
         <div class="cad-toolbar">
           <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
@@ -3593,6 +3589,18 @@ window.cadStepSpacing=function(d){
   const el=document.getElementById('cadSpacing');
   let v=parseInt(el.value)||0;
   v=Math.max(0,Math.min(12,v+d));
+  el.value=v;cadUpdateSettings();
+};
+window.cadStepMacro=function(d){
+  const el=document.getElementById('cadGridSize');
+  let v=parseInt(el.value)||3;
+  v=Math.max(2,Math.min(6,v+d));
+  el.value=v;cadUpdateSettings();
+};
+window.cadStepPatMacro=function(d){
+  const el=document.getElementById('cadPatSize');
+  let v=parseInt(el.value)||5;
+  v=Math.max(2,Math.min(12,v+d));
   el.value=v;cadUpdateSettings();
 };
 window.cadMovePattern=function(du,dv){

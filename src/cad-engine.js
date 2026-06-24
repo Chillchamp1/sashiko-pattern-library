@@ -476,6 +476,18 @@ window.cadStepSpacing=function(d){
   v=Math.max(0,Math.min(12,v+d));
   el.value=v;cadUpdateSettings();
 };
+window.cadStepMacro=function(d){
+  const el=document.getElementById('cadGridSize');
+  let v=parseInt(el.value)||3;
+  v=Math.max(2,Math.min(6,v+d));
+  el.value=v;cadUpdateSettings();
+};
+window.cadStepPatMacro=function(d){
+  const el=document.getElementById('cadPatSize');
+  let v=parseInt(el.value)||5;
+  v=Math.max(2,Math.min(12,v+d));
+  el.value=v;cadUpdateSettings();
+};
 window.cadMovePattern=function(du,dv){
   if(!cadLines.length)return;
   cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
