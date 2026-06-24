@@ -3495,6 +3495,7 @@ window.cadSelectFam=function(pos){cadFamSel=cadFamSel===pos?-1:pos;cadUpdateAll(
 window.cadMoveFam=function(dir){
   if(cadFamSel<0||cadFamSel>=cadFamOrder.length)return;
   const oi=cadFamSel+dir;if(oi<0||oi>=cadFamOrder.length)return;
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
   [cadFamOrder[cadFamSel],cadFamOrder[oi]]=[cadFamOrder[oi],cadFamOrder[cadFamSel]];
   cadFamSel=oi;cadFamsLocked=true;
   cadUpdateAll();
@@ -3503,6 +3504,7 @@ window.cadAddFam=function(){
   // Find next available family number that's not in use
   const used=new Set(cadFamOrder);
   let nf=0;while(used.has(nf))nf++;
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
   cadFamOrder.push(nf);cadFamSel=cadFamOrder.length-1;cadFamsLocked=true;
   cadUpdateAll();
 };
@@ -3534,7 +3536,7 @@ window.cadSetTool=function(t){
 window.cadUndo=function(){
   if(!cadHistory.length)return;
   const state=cadHistory.pop();
-  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];}
+  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];if(state.o)cadFamOrder=state.o;}
   else{cadLines=state;cadFamilies=new Array(cadLines.length).fill(-1);}
   cadFamsLocked=true;cadUpdateAll();
 };
@@ -3730,7 +3732,7 @@ function cadInit(){
       // Click-to-assign: if a family is selected and we hit a line, assign it
       if(cadFamSel>=0){
         const hit=cadHoveredSeg(g.u,g.v);
-        if(hit&&hit.li>=0&&cadFamSel<cadFamOrder.length){cadFamilies[hit.li]=cadFamOrder[cadFamSel];cadFamsLocked=true;cadUpdateAll();return;}
+        if(hit&&hit.li>=0&&cadFamSel<cadFamOrder.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadFamilies[hit.li]=cadFamOrder[cadFamSel];cadFamsLocked=true;cadUpdateAll();return;}
       }
       cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];
     }
