@@ -373,55 +373,13 @@ function loadExpPatterns(){
   }
 }
 
-// Manual sync trigger (button in My Patterns view)
+// Kept for console access during migration: syncPatternsToCloud()
 window.syncPatternsToCloud=async function(){
-  const btn=document.getElementById('cloudSyncBtn');
-  if(btn){btn.textContent='☁ Syncing…';btn.disabled=true;}
-  if(!_firebaseReady){
-    _initFirebase();
-    if(!_firebaseReady){
-      alert('Firebase not available on this URL.\n\nOpen the app via GitHub Pages or http://localhost to sync.');
-      if(btn){btn.textContent='☁ Sync to Cloud';btn.disabled=false;}
-      return;
-    }
-  }
+  if(!_firebaseReady){_initFirebase();if(!_firebaseReady){console.warn('Firebase not available');return;}}
   await _syncLocalToFirestore();
   await _fetchFromFirestore();
   rebuildMyPatsView();
-  if(btn){btn.textContent='✓ Synced!';btn.disabled=false;setTimeout(()=>{if(btn)btn.textContent='☁ Sync to Cloud';},2500);}
-};
-
-// Import patterns from backup-patterns.json (fetched from same origin)
-window.importFromBackup=async function(){
-  const btn=document.getElementById('importBackupBtn');
-  if(btn){btn.textContent='⬆ Importing…';btn.disabled=true;}
-  try{
-    const res=await fetch('./backup-patterns.json');
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    const pats=data.patterns||[];
-    const uid=_getUserId();
-    let added=0;
-    const existingIds=new Set(EXP_PATTERNS.map(p=>p.id));
-    for(const p of pats){
-      if(!p.id)continue;
-      if(existingIds.has(p.id))continue; // don't overwrite local
-      if(!p.creatorId)p.creatorId=uid;
-      EXP_PATTERNS.push(p);
-      existingIds.add(p.id);
-      added++;
-    }
-    _saveLocal();
-    if(_firebaseReady)await _syncLocalToFirestore();
-    buildGallery();
-    rebuildMyPatsView();
-    if(btn){btn.textContent=added?'✓ '+added+' imported':'✓ Up to date';btn.disabled=false;
-      setTimeout(()=>{if(btn)btn.textContent='⬆ Import Backup';},2500);}
-  }catch(e){
-    console.error('Import failed:',e);
-    alert('Import failed: '+e.message+'\n\nMake sure backup-patterns.json exists in the same folder.');
-    if(btn){btn.textContent='⬆ Import Backup';btn.disabled=false;}
-  }
+  console.log('Synced. '+EXP_PATTERNS.length+' patterns.');
 };
 
 async function saveExpPatterns(pat){
@@ -1364,9 +1322,6 @@ window.showMyPatterns=function(){
   document.getElementById('galleryView').style.display='none';
   document.getElementById('cadView').classList.remove('open');
   document.getElementById('myPatsView').classList.add('open');
-  // Show warning when opened via file:// (no Firebase sync possible)
-  const warn=document.getElementById('syncWarning');
-  if(warn)warn.style.display=location.protocol==='file:'?'block':'none';
   const trash=_loadTrash();
   const tbtn=document.getElementById('trashToggleBtn');
   if(tbtn)tbtn.textContent=trash.length?'🗑 Trash ('+trash.length+')':'🗑 Trash';
