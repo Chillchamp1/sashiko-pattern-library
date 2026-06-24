@@ -428,29 +428,53 @@ function genTiledSegs(pat){
   const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
   const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
   const [minU,maxU]=lay.uRange, [minV,maxV]=lay.vRange;
-  const ou0=Math.floor((minU-bbox.maxU)/dU)*dU, ou1=Math.ceil((maxU-bbox.minU)/dU)*dU;
-  const ov0=Math.floor((minV-bbox.maxV)/dV)*dV, ov1=Math.ceil((maxV-bbox.minV)/dV)*dV;
   const families=pat.families||detectSymmetryFamilies(pat);
   const nLines=(pat.lines||[]).length;
   const famOfLine=new Array(nLines);
-  // Handle both flat format [0,0,-1,2] and array-of-arrays [[0,2],[1]]
   if(families.length>0&&Array.isArray(families[0])){
     families.forEach((group,fi)=>{group.forEach(li=>{famOfLine[li]=fi;});});
   }else{
     families.forEach((fi,li)=>{famOfLine[li]=fi;});
   }
-  // Unassigned lines (-1 or undefined) each get their own family
   let nextFam=Math.max(0,...famOfLine.filter(f=>f>=0))+1;
   for(let li=0;li<nLines;li++){
     if(famOfLine[li]===undefined||famOfLine[li]<0)famOfLine[li]=nextFam++;
   }
   const segs=[];
-  for(let ou=ou0;ou<=ou1;ou+=dU){
-    for(let ov=ov0;ov<=ov1;ov+=dV){
-      (pat.lines||[]).forEach((l,li)=>{
-        const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
-        if(c)segs.push({start:c[0],end:c[1],fam:famOfLine[li]});
-      });
+  const lines=pat.lines||[];
+  if(pat.bboxRotated){
+    // 45° rotated diamond tiling: use p=u+v, q=u-v axes
+    let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
+    lines.forEach(l=>{
+      const p1=l.start[0]+l.start[1], q1=l.start[0]-l.start[1];
+      const p2=l.end[0]+l.end[1], q2=l.end[0]-l.end[1];
+      mnP=Math.min(mnP,p1,p2);mxP=Math.max(mxP,p1,p2);
+      mnQ=Math.min(mnQ,q1,q2);mxQ=Math.max(mxQ,q1,q2);
+    });
+    // Ensure at least 1 unit step
+    const sP=Math.max(mxP-mnP,1), sQ=Math.max(mxQ-mnQ,1);
+    const base_u=(mnP+mnQ)/2, base_v=(mnP-mnQ)/2;
+    const pad=sP+sQ;
+    const N=Math.ceil((Math.abs(maxU-minU)+Math.abs(maxV-minV)+pad)/Math.min(sP,sQ));
+    for(let a=-N;a<=N;a++){
+      for(let b=-N;b<=N;b++){
+        const ou=(a*sP+b*sQ)/2, ov=(a*sP-b*sQ)/2;
+        lines.forEach((l,li)=>{
+          const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
+          if(c)segs.push({start:c[0],end:c[1],fam:famOfLine[li]});
+        });
+      }
+    }
+  }else{
+    const ou0=Math.floor((minU-bbox.maxU)/dU)*dU, ou1=Math.ceil((maxU-bbox.minU)/dU)*dU;
+    const ov0=Math.floor((minV-bbox.maxV)/dV)*dV, ov1=Math.ceil((maxV-bbox.minV)/dV)*dV;
+    for(let ou=ou0;ou<=ou1;ou+=dU){
+      for(let ov=ov0;ov<=ov1;ov+=dV){
+        lines.forEach((l,li)=>{
+          const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
+          if(c)segs.push({start:c[0],end:c[1],fam:famOfLine[li]});
+        });
+      }
     }
   }
   return segs;

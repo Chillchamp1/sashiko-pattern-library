@@ -445,7 +445,7 @@ window.cadSaveToLibrary=function(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now()};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     // Update existing pattern — preserve families if line count unchanged
@@ -482,7 +482,7 @@ window.cadTilePlay=function(){
   const clean=cadLines.filter((_,i)=>!redSet.has(i));
   if(!clean.length)return;
   const lines=clean.map(l=>({start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]}));
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,bboxRotated:cadBBoxRotated};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const path=buildExpPath(segs);
