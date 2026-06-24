@@ -1,6 +1,6 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
-let cadRemixOf=null;
+let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
@@ -402,6 +402,9 @@ function cadUpdateAll(){
 }
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
+  // Update publish button visibility
+  const pb=document.getElementById('cadPublishBtn');
+  if(pb)pb.style.display=cadIsPublished?'none':'inline-block';
   const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!unique.length){c.innerHTML='';return;}
   // Ensure cadFamOrder includes all used families (never remove empty ones)
@@ -510,6 +513,7 @@ window.cadSaveToLibrary=function(){
       pat.id=cadEditId;
       pat.createdAt=EXP_PATTERNS[idx].createdAt;
       pat.published=EXP_PATTERNS[idx].published;
+      cadIsPublished=pat.published;
       pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
       EXP_PATTERNS[idx]=pat;
     }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
@@ -565,6 +569,7 @@ window.cadPublishToLibrary=function(){
   if(_firebaseReady)_pushToFirestore(pat);
   rebuildExpGallery();
   alert('Published! Visible in main gallery.');
+  cadIsPublished=true;
 };
 
 // ── Tile preview play → animates inline on right canvas ──────────────────
