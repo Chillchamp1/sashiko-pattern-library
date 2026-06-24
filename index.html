@@ -234,10 +234,10 @@ button.ctrl.primary:hover{background:#275784}
 .cad-panel-stepper input{background:transparent;color:#e7eef6;border:none;padding:1px 0;font-size:12px;outline:none;text-align:center;width:24px;-moz-appearance:textfield}
 .cad-panel-stepper input::-webkit-outer-spin-button,.cad-panel-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 /* ── Stepper arrow buttons ── */
-.cad-step-arrows{display:inline-flex;flex-direction:column;gap:0;height:22px}
-.cad-step-arrows button{width:0;height:0;padding:0;margin:0;border:none;background:none;cursor:pointer;position:relative}
-.cad-step-arrows button:first-child{border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:7px solid var(--muted)}
-.cad-step-arrows button:last-child{border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--muted)}
+.cad-step-arrows{display:inline-flex;flex-direction:column;justify-content:center;gap:3px;height:22px}
+.cad-step-arrows button{width:0;height:0;padding:0;margin:0;border:none;background:none;cursor:pointer}
+.cad-step-arrows button:first-child{border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:6px solid var(--muted)}
+.cad-step-arrows button:last-child{border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--muted)}
 .cad-step-arrows button:hover:first-child{border-bottom-color:#e7eef6}
 .cad-step-arrows button:hover:last-child{border-top-color:#e7eef6}
 /* ── Move pattern panel ── */
@@ -536,19 +536,9 @@ const PATTERNS = [
     type:'generator', passes:['H','V'], armScale:1.0,
   },
   {
-    id:'juji', name:'Jūji-zashi', jp:'十字刺し', en:'Cross Stitch',
-    passes:['V','H'], armScale:1.0,
-    tip:'The foundation of one-stitch sashiko. 2 passes: vertical → horizontal. A + cross forms at every grid point.'
-  },
-  {
     id:'naname', name:'Naname Jūji-zashi', jp:'斜め十字刺し', en:'Diagonal Cross',
     passes:['D1','D2'], armScale:1.0,
     tip:'The 45° counterpart to the cross stitch. 2 diagonal passes. An × cross forms at every grid point.'
-  },
-  {
-    id:'komesashi', name:'Komesashi', jp:'米刺し', en:'Rice Stitch',
-    passes:['V','H','D1','D2'], armScale:1.0,
-    tip:'4 passes · all directions. Combines the straight (+) and diagonal (×) cross. The result resembles the kanji for rice (米).'
   },
   {
     id:'tsuzuki-yamagata', name:'Tsuzuki Yamagata', jp:'続き山形', en:'Continuous Mountains',
@@ -1617,7 +1607,9 @@ function renderThumb(canvas,pat){
 let activeFilter=0;
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
+  const deleted=_getDeleted();
   PATTERNS.forEach(pat=>{
+    if(deleted.includes(pat.id))return;
     const card=document.createElement('button');
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
     card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
@@ -1631,6 +1623,11 @@ function buildGallery(){
     else if(pat.type==='polyline'){badge.className='pcard-badge';badge.textContent='Continuous';}
     else{badge.className='pcard-badge';badge.textContent=pat.passes.length+' passes';}
     card.append(name,jp,badge);
+    // Delete button for all cards
+    const delBtn=document.createElement('button');
+    delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
+    delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
+    card.appendChild(delBtn);
     card.onclick=()=>openPattern(pat);
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
@@ -1723,6 +1720,21 @@ window.showGallery=function(){
 // ── Helpers ────────────────────────────────────────────────────────────────
 function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
+// ── Delete pattern (admin) ──────────────────────────────────────────────────
+function _getDeleted(){try{return JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');}catch(e){return[];}}
+window.deletePattern=function(id){
+  const pw=prompt('Admin password:');
+  if(pw!=='111'){alert('Wrong password');return;}
+  if(!confirm('Delete "'+id+'"?'))return;
+  const pat=PATTERNS.find(p=>p.id===id);
+  if(pat){
+    const del=_getDeleted();if(!del.includes(id))del.push(id);
+    localStorage.setItem('sashiko_deleted',JSON.stringify(del));
+  }else{
+    removeExpPattern(id);
+  }
+  buildGallery();
+};
 
 
 // ── experimental.js ──────────────────────────────
