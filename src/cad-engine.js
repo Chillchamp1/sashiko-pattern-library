@@ -670,7 +670,7 @@ function cadInit(){
       else if(cadArcState===2){
         cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
         cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>cadLines.push(l));
-        cadFamSel=-1;
+        cadFamsLocked=false;cadFamSel=-1;
         cadArcState=0;cadArcCenter=null;cadArcStart=null;
       }
       cadArcLabel();
@@ -679,7 +679,7 @@ function cadInit(){
       cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
       cadLines.splice(cadHover.li,1);
       for(let i=0;i<cadHover.all.length-1;i++)if(i!==cadHover.ci)cadLines.push({start:[cadHover.all[i].u,cadHover.all[i].v],end:[cadHover.all[i+1].u,cadHover.all[i+1].v]});
-      cadHover=null;cadFamSel=-1;
+      cadHover=null;cadFamsLocked=false;cadFamSel=-1;
     }
     cadUpdateAll();
   });
@@ -694,7 +694,7 @@ function cadInit(){
   cv.addEventListener('pointerup',e=>{
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamSel=-1;}
+      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;}
     }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
