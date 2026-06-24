@@ -370,6 +370,38 @@ window.syncPatternsToCloud=async function(){
   if(btn){btn.textContent='✓ Synced!';btn.disabled=false;setTimeout(()=>{if(btn)btn.textContent='☁ Sync to Cloud';},2500);}
 };
 
+// Import patterns from backup-patterns.json (fetched from same origin)
+window.importFromBackup=async function(){
+  const btn=document.getElementById('importBackupBtn');
+  if(btn){btn.textContent='⬆ Importing…';btn.disabled=true;}
+  try{
+    const res=await fetch('./backup-patterns.json');
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const pats=data.patterns||[];
+    const uid=_getUserId();
+    let added=0;
+    const existingIds=new Set(EXP_PATTERNS.map(p=>p.id));
+    for(const p of pats){
+      if(!p.id)continue;
+      if(existingIds.has(p.id))continue; // don't overwrite local
+      if(!p.creatorId)p.creatorId=uid;
+      EXP_PATTERNS.push(p);
+      existingIds.add(p.id);
+      added++;
+    }
+    _saveLocal();
+    if(_firebaseReady)await _syncLocalToFirestore();
+    rebuildMyPatsView();
+    if(btn){btn.textContent=added?'✓ '+added+' imported':'✓ Up to date';btn.disabled=false;
+      setTimeout(()=>{if(btn)btn.textContent='⬆ Import Backup';},2500);}
+  }catch(e){
+    console.error('Import failed:',e);
+    alert('Import failed: '+e.message+'\n\nMake sure backup-patterns.json exists in the same folder.');
+    if(btn){btn.textContent='⬆ Import Backup';btn.disabled=false;}
+  }
+};
+
 async function saveExpPatterns(pat){
   // pat is the pattern being added; for deletes use removeExpPattern
   _saveLocal();
