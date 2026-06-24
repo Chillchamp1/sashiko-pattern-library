@@ -1379,6 +1379,15 @@ function renderRemixes(pat){
 }
 
 // ── CAD view switching ────────────────────────────────────────────────────────
+window.exportAllPatterns=function(){
+  const data={exported:new Date().toISOString(), patterns:EXP_PATTERNS.map(p=>{
+    const{thumbnail,...rest}=p;return rest; // strip thumbnail to keep file small
+  })};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='sashiko-patterns-backup.json';a.click();
+  URL.revokeObjectURL(a.href);
+};
 window.showCAD=function(){
   document.getElementById('galleryView').style.display='none';
   document.getElementById('myPatsView').classList.remove('open');
