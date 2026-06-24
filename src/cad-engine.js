@@ -505,15 +505,12 @@ window.cadSaveToLibrary=function(){
   const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:bbox.minU,maxU:bbox.maxU,minV:bbox.minV,maxV:bbox.maxV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional};
   const wasEdit=!!cadEditId;
   if(cadEditId){
-    // Update existing pattern — preserve families if line count unchanged
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
       pat.id=cadEditId;
       pat.createdAt=EXP_PATTERNS[idx].createdAt;
       pat.published=EXP_PATTERNS[idx].published;
-      const oldFams=EXP_PATTERNS[idx].families||[];
-      if(oldFams.length===pat.lines.length)pat.families=oldFams;
-      else autoAssignFamilies(pat);
+      pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
       EXP_PATTERNS[idx]=pat;
     }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
   }else{
@@ -550,10 +547,8 @@ window.cadPublishToLibrary=function(){
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
-      pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;
-      const oldFams=EXP_PATTERNS[idx].families||[];
-      if(oldFams.length===pat.lines.length)pat.families=oldFams;
-      else autoAssignFamilies(pat);
+      pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;pat.published=true;
+      pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
       EXP_PATTERNS[idx]=pat;
     }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
   }else{
