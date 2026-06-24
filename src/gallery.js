@@ -33,7 +33,8 @@ function buildGallery(){
     editBtn.onclick=e=>{e.stopPropagation();editExpPattern(pat);};
     card.appendChild(editBtn);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
-    const badge=document.createElement('div');badge.className='pcard-badge';badge.textContent=pat.gridType==='isometric'?'Isometric':'Square';
+    const badge=document.createElement('div');badge.className='pcard-badge';
+    badge.textContent=(pat.traditional?'Traditional · ':'')+(pat.gridType==='isometric'?'Isometric':'Square');
     card.append(name,badge);
     card.onclick=()=>openExpPattern(pat);
     grid.appendChild(card);
@@ -51,6 +52,7 @@ window.filterGallery=function(){
     let mp;
     if(activeFilter===0)mp=true;
     else if(activeFilter==='hm')mp=type==='generator';
+    else if(activeFilter==='trad')mp=pat.traditional===true;
     else if(type==='exp')mp=false;
     else mp=parseInt(card.dataset.p)===activeFilter;
     let mq=!q;
@@ -73,7 +75,7 @@ window.setFilter=function(btn){
   document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   const f=btn.dataset.f;
-  activeFilter=f==='hm'?'hm':(f==='0'?0:parseInt(f));
+  activeFilter=f==='hm'?'hm':(f==='trad'?'trad':(f==='0'?0:parseInt(f)));
   filterGallery();
 };
 
