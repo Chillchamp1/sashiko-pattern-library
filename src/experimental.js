@@ -399,8 +399,8 @@ function detectSymmetryFamilies(pat){
       const lb=lines[j];
       // Is line i's end near line j's start (or vice versa) under some tile offset?
       let connected=false;
-      for(let du=-dU;du<=dU;du+=dU){
-        for(let dv=-dV;dv<=dV;dv+=dV){
+      for(let du=-2*dU;du<=2*dU;du+=dU){
+        for(let dv=-2*dV;dv<=2*dV;dv+=dV){
           const sx=lb.start[0]+du-la.end[0], sy=lb.start[1]+dv-la.end[1];
           if(Math.hypot(sx,sy)<THRESH){connected=true;break;}
           const ex=la.start[0]+du-lb.end[0], ey=la.start[1]+dv-lb.end[1];
@@ -785,13 +785,18 @@ window.editExpPattern=function(idOrPat){
   if(!pat)return;
   const pw=prompt('Admin password:');
   if(pw!=='111'){alert('Wrong password');return;}
-  cadLines=pat.lines.map(l=>({start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]}));
   cadHistory=[];
   cadTool='draw';
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   document.getElementById('cadGridType').value=pat.gridType||'isometric';
   const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
   const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
+  // Center lines in the grid: offset so bbox center lands at grid center
+  {const _bl=pat.lines,_tc=macroVal*CAD_MICRO;
+   const _bu=Math.max(..._bl.map(l=>Math.max(l.start[0],l.end[0]))),_bv=Math.max(..._bl.map(l=>Math.max(l.start[1],l.end[1])));
+   const _du=(_tc-_bu)/2, _dv=(_tc-_bv)/2;
+   cadLines=_bl.map(l=>({start:[l.start[0]+_du,l.start[1]+_dv],end:[l.end[0]+_du,l.end[1]+_dv],...(l.arc?{arc:true}:{})}));
+  }
   document.getElementById('cadGridSize').value=macroVal;
   const pmOpts=[3,4,5,8,12];let bestPM=5,bestD=Infinity;
   pmOpts.forEach(o=>{const d=Math.abs(o-(pat.patMacro||5));if(d<bestD){bestD=d;bestPM=o;}});
@@ -815,50 +820,121 @@ function distToSeg(px,py,ax,ay,bx,by){
   return Math.hypot(px-ax-t*(bx-ax),py-ay-t*(by-ay));
 }
 
-// Build animation path: family-first routing.
-//
-// Foundation rule: symmetry families are routed in order (smallest line-index first).
-// Each family's tiled segments are routed with min-deflection strokes → band-snake ordering.
-// Between families: minimal jump.
+// ── Routing helpers ──────────────────────────────────────────────────────────
+function _seg2Intersect(a0,a1,b0,b1){
+  const dx1=a1[0]-a0[0],dy1=a1[1]-a0[1],dx2=b1[0]-b0[0],dy2=b1[1]-b0[1];
+  const den=dx1*dy2-dy1*dx2; if(Math.abs(den)<1e-10)return false;
+  const t=((b0[0]-a0[0])*dy2-(b0[1]-a0[1])*dx2)/den;
+  const u=((b0[0]-a0[0])*dy1-(b0[1]-a0[1])*dx1)/den;
+  return t>0.01&&t<0.99&&u>0.01&&u<0.99;
+}
+function _retraceCost(from,to,stitched){
+  for(const s of stitched)if(_seg2Intersect(from,to,s.start,s.end))return 500;
+  return 0;
+}
+function _rotateClosedEntry(pts,needle){
+  const n=pts.length-1; if(n<2)return pts;
+  let best=0,bestD=Infinity;
+  for(let r=0;r<n;r++){const d=Math.hypot(pts[r][0]-needle[0],pts[r][1]-needle[1]);if(d<bestD){bestD=d;best=r;}}
+  if(best===0)return pts;
+  const core=pts.slice(0,n);
+  return[...core.slice(best),...core.slice(0,best),core[best].slice()];
+}
+function _permute(arr){
+  if(arr.length<=1)return[arr.slice()];
+  const r=[];
+  arr.forEach((x,i)=>{const rest=[...arr.slice(0,i),...arr.slice(i+1)];_permute(rest).forEach(p=>r.push([x,...p]));});
+  return r;
+}
+
+// Build animation path: family-first routing with optimised family order.
+// Pre-builds all family strokes, then brute-force (≤7 families) or greedy NN finds
+// the visitation order that minimises total inter-family jump distance.
+// Closed-loop strokes rotate their entry vertex to be nearest the current needle.
+// Retrace penalty (500 units) discourages jumps that cross already-stitched segments.
 function buildExpPath(lines){
   if(!lines||!lines.length)return[];
 
-  // Group segments by family
   const famGroups=new Map();
-  lines.forEach(l=>{
-    const fi=l.fam||0;
-    if(!famGroups.has(fi))famGroups.set(fi,[]);
-    famGroups.get(fi).push(l);
-  });
-  const fams=[...famGroups.keys()].sort((a,b)=>a-b);
+  lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
+
+  // Pre-build ordered strokes for every family and capture both entry endpoints
+  const famStrokes=new Map(), famEnds=new Map();
+  for(const[fi,segs]of famGroups){
+    const ordered=orderStrokesFamily(buildStrokesForFamily(segs));
+    if(!ordered.length)continue;
+    famStrokes.set(fi,ordered);
+    const p0=ordered[0].pts[0];
+    const p1=ordered[ordered.length-1].pts[ordered[ordered.length-1].pts.length-1];
+    famEnds.set(fi,{p0,p1}); // p0=forward entry, p1=forward exit (= backward entry)
+  }
+  if(!famStrokes.size)return[];
+
+  // Optimise family visitation order: minimise total inter-family jump
+  const famIds=[...famStrokes.keys()];
+  let bestOrder=famIds;
+  if(famIds.length>1){
+    const evalPerm=perm=>{
+      let cost=0,cur2=null;
+      for(const fi of perm){
+        const{p0,p1}=famEnds.get(fi);
+        if(!cur2){cur2=p1;continue;}
+        const dF=Math.hypot(p0[0]-cur2[0],p0[1]-cur2[1]);
+        const dB=Math.hypot(p1[0]-cur2[0],p1[1]-cur2[1]);
+        if(dF<=dB){cost+=dF;cur2=p1;}else{cost+=dB;cur2=p0;}
+      }
+      return cost;
+    };
+    if(famIds.length<=7){
+      let bestCost=Infinity;
+      for(const p of _permute(famIds)){const c=evalPerm(p);if(c<bestCost){bestCost=c;bestOrder=p;}}
+    }else{
+      // Greedy nearest-neighbour over families
+      const rem=new Set(famIds);bestOrder=[];let cur2=null;
+      while(rem.size){
+        let bf=null,bd=Infinity,useFront=true;
+        for(const fi of rem){
+          const{p0,p1}=famEnds.get(fi);
+          const dF=cur2?Math.hypot(p0[0]-cur2[0],p0[1]-cur2[1]):0;
+          const dB=cur2?Math.hypot(p1[0]-cur2[0],p1[1]-cur2[1]):0;
+          const d=cur2?Math.min(dF,dB):0;
+          if(d<bd){bd=d;bf=fi;useFront=!cur2||dF<=dB;}
+        }
+        rem.delete(bf);bestOrder.push(bf);
+        const{p0,p1}=famEnds.get(bf);cur2=useFront?p1:p0;
+      }
+    }
+  }
 
   const path=[];
+  const stitched=[]; // accumulate stitched segs for retrace-cost check
   let cur=null;
 
-  for(const fi of fams){
-    const segs=famGroups.get(fi);
-    const strokes=buildStrokesForFamily(segs);
-    if(!strokes.length)continue;
+  for(const fi of bestOrder){
+    const ordered=famStrokes.get(fi);
 
-    const ordered=orderStrokesFamily(strokes);
-
+    // Choose family entry direction (front vs back), with retrace penalty
     if(cur&&ordered.length>0){
-      // Compare front-of-family vs back-of-family entry to preserve the snake
       const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
-      const dFront=Math.hypot(sFirst[0][0]-cur[0],sFirst[0][1]-cur[1]);
-      const dBack =Math.hypot(sLast[sLast.length-1][0]-cur[0],sLast[sLast.length-1][1]-cur[1]);
-      if(dBack<dFront){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
+      const fPt=sFirst[0], bPt=sLast[sLast.length-1];
+      const dF=Math.hypot(fPt[0]-cur[0],fPt[1]-cur[1])+_retraceCost(cur,fPt,stitched);
+      const dB=Math.hypot(bPt[0]-cur[0],bPt[1]-cur[1])+_retraceCost(cur,bPt,stitched);
+      if(dB<dF){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
     }
 
     for(let si=0;si<ordered.length;si++){
       let pts=ordered[si].pts;
+      // Closed-loop optimisation: rotate entry vertex to be nearest the current needle
+      if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+        pts=_rotateClosedEntry(pts,cur);
       if(cur){
         const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
         const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
         if(dE<dS)pts=pts.slice().reverse();
       }
       for(let k=0;k<pts.length-1;k++){
-        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0, fam:fi});
+        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+        stitched.push({start:pts[k],end:pts[k+1]});
       }
       cur=pts[pts.length-1];
     }
@@ -957,10 +1033,10 @@ function orderStrokesFamily(strokes){
   // band coordinate = perpendicular projection of centroid
   S.forEach(s=>{s.bc=s.cx*perp[0]+s.cy*perp[1]; s.ac=s.cx*dir[0]+s.cy*dir[1];});
 
-  // detect natural band pitch
-  const bcs=[...new Set(S.map(s=>Math.round(s.bc)))].sort((a,b)=>a-b);
+  // detect natural band pitch — use 4-decimal rounding, not Math.round, to avoid integer aliasing
+  const sortedBcs=[...new Set(S.map(s=>+s.bc.toFixed(4)))].sort((a,b)=>a-b);
   let pitch=Infinity;
-  for(let i=1;i<bcs.length;i++)pitch=Math.min(pitch,bcs[i]-bcs[i-1]);
+  for(let i=1;i<sortedBcs.length;i++)pitch=Math.min(pitch,sortedBcs[i]-sortedBcs[i-1]);
   if(!isFinite(pitch)||pitch<1e-6)pitch=1;
   const minbc=Math.min(...S.map(s=>s.bc));
   S.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));

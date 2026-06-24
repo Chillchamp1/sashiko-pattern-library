@@ -1,6 +1,6 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
-let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0;
+let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -226,12 +226,39 @@ function cadDrawWorkspace(){
   if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur)
     cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>{l.preview=true;all.push(l);});
 
+  // Work-area boundary: shows the full cadMacro×cadMacro grid as a dashed blue border
+  {const tc=cadMacro*CAD_MICRO;
+   const wa=[cadG2S(0,0,cadOX,cadOY,cadTileSize),cadG2S(tc,0,cadOX,cadOY,cadTileSize),
+             cadG2S(tc,tc,cadOX,cadOY,cadTileSize),cadG2S(0,tc,cadOX,cadOY,cadTileSize)];
+   x.strokeStyle='rgba(80,160,255,0.45)';x.lineWidth=1.5;x.setLineDash([7,4]);
+   x.beginPath();x.moveTo(wa[0].x,wa[0].y);for(let i=1;i<4;i++)x.lineTo(wa[i].x,wa[i].y);x.closePath();x.stroke();
+   x.setLineDash([]);}
+  // Pattern bounding box + spacing: show the effective repeating unit
   const bbox=cadBBox2(all);
   if(bbox){
-    x.fillStyle='rgba(255,255,255,0.08)';x.beginPath();
-    const p1=cadG2S(bbox.minU,bbox.minV,cadOX,cadOY,cadTileSize),p2=cadG2S(bbox.maxU,bbox.minV,cadOX,cadOY,cadTileSize);
-    const p3=cadG2S(bbox.maxU,bbox.maxV,cadOX,cadOY,cadTileSize),p4=cadG2S(bbox.minU,bbox.maxV,cadOX,cadOY,cadTileSize);
-    x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);x.closePath();x.fill();
+    const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
+    const sU=dU+cadSpacing,sV=dV+cadSpacing;
+    const cu=(bbox.minU+bbox.maxU)/2,cv=(bbox.minV+bbox.maxV)/2;
+    x.fillStyle='rgba(255,255,255,0.06)';
+    x.strokeStyle='rgba(255,240,140,0.65)';x.lineWidth=1.5;x.setLineDash([4,3]);
+    x.beginPath();
+    if(!cadBBoxRotated){
+      const p1=cadG2S(cu-sU/2,cv-sV/2,cadOX,cadOY,cadTileSize),p2=cadG2S(cu+sU/2,cv-sV/2,cadOX,cadOY,cadTileSize);
+      const p3=cadG2S(cu+sU/2,cv+sV/2,cadOX,cadOY,cadTileSize),p4=cadG2S(cu-sU/2,cv+sV/2,cadOX,cadOY,cadTileSize);
+      x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);
+    }else{
+      // Project all endpoints onto 45°-rotated axes p=u+v, q=u-v
+      const epts=[];cadLines.forEach(l=>epts.push(l.start,l.end));
+      let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
+      epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
+      const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
+      const midP=(mnP+mxP)/2,midQ=(mnQ+mxQ)/2;
+      const g45=(p,q)=>cadG2S((p+q)/2,(p-q)/2,cadOX,cadOY,cadTileSize);
+      const ps=[g45(midP-sP/2,midQ-sQ/2),g45(midP+sP/2,midQ-sQ/2),g45(midP+sP/2,midQ+sQ/2),g45(midP-sP/2,midQ+sQ/2)];
+      x.moveTo(ps[0].x,ps[0].y);ps.slice(1).forEach(p=>x.lineTo(p.x,p.y));
+    }
+    x.closePath();x.fill();x.stroke();
+    x.setLineDash([]);
   }
 
   x.lineWidth=4;x.lineCap='round';
@@ -323,19 +350,30 @@ function cadDrawPattern(){
   const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
   const ptc=cadPatMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
-  for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){
-    all.forEach((l,li)=>{
-      if(l.preview)return;
-      const u1=l.start[0]-bbox.minU+ou,v1=l.start[1]-bbox.minV+ov2;
-      const u2=l.end[0]-bbox.minU+ou,v2=l.end[1]-bbox.minV+ov2;
-      const p1=cadG2S(u1,v1,cadPOX,cadPOY,cadPTile),p2=cadG2S(u2,v2,cadPOX,cadPOY,cadPTile);
-      if((p1.x>-50&&p1.x<550&&p1.y>-50&&p1.y<550)||(p2.x>-50&&p2.x<550&&p2.y>-50&&p2.y<550)){
-        const fi=cadFamilies[li];
-        x.strokeStyle=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
-        x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
-      }
-    });
-  }}
+  const _renderAt=(ou,ov2)=>{all.forEach((l,li)=>{
+    if(l.preview)return;
+    const u1=l.start[0]-bbox.minU+ou,v1=l.start[1]-bbox.minV+ov2;
+    const u2=l.end[0]-bbox.minU+ou,v2=l.end[1]-bbox.minV+ov2;
+    const p1=cadG2S(u1,v1,cadPOX,cadPOY,cadPTile),p2=cadG2S(u2,v2,cadPOX,cadPOY,cadPTile);
+    if((p1.x>-50&&p1.x<550&&p1.y>-50&&p1.y<550)||(p2.x>-50&&p2.x<550&&p2.y>-50&&p2.y<550)){
+      const fi=cadFamilies[li];
+      x.strokeStyle=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    }
+  });};
+  if(!cadBBoxRotated){
+    for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){_renderAt(ou,ov2);}}
+  }else{
+    const epts=[];all.forEach(l=>{if(!l.preview)epts.push(l.start,l.end);});
+    let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
+    epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
+    const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
+    const base_u=(mnP+mnQ)/2,base_v=(mnP-mnQ)/2;
+    const N=Math.ceil(2*(ptc+ov)/Math.min(sP,sQ))+3;
+    for(let a=-N;a<=N;a++){for(let b=-N;b<=N;b++){
+      _renderAt(bbox.minU-base_u+(a*sP+b*sQ)/2, bbox.minV-base_v+(a*sP-b*sQ)/2);
+    }}
+  }
 }
 function cadUpdateAll(){
   cadAutoAssign();
@@ -376,6 +414,27 @@ window.cadSetTool=function(t){
 window.cadUndo=function(){if(cadHistory.length){cadLines=cadHistory.pop();cadUpdateAll();}};
 window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadUpdateAll();}};
 window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
+window.cadToggleBBoxRotate=function(){
+  cadBBoxRotated=!cadBBoxRotated;
+  const btn=document.getElementById('cadBtnBBoxRot');
+  if(btn){btn.classList.toggle('on',cadBBoxRotated);btn.textContent=cadBBoxRotated?'◆ 45°':'◇ 45°';}
+  cadUpdateAll();
+};
+window.cadRotate45=function(){
+  if(!cadLines.length)return;
+  const bbox=cadBBox();if(!bbox)return;
+  cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+  const cu=(bbox.minU+bbox.maxU)/2, cv=(bbox.minV+bbox.maxV)/2;
+  const C=Math.SQRT2/2; // cos(45°) = sin(45°)
+  const rot=([u,v])=>[cu+(u-cu)*C-(v-cv)*C, cv+(u-cu)*C+(v-cv)*C];
+  cadLines=cadLines.map(l=>({...l,start:rot(l.start),end:rot(l.end)}));
+  // Recenter in work area after rotation (bbox grows ~√2 diagonally)
+  const nb=cadBBox();if(!nb)return;
+  const tc=cadMacro*CAD_MICRO;
+  const du=(tc-(nb.maxU-nb.minU))/2-nb.minU, dv=(tc-(nb.maxV-nb.minV))/2-nb.minV;
+  cadLines=cadLines.map(l=>({...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]}));
+  cadUpdateAll();
+};
 window.cadSaveToLibrary=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;

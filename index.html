@@ -403,6 +403,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       </label>
       <label>Tile Preview:
         <select id="cadPatSize" onchange="cadUpdateSettings()">
+          <option value="2">2×2</option>
           <option value="3">3×3</option>
           <option value="4">4×4</option>
           <option value="5" selected>5×5</option>
@@ -421,6 +422,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <option value="12">12</option>
         </select>
       </label>
+      <label>BBox: <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="Rotate tiling unit 45° (diagonal lattice)">◇ 45°</button></label>
     </div>
     <div class="cad-workspace">
       <div class="cad-panel">
@@ -431,6 +433,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
           <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
           <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
+          <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
           <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
           <button class="cad-tool" onclick="cadResetView()">🔍 Reset View</button>
         </div>
@@ -2052,8 +2055,8 @@ function detectSymmetryFamilies(pat){
       const lb=lines[j];
       // Is line i's end near line j's start (or vice versa) under some tile offset?
       let connected=false;
-      for(let du=-dU;du<=dU;du+=dU){
-        for(let dv=-dV;dv<=dV;dv+=dV){
+      for(let du=-2*dU;du<=2*dU;du+=dU){
+        for(let dv=-2*dV;dv<=2*dV;dv+=dV){
           const sx=lb.start[0]+du-la.end[0], sy=lb.start[1]+dv-la.end[1];
           if(Math.hypot(sx,sy)<THRESH){connected=true;break;}
           const ex=la.start[0]+du-lb.end[0], ey=la.start[1]+dv-lb.end[1];
@@ -2438,13 +2441,18 @@ window.editExpPattern=function(idOrPat){
   if(!pat)return;
   const pw=prompt('Admin password:');
   if(pw!=='111'){alert('Wrong password');return;}
-  cadLines=pat.lines.map(l=>({start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]}));
   cadHistory=[];
   cadTool='draw';
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   document.getElementById('cadGridType').value=pat.gridType||'isometric';
   const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
   const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
+  // Center lines in the grid: offset so bbox center lands at grid center
+  {const _bl=pat.lines,_tc=macroVal*CAD_MICRO;
+   const _bu=Math.max(..._bl.map(l=>Math.max(l.start[0],l.end[0]))),_bv=Math.max(..._bl.map(l=>Math.max(l.start[1],l.end[1])));
+   const _du=(_tc-_bu)/2, _dv=(_tc-_bv)/2;
+   cadLines=_bl.map(l=>({start:[l.start[0]+_du,l.start[1]+_dv],end:[l.end[0]+_du,l.end[1]+_dv],...(l.arc?{arc:true}:{})}));
+  }
   document.getElementById('cadGridSize').value=macroVal;
   const pmOpts=[3,4,5,8,12];let bestPM=5,bestD=Infinity;
   pmOpts.forEach(o=>{const d=Math.abs(o-(pat.patMacro||5));if(d<bestD){bestD=d;bestPM=o;}});
@@ -2468,50 +2476,121 @@ function distToSeg(px,py,ax,ay,bx,by){
   return Math.hypot(px-ax-t*(bx-ax),py-ay-t*(by-ay));
 }
 
-// Build animation path: family-first routing.
-//
-// Foundation rule: symmetry families are routed in order (smallest line-index first).
-// Each family's tiled segments are routed with min-deflection strokes → band-snake ordering.
-// Between families: minimal jump.
+// ── Routing helpers ──────────────────────────────────────────────────────────
+function _seg2Intersect(a0,a1,b0,b1){
+  const dx1=a1[0]-a0[0],dy1=a1[1]-a0[1],dx2=b1[0]-b0[0],dy2=b1[1]-b0[1];
+  const den=dx1*dy2-dy1*dx2; if(Math.abs(den)<1e-10)return false;
+  const t=((b0[0]-a0[0])*dy2-(b0[1]-a0[1])*dx2)/den;
+  const u=((b0[0]-a0[0])*dy1-(b0[1]-a0[1])*dx1)/den;
+  return t>0.01&&t<0.99&&u>0.01&&u<0.99;
+}
+function _retraceCost(from,to,stitched){
+  for(const s of stitched)if(_seg2Intersect(from,to,s.start,s.end))return 500;
+  return 0;
+}
+function _rotateClosedEntry(pts,needle){
+  const n=pts.length-1; if(n<2)return pts;
+  let best=0,bestD=Infinity;
+  for(let r=0;r<n;r++){const d=Math.hypot(pts[r][0]-needle[0],pts[r][1]-needle[1]);if(d<bestD){bestD=d;best=r;}}
+  if(best===0)return pts;
+  const core=pts.slice(0,n);
+  return[...core.slice(best),...core.slice(0,best),core[best].slice()];
+}
+function _permute(arr){
+  if(arr.length<=1)return[arr.slice()];
+  const r=[];
+  arr.forEach((x,i)=>{const rest=[...arr.slice(0,i),...arr.slice(i+1)];_permute(rest).forEach(p=>r.push([x,...p]));});
+  return r;
+}
+
+// Build animation path: family-first routing with optimised family order.
+// Pre-builds all family strokes, then brute-force (≤7 families) or greedy NN finds
+// the visitation order that minimises total inter-family jump distance.
+// Closed-loop strokes rotate their entry vertex to be nearest the current needle.
+// Retrace penalty (500 units) discourages jumps that cross already-stitched segments.
 function buildExpPath(lines){
   if(!lines||!lines.length)return[];
 
-  // Group segments by family
   const famGroups=new Map();
-  lines.forEach(l=>{
-    const fi=l.fam||0;
-    if(!famGroups.has(fi))famGroups.set(fi,[]);
-    famGroups.get(fi).push(l);
-  });
-  const fams=[...famGroups.keys()].sort((a,b)=>a-b);
+  lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
+
+  // Pre-build ordered strokes for every family and capture both entry endpoints
+  const famStrokes=new Map(), famEnds=new Map();
+  for(const[fi,segs]of famGroups){
+    const ordered=orderStrokesFamily(buildStrokesForFamily(segs));
+    if(!ordered.length)continue;
+    famStrokes.set(fi,ordered);
+    const p0=ordered[0].pts[0];
+    const p1=ordered[ordered.length-1].pts[ordered[ordered.length-1].pts.length-1];
+    famEnds.set(fi,{p0,p1}); // p0=forward entry, p1=forward exit (= backward entry)
+  }
+  if(!famStrokes.size)return[];
+
+  // Optimise family visitation order: minimise total inter-family jump
+  const famIds=[...famStrokes.keys()];
+  let bestOrder=famIds;
+  if(famIds.length>1){
+    const evalPerm=perm=>{
+      let cost=0,cur2=null;
+      for(const fi of perm){
+        const{p0,p1}=famEnds.get(fi);
+        if(!cur2){cur2=p1;continue;}
+        const dF=Math.hypot(p0[0]-cur2[0],p0[1]-cur2[1]);
+        const dB=Math.hypot(p1[0]-cur2[0],p1[1]-cur2[1]);
+        if(dF<=dB){cost+=dF;cur2=p1;}else{cost+=dB;cur2=p0;}
+      }
+      return cost;
+    };
+    if(famIds.length<=7){
+      let bestCost=Infinity;
+      for(const p of _permute(famIds)){const c=evalPerm(p);if(c<bestCost){bestCost=c;bestOrder=p;}}
+    }else{
+      // Greedy nearest-neighbour over families
+      const rem=new Set(famIds);bestOrder=[];let cur2=null;
+      while(rem.size){
+        let bf=null,bd=Infinity,useFront=true;
+        for(const fi of rem){
+          const{p0,p1}=famEnds.get(fi);
+          const dF=cur2?Math.hypot(p0[0]-cur2[0],p0[1]-cur2[1]):0;
+          const dB=cur2?Math.hypot(p1[0]-cur2[0],p1[1]-cur2[1]):0;
+          const d=cur2?Math.min(dF,dB):0;
+          if(d<bd){bd=d;bf=fi;useFront=!cur2||dF<=dB;}
+        }
+        rem.delete(bf);bestOrder.push(bf);
+        const{p0,p1}=famEnds.get(bf);cur2=useFront?p1:p0;
+      }
+    }
+  }
 
   const path=[];
+  const stitched=[]; // accumulate stitched segs for retrace-cost check
   let cur=null;
 
-  for(const fi of fams){
-    const segs=famGroups.get(fi);
-    const strokes=buildStrokesForFamily(segs);
-    if(!strokes.length)continue;
+  for(const fi of bestOrder){
+    const ordered=famStrokes.get(fi);
 
-    const ordered=orderStrokesFamily(strokes);
-
+    // Choose family entry direction (front vs back), with retrace penalty
     if(cur&&ordered.length>0){
-      // Compare front-of-family vs back-of-family entry to preserve the snake
       const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
-      const dFront=Math.hypot(sFirst[0][0]-cur[0],sFirst[0][1]-cur[1]);
-      const dBack =Math.hypot(sLast[sLast.length-1][0]-cur[0],sLast[sLast.length-1][1]-cur[1]);
-      if(dBack<dFront){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
+      const fPt=sFirst[0], bPt=sLast[sLast.length-1];
+      const dF=Math.hypot(fPt[0]-cur[0],fPt[1]-cur[1])+_retraceCost(cur,fPt,stitched);
+      const dB=Math.hypot(bPt[0]-cur[0],bPt[1]-cur[1])+_retraceCost(cur,bPt,stitched);
+      if(dB<dF){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
     }
 
     for(let si=0;si<ordered.length;si++){
       let pts=ordered[si].pts;
+      // Closed-loop optimisation: rotate entry vertex to be nearest the current needle
+      if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+        pts=_rotateClosedEntry(pts,cur);
       if(cur){
         const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
         const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
         if(dE<dS)pts=pts.slice().reverse();
       }
       for(let k=0;k<pts.length-1;k++){
-        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0, fam:fi});
+        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+        stitched.push({start:pts[k],end:pts[k+1]});
       }
       cur=pts[pts.length-1];
     }
@@ -2610,10 +2689,10 @@ function orderStrokesFamily(strokes){
   // band coordinate = perpendicular projection of centroid
   S.forEach(s=>{s.bc=s.cx*perp[0]+s.cy*perp[1]; s.ac=s.cx*dir[0]+s.cy*dir[1];});
 
-  // detect natural band pitch
-  const bcs=[...new Set(S.map(s=>Math.round(s.bc)))].sort((a,b)=>a-b);
+  // detect natural band pitch — use 4-decimal rounding, not Math.round, to avoid integer aliasing
+  const sortedBcs=[...new Set(S.map(s=>+s.bc.toFixed(4)))].sort((a,b)=>a-b);
   let pitch=Infinity;
-  for(let i=1;i<bcs.length;i++)pitch=Math.min(pitch,bcs[i]-bcs[i-1]);
+  for(let i=1;i<sortedBcs.length;i++)pitch=Math.min(pitch,sortedBcs[i]-sortedBcs[i-1]);
   if(!isFinite(pitch)||pitch<1e-6)pitch=1;
   const minbc=Math.min(...S.map(s=>s.bc));
   S.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
@@ -2816,7 +2895,7 @@ window.showGalleryFromCAD=function(){
 // ── cad-engine.js ──────────────────────────────
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
-let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0;
+let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -3042,12 +3121,39 @@ function cadDrawWorkspace(){
   if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur)
     cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>{l.preview=true;all.push(l);});
 
+  // Work-area boundary: shows the full cadMacro×cadMacro grid as a dashed blue border
+  {const tc=cadMacro*CAD_MICRO;
+   const wa=[cadG2S(0,0,cadOX,cadOY,cadTileSize),cadG2S(tc,0,cadOX,cadOY,cadTileSize),
+             cadG2S(tc,tc,cadOX,cadOY,cadTileSize),cadG2S(0,tc,cadOX,cadOY,cadTileSize)];
+   x.strokeStyle='rgba(80,160,255,0.45)';x.lineWidth=1.5;x.setLineDash([7,4]);
+   x.beginPath();x.moveTo(wa[0].x,wa[0].y);for(let i=1;i<4;i++)x.lineTo(wa[i].x,wa[i].y);x.closePath();x.stroke();
+   x.setLineDash([]);}
+  // Pattern bounding box + spacing: show the effective repeating unit
   const bbox=cadBBox2(all);
   if(bbox){
-    x.fillStyle='rgba(255,255,255,0.08)';x.beginPath();
-    const p1=cadG2S(bbox.minU,bbox.minV,cadOX,cadOY,cadTileSize),p2=cadG2S(bbox.maxU,bbox.minV,cadOX,cadOY,cadTileSize);
-    const p3=cadG2S(bbox.maxU,bbox.maxV,cadOX,cadOY,cadTileSize),p4=cadG2S(bbox.minU,bbox.maxV,cadOX,cadOY,cadTileSize);
-    x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);x.closePath();x.fill();
+    const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
+    const sU=dU+cadSpacing,sV=dV+cadSpacing;
+    const cu=(bbox.minU+bbox.maxU)/2,cv=(bbox.minV+bbox.maxV)/2;
+    x.fillStyle='rgba(255,255,255,0.06)';
+    x.strokeStyle='rgba(255,240,140,0.65)';x.lineWidth=1.5;x.setLineDash([4,3]);
+    x.beginPath();
+    if(!cadBBoxRotated){
+      const p1=cadG2S(cu-sU/2,cv-sV/2,cadOX,cadOY,cadTileSize),p2=cadG2S(cu+sU/2,cv-sV/2,cadOX,cadOY,cadTileSize);
+      const p3=cadG2S(cu+sU/2,cv+sV/2,cadOX,cadOY,cadTileSize),p4=cadG2S(cu-sU/2,cv+sV/2,cadOX,cadOY,cadTileSize);
+      x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);
+    }else{
+      // Project all endpoints onto 45°-rotated axes p=u+v, q=u-v
+      const epts=[];cadLines.forEach(l=>epts.push(l.start,l.end));
+      let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
+      epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
+      const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
+      const midP=(mnP+mxP)/2,midQ=(mnQ+mxQ)/2;
+      const g45=(p,q)=>cadG2S((p+q)/2,(p-q)/2,cadOX,cadOY,cadTileSize);
+      const ps=[g45(midP-sP/2,midQ-sQ/2),g45(midP+sP/2,midQ-sQ/2),g45(midP+sP/2,midQ+sQ/2),g45(midP-sP/2,midQ+sQ/2)];
+      x.moveTo(ps[0].x,ps[0].y);ps.slice(1).forEach(p=>x.lineTo(p.x,p.y));
+    }
+    x.closePath();x.fill();x.stroke();
+    x.setLineDash([]);
   }
 
   x.lineWidth=4;x.lineCap='round';
@@ -3139,19 +3245,30 @@ function cadDrawPattern(){
   const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
   const ptc=cadPatMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
-  for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){
-    all.forEach((l,li)=>{
-      if(l.preview)return;
-      const u1=l.start[0]-bbox.minU+ou,v1=l.start[1]-bbox.minV+ov2;
-      const u2=l.end[0]-bbox.minU+ou,v2=l.end[1]-bbox.minV+ov2;
-      const p1=cadG2S(u1,v1,cadPOX,cadPOY,cadPTile),p2=cadG2S(u2,v2,cadPOX,cadPOY,cadPTile);
-      if((p1.x>-50&&p1.x<550&&p1.y>-50&&p1.y<550)||(p2.x>-50&&p2.x<550&&p2.y>-50&&p2.y<550)){
-        const fi=cadFamilies[li];
-        x.strokeStyle=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
-        x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
-      }
-    });
-  }}
+  const _renderAt=(ou,ov2)=>{all.forEach((l,li)=>{
+    if(l.preview)return;
+    const u1=l.start[0]-bbox.minU+ou,v1=l.start[1]-bbox.minV+ov2;
+    const u2=l.end[0]-bbox.minU+ou,v2=l.end[1]-bbox.minV+ov2;
+    const p1=cadG2S(u1,v1,cadPOX,cadPOY,cadPTile),p2=cadG2S(u2,v2,cadPOX,cadPOY,cadPTile);
+    if((p1.x>-50&&p1.x<550&&p1.y>-50&&p1.y<550)||(p2.x>-50&&p2.x<550&&p2.y>-50&&p2.y<550)){
+      const fi=cadFamilies[li];
+      x.strokeStyle=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    }
+  });};
+  if(!cadBBoxRotated){
+    for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){_renderAt(ou,ov2);}}
+  }else{
+    const epts=[];all.forEach(l=>{if(!l.preview)epts.push(l.start,l.end);});
+    let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
+    epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
+    const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
+    const base_u=(mnP+mnQ)/2,base_v=(mnP-mnQ)/2;
+    const N=Math.ceil(2*(ptc+ov)/Math.min(sP,sQ))+3;
+    for(let a=-N;a<=N;a++){for(let b=-N;b<=N;b++){
+      _renderAt(bbox.minU-base_u+(a*sP+b*sQ)/2, bbox.minV-base_v+(a*sP-b*sQ)/2);
+    }}
+  }
 }
 function cadUpdateAll(){
   cadAutoAssign();
@@ -3192,6 +3309,27 @@ window.cadSetTool=function(t){
 window.cadUndo=function(){if(cadHistory.length){cadLines=cadHistory.pop();cadUpdateAll();}};
 window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadUpdateAll();}};
 window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
+window.cadToggleBBoxRotate=function(){
+  cadBBoxRotated=!cadBBoxRotated;
+  const btn=document.getElementById('cadBtnBBoxRot');
+  if(btn){btn.classList.toggle('on',cadBBoxRotated);btn.textContent=cadBBoxRotated?'◆ 45°':'◇ 45°';}
+  cadUpdateAll();
+};
+window.cadRotate45=function(){
+  if(!cadLines.length)return;
+  const bbox=cadBBox();if(!bbox)return;
+  cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+  const cu=(bbox.minU+bbox.maxU)/2, cv=(bbox.minV+bbox.maxV)/2;
+  const C=Math.SQRT2/2; // cos(45°) = sin(45°)
+  const rot=([u,v])=>[cu+(u-cu)*C-(v-cv)*C, cv+(u-cu)*C+(v-cv)*C];
+  cadLines=cadLines.map(l=>({...l,start:rot(l.start),end:rot(l.end)}));
+  // Recenter in work area after rotation (bbox grows ~√2 diagonally)
+  const nb=cadBBox();if(!nb)return;
+  const tc=cadMacro*CAD_MICRO;
+  const du=(tc-(nb.maxU-nb.minU))/2-nb.minU, dv=(tc-(nb.maxV-nb.minV))/2-nb.minV;
+  cadLines=cadLines.map(l=>({...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]}));
+  cadUpdateAll();
+};
 window.cadSaveToLibrary=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
