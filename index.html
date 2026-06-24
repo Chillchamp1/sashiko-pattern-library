@@ -430,6 +430,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
         <div class="cad-toolbar">
           <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
+          <button id="cadBtnBBox" class="cad-tool" onclick="cadSetTool('bbox')" title="Draw repeating unit area">▭ Area</button>
           <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
           <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
           <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
@@ -2880,7 +2881,7 @@ window.showCAD=function(){
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
-  cadEditId=null;
+  cadEditId=null;cadManualBBox=null;cadBBoxP1=null;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
 };
@@ -2896,6 +2897,7 @@ window.showGalleryFromCAD=function(){
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
+let cadManualBBox=null,cadBBoxP1=null;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -2960,12 +2962,14 @@ function cadHoveredSeg(ru,rv){
   return null;
 }
 function cadBBox(){
+  if(cadManualBBox) return {minU:cadManualBBox.minU,maxU:cadManualBBox.maxU,minV:cadManualBBox.minV,maxV:cadManualBBox.maxV};
   if(!cadLines.length)return null;
   let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
   cadLines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
   return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
 }
 function cadBBox2(lines){
+  if(cadManualBBox) return {minU:cadManualBBox.minU,maxU:cadManualBBox.maxU,minV:cadManualBBox.minV,maxV:cadManualBBox.maxV};
   if(!lines.length)return null;
   let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
   lines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
@@ -3128,14 +3132,24 @@ function cadDrawWorkspace(){
    x.strokeStyle='rgba(80,160,255,0.45)';x.lineWidth=1.5;x.setLineDash([7,4]);
    x.beginPath();x.moveTo(wa[0].x,wa[0].y);for(let i=1;i<4;i++)x.lineTo(wa[i].x,wa[i].y);x.closePath();x.stroke();
    x.setLineDash([]);}
+  // BBox preview during manual drawing
+  if(cadTool==='bbox'&&cadBBoxP1&&cadCur){
+    const mu=Math.min(cadBBoxP1[0],cadCur[0]),Mu=Math.max(cadBBoxP1[0],cadCur[0]);
+    const mv=Math.min(cadBBoxP1[1],cadCur[1]),Mv=Math.max(cadBBoxP1[1],cadCur[1]);
+    const p1=cadG2S(mu,mv,cadOX,cadOY,cadTileSize),p2=cadG2S(Mu,mv,cadOX,cadOY,cadTileSize);
+    const p3=cadG2S(Mu,Mv,cadOX,cadOY,cadTileSize),p4=cadG2S(mu,Mv,cadOX,cadOY,cadTileSize);
+    x.strokeStyle='rgba(100,200,255,0.55)';x.lineWidth=1.5;x.setLineDash([5,3]);
+    x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);x.closePath();x.stroke();
+    x.setLineDash([]);
+  }
   // Pattern bounding box + spacing: show the effective repeating unit
   const bbox=cadBBox2(all);
   if(bbox){
     const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
     const sU=dU+cadSpacing,sV=dV+cadSpacing;
     const cu=(bbox.minU+bbox.maxU)/2,cv=(bbox.minV+bbox.maxV)/2;
-    x.fillStyle='rgba(255,255,255,0.06)';
-    x.strokeStyle='rgba(255,240,140,0.65)';x.lineWidth=1.5;x.setLineDash([4,3]);
+    x.fillStyle=cadManualBBox?'rgba(100,180,255,0.08)':'rgba(255,255,255,0.06)';
+    x.strokeStyle=cadManualBBox?'rgba(80,200,255,0.85)':'rgba(255,240,140,0.65)';x.lineWidth=cadManualBBox?2:1.5;x.setLineDash(cadManualBBox?[2,2]:[4,3]);
     x.beginPath();
     if(!cadBBoxRotated){
       const p1=cadG2S(cu-sU/2,cv-sV/2,cadOX,cadOY,cadTileSize),p2=cadG2S(cu+sU/2,cv-sV/2,cadOX,cadOY,cadTileSize);
@@ -3217,7 +3231,7 @@ function cadDrawWorkspace(){
     const p1=cadG2S(cadHover.start.u,cadHover.start.v,cadOX,cadOY,cadTileSize),p2=cadG2S(cadHover.end.u,cadHover.end.v,cadOX,cadOY,cadTileSize);
     x.lineWidth=4;x.strokeStyle='#ff3366';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   }
-  if((cadTool==='draw'||cadTool==='arc')&&cadCur){
+  if((cadTool==='draw'||cadTool==='arc'||cadTool==='bbox')&&cadCur){
     const s=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
     x.fillStyle='#00ffcc';x.beginPath();x.arc(s.x,s.y,6,0,Math.PI*2);x.fill();
   }
@@ -3286,7 +3300,7 @@ window.cadUpdateSettings=function(){
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
   cadPatMacro=parseInt(document.getElementById('cadPatSize').value);
   cadSpacing=parseInt(document.getElementById('cadSpacing').value);
-  cadZoom=1;cadPanX=0;cadPanY=0;
+  cadZoom=1;cadPanX=0;cadPanY=0;cadManualBBox=null;cadBBoxP1=null;
   const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*CAD_MICRO;
   if(cadGridType==='isometric'){
     cadBase=460/(2*tc*CAD_COS30);
@@ -3298,17 +3312,21 @@ window.cadUpdateSettings=function(){
   cadApplyView();cadBakeLeft();cadBakeRight();cadUpdateAll();
 };
 window.cadSetTool=function(t){
+  if(cadTool==='bbox'&&t==='bbox'&&cadManualBBox){cadManualBBox=null;cadBBoxP1=null;cadUpdateAll();return;}
   cadTool=t;
   document.getElementById('cadBtnDraw').classList.toggle('on',t==='draw');
   document.getElementById('cadBtnArc').classList.toggle('on',t==='arc');
   document.getElementById('cadBtnErase').classList.toggle('on',t==='erase');
+  const bb=document.getElementById('cadBtnBBox');
+  if(bb)bb.classList.toggle('on',t==='bbox');
   cadDrawing=false;cadStart=null;cadHover=null;
+  cadBBoxP1=null;
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   cadArcLabel();cadUpdateAll();
 };
 window.cadUndo=function(){if(cadHistory.length){cadLines=cadHistory.pop();cadUpdateAll();}};
-window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadUpdateAll();}};
-window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
+window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadManualBBox=null;cadBBoxP1=null;cadUpdateAll();}};
+window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadManualBBox=null;cadBBoxP1=null;cadApplyView();cadBakeLeft();cadUpdateAll();};
 window.cadToggleBBoxRotate=function(){
   cadBBoxRotated=!cadBBoxRotated;
   const btn=document.getElementById('cadBtnBBoxRot');
@@ -3330,6 +3348,7 @@ window.cadRotate45=function(){
   cadLines=cadLines.map(l=>({...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]}));
   cadUpdateAll();
 };
+window.cadClearManualBBox=function(){cadManualBBox=null;cadBBoxP1=null;cadUpdateAll();};
 window.cadSaveToLibrary=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
@@ -3468,6 +3487,14 @@ function cadInit(){
       for(let i=0;i<cadHover.all.length-1;i++)if(i!==cadHover.ci)cadLines.push({start:[cadHover.all[i].u,cadHover.all[i].v],end:[cadHover.all[i+1].u,cadHover.all[i+1].v]});
       cadHover=null;
     }
+    else if(cadTool==='bbox'){
+      if(!cadBBoxP1){cadBBoxP1=[cadCur[0],cadCur[1]];}
+      else{
+        const mu=Math.min(cadBBoxP1[0],cadCur[0]),Mu=Math.max(cadBBoxP1[0],cadCur[0]);
+        const mv=Math.min(cadBBoxP1[1],cadCur[1]),Mv=Math.max(cadBBoxP1[1],cadCur[1]);
+        cadManualBBox={minU:mu,maxU:Mu,minV:mv,maxV:Mv};cadBBoxP1=null;cadCur=null;
+      }
+    }
     cadUpdateAll();
   });
   cv.addEventListener('pointermove',e=>{
@@ -3475,6 +3502,7 @@ function cadInit(){
     if(cadPanning){cadPanX+=pos.x-cadPanStart.x;cadPanY+=pos.y-cadPanStart.y;cadPanStart=pos;cadApplyView();cadBakeLeft();cadUpdateAll();return;}
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     if(cadTool==='draw'||cadTool==='arc')cadCur=cadSnapPoint(g.u,g.v);
+    else if(cadTool==='bbox'&&cadBBoxP1){cadCur=cadSnapPoint(g.u,g.v);cv.style.cursor='crosshair';}
     else{cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     cadUpdateAll();
   });
@@ -3485,11 +3513,14 @@ function cadInit(){
     }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
-  cv.addEventListener('pointerleave',()=>{cadDrawing=false;cadStart=null;cadCur=null;cadHover=null;cadUpdateAll();});
+  cv.addEventListener('pointerleave',()=>{cadDrawing=false;cadStart=null;cadCur=null;cadHover=null;cadBBoxP1=null;cadUpdateAll();});
   document.addEventListener('keydown',e=>{
     if(!document.getElementById('cadView').classList.contains('open'))return;
     if(e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
-    if(e.key==='Escape'&&cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcLabel();cadUpdateAll();}
+    if(e.key==='Escape'){
+      if(cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcLabel();cadUpdateAll();}
+      else if(cadTool==='bbox'){cadBBoxP1=null;if(cadManualBBox){cadManualBBox=null;}cadUpdateAll();}
+    }
   });
 }
 
