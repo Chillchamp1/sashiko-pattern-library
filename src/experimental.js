@@ -106,6 +106,10 @@ function _drawCatAvatar(canvas,uid){
   if(!((h>>6)%2)){b(3,13,2,2,'#ee7777');b(19,13,2,2,'#ee7777');}
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   STITCHING ORDER SETTINGS + CAT AVATARS + COMMUNITY PROFILES
+   Commented out for later reuse — DO NOT DELETE without asking!
+   ═══════════════════════════════════════════════════════════════════════════════
 function _catAvatarHTML(uid,seed){
   const s=seed!==undefined?' data-seed="'+seed+'"':'';
   return '<canvas class="cat-avatar" width="48" height="48" data-uid="'+uid+'"'+s+' style="width:48px;height:48px"></canvas>';
@@ -804,6 +808,7 @@ function publishToLibrary(){
   }
 }
 window.publishToLibrary=publishToLibrary;
+═══════════════════════════════════════════════════════════════════════════════ */
 window.editExpPattern=function(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
