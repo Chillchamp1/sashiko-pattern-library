@@ -967,7 +967,28 @@ function buildExpPath(lines, famOrderOverride, zigzag){
   // Pre-build ordered strokes for every family
   const famStrokes=new Map(), famEnds=new Map();
   for(const[fi,segs]of famGroups){
-    const ordered=orderStrokesFamily(buildStrokesForFamily(segs,zigzag));
+    let ordered;
+    if(zigzag){
+      // NN ordering: greedy nearest-neighbour (both ends), naturally creates snake meander
+      const strokes=buildStrokesForFamily(segs,true);
+      const rem=strokes.slice(),seq=[]; let cur2=null;
+      while(rem.length){
+        let best=-1,bd=Infinity,brev=false;
+        for(let i=0;i<rem.length;i++){
+          const pts=rem[i];
+          const s=pts[0],e=pts[pts.length-1];
+          const ds=cur2?Math.hypot(s[0]-cur2[0],s[1]-cur2[1]):0;
+          const de=cur2?Math.hypot(e[0]-cur2[0],e[1]-cur2[1]):0;
+          if(ds<bd){bd=ds;best=i;brev=false;}
+          if(de<bd){bd=de;best=i;brev=true;}
+        }
+        const pts=brev?rem[best].slice().reverse():[...rem[best]];
+        seq.push({pts}); cur2=pts[pts.length-1]; rem.splice(best,1);
+      }
+      ordered=seq;
+    }else{
+      ordered=orderStrokesFamily(buildStrokesForFamily(segs,false));
+    }
     if(!ordered.length)continue;
     famStrokes.set(fi,ordered);
     const p0=ordered[0].pts[0];
@@ -1029,30 +1050,39 @@ function buildExpPath(lines, famOrderOverride, zigzag){
   for(const fi of bestOrder){
     const ordered=famStrokes.get(fi);
 
-    // Choose family entry direction (front vs back), with retrace penalty
-    if(cur&&ordered.length>0){
-      const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
-      const fPt=sFirst[0], bPt=sLast[sLast.length-1];
-      const dF=Math.hypot(fPt[0]-cur[0],fPt[1]-cur[1])+_retraceCost(cur,fPt,stitched);
-      const dB=Math.hypot(bPt[0]-cur[0],bPt[1]-cur[1])+_retraceCost(cur,bPt,stitched);
-      if(dB<dF){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
-    }
-
-    for(let si=0;si<ordered.length;si++){
-      let pts=ordered[si].pts;
-      // Closed-loop optimisation: rotate entry vertex to be nearest the current needle
-      if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
-        pts=_rotateClosedEntry(pts,cur);
-      if(cur){
-        const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
-        const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
-        if(dE<dS)pts=pts.slice().reverse();
+    if(zigzag){
+      // NN already determined direction — emit directly, no re-flipping
+      for(const s of ordered){
+        const pts=s.pts;
+        for(let k=0;k<pts.length-1;k++){
+          path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+        }
+        cur=pts[pts.length-1];
       }
-      for(let k=0;k<pts.length-1;k++){
-        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
-        stitched.push({start:pts[k],end:pts[k+1]});
+    }else{
+      // Choose family entry direction (front vs back), with retrace penalty
+      if(cur&&ordered.length>0){
+        const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
+        const fPt=sFirst[0], bPt=sLast[sLast.length-1];
+        const dF=Math.hypot(fPt[0]-cur[0],fPt[1]-cur[1])+_retraceCost(cur,fPt,stitched);
+        const dB=Math.hypot(bPt[0]-cur[0],bPt[1]-cur[1])+_retraceCost(cur,bPt,stitched);
+        if(dB<dF){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
       }
-      cur=pts[pts.length-1];
+      for(let si=0;si<ordered.length;si++){
+        let pts=ordered[si].pts;
+        if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+          pts=_rotateClosedEntry(pts,cur);
+        if(cur){
+          const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
+          const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
+          if(dE<dS)pts=pts.slice().reverse();
+        }
+        for(let k=0;k<pts.length-1;k++){
+          path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+          stitched.push({start:pts[k],end:pts[k+1]});
+        }
+        cur=pts[pts.length-1];
+      }
     }
   }
   return path;
