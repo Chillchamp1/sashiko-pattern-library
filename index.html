@@ -2926,7 +2926,9 @@ window.showCAD=function(){
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
-  cadEditId=null;
+  cadEditId=null;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;
+  cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
 };
