@@ -327,6 +327,7 @@ button.ctrl.primary:hover{background:#275784}
       <button class="filt" data-f="trad" onclick="setFilter(this)">Traditional</button>
     </div>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
+    <button class="filt" onclick="exportAllPatterns()" style="margin-left:auto" title="Download all patterns as backup JSON">⬇ Backup</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
 </div>
@@ -3112,6 +3113,15 @@ function renderRemixes(pat){
 }
 
 // ── CAD view switching ────────────────────────────────────────────────────────
+window.exportAllPatterns=function(){
+  const data={exported:new Date().toISOString(), patterns:EXP_PATTERNS.map(p=>{
+    const{thumbnail,...rest}=p;return rest; // strip thumbnail to keep file small
+  })};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='sashiko-patterns-backup.json';a.click();
+  URL.revokeObjectURL(a.href);
+};
 window.showCAD=function(){
   document.getElementById('galleryView').style.display='none';
   document.getElementById('myPatsView').classList.remove('open');
