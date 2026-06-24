@@ -229,11 +229,17 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch.sel{border:3px solid #fff}
 /* ── Panel-top steppers (above canvases) ── */
 .cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.cad-panel-stepper{display:inline-flex;align-items:center;gap:3px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:2px 6px}
+.cad-panel-stepper{display:inline-flex;align-items:center;gap:4px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:3px 8px}
 .cad-panel-stepper-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
-.cad-panel-stepper input{background:transparent;color:#e7eef6;border:none;padding:2px 0;font-size:12px;outline:none;text-align:center;width:28px;-moz-appearance:textfield}
+.cad-panel-stepper input{background:transparent;color:#e7eef6;border:none;padding:1px 0;font-size:12px;outline:none;text-align:center;width:24px;-moz-appearance:textfield}
 .cad-panel-stepper input::-webkit-outer-spin-button,.cad-panel-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.cad-step-btn{width:16px;height:14px;padding:0;font-size:8px;line-height:1;text-align:center;border-radius:3px}
+/* ── Stepper arrow buttons ── */
+.cad-step-arrows{display:inline-flex;flex-direction:column;gap:0;height:22px}
+.cad-step-arrows button{width:0;height:0;padding:0;margin:0;border:none;background:none;cursor:pointer;position:relative}
+.cad-step-arrows button:first-child{border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:7px solid var(--muted)}
+.cad-step-arrows button:last-child{border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--muted)}
+.cad-step-arrows button:hover:first-child{border-bottom-color:#e7eef6}
+.cad-step-arrows button:hover:last-child{border-top-color:#e7eef6}
 /* ── Move pattern panel ── */
 .cad-move-panel{display:flex;align-items:center;gap:8px;justify-content:center;padding:4px 0}
 .cad-move-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
@@ -429,7 +435,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <option value="square">Square (90°)</option>
         </select>
       </label>
-      <label>BBox: <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="Rotate tiling unit 45° (diagonal lattice)">◇ 45°</button></label>
       <label style="gap:4px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
     </div>
     <div class="cad-fam-bar" id="cadFamBar">
@@ -446,9 +451,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Size</span>
             <input type="number" id="cadGridSize" value="3" min="2" max="6" onchange="cadUpdateSettings()">
-            <button class="cad-tool cad-step-btn" onclick="cadStepMacro(1)" title="Larger">▲</button>
-            <button class="cad-tool cad-step-btn" onclick="cadStepMacro(-1)" title="Smaller">▼</button>
+            <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
           </span>
+          <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling" style="font-size:11px;padding:3px 7px">◇ 45°</button>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
         <div class="cad-move-panel">
@@ -478,14 +483,12 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Tiles</span>
             <input type="number" id="cadPatSize" value="5" min="2" max="12" onchange="cadUpdateSettings()">
-            <button class="cad-tool cad-step-btn" onclick="cadStepPatMacro(1)" title="More tiles">▲</button>
-            <button class="cad-tool cad-step-btn" onclick="cadStepPatMacro(-1)" title="Fewer tiles">▼</button>
+            <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>
           </span>
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Spacing</span>
             <input type="number" id="cadSpacing" value="0" min="0" max="12" onchange="cadUpdateSettings()">
-            <button class="cad-tool cad-step-btn" onclick="cadStepSpacing(1)" title="More spacing">▲</button>
-            <button class="cad-tool cad-step-btn" onclick="cadStepSpacing(-1)" title="Less spacing">▼</button>
+            <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
           </span>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
