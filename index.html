@@ -2066,6 +2066,26 @@ async function _fetchFromFirestore(){
   try{
     const snap=await _db.collection('patterns').orderBy('createdAt','desc').get();
     const remote=snap.docs.map(d=>d.data());
+    // If Firestore is empty, auto-seed from backup-patterns.json
+    if(remote.length===0&&location.protocol!=='file:'){
+      try{
+        const res=await fetch('./backup-patterns.json');
+        if(res.ok){
+          const data=await res.json();
+          const uid=_getUserId();
+          for(const p of (data.patterns||[])){
+            if(!p.id)continue;
+            if(!p.creatorId)p.creatorId=uid;
+            EXP_PATTERNS.push(p);
+            await _pushToFirestore(p);
+          }
+          EXP_PATTERNS.forEach(p=>_normalizePat(p));
+          _saveLocal();
+          buildGallery();
+          return;
+        }
+      }catch(e){console.warn('Auto-seed from backup failed:',e);}
+    }
     // Local always wins for patterns that exist here (more recent edits).
     const localById=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p]));
     const remoteIds=new Set(remote.map(p=>p.id));
