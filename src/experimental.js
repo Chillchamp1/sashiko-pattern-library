@@ -337,6 +337,7 @@ async function _fetchFromFirestore(){
     EXP_PATTERNS=merged;
     EXP_PATTERNS.forEach(p=>_normalizePat(p));
     _saveLocal();
+    buildGallery();
   }catch(e){console.warn('Firestore fetch failed, using local cache:',e);}
 }
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -392,6 +393,7 @@ window.importFromBackup=async function(){
     }
     _saveLocal();
     if(_firebaseReady)await _syncLocalToFirestore();
+    buildGallery();
     rebuildMyPatsView();
     if(btn){btn.textContent=added?'✓ '+added+' imported':'✓ Up to date';btn.disabled=false;
       setTimeout(()=>{if(btn)btn.textContent='⬆ Import Backup';},2500);}
