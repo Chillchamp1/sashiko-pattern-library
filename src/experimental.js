@@ -1141,7 +1141,8 @@ function drawExpGuide(){
   const STEP=10;
   const u0=Math.floor(minU/STEP)*STEP, u1=Math.ceil(maxU/STEP)*STEP;
   const v0=Math.floor(minV/STEP)*STEP, v1=Math.ceil(maxV/STEP)*STEP;
-  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=zlw(0.8); ctx.setLineDash([]);
+  // Grid lines — match CAD style exactly
+  ctx.strokeStyle='rgba(220,235,255,0.15)'; ctx.lineWidth=zlw(1.5); ctx.setLineDash([]);
   for(let u=u0;u<=u1;u+=STEP){
     const a=EXP_g2s([u,v0]),b=EXP_g2s([u,v1]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
@@ -1150,9 +1151,9 @@ function drawExpGuide(){
     const a=EXP_g2s([u0,v]),b=EXP_g2s([u1,v]);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
   }
-  // Sub-grid dots everywhere, main intersections larger
+  // Sub-grid dots + main intersections — match CAD size
   ctx.fillStyle='rgba(160,160,184,0.25)';
-  const sds=zds(1.5), mds=zds(2.8);
+  const sds=zlw(2), mds=zlw(4);
   for(let u=u0;u<=u1;u++){
     for(let v=v0;v<=v1;v++){
       const onMain=(u%STEP===0)&&(v%STEP===0);
