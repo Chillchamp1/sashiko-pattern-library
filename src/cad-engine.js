@@ -506,6 +506,43 @@ window.cadSaveToLibrary=function(){
   btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
 };
+window.cadPublishToLibrary=function(){
+  const pw=prompt('Admin password:');
+  if(pw!=='111'){alert('Wrong password');return;}
+  if(!cadLines.length){alert('No lines to publish.');return;}
+  // Save first (same logic as cadSaveToLibrary)
+  const bbox=cadBBox();if(!bbox)return;
+  const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
+  const redSet=new Set(cadFindRedundant());
+  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!cleanLines.length)return;
+  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional,published:true};
+  if(cadEditId){
+    const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
+    if(idx>=0){
+      pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;
+      const oldFams=EXP_PATTERNS[idx].families||[];
+      if(oldFams.length===pat.lines.length)pat.families=oldFams;
+      else autoAssignFamilies(pat);
+      EXP_PATTERNS[idx]=pat;
+    }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
+  }else{
+    pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+    EXP_PATTERNS.unshift(pat);
+  }
+  if(cadRemixOf){
+    pat.remixOf=cadRemixOf;
+    const parent=EXP_PATTERNS.find(p=>p.id===cadRemixOf);
+    if(parent){if(!parent.remixes)parent.remixes=[];if(!parent.remixes.includes(pat.id))parent.remixes.push(pat.id);}
+    cadRemixOf=null;
+  }
+  _saveLocal();
+  if(_firebaseReady)_pushToFirestore(pat);
+  rebuildExpGallery();
+  alert('Published! Visible in main gallery.');
+};
 
 // ── Tile preview play → animates inline on right canvas ──────────────────
 let _tpOn=false,_tpStep=0,_tpSts=[],_tpRAF=null,_tpLast=0;

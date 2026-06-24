@@ -178,17 +178,19 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
-  document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
+  const ss=document.getElementById('stitchSettings');if(ss)ss.style.display='none'; // commented out for later reuse
   if(!isEXP){
     const lr2=document.getElementById('likeRow');if(lr2)lr2.style.display='none';
     document.getElementById('remixesSection').style.display='none';
   }
+  /* Stitching Order Settings — commented out for later reuse, DO NOT DELETE
   if(!isEXP){
     document.getElementById('famCanvas').onclick=null;
     document.getElementById('famCanvas').onmousedown=null;
     document.getElementById('famCanvas').onmousemove=null;
     document.getElementById('famCanvas').onmouseup=null;
   }
+  */
   cv.style.cursor='';
   if(isGen){
     showGenUI(true);
@@ -207,6 +209,7 @@ function loadPattern(pat){
     const lr=document.getElementById('likeRow');
     if(lr){lr.dataset.id=pat.id;renderLikeButtons(pat.id);lr.style.display='flex';}
     renderRemixes(pat);
+    /* Stitching Order Settings — commented out for later reuse, DO NOT DELETE
     document.getElementById('stitchBody').style.display='none';
     document.getElementById('stitchToggle').innerHTML='⚙ Stitching Order Settings ▸';
     document.getElementById('stitchToggle').classList.remove('on');
@@ -217,6 +220,8 @@ function loadPattern(pat){
     document.getElementById('famCanvas').onmouseleave=()=>{_famPainting=false;};
     _famToggles={};
     updateProfileBadge();
+    */
+    _famToggles={};
     step=0;if(playing)pause();
     buildJumpBar();render(0);
     return;

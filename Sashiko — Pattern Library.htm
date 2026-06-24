@@ -380,7 +380,8 @@ button.ctrl.primary:hover{background:#275784}
 sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element
 palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
 
-  <!-- Stitching Order Settings (exp patterns only, collapsed by default) -->
+  <!-- Stitching Order Settings + community profiles — commented out for later reuse, DO NOT DELETE -->
+  <!--
   <div id="stitchSettings" style="display:none">
     <button class="settings-toggle" id="stitchToggle" onclick="toggleStitchSettings()">⚙ Stitching Order Settings ▸</button>
     <div class="settings-body" id="stitchBody" style="display:none">
@@ -393,9 +394,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <div id="profileList" class="profile-list"></div>
       <button class="profile-save-btn" id="profileSaveBtn" onclick="saveStitchingProfile()">⊕ Share this stitching order</button>
       <button class="avatar-cycle-btn" onclick="cycleAvatar()" title="Change your cat avatar">🎲 New Avatar</button>
-      <button class="profile-save-btn" onclick="publishToLibrary()" style="border-color:#ff9944;color:#ff9944">📌 Publish to library (only admin)</button>
     </div>
   </div>
+  -->
 </div>
 
 <!-- CAD Pattern Editor — full-screen overlay -->
@@ -406,6 +407,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <h2>CAD Pattern Editor</h2>
       <input id="cadPatName" class="cad-name-input" placeholder="Pattern name…" value="My Pattern">
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save to Library</button>
+      <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88">📌 Publish (admin)</button>
     </div>
     <div class="cad-settings-bar">
       <label>Grid:
@@ -1203,17 +1205,19 @@ function loadPattern(pat){
   isHM=isGen||pat.type==='hitomezashi';
   isPL=pat.type==='polyline';
 
-  document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
+  const ss=document.getElementById('stitchSettings');if(ss)ss.style.display='none'; // commented out for later reuse
   if(!isEXP){
     const lr2=document.getElementById('likeRow');if(lr2)lr2.style.display='none';
     document.getElementById('remixesSection').style.display='none';
   }
+  /* Stitching Order Settings — commented out for later reuse, DO NOT DELETE
   if(!isEXP){
     document.getElementById('famCanvas').onclick=null;
     document.getElementById('famCanvas').onmousedown=null;
     document.getElementById('famCanvas').onmousemove=null;
     document.getElementById('famCanvas').onmouseup=null;
   }
+  */
   cv.style.cursor='';
   if(isGen){
     showGenUI(true);
@@ -1232,6 +1236,7 @@ function loadPattern(pat){
     const lr=document.getElementById('likeRow');
     if(lr){lr.dataset.id=pat.id;renderLikeButtons(pat.id);lr.style.display='flex';}
     renderRemixes(pat);
+    /* Stitching Order Settings — commented out for later reuse, DO NOT DELETE
     document.getElementById('stitchBody').style.display='none';
     document.getElementById('stitchToggle').innerHTML='⚙ Stitching Order Settings ▸';
     document.getElementById('stitchToggle').classList.remove('on');
@@ -1242,6 +1247,8 @@ function loadPattern(pat){
     document.getElementById('famCanvas').onmouseleave=()=>{_famPainting=false;};
     _famToggles={};
     updateProfileBadge();
+    */
+    _famToggles={};
     step=0;if(playing)pause();
     buildJumpBar();render(0);
     return;
@@ -1807,6 +1814,10 @@ function _drawCatAvatar(canvas,uid){
   if(!((h>>6)%2)){b(3,13,2,2,'#ee7777');b(19,13,2,2,'#ee7777');}
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   STITCHING ORDER SETTINGS + CAT AVATARS + COMMUNITY PROFILES
+   Commented out for later reuse — DO NOT DELETE without asking!
+   ═══════════════════════════════════════════════════════════════════════════════
 function _catAvatarHTML(uid,seed){
   const s=seed!==undefined?' data-seed="'+seed+'"':'';
   return '<canvas class="cat-avatar" width="48" height="48" data-uid="'+uid+'"'+s+' style="width:48px;height:48px"></canvas>';
@@ -2505,6 +2516,7 @@ function publishToLibrary(){
   }
 }
 window.publishToLibrary=publishToLibrary;
+═══════════════════════════════════════════════════════════════════════════════ */
 window.editExpPattern=function(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
@@ -3568,6 +3580,43 @@ window.cadSaveToLibrary=function(){
   const btn=document.getElementById('cadSaveBtn');
   btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
+};
+window.cadPublishToLibrary=function(){
+  const pw=prompt('Admin password:');
+  if(pw!=='111'){alert('Wrong password');return;}
+  if(!cadLines.length){alert('No lines to publish.');return;}
+  // Save first (same logic as cadSaveToLibrary)
+  const bbox=cadBBox();if(!bbox)return;
+  const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
+  const redSet=new Set(cadFindRedundant());
+  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!cleanLines.length)return;
+  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional,published:true};
+  if(cadEditId){
+    const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
+    if(idx>=0){
+      pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;
+      const oldFams=EXP_PATTERNS[idx].families||[];
+      if(oldFams.length===pat.lines.length)pat.families=oldFams;
+      else autoAssignFamilies(pat);
+      EXP_PATTERNS[idx]=pat;
+    }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
+  }else{
+    pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+    EXP_PATTERNS.unshift(pat);
+  }
+  if(cadRemixOf){
+    pat.remixOf=cadRemixOf;
+    const parent=EXP_PATTERNS.find(p=>p.id===cadRemixOf);
+    if(parent){if(!parent.remixes)parent.remixes=[];if(!parent.remixes.includes(pat.id))parent.remixes.push(pat.id);}
+    cadRemixOf=null;
+  }
+  _saveLocal();
+  if(_firebaseReady)_pushToFirestore(pat);
+  rebuildExpGallery();
+  alert('Published! Visible in main gallery.');
 };
 
 // ── Tile preview play → animates inline on right canvas ──────────────────
