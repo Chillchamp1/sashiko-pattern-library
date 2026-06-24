@@ -180,6 +180,10 @@ function loadPattern(pat){
 
   document.getElementById('stitchSettings').style.display=isEXP?'block':'none';
   if(!isEXP){
+    const lr2=document.getElementById('likeRow');if(lr2)lr2.style.display='none';
+    document.getElementById('remixesSection').style.display='none';
+  }
+  if(!isEXP){
     document.getElementById('famCanvas').onclick=null;
     document.getElementById('famCanvas').onmousedown=null;
     document.getElementById('famCanvas').onmousemove=null;
@@ -199,6 +203,10 @@ function loadPattern(pat){
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
+    // Like/remix bar
+    const lr=document.getElementById('likeRow');
+    if(lr){lr.dataset.id=pat.id;renderLikeButtons(pat.id);lr.style.display='flex';}
+    renderRemixes(pat);
     document.getElementById('stitchBody').style.display='none';
     document.getElementById('stitchToggle').innerHTML='⚙ Stitching Order Settings ▸';
     document.getElementById('stitchToggle').classList.remove('on');

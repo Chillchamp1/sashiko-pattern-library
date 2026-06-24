@@ -36,6 +36,11 @@ function buildGallery(){
     const badge=document.createElement('div');badge.className='pcard-badge';
     badge.textContent=(pat.traditional?'Traditional · ':'')+(pat.gridType==='isometric'?'Isometric':'Square');
     card.append(name,badge);
+    // Like row for exp cards
+    const likeRow=document.createElement('div');
+    likeRow.className='like-row';likeRow.dataset.id=pat.id;
+    card.appendChild(likeRow);
+    setTimeout(()=>renderLikeButtons(pat.id),0);
     card.onclick=()=>openExpPattern(pat);
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);

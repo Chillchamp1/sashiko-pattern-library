@@ -262,3 +262,18 @@ button.ctrl.primary:hover{background:#275784}
 .trash-restore-btn:hover{background:#3a4a30;border-color:#4a6a40}
 .trash-perm-del-btn{background:none;border:1px solid #402020;color:#996666;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:10px;font:inherit}
 .trash-perm-del-btn:hover{background:#2a1515;border-color:#603030;color:#cc7777}
+/* ── Like / Remix bar ── */
+.like-row{display:flex;align-items:center;gap:4px;margin-left:auto;white-space:nowrap}
+.like-btn{background:none;border:1px solid transparent;border-radius:6px;padding:2px 6px;font-size:11px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
+.like-btn:hover{background:#1d3850;color:#e7eef6}
+.like-btn.liked{color:#88c4a4;border-color:#3a5a40}
+.like-btn.disliked{color:#e09090;border-color:#5a3030}
+.like-btn.remix{color:#90a0e0;margin-left:6px}
+.like-btn.remix:hover{color:#b0c0ff}
+.like-score{font-size:12px;font-weight:600;min-width:24px;text-align:center}
+/* ── Remixes section ── */
+.remixes-section{width:100%;max-width:900px;margin:16px auto 0;padding:16px 20px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.remixes-title{font-size:12px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.remixes-grid{display:flex;gap:10px;flex-wrap:wrap}
+.remix-card{min-width:120px;max-width:140px;flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;cursor:pointer;font:inherit;border:none;background:none}
+.remix-card:hover{background:rgba(255,255,255,0.04);border-radius:10px}
