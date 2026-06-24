@@ -165,6 +165,12 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       </label>
       <label>BBox: <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="Rotate tiling unit 45° (diagonal lattice)">◇ 45°</button></label>
     </div>
+    <div class="cad-fam-bar" id="cadFamBar">
+      <span class="cad-fam-label">Stitch Order:</span>
+      <span id="cadFamSwatches"></span>
+      <button class="cad-tool" onclick="cadMoveFam(-1)" title="Move selected colour earlier">◀</button>
+      <button class="cad-tool" onclick="cadMoveFam(1)" title="Move selected colour later">▶</button>
+    </div>
     <div class="cad-workspace">
       <div class="cad-panel">
         <div class="cad-canvas-label">Draw</div>

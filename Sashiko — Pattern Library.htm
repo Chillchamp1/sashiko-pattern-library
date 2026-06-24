@@ -222,6 +222,11 @@ button.ctrl.primary:hover{background:#275784}
 .cad-settings-bar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:8px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
 .cad-settings-bar label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}
 .cad-settings-bar select{background:var(--panel2,#1c3045);color:#e7eef6;border:1px solid var(--line);padding:4px 8px;border-radius:6px;font-size:12px;outline:none}
+.cad-fam-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;padding:6px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:36px}
+.cad-fam-label{font-size:12px;color:var(--muted);white-space:nowrap}
+.cad-fam-swatch{width:22px;height:22px;border-radius:4px;border:1px solid transparent;cursor:pointer;margin:0 2px;transition:.15s}
+.cad-fam-swatch:hover{border-color:#fff}
+.cad-fam-swatch.sel{border:3px solid #fff}
 .cad-workspace{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .cad-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-width:300px;max-width:440px}
 .cad-canvas-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center}
@@ -423,6 +428,12 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </select>
       </label>
       <label>BBox: <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="Rotate tiling unit 45° (diagonal lattice)">◇ 45°</button></label>
+    </div>
+    <div class="cad-fam-bar" id="cadFamBar">
+      <span class="cad-fam-label">Stitch Order:</span>
+      <span id="cadFamSwatches"></span>
+      <button class="cad-tool" onclick="cadMoveFam(-1)" title="Move selected colour earlier">◀</button>
+      <button class="cad-tool" onclick="cadMoveFam(1)" title="Move selected colour later">▶</button>
     </div>
     <div class="cad-workspace">
       <div class="cad-panel">
@@ -2920,6 +2931,7 @@ window.showGalleryFromCAD=function(){
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
+let cadFamSel=-1;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -3297,6 +3309,7 @@ function cadDrawPattern(){
 function cadUpdateAll(){
   cadAutoAssign();
   cadDrawWorkspace();cadDrawPattern();
+  cadBuildFamBar();
   // Update redundancy hint
   const el=document.getElementById('cadArcHint');
   if(el){
@@ -3305,6 +3318,31 @@ function cadUpdateAll(){
     else if(cadTool!=='arc')el.textContent='';
   }
 }
+function cadBuildFamBar(){
+  const c=document.getElementById('cadFamSwatches');if(!c)return;
+  const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
+  if(!unique.length){c.innerHTML='';return;}
+  c.innerHTML=unique.map(f=>{
+    const col=FAM_PALETTE[f%FAM_PALETTE.length];
+    const cls='cad-fam-swatch'+(cadFamSel===f?' sel':'');
+    return '<button class="'+cls+'" onclick="cadSelectFam('+f+')" style="background:'+col+'" title="Family '+(f+1)+'"></button>';
+  }).join('');
+}
+window.cadSelectFam=function(f){cadFamSel=cadFamSel===f?-1:f;cadUpdateAll();};
+window.cadMoveFam=function(dir){
+  if(cadFamSel<0)return;
+  const sorted=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
+  const idx=sorted.indexOf(cadFamSel);if(idx<0)return;
+  const oi=idx+dir;if(oi<0||oi>=sorted.length)return;
+  const other=sorted[oi];
+  cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+  for(let i=0;i<cadFamilies.length;i++){
+    if(cadFamilies[i]===cadFamSel)cadFamilies[i]=other;
+    else if(cadFamilies[i]===other)cadFamilies[i]=cadFamSel;
+  }
+  cadFamSel=other;
+  cadUpdateAll();
+};
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
