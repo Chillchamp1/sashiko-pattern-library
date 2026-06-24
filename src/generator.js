@@ -219,7 +219,7 @@ function renderThumb(canvas,pat){
   try{
     if(isEXP){
       EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
-      EXP_path=buildExpPath(genTiledSegs(pat));
+      EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder);
       TOTAL=EXP_path.length;
       renderExp(TOTAL);
     } else if(isPL){

@@ -1201,7 +1201,7 @@ function loadPattern(pat){
 
   if(isEXP){
     setupExpCanvas(pat);
-    EXP_path=buildExpPath(genTiledSegs(pat));
+    EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
@@ -1528,7 +1528,7 @@ function renderThumb(canvas,pat){
   try{
     if(isEXP){
       EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
-      EXP_path=buildExpPath(genTiledSegs(pat));
+      EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder);
       TOTAL=EXP_path.length;
       renderExp(TOTAL);
     } else if(isPL){
@@ -2438,7 +2438,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat));
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder);
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -2543,13 +2543,13 @@ function _permute(arr){
 // the visitation order that minimises total inter-family jump distance.
 // Closed-loop strokes rotate their entry vertex to be nearest the current needle.
 // Retrace penalty (500 units) discourages jumps that cross already-stitched segments.
-function buildExpPath(lines){
+function buildExpPath(lines, famOrderOverride){
   if(!lines||!lines.length)return[];
 
   const famGroups=new Map();
   lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
 
-  // Pre-build ordered strokes for every family and capture both entry endpoints
+  // Pre-build ordered strokes for every family
   const famStrokes=new Map(), famEnds=new Map();
   for(const[fi,segs]of famGroups){
     const ordered=orderStrokesFamily(buildStrokesForFamily(segs));
@@ -2557,14 +2557,24 @@ function buildExpPath(lines){
     famStrokes.set(fi,ordered);
     const p0=ordered[0].pts[0];
     const p1=ordered[ordered.length-1].pts[ordered[ordered.length-1].pts.length-1];
-    famEnds.set(fi,{p0,p1}); // p0=forward entry, p1=forward exit (= backward entry)
+    famEnds.set(fi,{p0,p1});
   }
   if(!famStrokes.size)return[];
 
+  // Determine family visitation order
+  const allFamIds=[...famStrokes.keys()];
+  let bestOrder;
+  if(famOrderOverride && famOrderOverride.length){
+    // Use explicit user-defined order (only families that exist)
+    bestOrder=famOrderOverride.filter(fi=>famStrokes.has(fi));
+    // Append any families not in the override (shouldn't happen, but safe)
+    for(const fi of allFamIds)if(!bestOrder.includes(fi))bestOrder.push(fi);
+  }else{
+    bestOrder=allFamIds;
+  }
+
   // Optimise family visitation order: minimise total inter-family jump
-  const famIds=[...famStrokes.keys()];
-  let bestOrder=famIds;
-  if(famIds.length>1){
+  if(bestOrder.length>1&&!famOrderOverride){
     const evalPerm=perm=>{
       let cost=0,cur2=null;
       for(const fi of perm){
@@ -2839,7 +2849,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat));
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -2863,11 +2873,12 @@ function rebuildMyPatsView(){
   const grid=document.getElementById('myPatsGrid');
   if(!grid)return;
   grid.innerHTML='';
-  if(!EXP_PATTERNS.length){
+  const unpub=EXP_PATTERNS.filter(p=>!p.published);
+  if(!unpub.length){
     const offline=!_firebaseReady?' (offline — patterns sync when Firebase is configured)':'';
     grid.innerHTML=`<p class="no-results" style="display:block;margin:24px auto">No saved patterns yet — use the CAD Editor to draw one.${offline}</p>`;
   }else{
-    EXP_PATTERNS.forEach(pat=>{
+    unpub.forEach(pat=>{
       grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
       const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
       if(thumb)setTimeout(()=>renderThumb(thumb,pat),0);
@@ -2931,7 +2942,7 @@ window.showGalleryFromCAD=function(){
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
-let cadFamSel=-1,cadFamsLocked=false;
+let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -3069,6 +3080,7 @@ function cadAutoAssign(){
   }
   groups.sort((a,b)=>(a.angle<0?1:b.angle<0?-1:a.angle-b.angle));
   groups.forEach((g,fi)=>{g.members.forEach(i=>{cadFamilies[i]=fi;});});
+  cadFamOrder=[...Array(groups.length).keys()];
 }
 
 // Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
@@ -3323,24 +3335,22 @@ function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
   const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!unique.length){c.innerHTML='';return;}
-  c.innerHTML=unique.map(f=>{
-    const col=FAM_PALETTE[f%FAM_PALETTE.length];
-    const cls='cad-fam-swatch'+(cadFamSel===f?' sel':'');
-    return '<button class="'+cls+'" onclick="cadSelectFam('+f+')" style="background:'+col+'" title="Family '+(f+1)+'"></button>';
+  // Ensure cadFamOrder contains all current families
+  if(cadFamOrder.length!==unique.length||!cadFamOrder.every(f=>unique.includes(f))){
+    cadFamOrder=[...unique];
+  }
+  c.innerHTML=cadFamOrder.map((fam,pos)=>{
+    const col=FAM_PALETTE[fam%FAM_PALETTE.length];
+    const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'');
+    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="Family '+(fam+1)+'"></button>';
   }).join('');
 }
-window.cadSelectFam=function(f){cadFamSel=cadFamSel===f?-1:f;cadUpdateAll();};
+window.cadSelectFam=function(pos){cadFamSel=cadFamSel===pos?-1:pos;cadUpdateAll();};
 window.cadMoveFam=function(dir){
-  if(cadFamSel<0)return;
-  const sorted=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
-  const idx=sorted.indexOf(cadFamSel);if(idx<0)return;
-  const oi=idx+dir;if(oi<0||oi>=sorted.length)return;
-  const other=sorted[oi];
-  for(let i=0;i<cadFamilies.length;i++){
-    if(cadFamilies[i]===cadFamSel)cadFamilies[i]=other;
-    else if(cadFamilies[i]===other)cadFamilies[i]=cadFamSel;
-  }
-  cadFamSel=other;cadFamsLocked=true;
+  if(cadFamSel<0||cadFamSel>=cadFamOrder.length)return;
+  const oi=cadFamSel+dir;if(oi<0||oi>=cadFamOrder.length)return;
+  [cadFamOrder[cadFamSel],cadFamOrder[oi]]=[cadFamOrder[oi],cadFamOrder[cadFamSel]];
+  cadFamSel=oi;cadFamsLocked=true;
   cadUpdateAll();
 };
 window.cadUpdateSettings=function(){
@@ -3402,7 +3412,7 @@ window.cadSaveToLibrary=function(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder]};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     // Update existing pattern — preserve families if line count unchanged
@@ -3442,7 +3452,7 @@ window.cadTilePlay=function(){
   const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,bboxRotated:cadBBoxRotated};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const path=buildExpPath(segs);
+  const path=buildExpPath(segs,pat.famOrder);
   if(!path.length)return;
   // Convert path grid coords to screen coords for bounding box
   const lay=computeExpLayout(pat);
@@ -3517,7 +3527,7 @@ function cadInit(){
       // Click-to-assign: if a family is selected and we hit a line, assign it
       if(cadFamSel>=0){
         const hit=cadHoveredSeg(g.u,g.v);
-        if(hit&&hit.li>=0){cadFamilies[hit.li]=cadFamSel;cadFamsLocked=true;cadUpdateAll();return;}
+        if(hit&&hit.li>=0&&cadFamSel<cadFamOrder.length){cadFamilies[hit.li]=cadFamOrder[cadFamSel];cadFamsLocked=true;cadUpdateAll();return;}
       }
       cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];
     }
