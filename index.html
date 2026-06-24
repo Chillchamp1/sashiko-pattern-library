@@ -252,6 +252,8 @@ button.ctrl.primary:hover{background:#275784}
 .cad-canvas-wrap{border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);background:#1a3a5c;aspect-ratio:1;width:100%}
 .cad-canvas-wrap canvas{display:block;width:100%;height:100%}
 .cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
+.cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
@@ -479,6 +481,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </div>
       </div>
       <div class="cad-panel">
+        <label class="cad-routing-toggle"><input type="checkbox" id="cadZigzagRouting" onchange="cadUpdateSettings()"> ⟿ Follow-path routing</label>
         <div class="cad-panel-top">
           <div class="cad-canvas-label">Live Tiling</div>
           <span class="cad-panel-stepper">
@@ -1236,7 +1239,7 @@ function loadPattern(pat){
 
   if(isEXP){
     setupExpCanvas(pat);
-    EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder);
+    EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.zigzagRouting);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
@@ -1570,7 +1573,7 @@ function renderThumb(canvas,pat){
   try{
     if(isEXP){
       EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
-      EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder);
+      EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.zigzagRouting);
       TOTAL=EXP_path.length;
       renderExp(TOTAL);
     } else if(isPL){
@@ -2581,7 +2584,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.zigzagRouting);
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -2639,6 +2642,8 @@ window.editExpPattern=function(idOrPat){
   cadFamsLocked=cadFamilies.some(f=>f>=0);
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
+  cadZigzagRouting=pat.zigzagRouting||false;
+  document.getElementById('cadZigzagRouting').checked=cadZigzagRouting;
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
@@ -2697,7 +2702,7 @@ function _permute(arr){
 // the visitation order that minimises total inter-family jump distance.
 // Closed-loop strokes rotate their entry vertex to be nearest the current needle.
 // Retrace penalty (500 units) discourages jumps that cross already-stitched segments.
-function buildExpPath(lines, famOrderOverride){
+function buildExpPath(lines, famOrderOverride, zigzag){
   if(!lines||!lines.length)return[];
 
   const famGroups=new Map();
@@ -2706,7 +2711,7 @@ function buildExpPath(lines, famOrderOverride){
   // Pre-build ordered strokes for every family
   const famStrokes=new Map(), famEnds=new Map();
   for(const[fi,segs]of famGroups){
-    const ordered=orderStrokesFamily(buildStrokesForFamily(segs));
+    const ordered=orderStrokesFamily(buildStrokesForFamily(segs,zigzag));
     if(!ordered.length)continue;
     famStrokes.set(fi,ordered);
     const p0=ordered[0].pts[0];
@@ -2798,9 +2803,10 @@ function buildExpPath(lines, famOrderOverride){
 }
 
 // ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
-function buildStrokesForFamily(segs){
+function buildStrokesForFamily(segs, zigzag){
   const Q=1e-4;
-  const MAXTURN=90*Math.PI/180;
+  // zigzag mode: no turn limit — traces full chains through peaks/valleys regardless of angle
+  const MAXTURN=zigzag ? Math.PI : 90*Math.PI/180;
 
   const vId=new Map(), vPos=[];
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
@@ -3004,7 +3010,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.zigzagRouting);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -3126,6 +3132,7 @@ window.remixPattern=function(id){
   document.getElementById('cadPatSize').value=bestPM;
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
+  cadZigzagRouting=false;document.getElementById('cadZigzagRouting').checked=false;
   cadBBoxRotated=pat.bboxRotated||false;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
   cadInited=false;
@@ -3177,7 +3184,8 @@ window.showCAD=function(){
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
-  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadZigzagRouting=false;
+  document.getElementById('cadZigzagRouting').checked=false;
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -3194,7 +3202,7 @@ window.showGalleryFromCAD=function(){
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
-let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
+let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false,cadZigzagRouting=false;
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
 const CAD_MICRO=10;
@@ -3638,6 +3646,7 @@ window.cadUpdateSettings=function(){
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
   cadPatMacro=parseInt(document.getElementById('cadPatSize').value);
   cadSpacing=parseInt(document.getElementById('cadSpacing').value);
+  cadZigzagRouting=document.getElementById('cadZigzagRouting').checked;
   cadZoom=1;cadPanX=0;cadPanY=0;
   const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*CAD_MICRO;
   if(cadGridType==='isometric'){
@@ -3725,7 +3734,7 @@ window.cadSaveToLibrary=function(){
   // Compact: remove unused families, renumber used ones to 0,1,2...
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,zigzagRouting:cadZigzagRouting};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -3768,7 +3777,7 @@ window.cadPublishToLibrary=function(){
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,published:true};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,zigzagRouting:cadZigzagRouting,published:true};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -3803,10 +3812,10 @@ window.cadTilePlay=function(){
   const clean=cadLines.filter((_,i)=>!redSet.has(i));
   if(!clean.length)return;
   const lines=clean.map(l=>({start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]}));
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder]};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],zigzagRouting:cadZigzagRouting};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const path=buildExpPath(segs,pat.famOrder);
+  const path=buildExpPath(segs,pat.famOrder,cadZigzagRouting);
   if(!path.length)return;
   // Convert path grid coords to screen coords for bounding box
   const lay=computeExpLayout(pat);
