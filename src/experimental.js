@@ -137,6 +137,14 @@ function _saveLocal(){
 }
 function _loadLocal(){
   try{EXP_PATTERNS=JSON.parse(localStorage.getItem('sashiko_exp')||'[]');}catch(e){EXP_PATTERNS=[];}
+  // Normalize any patterns saved with raw coords (bbox minU/minV != 0)
+  EXP_PATTERNS.forEach(p=>_normalizePat(p));
+}
+function _normalizePat(pat){
+  if(!pat.bbox||(pat.bbox.minU===0&&pat.bbox.minV===0))return;
+  const dU=pat.bbox.maxU-pat.bbox.minU, dV=pat.bbox.maxV-pat.bbox.minV;
+  (pat.lines||[]).forEach(l=>{l.start[0]-=pat.bbox.minU;l.start[1]-=pat.bbox.minV;l.end[0]-=pat.bbox.minU;l.end[1]-=pat.bbox.minV;});
+  pat.bbox.minU=0;pat.bbox.maxU=dU;pat.bbox.minV=0;pat.bbox.maxV=dV;
 }
 function _getUserId(){
   let id=localStorage.getItem('sashiko_uid');
@@ -306,6 +314,7 @@ async function _fetchFromFirestore(){
       if(!remoteIds.has(p.id))merged.push(p);
     }
     EXP_PATTERNS=merged;
+    EXP_PATTERNS.forEach(p=>_normalizePat(p));
     _saveLocal();
   }catch(e){console.warn('Firestore fetch failed, using local cache:',e);}
 }
