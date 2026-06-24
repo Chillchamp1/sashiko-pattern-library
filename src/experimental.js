@@ -268,7 +268,7 @@ async function _voteProfile(patternId, profileId, delta){
     });
   }catch(e){console.warn('Vote failed:',e);}
 }
-
+══════ END PROFILES COMMENTED ══════ */
 // Upload a single pattern to Firestore (thumbnail stored separately via data URL → stripped before upload)
 async function _pushToFirestore(pat){
   if(!_db)return;
@@ -309,7 +309,6 @@ async function _fetchFromFirestore(){
     _saveLocal();
   }catch(e){console.warn('Firestore fetch failed, using local cache:',e);}
 }
-═══════════════════════════════════ END COMMENTED ═══════════════════════════════════ */
 // ── Public API ───────────────────────────────────────────────────────────────
 function loadExpPatterns(){
   _loadLocal();
