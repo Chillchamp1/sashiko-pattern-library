@@ -309,7 +309,7 @@ async function _fetchFromFirestore(){
     _saveLocal();
   }catch(e){console.warn('Firestore fetch failed, using local cache:',e);}
 }
-
+═══════════════════════════════════ END COMMENTED ═══════════════════════════════════ */
 // ── Public API ───────────────────────────────────────────────────────────────
 function loadExpPatterns(){
   _loadLocal();
@@ -493,6 +493,7 @@ function setupExpCanvas(pat){
   _setupCanvasSize(SIZE,EXP_canvasH);
 }
 
+/* ═══════ FAMILY EDITOR + PUBLISH (commented out for later reuse) ═══════
 // ── Family editor (unit cell, inside Stitching Order Settings) ──────────
 let _famSel=0, _famCount=0;
 function initExpFamilies(pat){
