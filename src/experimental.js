@@ -288,15 +288,25 @@ async function _voteProfile(patternId, profileId, delta){
   }catch(e){console.warn('Vote failed:',e);}
 }
 ══════ END PROFILES COMMENTED ══════ */
-// Upload a single pattern to Firestore (thumbnail stored separately via data URL → stripped before upload)
+// Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit)
 async function _pushToFirestore(pat){
   if(!_db)return;
-  // Strip thumbnail before storing — too large for Firestore (1 MB doc limit).
-  // We store the thumbnail only in localStorage on the creating device.
+  if(!pat.creatorId)pat.creatorId=_getUserId();
   const doc={...pat};delete doc.thumbnail;
   try{
     await _db.collection('patterns').doc(pat.id).set(doc);
   }catch(e){console.warn('Firestore write failed:',e);}
+}
+
+// Push all local patterns that are missing from Firestore (first-time sync, offline recovery)
+async function _syncLocalToFirestore(){
+  if(!_firebaseReady)return;
+  const uid=_getUserId();
+  for(const pat of EXP_PATTERNS){
+    if(!pat.creatorId){pat.creatorId=uid;}
+    await _pushToFirestore(pat);
+  }
+  _saveLocal();
 }
 
 async function _deleteFromFirestore(id){
@@ -334,11 +344,31 @@ function loadExpPatterns(){
   _loadLocal();
   cleanTrash();
   _initFirebase();
-  // Async fetch from Firestore; updates UI once done
   if(_firebaseReady){
-    _fetchFromFirestore().then(()=>rebuildMyPatsView());
+    // Sync local-only patterns up first, then fetch all from Firestore
+    _syncLocalToFirestore()
+      .then(()=>_fetchFromFirestore())
+      .then(()=>rebuildMyPatsView());
   }
 }
+
+// Manual sync trigger (button in My Patterns view)
+window.syncPatternsToCloud=async function(){
+  const btn=document.getElementById('cloudSyncBtn');
+  if(btn){btn.textContent='☁ Syncing…';btn.disabled=true;}
+  if(!_firebaseReady){
+    _initFirebase();
+    if(!_firebaseReady){
+      alert('Firebase not available on this URL.\n\nOpen the app via GitHub Pages or http://localhost to sync.');
+      if(btn){btn.textContent='☁ Sync to Cloud';btn.disabled=false;}
+      return;
+    }
+  }
+  await _syncLocalToFirestore();
+  await _fetchFromFirestore();
+  rebuildMyPatsView();
+  if(btn){btn.textContent='✓ Synced!';btn.disabled=false;setTimeout(()=>{if(btn)btn.textContent='☁ Sync to Cloud';},2500);}
+};
 
 async function saveExpPatterns(pat){
   // pat is the pattern being added; for deletes use removeExpPattern
@@ -1280,6 +1310,9 @@ window.showMyPatterns=function(){
   document.getElementById('galleryView').style.display='none';
   document.getElementById('cadView').classList.remove('open');
   document.getElementById('myPatsView').classList.add('open');
+  // Show warning when opened via file:// (no Firebase sync possible)
+  const warn=document.getElementById('syncWarning');
+  if(warn)warn.style.display=location.protocol==='file:'?'block':'none';
   const trash=_loadTrash();
   const tbtn=document.getElementById('trashToggleBtn');
   if(tbtn)tbtn.textContent=trash.length?'🗑 Trash ('+trash.length+')':'🗑 Trash';

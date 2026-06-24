@@ -214,6 +214,10 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <h2>Custom Patterns (Sandbox)</h2>
       <button class="cad-save-btn" onclick="showCAD()">+ New Pattern</button>
       <button class="trash-btn" onclick="toggleTrash()" id="trashToggleBtn">🗑 Trash</button>
+      <button class="trash-btn" id="cloudSyncBtn" onclick="syncPatternsToCloud()" style="border-color:#6aabff;color:#6aabff" title="Upload all local patterns to Firebase so they appear on every device">☁ Sync to Cloud</button>
+    </div>
+    <div id="syncWarning" style="display:none;background:rgba(255,180,50,0.12);border:1px solid rgba(255,180,50,0.4);border-radius:6px;padding:8px 14px;margin:8px 0;font-size:12px;color:#ffcf7a">
+      ⚠ Opened via <b>file://</b> — patterns are saved locally only. Open via <a href="https://chillchamp1.github.io/Sashiko-Code/" style="color:#ffcf7a" target="_blank">GitHub Pages</a> or <b>http://localhost</b> to enable cloud sync.
     </div>
     <div class="mypats-grid" id="myPatsGrid"></div>
     <div class="trash-section" id="trashSection" style="display:none">
