@@ -130,6 +130,7 @@ function _renderCatAvatars(){
     }
   });
 }
+═══════════════════════════════════ END CATS COMMENTED ════════════════════════════ */
 // localStorage is always kept as a local cache so the page works offline.
 function _saveLocal(){
   try{localStorage.setItem('sashiko_exp',JSON.stringify(EXP_PATTERNS));}catch(e){}
@@ -142,7 +143,6 @@ function _getUserId(){
   if(!id){id='u'+Math.random().toString(36).slice(2,12);localStorage.setItem('sashiko_uid',id);}
   return id;
 }
-═══════════════════════════════════════════════════════════════════════════════ */
 // ── Trash (1-week retention) ──────────────────────────────────────────────
 const TRASH_KEY='sashiko_trash';
 const WEEK_MS=7*24*60*60*1000;
