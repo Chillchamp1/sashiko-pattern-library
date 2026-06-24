@@ -210,7 +210,7 @@ function renderTrash(){
   }).join('');
 }
 
-/* ═══ CONTINUED: STITCHING PROFILES + FAMILY EDITOR (commented out) ═══ */
+/* ═══ CONTINUED: STITCHING PROFILES + FAMILY EDITOR (commented out) ═══
 // ── Stitching profiles (per-pattern community submissions) ────────────────
 // Subcollection: patterns/{patternId}/profiles/{profileId}
 // Each profile: { families, creatorId, creatorLabel, created, likeCount, likedBy:[], dislikeCount, dislikedBy:[] }
