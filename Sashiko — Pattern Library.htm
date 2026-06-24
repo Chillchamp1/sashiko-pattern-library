@@ -1636,7 +1636,10 @@ function buildGallery(){
     card.appendChild(editBtn);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
     const badge=document.createElement('div');badge.className='pcard-badge';
-    badge.textContent=(pat.traditional?'Traditional · ':'')+(pat.gridType==='isometric'?'Isometric':'Square');
+    const usedFams=new Set((pat.families||[]).filter(f=>f>=0));
+    const nPasses=usedFams.size||1;
+    const tLabel=pat.traditional?'Traditional · ':'';
+    badge.textContent=tLabel+(pat.gridType==='isometric'?'Isometric':'Square')+' · '+nPasses+' pass'+(nPasses!==1?'es':'');
     card.append(name,badge);
     // Like row for exp cards
     const likeRow=document.createElement('div');
@@ -1871,10 +1874,21 @@ function _loadLocal(){
   EXP_PATTERNS.forEach(p=>_normalizePat(p));
 }
 function _normalizePat(pat){
-  if(!pat.bbox||(pat.bbox.minU===0&&pat.bbox.minV===0))return;
-  const dU=pat.bbox.maxU-pat.bbox.minU, dV=pat.bbox.maxV-pat.bbox.minV;
-  (pat.lines||[]).forEach(l=>{l.start[0]-=pat.bbox.minU;l.start[1]-=pat.bbox.minV;l.end[0]-=pat.bbox.minU;l.end[1]-=pat.bbox.minV;});
-  pat.bbox.minU=0;pat.bbox.maxU=dU;pat.bbox.minV=0;pat.bbox.maxV=dV;
+  if(!pat.bbox||(pat.bbox.minU===0&&pat.bbox.minV===0)){/*bbox ok*/}
+  else{
+    const dU=pat.bbox.maxU-pat.bbox.minU, dV=pat.bbox.maxV-pat.bbox.minV;
+    (pat.lines||[]).forEach(l=>{l.start[0]-=pat.bbox.minU;l.start[1]-=pat.bbox.minV;l.end[0]-=pat.bbox.minU;l.end[1]-=pat.bbox.minV;});
+    pat.bbox.minU=0;pat.bbox.maxU=dU;pat.bbox.minV=0;pat.bbox.maxV=dV;
+  }
+  // Compact families: remove unused, renumber used to 0,1,2...
+  if(pat.families&&pat.families.length){
+    const used=[...new Set(pat.families.filter(f=>f>=0))].sort((a,b)=>a-b);
+    if(used.length>0&&used[used.length-1]>=used.length){
+      const map={};used.forEach((of,i)=>{map[of]=i;});
+      pat.families=pat.families.map(f=>f>=0?map[f]:-1);
+      if(pat.famOrder)pat.famOrder=pat.famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
+    }
+  }
 }
 function _getUserId(){
   let id=localStorage.getItem('sashiko_uid');
@@ -2953,7 +2967,7 @@ function expCardHTML(pat){
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${esc(pat.id)}"></canvas>
     <div class="pcard-body">
       <div class="pcard-name">${esc(pat.name||'Custom')}</div>
-      <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Isometric':'Square'}</span>
+      <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>
     <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();editExpPattern('${esc(pat.id)}')">✎</button>
@@ -3549,6 +3563,17 @@ window.cadAddFam=function(){
   cadFamOrder.push(nf);cadFamSel=cadFamOrder.length-1;cadFamsLocked=true;
   cadUpdateAll();
 };
+// Compact families: remove unused, renumber remaining to 0,1,2...
+function _compactFamilies(families, famOrder){
+  const used=[...new Set(families.filter(f=>f>=0))].sort((a,b)=>a-b);
+  if(!used.length)return{families:[], famOrder:[]};
+  // Build mapping: old family number → new compact number
+  const map={};used.forEach((of,i)=>{map[of]=i;});
+  const newFam=families.map(f=>f>=0?map[f]:-1);
+  // Keep only used families in order, preserving relative sequence
+  const newOrder=famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
+  return{families:newFam, famOrder:newOrder};
+}
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
@@ -3638,8 +3663,10 @@ window.cadSaveToLibrary=function(){
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  // Compact: remove unused families, renumber used ones to 0,1,2...
+  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -3648,12 +3675,12 @@ window.cadSaveToLibrary=function(){
       pat.createdAt=EXP_PATTERNS[idx].createdAt;
       pat.published=EXP_PATTERNS[idx].published;
       cadIsPublished=pat.published;
-      pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+      pat.families=cf.families;
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.families=cf.families;EXP_PATTERNS.unshift(pat);}
   }else{
     pat.id='exp_'+Date.now();
-    pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+    pat.families=cf.families;
     EXP_PATTERNS.unshift(pat);
   }
   if(cadRemixOf){
@@ -3681,16 +3708,17 @@ window.cadPublishToLibrary=function(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional,published:true};
+  const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,published:true};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
       pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;pat.published=true;
-      pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+      pat.families=cf2.families;
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
   }else{
-    pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+    pat.id='exp_'+Date.now();pat.families=cf2.families;
     EXP_PATTERNS.unshift(pat);
   }
   if(cadRemixOf){

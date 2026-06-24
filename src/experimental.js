@@ -141,10 +141,21 @@ function _loadLocal(){
   EXP_PATTERNS.forEach(p=>_normalizePat(p));
 }
 function _normalizePat(pat){
-  if(!pat.bbox||(pat.bbox.minU===0&&pat.bbox.minV===0))return;
-  const dU=pat.bbox.maxU-pat.bbox.minU, dV=pat.bbox.maxV-pat.bbox.minV;
-  (pat.lines||[]).forEach(l=>{l.start[0]-=pat.bbox.minU;l.start[1]-=pat.bbox.minV;l.end[0]-=pat.bbox.minU;l.end[1]-=pat.bbox.minV;});
-  pat.bbox.minU=0;pat.bbox.maxU=dU;pat.bbox.minV=0;pat.bbox.maxV=dV;
+  if(!pat.bbox||(pat.bbox.minU===0&&pat.bbox.minV===0)){/*bbox ok*/}
+  else{
+    const dU=pat.bbox.maxU-pat.bbox.minU, dV=pat.bbox.maxV-pat.bbox.minV;
+    (pat.lines||[]).forEach(l=>{l.start[0]-=pat.bbox.minU;l.start[1]-=pat.bbox.minV;l.end[0]-=pat.bbox.minU;l.end[1]-=pat.bbox.minV;});
+    pat.bbox.minU=0;pat.bbox.maxU=dU;pat.bbox.minV=0;pat.bbox.maxV=dV;
+  }
+  // Compact families: remove unused, renumber used to 0,1,2...
+  if(pat.families&&pat.families.length){
+    const used=[...new Set(pat.families.filter(f=>f>=0))].sort((a,b)=>a-b);
+    if(used.length>0&&used[used.length-1]>=used.length){
+      const map={};used.forEach((of,i)=>{map[of]=i;});
+      pat.families=pat.families.map(f=>f>=0?map[f]:-1);
+      if(pat.famOrder)pat.famOrder=pat.famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
+    }
+  }
 }
 function _getUserId(){
   let id=localStorage.getItem('sashiko_uid');
@@ -1223,7 +1234,7 @@ function expCardHTML(pat){
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${esc(pat.id)}"></canvas>
     <div class="pcard-body">
       <div class="pcard-name">${esc(pat.name||'Custom')}</div>
-      <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Isometric':'Square'}</span>
+      <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>
     <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();editExpPattern('${esc(pat.id)}')">✎</button>

@@ -429,6 +429,17 @@ window.cadAddFam=function(){
   cadFamOrder.push(nf);cadFamSel=cadFamOrder.length-1;cadFamsLocked=true;
   cadUpdateAll();
 };
+// Compact families: remove unused, renumber remaining to 0,1,2...
+function _compactFamilies(families, famOrder){
+  const used=[...new Set(families.filter(f=>f>=0))].sort((a,b)=>a-b);
+  if(!used.length)return{families:[], famOrder:[]};
+  // Build mapping: old family number → new compact number
+  const map={};used.forEach((of,i)=>{map[of]=i;});
+  const newFam=families.map(f=>f>=0?map[f]:-1);
+  // Keep only used families in order, preserving relative sequence
+  const newOrder=famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
+  return{families:newFam, famOrder:newOrder};
+}
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadMacro=parseInt(document.getElementById('cadGridSize').value);
@@ -518,8 +529,10 @@ window.cadSaveToLibrary=function(){
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  // Compact: remove unused families, renumber used ones to 0,1,2...
+  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -528,12 +541,12 @@ window.cadSaveToLibrary=function(){
       pat.createdAt=EXP_PATTERNS[idx].createdAt;
       pat.published=EXP_PATTERNS[idx].published;
       cadIsPublished=pat.published;
-      pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+      pat.families=cf.families;
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.families=cf.families;EXP_PATTERNS.unshift(pat);}
   }else{
     pat.id='exp_'+Date.now();
-    pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+    pat.families=cf.families;
     EXP_PATTERNS.unshift(pat);
   }
   if(cadRemixOf){
@@ -561,16 +574,17 @@ window.cadPublishToLibrary=function(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional,published:true};
+  const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,published:true};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
       pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;pat.published=true;
-      pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+      pat.families=cf2.families;
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
   }else{
-    pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+    pat.id='exp_'+Date.now();pat.families=cf2.families;
     EXP_PATTERNS.unshift(pat);
   }
   if(cadRemixOf){
