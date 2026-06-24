@@ -470,6 +470,12 @@ window.cadToggleBBoxRotate=function(){
   cadUpdateAll();
 };
 window.cadUpdateTraditional=function(){cadTraditional=document.getElementById('cadTraditional').checked;};
+window.cadStepSpacing=function(d){
+  const el=document.getElementById('cadSpacing');
+  let v=parseInt(el.value)||0;
+  v=Math.max(0,Math.min(12,v+d));
+  el.value=v;cadUpdateSettings();
+};
 window.cadMovePattern=function(du,dv){
   if(!cadLines.length)return;
   cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
