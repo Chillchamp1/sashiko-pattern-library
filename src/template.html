@@ -157,15 +157,13 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </select>
       </label>
       <label>Spacing:
-        <select id="cadSpacing" onchange="cadUpdateSettings()">
-          <option value="0" selected>0</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="5">5</option>
-          <option value="8">8</option>
-          <option value="12">12</option>
-        </select>
+        <span class="cad-stepper">
+          <input type="number" id="cadSpacing" value="0" min="0" max="12" onchange="cadUpdateSettings()" style="width:36px">
+          <span class="cad-stepper-btns">
+            <button class="cad-tool cad-step-btn" onclick="cadStepSpacing(1)" title="More spacing">▲</button>
+            <button class="cad-tool cad-step-btn" onclick="cadStepSpacing(-1)" title="Less spacing">▼</button>
+          </span>
+        </span>
       </label>
       <label>BBox: <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="Rotate tiling unit 45° (diagonal lattice)">◇ 45°</button></label>
       <label style="gap:4px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
