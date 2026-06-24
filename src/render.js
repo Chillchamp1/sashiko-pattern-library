@@ -6,7 +6,7 @@ let TICK_MS=160, _zoom=1, _panX=0, _panY=0, _zoomInited=false;
 let _famToggles={};
 let _famPainting=false;
 
-const FAM_PALETTE=['#ff5555','#ff9944','#ffdd44','#55dd55','#44cccc','#5599ff','#bb55ff','#ff55aa','#ff7744','#55ddbb'];
+const FAM_PALETTE=['#ff5555','#ffcc44','#ffdd44','#55dd55','#44cccc','#5599ff','#bb55ff','#ff55aa','#44cc88','#55ddbb'];
 const FAM_DIR_LABEL={0:'V',1:'D1',2:'D2',3:'H'};
 function famColor(famIdx){return FAM_PALETTE[famIdx%FAM_PALETTE.length];}
 function famLabel(famIdx,dirCat){return 'Line '+(famIdx+1)+(dirCat!==undefined?' '+(FAM_DIR_LABEL[dirCat]||'?'):'');}
