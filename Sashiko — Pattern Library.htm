@@ -2039,6 +2039,8 @@ async function _pushToFirestore(pat){
   if(!_db)return;
   if(!pat.creatorId)pat.creatorId=_getUserId();
   const doc={...pat};delete doc.thumbnail;
+  // Firestore rejects undefined values — strip them
+  Object.keys(doc).forEach(k=>{if(doc[k]===undefined)delete doc[k];});
   try{
     await _db.collection('patterns').doc(pat.id).set(doc);
   }catch(e){console.warn('Firestore write failed:',e);}
