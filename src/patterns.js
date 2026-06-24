@@ -7,19 +7,9 @@ const PATTERNS = [
     type:'generator', passes:['H','V'], armScale:1.0,
   },
   {
-    id:'juji', name:'Jūji-zashi', jp:'十字刺し', en:'Cross Stitch',
-    passes:['V','H'], armScale:1.0,
-    tip:'The foundation of one-stitch sashiko. 2 passes: vertical → horizontal. A + cross forms at every grid point.'
-  },
-  {
     id:'naname', name:'Naname Jūji-zashi', jp:'斜め十字刺し', en:'Diagonal Cross',
     passes:['D1','D2'], armScale:1.0,
     tip:'The 45° counterpart to the cross stitch. 2 diagonal passes. An × cross forms at every grid point.'
-  },
-  {
-    id:'komesashi', name:'Komesashi', jp:'米刺し', en:'Rice Stitch',
-    passes:['V','H','D1','D2'], armScale:1.0,
-    tip:'4 passes · all directions. Combines the straight (+) and diagonal (×) cross. The result resembles the kanji for rice (米).'
   },
   {
     id:'tsuzuki-yamagata', name:'Tsuzuki Yamagata', jp:'続き山形', en:'Continuous Mountains',

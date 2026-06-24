@@ -227,10 +227,10 @@ button.ctrl.primary:hover{background:#275784}
 .cad-panel-stepper input{background:transparent;color:#e7eef6;border:none;padding:1px 0;font-size:12px;outline:none;text-align:center;width:24px;-moz-appearance:textfield}
 .cad-panel-stepper input::-webkit-outer-spin-button,.cad-panel-stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 /* ── Stepper arrow buttons ── */
-.cad-step-arrows{display:inline-flex;flex-direction:column;gap:0;height:22px}
-.cad-step-arrows button{width:0;height:0;padding:0;margin:0;border:none;background:none;cursor:pointer;position:relative}
-.cad-step-arrows button:first-child{border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:7px solid var(--muted)}
-.cad-step-arrows button:last-child{border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--muted)}
+.cad-step-arrows{display:inline-flex;flex-direction:column;justify-content:center;gap:3px;height:22px}
+.cad-step-arrows button{width:0;height:0;padding:0;margin:0;border:none;background:none;cursor:pointer}
+.cad-step-arrows button:first-child{border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:6px solid var(--muted)}
+.cad-step-arrows button:last-child{border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--muted)}
 .cad-step-arrows button:hover:first-child{border-bottom-color:#e7eef6}
 .cad-step-arrows button:hover:last-child{border-top-color:#e7eef6}
 /* ── Move pattern panel ── */

@@ -2,7 +2,9 @@
 let activeFilter=0;
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
+  const deleted=_getDeleted();
   PATTERNS.forEach(pat=>{
+    if(deleted.includes(pat.id))return;
     const card=document.createElement('button');
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
     card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
@@ -16,6 +18,11 @@ function buildGallery(){
     else if(pat.type==='polyline'){badge.className='pcard-badge';badge.textContent='Continuous';}
     else{badge.className='pcard-badge';badge.textContent=pat.passes.length+' passes';}
     card.append(name,jp,badge);
+    // Delete button for all cards
+    const delBtn=document.createElement('button');
+    delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
+    delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
+    card.appendChild(delBtn);
     card.onclick=()=>openPattern(pat);
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
@@ -108,3 +115,18 @@ window.showGallery=function(){
 // ── Helpers ────────────────────────────────────────────────────────────────
 function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
+// ── Delete pattern (admin) ──────────────────────────────────────────────────
+function _getDeleted(){try{return JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');}catch(e){return[];}}
+window.deletePattern=function(id){
+  const pw=prompt('Admin password:');
+  if(pw!=='111'){alert('Wrong password');return;}
+  if(!confirm('Delete "'+id+'"?'))return;
+  const pat=PATTERNS.find(p=>p.id===id);
+  if(pat){
+    const del=_getDeleted();if(!del.includes(id))del.push(id);
+    localStorage.setItem('sashiko_deleted',JSON.stringify(del));
+  }else{
+    removeExpPattern(id);
+  }
+  buildGallery();
+};
