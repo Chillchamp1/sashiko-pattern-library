@@ -41,7 +41,10 @@ function buildGallery(){
     card.appendChild(editBtn);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
     const badge=document.createElement('div');badge.className='pcard-badge';
-    badge.textContent=(pat.traditional?'Traditional · ':'')+(pat.gridType==='isometric'?'Isometric':'Square');
+    const usedFams=new Set((pat.families||[]).filter(f=>f>=0));
+    const nPasses=usedFams.size||1;
+    const tLabel=pat.traditional?'Traditional · ':'';
+    badge.textContent=tLabel+(pat.gridType==='isometric'?'Isometric':'Square')+' · '+nPasses+' pass'+(nPasses!==1?'es':'');
     card.append(name,badge);
     // Like row for exp cards
     const likeRow=document.createElement('div');
