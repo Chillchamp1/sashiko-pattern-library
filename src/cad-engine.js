@@ -1,7 +1,7 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
-let cadFamSel=-1,cadFamsLocked=false;
+let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -139,6 +139,7 @@ function cadAutoAssign(){
   }
   groups.sort((a,b)=>(a.angle<0?1:b.angle<0?-1:a.angle-b.angle));
   groups.forEach((g,fi)=>{g.members.forEach(i=>{cadFamilies[i]=fi;});});
+  cadFamOrder=[...Array(groups.length).keys()];
 }
 
 // Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
@@ -393,24 +394,22 @@ function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
   const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!unique.length){c.innerHTML='';return;}
-  c.innerHTML=unique.map(f=>{
-    const col=FAM_PALETTE[f%FAM_PALETTE.length];
-    const cls='cad-fam-swatch'+(cadFamSel===f?' sel':'');
-    return '<button class="'+cls+'" onclick="cadSelectFam('+f+')" style="background:'+col+'" title="Family '+(f+1)+'"></button>';
+  // Ensure cadFamOrder contains all current families
+  if(cadFamOrder.length!==unique.length||!cadFamOrder.every(f=>unique.includes(f))){
+    cadFamOrder=[...unique];
+  }
+  c.innerHTML=cadFamOrder.map((fam,pos)=>{
+    const col=FAM_PALETTE[fam%FAM_PALETTE.length];
+    const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'');
+    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="Family '+(fam+1)+'"></button>';
   }).join('');
 }
-window.cadSelectFam=function(f){cadFamSel=cadFamSel===f?-1:f;cadUpdateAll();};
+window.cadSelectFam=function(pos){cadFamSel=cadFamSel===pos?-1:pos;cadUpdateAll();};
 window.cadMoveFam=function(dir){
-  if(cadFamSel<0)return;
-  const sorted=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
-  const idx=sorted.indexOf(cadFamSel);if(idx<0)return;
-  const oi=idx+dir;if(oi<0||oi>=sorted.length)return;
-  const other=sorted[oi];
-  for(let i=0;i<cadFamilies.length;i++){
-    if(cadFamilies[i]===cadFamSel)cadFamilies[i]=other;
-    else if(cadFamilies[i]===other)cadFamilies[i]=cadFamSel;
-  }
-  cadFamSel=other;cadFamsLocked=true;
+  if(cadFamSel<0||cadFamSel>=cadFamOrder.length)return;
+  const oi=cadFamSel+dir;if(oi<0||oi>=cadFamOrder.length)return;
+  [cadFamOrder[cadFamSel],cadFamOrder[oi]]=[cadFamOrder[oi],cadFamOrder[cadFamSel]];
+  cadFamSel=oi;cadFamsLocked=true;
   cadUpdateAll();
 };
 window.cadUpdateSettings=function(){
@@ -472,7 +471,7 @@ window.cadSaveToLibrary=function(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder]};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     // Update existing pattern — preserve families if line count unchanged
@@ -512,7 +511,7 @@ window.cadTilePlay=function(){
   const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,bboxRotated:cadBBoxRotated};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const path=buildExpPath(segs);
+  const path=buildExpPath(segs,pat.famOrder);
   if(!path.length)return;
   // Convert path grid coords to screen coords for bounding box
   const lay=computeExpLayout(pat);
@@ -587,7 +586,7 @@ function cadInit(){
       // Click-to-assign: if a family is selected and we hit a line, assign it
       if(cadFamSel>=0){
         const hit=cadHoveredSeg(g.u,g.v);
-        if(hit&&hit.li>=0){cadFamilies[hit.li]=cadFamSel;cadFamsLocked=true;cadUpdateAll();return;}
+        if(hit&&hit.li>=0&&cadFamSel<cadFamOrder.length){cadFamilies[hit.li]=cadFamOrder[cadFamSel];cadFamsLocked=true;cadUpdateAll();return;}
       }
       cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];
     }

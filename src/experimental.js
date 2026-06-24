@@ -771,7 +771,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat));
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder);
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -876,13 +876,13 @@ function _permute(arr){
 // the visitation order that minimises total inter-family jump distance.
 // Closed-loop strokes rotate their entry vertex to be nearest the current needle.
 // Retrace penalty (500 units) discourages jumps that cross already-stitched segments.
-function buildExpPath(lines){
+function buildExpPath(lines, famOrderOverride){
   if(!lines||!lines.length)return[];
 
   const famGroups=new Map();
   lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
 
-  // Pre-build ordered strokes for every family and capture both entry endpoints
+  // Pre-build ordered strokes for every family
   const famStrokes=new Map(), famEnds=new Map();
   for(const[fi,segs]of famGroups){
     const ordered=orderStrokesFamily(buildStrokesForFamily(segs));
@@ -890,14 +890,24 @@ function buildExpPath(lines){
     famStrokes.set(fi,ordered);
     const p0=ordered[0].pts[0];
     const p1=ordered[ordered.length-1].pts[ordered[ordered.length-1].pts.length-1];
-    famEnds.set(fi,{p0,p1}); // p0=forward entry, p1=forward exit (= backward entry)
+    famEnds.set(fi,{p0,p1});
   }
   if(!famStrokes.size)return[];
 
+  // Determine family visitation order
+  const allFamIds=[...famStrokes.keys()];
+  let bestOrder;
+  if(famOrderOverride && famOrderOverride.length){
+    // Use explicit user-defined order (only families that exist)
+    bestOrder=famOrderOverride.filter(fi=>famStrokes.has(fi));
+    // Append any families not in the override (shouldn't happen, but safe)
+    for(const fi of allFamIds)if(!bestOrder.includes(fi))bestOrder.push(fi);
+  }else{
+    bestOrder=allFamIds;
+  }
+
   // Optimise family visitation order: minimise total inter-family jump
-  const famIds=[...famStrokes.keys()];
-  let bestOrder=famIds;
-  if(famIds.length>1){
+  if(bestOrder.length>1&&!famOrderOverride){
     const evalPerm=perm=>{
       let cost=0,cur2=null;
       for(const fi of perm){
@@ -1172,7 +1182,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat));
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -1196,11 +1206,12 @@ function rebuildMyPatsView(){
   const grid=document.getElementById('myPatsGrid');
   if(!grid)return;
   grid.innerHTML='';
-  if(!EXP_PATTERNS.length){
+  const unpub=EXP_PATTERNS.filter(p=>!p.published);
+  if(!unpub.length){
     const offline=!_firebaseReady?' (offline — patterns sync when Firebase is configured)':'';
     grid.innerHTML=`<p class="no-results" style="display:block;margin:24px auto">No saved patterns yet — use the CAD Editor to draw one.${offline}</p>`;
   }else{
-    EXP_PATTERNS.forEach(pat=>{
+    unpub.forEach(pat=>{
       grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
       const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
       if(thumb)setTimeout(()=>renderThumb(thumb,pat),0);
