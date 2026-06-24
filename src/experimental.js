@@ -1197,6 +1197,7 @@ function expCardHTML(pat){
       <div class="pcard-name">${esc(pat.name||'Custom')}</div>
       <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Isometric':'Square'}</span>
     </div>
+    <div class="like-row" data-id="${esc(pat.id)}"></div>
     <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();editExpPattern('${esc(pat.id)}')">✎</button>
     <button class="exp-del-btn" title="Delete" onclick="event.stopPropagation();removeExpPattern('${esc(pat.id)}')">✕</button>
   </div>`;
@@ -1215,6 +1216,7 @@ function rebuildMyPatsView(){
       grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
       const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
       if(thumb)setTimeout(()=>renderThumb(thumb,pat),0);
+      setTimeout(()=>renderLikeButtons(pat.id),0);
     });
   }
   const trash=_loadTrash();
@@ -1253,13 +1255,97 @@ window.showGalleryFromMyPats=function(){
   document.getElementById('galleryView').style.display='block';
 };
 
+// ── Likes & Remix ────────────────────────────────────────────────────────────
+function _getLikes(){try{return JSON.parse(localStorage.getItem('sashiko_likes')||'{}');}catch(e){return{};}}
+function _saveLikes(l){localStorage.setItem('sashiko_likes',JSON.stringify(l));}
+window.likePattern=function(id,delta){
+  if(!id)return;
+  const likes=_getLikes();if(!likes[id])likes[id]={up:0,down:0};
+  const uid=_getUserId();const prev=likes[id][uid];
+  if(prev===delta){delete likes[id][uid];if(delta===1)likes[id].up--;if(delta===-1)likes[id].down--;_saveLikes(likes);_updatePatternLikes(id);renderLikeButtons(id);return;}
+  if(prev===1)likes[id].up--;if(prev===-1)likes[id].down--;
+  if(delta===1)likes[id].up++;if(delta===-1)likes[id].down++;
+  likes[id][uid]=delta;
+  _saveLikes(likes);
+  _updatePatternLikes(id);
+  renderLikeButtons(id);
+};
+function _updatePatternLikes(id){
+  const likes=_getLikes();const l=likes[id]||{up:0,down:0};
+  const pat=EXP_PATTERNS.find(p=>p.id===id);
+  if(pat){pat.likes=l.up;pat.dislikes=l.down;_saveLocal();}
+}
+function renderLikeButtons(id){
+  const likes=_getLikes();const l=likes[id]||{up:0,down:0};
+  const uid=_getUserId();const myVote=likes[id]?.[uid];
+  const score=l.up-l.down;
+  const btns=document.querySelectorAll(`.like-row[data-id="${id}"]`);
+  btns.forEach(el=>{
+    el.innerHTML=
+      `<button class="like-btn${myVote===1?' liked':''}" onclick="event.stopPropagation();likePattern('${id}',1)" title="Like">▲ ${l.up}</button>`+
+      `<span class="like-score" style="color:${score>0?'#88c4a4':score<0?'#e09090':'var(--muted)'}">${score>0?'+':''}${score}</span>`+
+      `<button class="like-btn${myVote===-1?' disliked':''}" onclick="event.stopPropagation();likePattern('${id}',-1)" title="Dislike">▼ ${l.down}</button>`+
+      `<button class="like-btn remix" onclick="event.stopPropagation();remixPattern('${id}')" title="Remix">↗ Remix</button>`;
+  });
+}
+window.remixPattern=function(id){
+  const pat=EXP_PATTERNS.find(p=>p.id===id);
+  if(!pat)return;
+  if(!confirm('Create a remix of "'+(pat.name||'Custom')+'"?'))return;
+  cadLines=pat.lines.map(l=>({start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]}));
+  cadHistory=[];cadEditId=null;cadRemixOf=pat.id;
+  cadTool='draw';cadArcState=0;cadArcCenter=null;cadArcStart=null;
+  document.getElementById('cadGridType').value=pat.gridType||'isometric';
+  const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
+  const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
+  document.getElementById('cadGridSize').value=macroVal;
+  const pmOpts=[3,4,5,8,12];let bestPM=5,bestD=Infinity;
+  pmOpts.forEach(o=>{const d=Math.abs(o-(pat.patMacro||5));if(d<bestD){bestD=d;bestPM=o;}});
+  document.getElementById('cadPatSize').value=bestPM;
+  document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
+  document.getElementById('cadTraditional').checked=false;cadTraditional=false;
+  cadBBoxRotated=pat.bboxRotated||false;
+  cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
+  cadInited=false;
+  document.getElementById('galleryView').style.display='none';
+  document.getElementById('myPatsView').classList.remove('open');
+  document.getElementById('animView').classList.remove('open');
+  document.getElementById('cadView').classList.add('open');
+  cadInit();
+  cadSetTool('draw');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+function renderRemixes(pat){
+  const el=document.getElementById('remixesSection');if(!el)return;
+  const allIds=new Set(pat.remixes||[]);
+  EXP_PATTERNS.forEach(p=>{if(p.remixOf===pat.id)allIds.add(p.id);});
+  const remixes=[...allIds].map(id=>EXP_PATTERNS.find(p=>p.id===id)).filter(Boolean);
+  if(!remixes.length){el.style.display='none';return;}
+  remixes.sort((a,b)=>(b.likes||0)-(b.dislikes||0)-((a.likes||0)-(a.dislikes||0)));
+  el.innerHTML='<div class="remixes-title">Remixes</div><div class="remixes-grid">'+
+    remixes.map((p,i)=>{
+      const sc=(p.likes||0)-(p.dislikes||0);
+      return `<button class="pcard remix-card" onclick="openExpPattern('${p.id}')">
+        <canvas class="pcard-thumb" width="120" height="120" data-expid="${p.id}"></canvas>
+        <div class="pcard-name">${(p.name||'Custom').replace(/[<>"'&]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'}[c]))}</div>
+        <span class="pcard-badge">${sc>0?'+':''}${sc} · ${p.gridType==='isometric'?'Iso':'Sq'}</span>
+      </button>`;
+    }).join('')+
+  '</div>';
+  el.style.display='block';
+  setTimeout(()=>remixes.forEach(p=>{
+    const thumb=el.querySelector(`[data-expid="${p.id}"]`);
+    if(thumb)renderThumb(thumb,p);
+  }),0);
+}
+
 // ── CAD view switching ────────────────────────────────────────────────────────
 window.showCAD=function(){
   document.getElementById('galleryView').style.display='none';
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
-  cadEditId=null;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
+  cadEditId=null;cadRemixOf=null;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
   cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;
   cadInited=false;
   cadInit();

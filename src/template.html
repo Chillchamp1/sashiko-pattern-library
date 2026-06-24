@@ -38,6 +38,7 @@
   <div class="back-row">
     <button class="back-btn" onclick="showGallery()">← Patterns</button>
     <h2 class="anim-title" id="animTitle">Hitomezashi<span class="jp">一目刺し · Snowflake</span></h2>
+    <div class="like-row" id="likeRow" data-id="" style="display:none"></div>
   </div>
   <div class="anim-body" id="animBody">
     <div class="hm-frame" id="hmFrame">
@@ -193,8 +194,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-toolbar">
           <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
         </div>
-      </div>
-    </div>
+  </div>
+  <div class="remixes-section" id="remixesSection" style="display:none"></div>
+</div>
     <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:6px"></div>
     <p class="tip" style="text-align:center;margin:6px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints · Arc: 3 clicks (center → radius → sweep)</p>
   </div>

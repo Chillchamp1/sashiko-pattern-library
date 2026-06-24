@@ -1,5 +1,6 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
+let cadRemixOf=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
@@ -491,6 +492,12 @@ window.cadSaveToLibrary=function(){
     pat.id='exp_'+Date.now();
     pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
     EXP_PATTERNS.unshift(pat);
+  }
+  if(cadRemixOf){
+    pat.remixOf=cadRemixOf;
+    const parent=EXP_PATTERNS.find(p=>p.id===cadRemixOf);
+    if(parent){if(!parent.remixes)parent.remixes=[];if(!parent.remixes.includes(pat.id))parent.remixes.push(pat.id);}
+    cadRemixOf=null;
   }
   _saveLocal();
   if(_firebaseReady)_pushToFirestore(pat);
