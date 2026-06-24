@@ -113,9 +113,9 @@ function cadAutoAssign(){
     // Locked: only extend to match line count, new lines get no family (-1)
     while(cadFamilies.length<cadLines.length)cadFamilies.push(-1);
     if(cadFamilies.length>cadLines.length)cadFamilies.length=cadLines.length;
-    // Ensure cadFamOrder contains all used families
+    // Ensure cadFamOrder includes all used families (never remove added empty ones)
     const used=[...new Set(cadFamilies.filter(f=>f>=0))];
-    if(!cadFamOrder.every(f=>used.includes(f)))cadFamOrder=[...used];
+    used.forEach(f=>{if(!cadFamOrder.includes(f))cadFamOrder.push(f);});
     return;
   }
   cadFamilies=new Array(cadLines.length).fill(-1);
@@ -404,10 +404,9 @@ function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
   const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!unique.length){c.innerHTML='';return;}
-  // Ensure cadFamOrder contains all current families, resetting clears selection
-  if(cadFamOrder.length!==unique.length||!cadFamOrder.every(f=>unique.includes(f))){
-    cadFamOrder=[...unique];cadFamSel=-1;
-  }
+  // Ensure cadFamOrder includes all used families (never remove empty ones)
+  const used=[...new Set(cadFamilies.filter(f=>f>=0))];
+  used.forEach(f=>{if(!cadFamOrder.includes(f))cadFamOrder.push(f);});
   c.innerHTML=cadFamOrder.map((fam,pos)=>{
     const col=FAM_PALETTE[fam%FAM_PALETTE.length];
     const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'');
@@ -454,8 +453,14 @@ window.cadSetTool=function(t){
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   cadArcLabel();cadUpdateAll();
 };
-window.cadUndo=function(){if(cadHistory.length){cadLines=cadHistory.pop();cadUpdateAll();}};
-window.cadClear=function(){if(cadLines.length){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines=[];cadFamsLocked=false;cadUpdateAll();}};
+window.cadUndo=function(){
+  if(!cadHistory.length)return;
+  const state=cadHistory.pop();
+  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];}
+  else{cadLines=state;cadFamilies=new Array(cadLines.length).fill(-1);}
+  cadFamsLocked=true;cadUpdateAll();
+};
+window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;cadUpdateAll();}};
 window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
 window.cadToggleBBoxRotate=function(){
   cadBBoxRotated=!cadBBoxRotated;
@@ -467,7 +472,7 @@ window.cadUpdateTraditional=function(){cadTraditional=document.getElementById('c
 window.cadRotate45=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
-  cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
   const cu=(bbox.minU+bbox.maxU)/2, cv=(bbox.minV+bbox.maxV)/2;
   const C=Math.SQRT2/2; // cos(45°) = sin(45°)
   const rot=([u,v])=>[cu+(u-cu)*C-(v-cv)*C, cv+(u-cu)*C+(v-cv)*C];
@@ -655,7 +660,7 @@ function cadInit(){
       if(cadArcState===0){cadArcCenter=[...cadCur];cadArcState=1;}
       else if(cadArcState===1){cadArcStart=[...cadCur];cadArcState=2;}
       else if(cadArcState===2){
-        cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
         cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>cadLines.push(l));
         cadFamSel=-1;
         cadArcState=0;cadArcCenter=null;cadArcStart=null;
@@ -663,7 +668,7 @@ function cadInit(){
       cadArcLabel();
     }
     else if(cadTool==='erase'&&cadHover){
-      cadHistory.push(JSON.parse(JSON.stringify(cadLines)));
+      cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
       cadLines.splice(cadHover.li,1);
       for(let i=0;i<cadHover.all.length-1;i++)if(i!==cadHover.ci)cadLines.push({start:[cadHover.all[i].u,cadHover.all[i].v],end:[cadHover.all[i+1].u,cadHover.all[i+1].v]});
       cadHover=null;cadFamSel=-1;
@@ -681,7 +686,7 @@ function cadInit(){
   cv.addEventListener('pointerup',e=>{
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push(JSON.parse(JSON.stringify(cadLines)));cadLines.push({start:cadStart,end:cadCur});cadFamSel=-1;}
+      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamSel=-1;}
     }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
