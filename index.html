@@ -413,7 +413,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <h2>CAD Pattern Editor</h2>
       <input id="cadPatName" class="cad-name-input" placeholder="Pattern name…" value="My Pattern">
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
-      <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88">📌 Publish (admin)</button>
+      <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88" id="cadPublishBtn">📌 Publish (admin)</button>
     </div>
     <div class="cad-settings-bar">
       <label>Grid:
@@ -2567,6 +2567,7 @@ window.editExpPattern=function(idOrPat){
   document.getElementById('cadPatSize').value=bestPM;
   document.getElementById('cadPatName').value=pat.name||'Custom Pattern';
   cadEditId=pat.id;
+  cadIsPublished=pat.published||false;
   cadInited=false;
   document.getElementById('galleryView').style.display='none';
   document.getElementById('myPatsView').classList.remove('open');
@@ -3085,7 +3086,7 @@ window.showCAD=function(){
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
-  cadEditId=null;cadRemixOf=null;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
+  cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
   cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;
   cadInited=false;
   cadInit();
@@ -3102,7 +3103,7 @@ window.showGalleryFromCAD=function(){
 // ── cad-engine.js ──────────────────────────────
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
-let cadRemixOf=null;
+let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
@@ -3504,6 +3505,9 @@ function cadUpdateAll(){
 }
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
+  // Update publish button visibility
+  const pb=document.getElementById('cadPublishBtn');
+  if(pb)pb.style.display=cadIsPublished?'none':'inline-block';
   const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!unique.length){c.innerHTML='';return;}
   // Ensure cadFamOrder includes all used families (never remove empty ones)
@@ -3612,6 +3616,7 @@ window.cadSaveToLibrary=function(){
       pat.id=cadEditId;
       pat.createdAt=EXP_PATTERNS[idx].createdAt;
       pat.published=EXP_PATTERNS[idx].published;
+      cadIsPublished=pat.published;
       pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
       EXP_PATTERNS[idx]=pat;
     }else{pat.id='exp_'+Date.now();pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));EXP_PATTERNS.unshift(pat);}
@@ -3667,6 +3672,7 @@ window.cadPublishToLibrary=function(){
   if(_firebaseReady)_pushToFirestore(pat);
   rebuildExpGallery();
   alert('Published! Visible in main gallery.');
+  cadIsPublished=true;
 };
 
 // ── Tile preview play → animates inline on right canvas ──────────────────

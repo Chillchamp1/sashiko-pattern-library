@@ -841,6 +841,7 @@ window.editExpPattern=function(idOrPat){
   document.getElementById('cadPatSize').value=bestPM;
   document.getElementById('cadPatName').value=pat.name||'Custom Pattern';
   cadEditId=pat.id;
+  cadIsPublished=pat.published||false;
   cadInited=false;
   document.getElementById('galleryView').style.display='none';
   document.getElementById('myPatsView').classList.remove('open');
@@ -1359,7 +1360,7 @@ window.showCAD=function(){
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
-  cadEditId=null;cadRemixOf=null;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
+  cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
   cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;
   cadInited=false;
   cadInit();
