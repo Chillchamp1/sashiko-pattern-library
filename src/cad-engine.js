@@ -471,6 +471,12 @@ window.cadToggleBBoxRotate=function(){
   cadUpdateAll();
 };
 window.cadUpdateTraditional=function(){cadTraditional=document.getElementById('cadTraditional').checked;};
+window.cadMovePattern=function(du,dv){
+  if(!cadLines.length)return;
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
+  cadLines=cadLines.map(l=>({...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]}));
+  cadUpdateAll();
+};
 window.cadRotate45=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
@@ -526,7 +532,7 @@ window.cadSaveToLibrary=function(){
   rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
   btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
-  setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
+  setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},2000);
 };
 window.cadPublishToLibrary=function(){
   const pw=prompt('Admin password:');

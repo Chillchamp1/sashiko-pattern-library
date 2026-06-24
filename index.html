@@ -227,6 +227,12 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch{width:22px;height:22px;border-radius:4px;border:1px solid transparent;cursor:pointer;margin:0 2px;transition:.15s}
 .cad-fam-swatch:hover{border-color:#fff}
 .cad-fam-swatch.sel{border:3px solid #fff}
+/* ── Move pattern panel ── */
+.cad-move-panel{display:flex;align-items:center;gap:8px;justify-content:center;padding:4px 0}
+.cad-move-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.cad-move-arrows{display:flex;flex-direction:column;align-items:center;gap:1px}
+.cad-move-arrows .cad-tool{width:28px;height:22px;padding:0;text-align:center;font-size:14px;line-height:1}
+.cad-move-arrows div{display:flex;gap:1px}
 .cad-workspace{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
 .cad-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-width:300px;max-width:440px}
 .cad-canvas-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center}
@@ -406,7 +412,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <button class="back-btn" onclick="showGalleryFromCAD()">← Patterns</button>
       <h2>CAD Pattern Editor</h2>
       <input id="cadPatName" class="cad-name-input" placeholder="Pattern name…" value="My Pattern">
-      <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save to Library</button>
+      <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
       <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88">📌 Publish (admin)</button>
     </div>
     <div class="cad-settings-bar">
@@ -460,6 +466,17 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <div class="cad-panel">
         <div class="cad-canvas-label">Draw</div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
+        <div class="cad-move-panel">
+          <span class="cad-move-label">Move pattern on grid</span>
+          <div class="cad-move-arrows">
+            <button class="cad-tool" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
+            <div>
+              <button class="cad-tool" onclick="cadMovePattern(-1,0)" title="Move left">←</button>
+              <button class="cad-tool" onclick="cadMovePattern(0,1)" title="Move down">↓</button>
+              <button class="cad-tool" onclick="cadMovePattern(1,0)" title="Move right">→</button>
+            </div>
+          </div>
+        </div>
         <div class="cad-toolbar">
           <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
           <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
@@ -3549,6 +3566,12 @@ window.cadToggleBBoxRotate=function(){
   cadUpdateAll();
 };
 window.cadUpdateTraditional=function(){cadTraditional=document.getElementById('cadTraditional').checked;};
+window.cadMovePattern=function(du,dv){
+  if(!cadLines.length)return;
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
+  cadLines=cadLines.map(l=>({...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]}));
+  cadUpdateAll();
+};
 window.cadRotate45=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
@@ -3604,7 +3627,7 @@ window.cadSaveToLibrary=function(){
   rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
   btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
-  setTimeout(()=>{btn.textContent='⊕ Save to Library';btn.style.background='';},2000);
+  setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},2000);
 };
 window.cadPublishToLibrary=function(){
   const pw=prompt('Admin password:');
