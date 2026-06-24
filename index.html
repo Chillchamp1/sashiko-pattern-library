@@ -2066,23 +2066,21 @@ async function _fetchFromFirestore(){
   try{
     const snap=await _db.collection('patterns').orderBy('createdAt','desc').get();
     const remote=snap.docs.map(d=>d.data());
-    // If Firestore is empty, auto-seed from backup-patterns.json
-    if(remote.length===0&&location.protocol!=='file:'){
+    // One-time seed from backup-patterns.json (runs once per origin via localStorage flag)
+    if(location.protocol!=='file:'&&!localStorage.getItem('sashiko_backup_seeded')){
       try{
         const res=await fetch('./backup-patterns.json');
         if(res.ok){
           const data=await res.json();
           const uid=_getUserId();
+          const remoteIds=new Set(remote.map(p=>p.id));
           for(const p of (data.patterns||[])){
-            if(!p.id)continue;
+            if(!p.id||remoteIds.has(p.id))continue;
             if(!p.creatorId)p.creatorId=uid;
-            EXP_PATTERNS.push(p);
+            remote.push(p);
             await _pushToFirestore(p);
           }
-          EXP_PATTERNS.forEach(p=>_normalizePat(p));
-          _saveLocal();
-          buildGallery();
-          return;
+          localStorage.setItem('sashiko_backup_seeded','1');
         }
       }catch(e){console.warn('Auto-seed from backup failed:',e);}
     }
