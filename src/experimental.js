@@ -840,7 +840,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.zigzagRouting);
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -898,6 +898,8 @@ window.editExpPattern=function(idOrPat){
   cadFamsLocked=cadFamilies.some(f=>f>=0);
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
+  cadZigzagRouting=pat.zigzagRouting||false;
+  document.getElementById('cadZigzagRouting').checked=cadZigzagRouting;
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
@@ -956,7 +958,7 @@ function _permute(arr){
 // the visitation order that minimises total inter-family jump distance.
 // Closed-loop strokes rotate their entry vertex to be nearest the current needle.
 // Retrace penalty (500 units) discourages jumps that cross already-stitched segments.
-function buildExpPath(lines, famOrderOverride){
+function buildExpPath(lines, famOrderOverride, zigzag){
   if(!lines||!lines.length)return[];
 
   const famGroups=new Map();
@@ -965,7 +967,7 @@ function buildExpPath(lines, famOrderOverride){
   // Pre-build ordered strokes for every family
   const famStrokes=new Map(), famEnds=new Map();
   for(const[fi,segs]of famGroups){
-    const ordered=orderStrokesFamily(buildStrokesForFamily(segs));
+    const ordered=orderStrokesFamily(buildStrokesForFamily(segs,zigzag));
     if(!ordered.length)continue;
     famStrokes.set(fi,ordered);
     const p0=ordered[0].pts[0];
@@ -1057,9 +1059,10 @@ function buildExpPath(lines, famOrderOverride){
 }
 
 // ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
-function buildStrokesForFamily(segs){
+function buildStrokesForFamily(segs, zigzag){
   const Q=1e-4;
-  const MAXTURN=90*Math.PI/180;
+  // zigzag mode: no turn limit — traces full chains through peaks/valleys regardless of angle
+  const MAXTURN=zigzag ? Math.PI : 90*Math.PI/180;
 
   const vId=new Map(), vPos=[];
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
@@ -1263,7 +1266,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.zigzagRouting);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -1385,6 +1388,7 @@ window.remixPattern=function(id){
   document.getElementById('cadPatSize').value=bestPM;
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
+  cadZigzagRouting=false;document.getElementById('cadZigzagRouting').checked=false;
   cadBBoxRotated=pat.bboxRotated||false;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
   cadInited=false;
@@ -1436,7 +1440,8 @@ window.showCAD=function(){
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
-  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadZigzagRouting=false;
+  document.getElementById('cadZigzagRouting').checked=false;
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
