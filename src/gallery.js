@@ -23,7 +23,7 @@ function buildGallery(){
     delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
     delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
     card.appendChild(delBtn);
-    card.onclick=()=>openPattern(pat);
+    card.onclick=()=>{window.open('#'+pat.id,'_blank');};
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
