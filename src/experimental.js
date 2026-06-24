@@ -822,12 +822,19 @@ window.editExpPattern=function(idOrPat){
   document.getElementById('cadGridType').value=pat.gridType||'isometric';
   const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
   const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
-  // Center lines in the grid: offset so bbox center lands at grid center
-  {const _bl=pat.lines,_tc=macroVal*CAD_MICRO;
-   const _bu=Math.max(..._bl.map(l=>Math.max(l.start[0],l.end[0]))),_bv=Math.max(..._bl.map(l=>Math.max(l.start[1],l.end[1])));
-   const _du=(_tc-_bu)/2, _dv=(_tc-_bv)/2;
-   cadLines=_bl.map(l=>({start:[l.start[0]+_du,l.start[1]+_dv],end:[l.end[0]+_du,l.end[1]+_dv],...(l.arc?{arc:true}:{})}));
+  // Center lines in the grid: shift so bbox center lands at grid center
+  {const tc=macroVal*CAD_MICRO;
+   const cu=(pat.bbox.minU+pat.bbox.maxU)/2, cv=(pat.bbox.minV+pat.bbox.maxV)/2;
+   const gc=tc/2;
+   cadLines=pat.lines.map(l=>({start:[l.start[0]+gc-cu,l.start[1]+gc-cv],end:[l.end[0]+gc-cu,l.end[1]+gc-cv],...(l.arc?{arc:true}:{})}));
   }
+  // Restore families and order from saved pattern
+  cadFamilies=(pat.families||[]).slice();
+  while(cadFamilies.length<cadLines.length)cadFamilies.push(-1);
+  cadFamOrder=(pat.famOrder||[]).slice();
+  cadFamsLocked=cadFamilies.some(f=>f>=0);
+  cadFamSel=-1;
+  cadBBoxRotated=pat.bboxRotated||false;
   document.getElementById('cadGridSize').value=macroVal;
   const pmOpts=[3,4,5,8,12];let bestPM=5,bestD=Infinity;
   pmOpts.forEach(o=>{const d=Math.abs(o-(pat.patMacro||5));if(d<bestD){bestD=d;bestPM=o;}});
