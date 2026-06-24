@@ -1195,7 +1195,7 @@ function expCardHTML(pat){
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${esc(pat.id)}"></canvas>
     <div class="pcard-body">
       <div class="pcard-name">${esc(pat.name||'Custom')}</div>
-      <span class="pcard-badge">${pat.gridType==='isometric'?'Isometric':'Square'}</span>
+      <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Isometric':'Square'}</span>
     </div>
     <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();editExpPattern('${esc(pat.id)}')">✎</button>
     <button class="exp-del-btn" title="Delete" onclick="event.stopPropagation();removeExpPattern('${esc(pat.id)}')">✕</button>
@@ -1260,7 +1260,7 @@ window.showCAD=function(){
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
-  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});

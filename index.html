@@ -290,6 +290,7 @@ button.ctrl.primary:hover{background:#275784}
       <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
       <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
+      <button class="filt" data-f="trad" onclick="setFilter(this)">Traditional</button>
     </div>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
   </div>
@@ -428,6 +429,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </select>
       </label>
       <label>BBox: <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="Rotate tiling unit 45° (diagonal lattice)">◇ 45°</button></label>
+      <label style="gap:4px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
     </div>
     <div class="cad-fam-bar" id="cadFamBar">
       <span class="cad-fam-label">Stitch Order:</span>
@@ -1594,7 +1596,8 @@ function buildGallery(){
     editBtn.onclick=e=>{e.stopPropagation();editExpPattern(pat);};
     card.appendChild(editBtn);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
-    const badge=document.createElement('div');badge.className='pcard-badge';badge.textContent=pat.gridType==='isometric'?'Isometric':'Square';
+    const badge=document.createElement('div');badge.className='pcard-badge';
+    badge.textContent=(pat.traditional?'Traditional · ':'')+(pat.gridType==='isometric'?'Isometric':'Square');
     card.append(name,badge);
     card.onclick=()=>openExpPattern(pat);
     grid.appendChild(card);
@@ -1612,6 +1615,7 @@ window.filterGallery=function(){
     let mp;
     if(activeFilter===0)mp=true;
     else if(activeFilter==='hm')mp=type==='generator';
+    else if(activeFilter==='trad')mp=pat.traditional===true;
     else if(type==='exp')mp=false;
     else mp=parseInt(card.dataset.p)===activeFilter;
     let mq=!q;
@@ -1634,7 +1638,7 @@ window.setFilter=function(btn){
   document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   const f=btn.dataset.f;
-  activeFilter=f==='hm'?'hm':(f==='0'?0:parseInt(f));
+  activeFilter=f==='hm'?'hm':(f==='trad'?'trad':(f==='0'?0:parseInt(f)));
   filterGallery();
 };
 
@@ -2862,7 +2866,7 @@ function expCardHTML(pat){
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${esc(pat.id)}"></canvas>
     <div class="pcard-body">
       <div class="pcard-name">${esc(pat.name||'Custom')}</div>
-      <span class="pcard-badge">${pat.gridType==='isometric'?'Isometric':'Square'}</span>
+      <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Isometric':'Square'}</span>
     </div>
     <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();editExpPattern('${esc(pat.id)}')">✎</button>
     <button class="exp-del-btn" title="Delete" onclick="event.stopPropagation();removeExpPattern('${esc(pat.id)}')">✕</button>
@@ -2927,7 +2931,7 @@ window.showCAD=function(){
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
-  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -2945,6 +2949,7 @@ window.showGalleryFromCAD=function(){
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false;
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
+let cadTraditional=false;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -3389,6 +3394,7 @@ window.cadToggleBBoxRotate=function(){
   if(btn){btn.classList.toggle('on',cadBBoxRotated);btn.textContent=cadBBoxRotated?'◆ 45°':'◇ 45°';}
   cadUpdateAll();
 };
+window.cadUpdateTraditional=function(){cadTraditional=document.getElementById('cadTraditional').checked;};
 window.cadRotate45=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
@@ -3414,7 +3420,7 @@ window.cadSaveToLibrary=function(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder]};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],traditional:cadTraditional};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     // Update existing pattern — preserve families if line count unchanged
