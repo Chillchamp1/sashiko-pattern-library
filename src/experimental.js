@@ -455,6 +455,7 @@ function genTiledSegs(pat){
     if(famOfLine[li]===undefined||famOfLine[li]<0)famOfLine[li]=nextFam++;
   }
   const lines=pat.lines||[];
+  const spacing=pat.spacing||0;
   const segs=[];
   if(pat.bboxRotated){
     // 45° rotated diamond tiling: use p=u+v, q=u-v axes
@@ -465,8 +466,7 @@ function genTiledSegs(pat){
       mnP=Math.min(mnP,p1,p2);mxP=Math.max(mxP,p1,p2);
       mnQ=Math.min(mnQ,q1,q2);mxQ=Math.max(mxQ,q1,q2);
     });
-    // Ensure at least 1 unit step
-    const sP=Math.max(mxP-mnP,1), sQ=Math.max(mxQ-mnQ,1);
+    const sP=Math.max(mxP-mnP+spacing,1), sQ=Math.max(mxQ-mnQ+spacing,1);
     const base_u=(mnP+mnQ)/2, base_v=(mnP-mnQ)/2;
     const pad=sP+sQ;
     const N=Math.ceil((Math.abs(maxU-minU)+Math.abs(maxV-minV)+pad)/Math.min(sP,sQ));
@@ -480,10 +480,11 @@ function genTiledSegs(pat){
       }
     }
   }else{
-    const ou0=Math.floor((minU-bbox.maxU)/dU)*dU, ou1=Math.ceil((maxU-bbox.minU)/dU)*dU;
-    const ov0=Math.floor((minV-bbox.maxV)/dV)*dV, ov1=Math.ceil((maxV-bbox.minV)/dV)*dV;
-    for(let ou=ou0;ou<=ou1;ou+=dU){
-      for(let ov=ov0;ov<=ov1;ov+=dV){
+    const su=dU+spacing, sv=dV+spacing;
+    const ou0=Math.floor((minU-dU)/su)*su, ou1=Math.ceil((maxU-0)/su)*su;
+    const ov0=Math.floor((minV-dV)/sv)*sv, ov1=Math.ceil((maxV-0)/sv)*sv;
+    for(let ou=ou0;ou<=ou1;ou+=su){
+      for(let ov=ov0;ov<=ov1;ov+=sv){
         lines.forEach((l,li)=>{
           const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
           if(c)segs.push({start:c[0],end:c[1],fam:famOfLine[li]});
