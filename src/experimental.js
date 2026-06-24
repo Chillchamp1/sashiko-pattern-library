@@ -919,12 +919,12 @@ function buildExpPath(lines, famOrderOverride){
       }
       return cost;
     };
-    if(famIds.length<=7){
+    if(bestOrder.length<=7){
       let bestCost=Infinity;
-      for(const p of _permute(famIds)){const c=evalPerm(p);if(c<bestCost){bestCost=c;bestOrder=p;}}
+      for(const p of _permute(bestOrder)){const c=evalPerm(p);if(c<bestCost){bestCost=c;bestOrder=p;}}
     }else{
       // Greedy nearest-neighbour over families
-      const rem=new Set(famIds);bestOrder=[];let cur2=null;
+      const rem=new Set(bestOrder);bestOrder=[];let cur2=null;
       while(rem.size){
         let bf=null,bd=Infinity,useFront=true;
         for(const fi of rem){
