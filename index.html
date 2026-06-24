@@ -512,6 +512,10 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <h2>Custom Patterns (Sandbox)</h2>
       <button class="cad-save-btn" onclick="showCAD()">+ New Pattern</button>
       <button class="trash-btn" onclick="toggleTrash()" id="trashToggleBtn">🗑 Trash</button>
+      <button class="trash-btn" id="cloudSyncBtn" onclick="syncPatternsToCloud()" style="border-color:#6aabff;color:#6aabff" title="Upload all local patterns to Firebase so they appear on every device">☁ Sync to Cloud</button>
+    </div>
+    <div id="syncWarning" style="display:none;background:rgba(255,180,50,0.12);border:1px solid rgba(255,180,50,0.4);border-radius:6px;padding:8px 14px;margin:8px 0;font-size:12px;color:#ffcf7a">
+      ⚠ Opened via <b>file://</b> — patterns are saved locally only. Open via <a href="https://chillchamp1.github.io/Sashiko-Code/" style="color:#ffcf7a" target="_blank">GitHub Pages</a> or <b>http://localhost</b> to enable cloud sync.
     </div>
     <div class="mypats-grid" id="myPatsGrid"></div>
     <div class="trash-section" id="trashSection" style="display:none">
@@ -2029,15 +2033,25 @@ async function _voteProfile(patternId, profileId, delta){
   }catch(e){console.warn('Vote failed:',e);}
 }
 ══════ END PROFILES COMMENTED ══════ */
-// Upload a single pattern to Firestore (thumbnail stored separately via data URL → stripped before upload)
+// Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit)
 async function _pushToFirestore(pat){
   if(!_db)return;
-  // Strip thumbnail before storing — too large for Firestore (1 MB doc limit).
-  // We store the thumbnail only in localStorage on the creating device.
+  if(!pat.creatorId)pat.creatorId=_getUserId();
   const doc={...pat};delete doc.thumbnail;
   try{
     await _db.collection('patterns').doc(pat.id).set(doc);
   }catch(e){console.warn('Firestore write failed:',e);}
+}
+
+// Push all local patterns that are missing from Firestore (first-time sync, offline recovery)
+async function _syncLocalToFirestore(){
+  if(!_firebaseReady)return;
+  const uid=_getUserId();
+  for(const pat of EXP_PATTERNS){
+    if(!pat.creatorId){pat.creatorId=uid;}
+    await _pushToFirestore(pat);
+  }
+  _saveLocal();
 }
 
 async function _deleteFromFirestore(id){
@@ -2075,11 +2089,31 @@ function loadExpPatterns(){
   _loadLocal();
   cleanTrash();
   _initFirebase();
-  // Async fetch from Firestore; updates UI once done
   if(_firebaseReady){
-    _fetchFromFirestore().then(()=>rebuildMyPatsView());
+    // Sync local-only patterns up first, then fetch all from Firestore
+    _syncLocalToFirestore()
+      .then(()=>_fetchFromFirestore())
+      .then(()=>rebuildMyPatsView());
   }
 }
+
+// Manual sync trigger (button in My Patterns view)
+window.syncPatternsToCloud=async function(){
+  const btn=document.getElementById('cloudSyncBtn');
+  if(btn){btn.textContent='☁ Syncing…';btn.disabled=true;}
+  if(!_firebaseReady){
+    _initFirebase();
+    if(!_firebaseReady){
+      alert('Firebase not available on this URL.\n\nOpen the app via GitHub Pages or http://localhost to sync.');
+      if(btn){btn.textContent='☁ Sync to Cloud';btn.disabled=false;}
+      return;
+    }
+  }
+  await _syncLocalToFirestore();
+  await _fetchFromFirestore();
+  rebuildMyPatsView();
+  if(btn){btn.textContent='✓ Synced!';btn.disabled=false;setTimeout(()=>{if(btn)btn.textContent='☁ Sync to Cloud';},2500);}
+};
 
 async function saveExpPatterns(pat){
   // pat is the pattern being added; for deletes use removeExpPattern
@@ -3021,6 +3055,9 @@ window.showMyPatterns=function(){
   document.getElementById('galleryView').style.display='none';
   document.getElementById('cadView').classList.remove('open');
   document.getElementById('myPatsView').classList.add('open');
+  // Show warning when opened via file:// (no Firebase sync possible)
+  const warn=document.getElementById('syncWarning');
+  if(warn)warn.style.display=location.protocol==='file:'?'block':'none';
   const trash=_loadTrash();
   const tbtn=document.getElementById('trashToggleBtn');
   if(tbtn)tbtn.textContent=trash.length?'🗑 Trash ('+trash.length+')':'🗑 Trash';
@@ -3683,7 +3720,7 @@ window.cadSaveToLibrary=function(){
   // Compact: remove unused families, renumber used ones to 0,1,2...
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -3726,7 +3763,7 @@ window.cadPublishToLibrary=function(){
   const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,published:true};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,published:true};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
