@@ -3335,9 +3335,9 @@ function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
   const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!unique.length){c.innerHTML='';return;}
-  // Ensure cadFamOrder contains all current families
+  // Ensure cadFamOrder contains all current families, resetting clears selection
   if(cadFamOrder.length!==unique.length||!cadFamOrder.every(f=>unique.includes(f))){
-    cadFamOrder=[...unique];
+    cadFamOrder=[...unique];cadFamSel=-1;
   }
   c.innerHTML=cadFamOrder.map((fam,pos)=>{
     const col=FAM_PALETTE[fam%FAM_PALETTE.length];
