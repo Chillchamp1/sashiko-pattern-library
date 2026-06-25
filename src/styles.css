@@ -44,8 +44,9 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .no-results{font-size:13px;color:var(--muted);padding:20px 0;grid-column:1/-1}
 
 /* ── Animation view ── */
-#animView{display:none;flex-direction:column;align-items:center;gap:14px}
-#animView.open{display:flex}
+#animView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
+#animView.open{display:flex;flex-direction:column;align-items:center;gap:14px}
+.anim-wrap{max-width:800px;width:100%;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px}
 .back-row{width:100%;display:flex;align-items:center;gap:10px}
 .anim-body{display:flex;justify-content:center;width:100%;overflow:hidden}
 /* ── Stitching Order Settings (collapsible, exp only) ── */
