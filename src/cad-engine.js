@@ -920,7 +920,7 @@ window.cadRotate45=function(){
 
 // Convert a CAD line (straight or arc) to the saved format relative to bbox.
 function _cadLineToSaved(l, minU, minV){
-  if(l.arc){
+  if(l.arc&&l.center!==undefined){
     return{
       arc:true,
       center:[parseFloat((l.center[0]-minU).toFixed(3)),parseFloat((l.center[1]-minV).toFixed(3))],
@@ -934,11 +934,11 @@ function _cadLineToSaved(l, minU, minV){
   return{start:[parseFloat((l.start[0]-minU).toFixed(3)),parseFloat((l.start[1]-minV).toFixed(3))],end:[parseFloat((l.end[0]-minU).toFixed(3)),parseFloat((l.end[1]-minV).toFixed(3))]};
 }
 function _cadLineFromSaved(l, minU, minV){
-  if(l.arc){
+  if(l.arc&&l.center!==undefined){
     const c=[l.center[0]-minU,l.center[1]-minV];
     return{arc:true,center:c,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV]};
   }
-  return{start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV]};
+  return{start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV],...(l.arc?{arc:true}:{})};
 }
 
 window.cadSaveToLibrary=function(){

@@ -973,7 +973,15 @@ window.editExpPattern=function(idOrPat){
   // Restore families and order from saved pattern
   cadFamilies=(pat.families||[]).slice();
   while(cadFamilies.length<cadLines.length)cadFamilies.push(-1);
+  if(cadFamilies.length>cadLines.length)cadFamilies.length=cadLines.length;
   cadFamOrder=(pat.famOrder||[]).slice();
+  // If no families were saved, detect from geometry so routing matches gallery
+  if(!cadFamilies.some(f=>f>=0)){
+    const connFams=detectSymmetryFamilies({lines:cadLines, bbox:cadBBox()||pat.bbox||{minU:0,maxU:10,minV:0,maxV:10}});
+    cadFamilies.fill(-1);
+    connFams.forEach((group,fi)=>{group.forEach(li=>{cadFamilies[li]=fi;});});
+    cadFamOrder=[...Array(connFams.length).keys()];
+  }
   cadFamsLocked=cadFamilies.some(f=>f>=0);
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
