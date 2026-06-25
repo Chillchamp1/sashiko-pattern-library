@@ -878,7 +878,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.zigzagRouting);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -936,8 +936,8 @@ window.editExpPattern=function(idOrPat){
   cadFamsLocked=cadFamilies.some(f=>f>=0);
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
-  cadZigzagRouting=pat.zigzagRouting||false;
-  document.getElementById('cadZigzagRouting').checked=cadZigzagRouting;
+  cadRoutingMode=pat.routingMode||'default';
+  document.getElementById('cadRoutingMode').value=cadRoutingMode;
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
@@ -1020,22 +1020,22 @@ function _stitchChains(chains, tol){
   return chains;
 }
 
-function buildExpPath(lines, famOrderOverride, zigzag){
+function buildExpPath(lines, famOrderOverride, routingMode){
   if(!lines||!lines.length)return[];
+
+  const mode=routingMode||'default';
+  const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI};
+  const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
 
   const famGroups=new Map();
   lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
 
-  if(zigzag){
-    // Follow-path (zigzag) mode: build continuous strokes per family
-    // with MAXTURN=π (no angle limit — full traversal through crossings).
-    // Then order all chains globally via nearest-neighbour to keep jumps short.
-    // Chains remain separate — no tolerance-based merging because it creates
-    // fake stitch segments between endpoints that aren't real pattern edges.
+  if(mode==='continuous'){
+    // Follow-path: build strokes per family with no turn limit,
+    // then order all chains globally via nearest-neighbour.
     const allChains=[];
     for(const[fi,segs]of famGroups){
-      const raw=buildStrokesForFamily(segs,true);
-      raw.forEach(pts=>allChains.push({pts,fi}));
+      buildStrokesForFamily(segs,maxTurn).forEach(pts=>allChains.push({pts,fi}));
     }
     const rem=allChains.slice(), path=[];
     let cur=null;
@@ -1060,10 +1060,11 @@ function buildExpPath(lines, famOrderOverride, zigzag){
     return path;
   }
 
-  // Non-zigzag: original family-by-family routing
+  // Family-by-family routing: build strokes per family, order with band-snake,
+  // then visit families in optimised order.
   const famStrokes=new Map(), famEnds=new Map();
   for(const[fi,segs]of famGroups){
-    const ordered=orderStrokesFamily(buildStrokesForFamily(segs,false));
+    const ordered=orderStrokesFamily(buildStrokesForFamily(segs,maxTurn));
     if(!ordered.length)continue;
     famStrokes.set(fi,ordered);
     const p0=ordered[0].pts[0];
@@ -1116,13 +1117,11 @@ function buildExpPath(lines, famOrderOverride, zigzag){
   }
 
   const path=[];
-  const stitched=[]; // accumulate stitched segs for retrace-cost check
+  const stitched=[];
   let cur=null;
 
   for(const fi of bestOrder){
     const ordered=famStrokes.get(fi);
-
-    // Choose family entry direction (front vs back), with retrace penalty
     if(cur&&ordered.length>0){
       const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
       const fPt=sFirst[0], bPt=sLast[sLast.length-1];
@@ -1150,10 +1149,8 @@ function buildExpPath(lines, famOrderOverride, zigzag){
 }
 
 // ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
-function buildStrokesForFamily(segs, zigzag){
+function buildStrokesForFamily(segs, maxTurn){
   const Q=1e-4;
-  // zigzag mode: no turn limit — traces full chains through peaks/valleys regardless of angle
-  const MAXTURN=zigzag ? Math.PI : 90*Math.PI/180;
 
   const vId=new Map(), vPos=[];
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
@@ -1187,7 +1184,7 @@ function buildStrokesForFamily(segs, zigzag){
     const d=list.length; if(d<2)return;
     const cost=(i,j)=>{let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
       dt=Math.max(-1,Math.min(1,dt)); return Math.PI-Math.acos(dt);};
-    partner[v].set(matchVertex(d,cost,MAXTURN));
+    partner[v].set(matchVertex(d,cost,maxTurn));
   });
 
   const usedE=new Uint8Array(edges.length), strokes=[];
@@ -1359,7 +1356,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.zigzagRouting);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -1481,7 +1478,7 @@ window.remixPattern=function(id){
   document.getElementById('cadPatSize').value=bestPM;
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
-  cadZigzagRouting=false;document.getElementById('cadZigzagRouting').checked=false;
+  cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
   cadBBoxRotated=pat.bboxRotated||false;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
   cadInited=false;
@@ -1533,8 +1530,8 @@ window.showCAD=function(){
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
-  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadZigzagRouting=false;
-  document.getElementById('cadZigzagRouting').checked=false;
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';
+  document.getElementById('cadRoutingMode').value='default';
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
