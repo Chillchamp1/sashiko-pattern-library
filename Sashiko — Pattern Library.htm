@@ -2702,6 +2702,30 @@ function _permute(arr){
 // the visitation order that minimises total inter-family jump distance.
 // Closed-loop strokes rotate their entry vertex to be nearest the current needle.
 // Retrace penalty (500 units) discourages jumps that cross already-stitched segments.
+// Merge chain endpoints within tolerance — stitches arc sub-chains into full wave paths.
+// Greedy O(n²) per pass; fast enough for typical sashiko tile counts (<500 chains).
+function _stitchChains(chains, tol){
+  if(chains.length<=1)return chains;
+  const d2=(a,b)=>(a[0]-b[0])**2+(a[1]-b[1])**2, t2=tol*tol;
+  let any=true;
+  while(any){
+    any=false;
+    done:for(let i=0;i<chains.length;i++){
+      const a=chains[i], aS=a[0], aE=a[a.length-1];
+      for(let j=i+1;j<chains.length;j++){
+        const b=chains[j], bS=b[0], bE=b[b.length-1];
+        let merged=null;
+        if(d2(aE,bS)<=t2)      merged=[...a,...b.slice(1)];
+        else if(d2(aE,bE)<=t2) merged=[...a,...b.slice().reverse().slice(1)];
+        else if(d2(aS,bE)<=t2) merged=[...b,...a.slice(1)];
+        else if(d2(aS,bS)<=t2) merged=[...b.slice().reverse(),...a.slice(1)];
+        if(merged){chains[i]=merged;chains.splice(j,1);any=true;break done;}
+      }
+    }
+  }
+  return chains;
+}
+
 function buildExpPath(lines, famOrderOverride, zigzag){
   if(!lines||!lines.length)return[];
 
@@ -2709,11 +2733,17 @@ function buildExpPath(lines, famOrderOverride, zigzag){
   lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
 
   if(zigzag){
-    // Zigzag mode: global NN across ALL families — may interleave colours for shorter jumps
+    // Zigzag mode: stitch arc chains, then global NN across all families
     const allChains=[];
     for(const[fi,segs]of famGroups){
-      buildStrokesForFamily(segs,true).forEach(pts=>allChains.push({pts,fi}));
+      const raw=buildStrokesForFamily(segs,true);
+      // Dynamic tolerance: median arc-segment length × 1.5 — stitches near-miss arc endpoints
+      const lens=segs.map(s=>Math.hypot(s.end[0]-s.start[0],s.end[1]-s.start[1])).filter(l=>l>1e-9);
+      lens.sort((a,b)=>a-b);
+      const tol=(lens[lens.length>>1]||1)*1.5;
+      _stitchChains(raw,tol).forEach(pts=>allChains.push({pts,fi}));
     }
+    // Global greedy NN — may interleave colours for shorter jumps
     const rem=allChains.slice(), path=[];
     let cur=null;
     while(rem.length){
