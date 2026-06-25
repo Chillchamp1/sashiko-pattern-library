@@ -34,8 +34,13 @@ function cadSnapPoint(ru,rv){
   const SNAP=0.8;let best=null,bd=SNAP;
   const tc=cadMacro*CAD_MICRO;
   cadLines.forEach(l=>{
-    let d=Math.hypot(l.start[0]-ru,l.start[1]-rv);if(d<bd){bd=d;best=[l.start[0],l.start[1]];}
-    d=Math.hypot(l.end[0]-ru,l.end[1]-rv);if(d<bd){bd=d;best=[l.end[0],l.end[1]];}
+    if(l.arc){
+      let d=Math.hypot(l.start[0]-ru,l.start[1]-rv);if(d<bd){bd=d;best=[l.start[0],l.start[1]];}
+      d=Math.hypot(l.end[0]-ru,l.end[1]-rv);if(d<bd){bd=d;best=[l.end[0],l.end[1]];}
+    }else{
+      let d=Math.hypot(l.start[0]-ru,l.start[1]-rv);if(d<bd){bd=d;best=[l.start[0],l.start[1]];}
+      d=Math.hypot(l.end[0]-ru,l.end[1]-rv);if(d<bd){bd=d;best=[l.end[0],l.end[1]];}
+    }
   });
   if(best)return best;
   return[Math.max(0,Math.min(tc,Math.round(ru))),Math.max(0,Math.min(tc,Math.round(rv)))];
@@ -56,40 +61,199 @@ function cadLineInter(p1,p2,p3,p4){
   if(s>=-0.001&&s<=1.001&&t>=-0.001&&t<=1.001){t=Math.max(0,Math.min(1,t));return[p1[0]+t*s1u,p1[1]+t*s1v,t];}
   return null;
 }
+
+// Distance from point p to an arc curve. Returns {dist, angle} where angle is
+// the radian parameter along the arc (in [a1,a2] for positive sweep / [a2,a1] for negative).
+function cadDistToArc(p, arc){
+  const dx=p[0]-arc.center[0], dy=p[1]-arc.center[1];
+  let ang=Math.atan2(dy,dx);
+  const a1=arc.a1, a2=arc.a2;
+  // Normalise ang into the arc's angle range
+  if(a2>=a1){
+    if(a2-a1>=2*Math.PI-0.001)return{dist:Math.abs(Math.hypot(dx,dy)-arc.r), angle:ang};
+    while(ang<a1)ang+=2*Math.PI;
+    while(ang>a2)ang-=2*Math.PI;
+    if(ang<a1-0.001)ang=a1;
+    if(ang>a2+0.001)ang=a2;
+  }else{
+    while(ang>a1)ang-=2*Math.PI;
+    while(ang<a2)ang+=2*Math.PI;
+    if(ang>a1+0.001)ang=a1;
+    if(ang<a2-0.001)ang=a2;
+  }
+  const px=arc.center[0]+arc.r*Math.cos(ang), py=arc.center[1]+arc.r*Math.sin(ang);
+  return{dist:Math.hypot(p[0]-px,p[1]-py), angle:ang};
+}
+
+// Normalise an angle into the sweep interval [a1,a2]. Returns null if outside.
+function cadAngleInArc(a, arc){
+  const a1=arc.a1, a2=arc.a2;
+  if(a2>=a1){
+    if(a2-a1>=2*Math.PI-0.001)return a;
+    let aa=a;
+    while(aa<a1)aa+=2*Math.PI;
+    while(aa>a2)aa-=2*Math.PI;
+    return(aa>=a1-0.001&&aa<=a2+0.001)?aa:null;
+  }else{
+    let aa=a;
+    while(aa>a1)aa-=2*Math.PI;
+    while(aa<a2)aa+=2*Math.PI;
+    return(aa<=a1+0.001&&aa>=a2-0.001)?aa:null;
+  }
+}
+
+// Intersect a line segment (p1→p2) with an arc. Returns array of {p:[u,v], t:lineParam, angle:arcAngle}.
+function cadLineArcIntersections(p1,p2,arc){
+  const cx=arc.center[0], cy=arc.center[1], r=arc.r;
+  const dx=p2[0]-p1[0], dy=p2[1]-p1[1];
+  const fx=p1[0]-cx, fy=p1[1]-cy;
+  const a=dx*dx+dy*dy, b=2*(fx*dx+fy*dy), c=fx*fx+fy*fy-r*r;
+  const disc=b*b-4*a*c;
+  if(disc<0)return[];
+  const result=[];
+  const sqrtD=Math.sqrt(disc);
+  for(const t of [(-b-sqrtD)/(2*a),(-b+sqrtD)/(2*a)]){
+    if(t>0.001&&t<0.999){
+      const px=p1[0]+t*dx, py=p1[1]+t*dy;
+      const ang=Math.atan2(py-cy,px-cx);
+      if(cadAngleInArc(ang,arc)!==null)result.push({p:[px,py],t,angle:ang});
+    }
+  }
+  // Deduplicate close points
+  if(result.length>1&&Math.hypot(result[0].p[0]-result[1].p[0],result[0].p[1]-result[1].p[1])<0.01)result.length=1;
+  return result;
+}
+
+// Intersect two arcs. Returns array of {p:[u,v], angleA, angleB}.
+function cadArcArcIntersections(arcA, arcB){
+  const cx1=arcA.center[0], cy1=arcA.center[1], r1=arcA.r;
+  const cx2=arcB.center[0], cy2=arcB.center[1], r2=arcB.r;
+  const dx=cx2-cx1, dy=cy2-cy1;
+  const d=Math.hypot(dx,dy);
+  if(d<0.001||d>r1+r2+0.001||d<Math.abs(r1-r2)-0.001)return[];
+  const a=(r1*r1-r2*r2+d*d)/(2*d);
+  const h=Math.sqrt(Math.max(0,r1*r1-a*a));
+  const px=cx1+a*dx/d, py=cy1+a*dy/d;
+  const result=[];
+  for(const sign of [-1,1]){
+    const ix=px+sign*h*(-dy/d), iy=py+sign*h*(dx/d);
+    const angA=Math.atan2(iy-cy1,ix-cx1);
+    const angB=Math.atan2(iy-cy2,ix-cx2);
+    if(cadAngleInArc(angA,arcA)!==null&&cadAngleInArc(angB,arcB)!==null)
+      result.push({p:[ix,iy], angleA:angA, angleB:angB});
+  }
+  if(result.length>1&&Math.hypot(result[0].p[0]-result[1].p[0],result[0].p[1]-result[1].p[1])<0.01)result.length=1;
+  return result;
+}
+
 function cadHoveredSeg(ru,rv){
   const THRESH=15/cadTileSize;let best=null,bd=THRESH,li=-1,bt=0;
-  cadLines.forEach((l,i)=>{const r=cadDistToSeg([ru,rv],l.start,l.end);if(r.dist<bd){bd=r.dist;best=l;bt=r.t;li=i;}});
+  cadLines.forEach((l,i)=>{
+    if(l.arc){
+      const r=cadDistToArc([ru,rv],l);
+      if(r.dist<bd){bd=r.dist;best=l;bt=r.angle;li=i;}
+    }else{
+      const r=cadDistToSeg([ru,rv],l.start,l.end);
+      if(r.dist<bd){bd=r.dist;best=l;bt=r.t;li=i;}
+    }
+  });
   if(!best)return null;
+  if(best.arc){
+    // Build breakpoints along the arc from intersections with other lines/arcs
+    let pts=[{angle:best.a1,u:best.start[0],v:best.start[1]},{angle:best.a2,u:best.end[0],v:best.end[1]}];
+    cadLines.forEach((l,i)=>{
+      if(i===li)return;
+      let ixs;
+      if(l.arc)ixs=cadArcArcIntersections(best,l);
+      else ixs=cadLineArcIntersections(l.start,l.end,best);
+      ixs.forEach(ix=>pts.push({angle:ix.angleA!==undefined?ix.angleA:ix.angle,u:ix.p[0],v:ix.p[1]}));
+    });
+    // Sort by angle along sweep direction
+    const a1=best.a1, a2=best.a2;
+    const sweepDir=a2>=a1?1:-1;
+    pts.sort((a,b)=>{
+      let da=a.angle-a1;while(da<-Math.PI)da+=2*Math.PI;while(da>Math.PI)da-=2*Math.PI;
+      let db=b.angle-a1;while(db<-Math.PI)db+=2*Math.PI;while(db>Math.PI)db-=2*Math.PI;
+      return sweepDir>0?da-db:db-da;
+    });
+    // Deduplicate
+    const up=[pts[0]];for(let i=1;i<pts.length;i++)if(Math.abs(pts[i].angle-up[up.length-1].angle)>0.005)up.push(pts[i]);
+    // Build t-like parameter (0 to 1 along the sweep)
+    const total=Math.abs(a2-a1)||2*Math.PI;
+    const toT=a=>{let d=sweepDir>0?a-a1:a1-a;if(d<0)d+=2*Math.PI;return Math.max(0,Math.min(1,d/total));};
+    for(let i=0;i<up.length;i++)up[i].t=toT(up[i].angle);
+    const bt2=toT(bt);
+    for(let i=0;i<up.length-1;i++)if(bt2>=up[i].t-0.005&&bt2<=up[i+1].t+0.005)return{li,start:up[i],end:up[i+1],all:up,ci:i,isArc:true,arcData:best};
+    return null;
+  }
   let pts=[{t:0,u:best.start[0],v:best.start[1]},{t:1,u:best.end[0],v:best.end[1]}];
-  cadLines.forEach((l,i)=>{if(i===li)return;const ix=cadLineInter(best.start,best.end,l.start,l.end);if(ix)pts.push({t:ix[2],u:ix[0],v:ix[1]});});
+  cadLines.forEach((l,i)=>{
+    if(i===li)return;
+    if(l.arc){
+      cadLineArcIntersections(best.start,best.end,l).forEach(ix=>pts.push({t:ix.t,u:ix.p[0],v:ix.p[1]}));
+    }else{
+      const ix=cadLineInter(best.start,best.end,l.start,l.end);
+      if(ix)pts.push({t:ix[2],u:ix[0],v:ix[1]});
+    }
+  });
   pts.sort((a,b)=>a.t-b.t);
   const up=[pts[0]];for(let i=1;i<pts.length;i++)if(pts[i].t-up[up.length-1].t>0.005)up.push(pts[i]);
   for(let i=0;i<up.length-1;i++)if(bt>=up[i].t-0.005&&bt<=up[i+1].t+0.005)return{li,start:up[i],end:up[i+1],all:up,ci:i};
   return null;
 }
+
 function cadBBox(){
   if(!cadLines.length)return null;
   let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
-  cadLines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
+  cadLines.forEach(l=>{
+    if(l.arc){
+      // Expand bbox for arc: include all 4 axis-aligned extrema + endpoints
+      const cx=l.center[0], cy=l.center[1], r=l.r;
+      mnu=Math.min(mnu,l.start[0],l.end[0]); mxu=Math.max(mxu,l.start[0],l.end[0]);
+      mnv=Math.min(mnv,l.start[1],l.end[1]); mxv=Math.max(mxv,l.start[1],l.end[1]);
+      const a1=l.a1, a2=l.a2;
+      for(const a of [0, Math.PI/2, Math.PI, 3*Math.PI/2]){
+        if(cadAngleInArc(a,l)!==null){mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));}
+      }
+      // Also check sweep extrema (where derivative=0: at angles a1 and a2 and any angle where cos/sin cross)
+      if(a2>=a1){
+        for(const a of [a1,a2]){mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));}
+      }
+    }else{
+      mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);
+      mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);
+    }
+  });
   return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
 }
 function cadBBox2(lines){
   if(!lines.length)return null;
   let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
-  lines.forEach(l=>{mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);});
+  lines.forEach(l=>{
+    if(l.arc){
+      const cx=l.center[0], cy=l.center[1], r=l.r;
+      mnu=Math.min(mnu,l.start[0],l.end[0]); mxu=Math.max(mxu,l.start[0],l.end[0]);
+      mnv=Math.min(mnv,l.start[1],l.end[1]); mxv=Math.max(mxv,l.start[1],l.end[1]);
+      for(const a of [0, Math.PI/2, Math.PI, 3*Math.PI/2])if(cadAngleInArc(a,l)!==null){mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));}
+      if(l.a2>=l.a1)for(const a of [l.a1,l.a2]){mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));}
+    }else{
+      mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);
+      mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);
+    }
+  });
   return{minU:mnu,maxU:mxu,minV:mnv,maxV:mxv};
 }
 
-// Find redundant lines (collinear overlaps >90%)
+// Find redundant lines (collinear overlaps >90%). Skips arcs.
 function cadFindRedundant(){
   const Q=1e-4, PERP_THRESH=0.5; const redundant=new Set();
   for(let i=0;i<cadLines.length;i++){
-    const a=cadLines[i];
+    const a=cadLines[i]; if(a.arc)continue;
     const dxA=a.end[0]-a.start[0], dyA=a.end[1]-a.start[1];
     const lenA=Math.hypot(dxA,dyA); if(lenA<Q)continue;
     const ndxA=dxA/lenA, ndyA=dyA/lenA;
     for(let j=i+1;j<cadLines.length;j++){
-      const b=cadLines[j];
+      const b=cadLines[j]; if(b.arc)continue;
       const dxB=b.end[0]-b.start[0], dyB=b.end[1]-b.start[1];
       const lenB=Math.hypot(dxB,dyB); if(lenB<Q)continue;
       const dot=ndxA*(dxB/lenB)+ndyA*(dyB/lenB);
@@ -110,10 +274,8 @@ function cadFindRedundant(){
 // Auto-assign families for CAD lines based on screen orientation angle
 function cadAutoAssign(){
   if(cadFamsLocked){
-    // Locked: only extend to match line count, new lines get no family (-1)
     while(cadFamilies.length<cadLines.length)cadFamilies.push(-1);
     if(cadFamilies.length>cadLines.length)cadFamilies.length=cadLines.length;
-    // Ensure cadFamOrder includes all used families (never remove added empty ones)
     const used=[...new Set(cadFamilies.filter(f=>f>=0))];
     used.forEach(f=>{if(!cadFamOrder.includes(f))cadFamOrder.push(f);});
     return;
@@ -123,11 +285,9 @@ function cadAutoAssign(){
   const iso=cadGridType==='isometric';
   const THRESH=5*Math.PI/180;
   const groups=[];
-  // All arc-tagged lines share one family
   const arcIdxs=[];
   for(let i=0;i<cadLines.length;i++){if(cadLines[i].arc)arcIdxs.push(i);}
   if(arcIdxs.length)groups.push({angle:-1,members:arcIdxs});
-  // Group remaining (non-arc) lines by orientation angle
   const angles=cadLines.map(l=>{
     if(l.arc)return -1;
     const du=l.end[0]-l.start[0], dv=l.end[1]-l.start[1];
@@ -152,25 +312,167 @@ function cadAutoAssign(){
   cadFamOrder=[...Array(groups.length).keys()];
 }
 
-// Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
-// Click start again for full circle. Stores result as polyline segments.
-function cadGenArc(center,start,end){
-  const r=Math.hypot(start[0]-center[0],start[1]-center[1]);
-  if(r<0.01)return[];
-  const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
-  const a2=Math.atan2(end[1]-center[1],end[0]-center[0]);
+// ── Arc curve helpers ──────────────────────────────────────────────────────
+
+// Convert an arc curve to polyline segments. nSegs = segments per full circle (default 60 for rendering).
+function cadFlattenArc(arc, nSegs){
+  const a1=arc.a1, a2=arc.a2;
   let sweep=a2-a1;
-  while(sweep>Math.PI)sweep-=2*Math.PI;
-  while(sweep<=-Math.PI)sweep+=2*Math.PI;
-  if(Math.hypot(end[0]-start[0],end[1]-start[1])<0.1)sweep=2*Math.PI;
-  const segs=Math.max(3,Math.round((Math.abs(sweep)/(2*Math.PI))*30));
-  const result=[];let prev=[...start];
+  if(sweep>=2*Math.PI-0.001)sweep=2*Math.PI;
+  else if(sweep<=-2*Math.PI+0.001)sweep=-2*Math.PI;
+  const totalSweep=Math.abs(sweep);
+  const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
+  const result=[]; let prev=[...arc.start];
   for(let i=1;i<=segs;i++){
     const a=a1+sweep*(i/segs);
-    const next=[center[0]+r*Math.cos(a),center[1]+r*Math.sin(a)];
+    const next=[arc.center[0]+arc.r*Math.cos(a),arc.center[1]+arc.r*Math.sin(a)];
     result.push({start:prev,end:next,arc:true});
     prev=next;
   }
+  return result;
+}
+
+// Make an arc curve object from centre, start, end points.
+function _makeArcObj(center, start, end){
+  const r=Math.hypot(start[0]-center[0],start[1]-center[1]);
+  const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
+  const a2=Math.atan2(end[1]-center[1],end[0]-center[0]);
+  const isCircle=Math.hypot(end[0]-start[0],end[1]-start[1])<0.1;
+  return{
+    arc:true,
+    center:[center[0],center[1]],
+    r,
+    a1,
+    a2: isCircle?a1+2*Math.PI:a2,
+    start:[...start],
+    end: isCircle?[...start]:[...end]
+  };
+}
+
+// Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
+// Returns a single curve object (not polyline segments).
+function cadGenArc(center,start,end){
+  const r=Math.hypot(start[0]-center[0],start[1]-center[1]);
+  if(r<0.01)return null;
+  const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
+  const a2=Math.atan2(end[1]-center[1],end[0]-center[0]);
+  const isCircle=Math.hypot(end[0]-start[0],end[1]-start[1])<0.1;
+  return{
+    arc:true,
+    center:[center[0],center[1]],
+    r,
+    a1,
+    a2:isCircle?a1+2*Math.PI:a2,
+    start:[...start],
+    end:isCircle?[...start]:[...end]
+  };
+}
+
+// Split a single arc at the given angles (sorted along the sweep). Returns sub-arcs.
+function _splitArc(arc, cutAngles){
+  if(!cutAngles.length)return [{...arc}];
+  const a1=arc.a1, a2=arc.a2;
+  const sweepDir=a2>=a1?1:-1;
+  const totalSweep=Math.abs(a2-a1);
+  const toParam=a=>{let d=sweepDir>0?a-a1:a1-a;if(d<0)d+=2*Math.PI;return d/totalSweep;};
+  const params=cutAngles.map(a=>toParam(a)).sort((x,y)=>x-y);
+  // Filter cuts too close to ends
+  const clean=[];
+  for(const t of params){if(t>0.005&&t<0.995)clean.push(t);}
+  if(!clean.length)return [{...arc}];
+  // Build sub-arcs
+  const result=[];
+  let t0=0;
+  for(const t of clean){
+    const ang0=a1+sweepDir*t0*totalSweep, ang1=a1+sweepDir*t*totalSweep;
+    const p0=[arc.center[0]+arc.r*Math.cos(ang0),arc.center[1]+arc.r*Math.sin(ang0)];
+    const p1=[arc.center[0]+arc.r*Math.cos(ang1),arc.center[1]+arc.r*Math.sin(ang1)];
+    if(Math.hypot(p1[0]-p0[0],p1[1]-p0[1])>0.005){
+      result.push({arc:true,center:[...arc.center],r:arc.r,a1:ang0,a2:ang1,start:p0,end:p1});
+    }
+    t0=t;
+  }
+  // Last segment
+  const ang0=a1+sweepDir*t0*totalSweep;
+  const p0=[arc.center[0]+arc.r*Math.cos(ang0),arc.center[1]+arc.r*Math.sin(ang0)];
+  if(Math.hypot(arc.end[0]-p0[0],arc.end[1]-p0[1])>0.005){
+    result.push({arc:true,center:[...arc.center],r:arc.r,a1:ang0,a2:arc.a2,start:p0,end:[...arc.end]});
+  }
+  return result;
+}
+
+// Split cadLines at all intersections. Arcs are split into sub-arcs; lines are split
+// at arc crossings. Pure line×line crossings are left alone (grid-lines already share endpoints).
+// Called after new geometry is added.
+function cadSplitAtIntersections(){
+  const EPS=1e-5;
+  const newLines=[];
+  for(let i=0;i<cadLines.length;i++){
+    const l=cadLines[i];
+    if(l.arc){
+      // Collect all cut angles from intersections with other lines/arcs
+      const cutAngles=[];
+      for(let j=0;j<cadLines.length;j++){
+        if(j===i)continue;
+        const m=cadLines[j];
+        if(m.arc){
+          cadArcArcIntersections(l,m).forEach(ix=>{
+            // Only keep if the intersection is not at the arc endpoints
+            const dS=Math.hypot(ix.p[0]-l.start[0],ix.p[1]-l.start[1]);
+            const dE=Math.hypot(ix.p[0]-l.end[0],ix.p[1]-l.end[1]);
+            if(dS>EPS&&dE>EPS)cutAngles.push(ix.angleA!==undefined?ix.angleA:ix.angle);
+          });
+        }else{
+          cadLineArcIntersections(m.start,m.end,l).forEach(ix=>{
+            const dS=Math.hypot(ix.p[0]-l.start[0],ix.p[1]-l.start[1]);
+            const dE=Math.hypot(ix.p[0]-l.end[0],ix.p[1]-l.end[1]);
+            if(dS>EPS&&dE>EPS)cutAngles.push(ix.angle);
+          });
+        }
+      }
+      _splitArc(l, cutAngles).forEach(a=>newLines.push(a));
+    }else{
+      // Straight line: split at arc crossings
+      const a=l.start, b=l.end;
+      const cuts=[];
+      for(let j=0;j<cadLines.length;j++){
+        if(j===i)continue;
+        const m=cadLines[j];
+        if(m.arc){
+          cadLineArcIntersections(a,b,m).forEach(ix=>{
+            if(ix.t>EPS&&ix.t<1-EPS)cuts.push({t:ix.t,p:ix.p});
+          });
+        }else{
+          // Only split line-line if the OTHER is an arc (we already checked m.arc above)
+          // Line-line crossings are left alone
+        }
+      }
+      if(!cuts.length){newLines.push(l);continue;}
+      cuts.sort((x,y)=>x.t-y.t);
+      const pts=[a]; let lastT=0;
+      for(const c of cuts)if(c.t-lastT>EPS){pts.push(c.p);lastT=c.t;}
+      pts.push(b);
+      for(let k=0;k<pts.length-1;k++){
+        const sub={...l,start:[pts[k][0],pts[k][1]],end:[pts[k+1][0],pts[k+1][1]]};
+        delete sub.arc; // split pieces of a straight line are not arcs
+        newLines.push(sub);
+      }
+    }
+  }
+  cadLines=newLines;
+}
+
+// Flatten all arcs in cadLines to segments (for downstream processing).
+// Returns an array of segment objects {start, end, arc:true, ...}.
+function cadAllSegments(lines){
+  const result=[];
+  (lines||cadLines).forEach(l=>{
+    if(l.arc){
+      cadFlattenArc(l, 60).forEach(s=>result.push(s));
+    }else{
+      result.push({start:[...l.start],end:[...l.end]});
+    }
+  });
   return result;
 }
 
@@ -185,16 +487,13 @@ function cadBakeLeft(){
   cadLeftBuf=document.createElement('canvas');cadLeftBuf.width=500;cadLeftBuf.height=500;
   const lx=cadLeftBuf.getContext('2d');
   const tc=cadMacro*CAD_MICRO;
-  // Dark fabric background
   lx.fillStyle='#1a3a5c';lx.fillRect(0,0,500,500);
-  // Sub-grid dots everywhere
   lx.fillStyle='rgba(160,160,184,0.25)';
   for(let u=0;u<=tc;u++)for(let v=0;v<=tc;v++){
     const onMain=(u%CAD_MICRO===0)&&(v%CAD_MICRO===0);
     const p=cadG2S(u,v,cadOX,cadOY,cadTileSize);
     lx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
   }
-  // Main grid lines
   lx.lineWidth=1.5;lx.strokeStyle='rgba(220,235,255,0.15)';
   for(let i=0;i<=cadMacro;i++){
     const val=i*CAD_MICRO;
@@ -206,7 +505,6 @@ function cadBakeRight(){
   cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
   const rx=cadRightBuf.getContext('2d');
   rx.fillStyle='#1a3a5c';rx.fillRect(0,0,500,500);
-  // Same dot-grid style as draw canvas
   const ptc=cadPatMacro*CAD_MICRO;
   rx.fillStyle='rgba(160,160,184,0.25)';
   for(let u=0;u<=ptc;u++)for(let v=0;v<=ptc;v++){
@@ -214,12 +512,34 @@ function cadBakeRight(){
     const p=cadG2S(u,v,cadPOX,cadPOY,cadPTile);
     rx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
   }
-  // Grid lines at macro steps — same style as draw canvas
   rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.15)';
   for(let i=0;i<=cadPatMacro;i++){
     const val=i*CAD_MICRO;
     rx.beginPath();const p1=cadG2S(val,0,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,ptc,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
     rx.beginPath();const p3=cadG2S(0,val,cadPOX,cadPOY,cadPTile),p4=cadG2S(ptc,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
+  }
+}
+
+// Draw a single line (straight or arc) onto a canvas context at offset (ou, ov) using the given g2s transform.
+function _cadDrawLine(x, l, fi, ox, oy, sz, g2s){
+  const col=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
+  x.strokeStyle=col;
+  if(l.arc){
+    // Draw arc as polyline for accurate isometric projection
+    const segs=cadFlattenArc(l, 80);
+    if(segs.length){
+      x.beginPath();
+      const p0=g2s(segs[0].start[0],segs[0].start[1]);
+      x.moveTo(p0.x,p0.y);
+      for(const s of segs){
+        const p=g2s(s.end[0],s.end[1]);
+        x.lineTo(p.x,p.y);
+      }
+      x.stroke();
+    }
+  }else{
+    const p1=g2s(l.start[0],l.start[1]),p2=g2s(l.end[0],l.end[1]);
+    x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   }
 }
 
@@ -232,17 +552,19 @@ function cadDrawWorkspace(){
   // Build full line list including previews
   const all=[...cadLines];
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
-  if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur)
-    cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>{l.preview=true;all.push(l);});
+  if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur){
+    const prevArc=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+    if(prevArc)all.push({...prevArc,preview:true});
+  }
 
-  // Work-area boundary: shows the full cadMacro×cadMacro grid as a dashed blue border
+  // Work-area boundary
   {const tc=cadMacro*CAD_MICRO;
    const wa=[cadG2S(0,0,cadOX,cadOY,cadTileSize),cadG2S(tc,0,cadOX,cadOY,cadTileSize),
              cadG2S(tc,tc,cadOX,cadOY,cadTileSize),cadG2S(0,tc,cadOX,cadOY,cadTileSize)];
    x.strokeStyle='rgba(80,160,255,0.45)';x.lineWidth=1.5;x.setLineDash([7,4]);
    x.beginPath();x.moveTo(wa[0].x,wa[0].y);for(let i=1;i<4;i++)x.lineTo(wa[i].x,wa[i].y);x.closePath();x.stroke();
    x.setLineDash([]);}
-  // Pattern bounding box + spacing: show the effective repeating unit
+  // Pattern bounding box + spacing
   const bbox=cadBBox2(all);
   if(bbox){
     const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
@@ -256,8 +578,7 @@ function cadDrawWorkspace(){
       const p3=cadG2S(cu+sU/2,cv+sV/2,cadOX,cadOY,cadTileSize),p4=cadG2S(cu-sU/2,cv+sV/2,cadOX,cadOY,cadTileSize);
       x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.lineTo(p3.x,p3.y);x.lineTo(p4.x,p4.y);
     }else{
-      // Project all endpoints onto 45°-rotated axes p=u+v, q=u-v
-      const epts=[];cadLines.forEach(l=>epts.push(l.start,l.end));
+      const epts=[];cadAllSegments(cadLines).forEach(s=>epts.push(s.start,s.end));
       let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
       epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
       const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
@@ -270,13 +591,13 @@ function cadDrawWorkspace(){
     x.setLineDash([]);
   }
 
+  const g2s=(u,v)=>cadG2S(u,v,cadOX,cadOY,cadTileSize);
   x.lineWidth=4;x.lineCap='round';
   cadLines.forEach((l,i)=>{
     const fi=cadFamilies[i];
     const col=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
     x.strokeStyle=(cadHover&&cadHover.li===i)?col+'55':col;
-    const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize),p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
-    x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    _cadDrawLine(x, l, fi, cadOX, cadOY, cadTileSize, g2s);
   });
 
   // Mark redundant lines in red dashed
@@ -285,7 +606,8 @@ function cadDrawWorkspace(){
     x.strokeStyle='#ff4444';x.lineWidth=2;x.setLineDash([3,3]);
     cadRed.forEach(i=>{
       const l=cadLines[i];
-      const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize),p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
+      if(l.arc)return; // skip arcs for redundancy display
+      const p1=g2s(l.start[0],l.start[1]),p2=g2s(l.end[0],l.end[1]);
       x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
     });
     x.setLineDash([]);
@@ -293,33 +615,28 @@ function cadDrawWorkspace(){
 
   // Draw tool preview
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-    const p1=cadG2S(cadStart[0],cadStart[1],cadOX,cadOY,cadTileSize),p2=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+    const p1=g2s(cadStart[0],cadStart[1]),p2=g2s(cadCur[0],cadCur[1]);
     x.strokeStyle='rgba(0,255,204,0.5)';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
   }
 
   // Arc tool visuals
   if(cadTool==='arc'){
     if(cadArcState===1&&cadArcCenter&&cadCur){
-      // dashed radius line from center to cursor
-      const pc=cadG2S(cadArcCenter[0],cadArcCenter[1],cadOX,cadOY,cadTileSize);
-      const pm=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+      const pc=g2s(cadArcCenter[0],cadArcCenter[1]);
+      const pm=g2s(cadCur[0],cadCur[1]);
       x.strokeStyle='rgba(255,204,0,0.6)';x.setLineDash([5,5]);
       x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(pm.x,pm.y);x.stroke();
       x.setLineDash([]);
     }else if(cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur){
-      // arc preview + guide dashes
-      const arcSegs=cadGenArc(cadArcCenter,cadArcStart,cadCur);
-      x.strokeStyle='rgba(0,255,204,0.5)';x.lineWidth=3;
-      x.beginPath();
-      arcSegs.forEach((l,idx)=>{
-        const p1=cadG2S(l.start[0],l.start[1],cadOX,cadOY,cadTileSize);
-        const p2=cadG2S(l.end[0],l.end[1],cadOX,cadOY,cadTileSize);
-        if(idx===0)x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);
-      });
-      x.stroke();
-      const pc=cadG2S(cadArcCenter[0],cadArcCenter[1],cadOX,cadOY,cadTileSize);
-      const ps=cadG2S(cadArcStart[0],cadArcStart[1],cadOX,cadOY,cadTileSize);
-      const pe=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+      // Arc preview — draw as polyline for accuracy
+      const prevArc=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+      if(prevArc){
+        x.strokeStyle='rgba(0,255,204,0.5)';x.lineWidth=3;
+        _cadDrawLine(x, prevArc, -1, cadOX, cadOY, cadTileSize, g2s);
+      }
+      const pc=g2s(cadArcCenter[0],cadArcCenter[1]);
+      const ps=g2s(cadArcStart[0],cadArcStart[1]);
+      const pe=g2s(cadCur[0],cadCur[1]);
       x.strokeStyle='rgba(255,204,0,0.4)';x.setLineDash([5,5]);x.lineWidth=1;
       x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(ps.x,ps.y);x.stroke();
       x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(pe.x,pe.y);x.stroke();
@@ -328,19 +645,42 @@ function cadDrawWorkspace(){
   }
 
   if(cadTool==='erase'&&cadHover){
-    const p1=cadG2S(cadHover.start.u,cadHover.start.v,cadOX,cadOY,cadTileSize),p2=cadG2S(cadHover.end.u,cadHover.end.v,cadOX,cadOY,cadTileSize);
-    x.lineWidth=4;x.strokeStyle='#ff3366';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    if(cadHover.isArc){
+      // Highlight only the hovered sub-segment of the arc
+      const arc=cadHover.arcData;
+      const a1=arc.a1, a2=arc.a2;
+      const totalSweep=Math.abs(a2-a1)||2*Math.PI;
+      const sweepDir=a2>=a1?1:-1;
+      const ci=cadHover.ci;
+      const all=cadHover.all;
+      if(ci>=0&&ci<all.length-1){
+        const t0=all[ci].t, t1=all[ci+1].t;
+        const segs=Math.max(2,Math.round(20*(t1-t0)));
+        x.lineWidth=4;x.strokeStyle='#ff3366';x.beginPath();
+        let first=true;
+        for(let k=0;k<=segs;k++){
+          const tk=t0+(t1-t0)*(k/segs);
+          const ang=a1+sweepDir*tk*totalSweep;
+          const p=g2s(arc.center[0]+arc.r*Math.cos(ang),arc.center[1]+arc.r*Math.sin(ang));
+          if(first){x.moveTo(p.x,p.y);first=false;}else x.lineTo(p.x,p.y);
+        }
+        x.stroke();
+      }
+    }else{
+      const p1=g2s(cadHover.start.u,cadHover.start.v),p2=g2s(cadHover.end.u,cadHover.end.v);
+      x.lineWidth=4;x.strokeStyle='#ff3366';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    }
   }
   if((cadTool==='draw'||cadTool==='arc')&&cadCur){
-    const s=cadG2S(cadCur[0],cadCur[1],cadOX,cadOY,cadTileSize);
+    const s=g2s(cadCur[0],cadCur[1]);
     x.fillStyle='#00ffcc';x.beginPath();x.arc(s.x,s.y,6,0,Math.PI*2);x.fill();
   }
   if(cadTool==='arc'&&cadArcCenter){
-    const pc=cadG2S(cadArcCenter[0],cadArcCenter[1],cadOX,cadOY,cadTileSize);
+    const pc=g2s(cadArcCenter[0],cadArcCenter[1]);
     x.fillStyle='rgba(255,204,0,0.8)';x.beginPath();x.arc(pc.x,pc.y,5,0,Math.PI*2);x.fill();
   }
   if(cadTool==='arc'&&cadArcStart){
-    const ps=cadG2S(cadArcStart[0],cadArcStart[1],cadOX,cadOY,cadTileSize);
+    const ps=g2s(cadArcStart[0],cadArcStart[1]);
     x.fillStyle='rgba(0,255,204,0.8)';x.beginPath();x.arc(ps.x,ps.y,5,0,Math.PI*2);x.fill();
   }
 }
@@ -352,28 +692,58 @@ function cadDrawPattern(){
   if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
   const all=[...cadLines];
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
-  if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur)
-    cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>{l.preview=true;all.push(l);});
+  if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur){
+    const prevArc=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+    if(prevArc)all.push({...prevArc,preview:true});
+  }
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
   const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
   const ptc=cadPatMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
+  const g2s=(u,v)=>cadG2S(u,v,cadPOX,cadPOY,cadPTile);
+  // Check if a segment/arc is visible on the pattern canvas
+  function _visible(p1,p2){
+    return(p1.x>-50&&p1.x<550&&p1.y>-50&&p1.y<550)||(p2.x>-50&&p2.x<550&&p2.y>-50&&p2.y<550);
+  }
   const _renderAt=(ou,ov2)=>{all.forEach((l,li)=>{
     if(l.preview)return;
-    const u1=l.start[0]-bbox.minU+ou,v1=l.start[1]-bbox.minV+ov2;
-    const u2=l.end[0]-bbox.minU+ou,v2=l.end[1]-bbox.minV+ov2;
-    const p1=cadG2S(u1,v1,cadPOX,cadPOY,cadPTile),p2=cadG2S(u2,v2,cadPOX,cadPOY,cadPTile);
-    if((p1.x>-50&&p1.x<550&&p1.y>-50&&p1.y<550)||(p2.x>-50&&p2.x<550&&p2.y>-50&&p2.y<550)){
-      const fi=cadFamilies[li];
+    const fi=cadFamilies[li];
+    if(l.arc){
+      // Transform arc center into tiled position
+      const tCenter=[l.center[0]-bbox.minU+ou, l.center[1]-bbox.minV+ov2];
+      const tArc={arc:true,center:tCenter,r:l.r,a1:l.a1,a2:l.a2,
+        start:[l.start[0]-bbox.minU+ou,l.start[1]-bbox.minV+ov2],
+        end:[l.end[0]-bbox.minU+ou,l.end[1]-bbox.minV+ov2]};
+      // Quick visibility check: check screen bbox of the arc
+      let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+      const segs=cadFlattenArc(tArc, 60);
+      if(!segs.length)return;
+      let anyVis=false;
+      for(const s of segs){
+        const sp=g2s(s.start[0],s.start[1]), ep=g2s(s.end[0],s.end[1]);
+        if(_visible(sp,ep))anyVis=true;
+      }
+      if(!anyVis)return;
       x.strokeStyle=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
-      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+      x.beginPath();
+      const p0=g2s(segs[0].start[0],segs[0].start[1]);x.moveTo(p0.x,p0.y);
+      for(const s of segs){const p=g2s(s.end[0],s.end[1]);x.lineTo(p.x,p.y);}
+      x.stroke();
+    }else{
+      const u1=l.start[0]-bbox.minU+ou,v1=l.start[1]-bbox.minV+ov2;
+      const u2=l.end[0]-bbox.minU+ou,v2=l.end[1]-bbox.minV+ov2;
+      const p1=g2s(u1,v1),p2=g2s(u2,v2);
+      if(_visible(p1,p2)){
+        x.strokeStyle=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
+        x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+      }
     }
   });};
   if(!cadBBoxRotated){
     for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){_renderAt(ou,ov2);}}
   }else{
-    const epts=[];all.forEach(l=>{if(!l.preview)epts.push(l.start,l.end);});
+    const epts=[];cadAllSegments(all.filter(l=>!l.preview)).forEach(s=>epts.push(s.start,s.end));
     let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
     epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
     const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
@@ -388,7 +758,6 @@ function cadUpdateAll(){
   cadAutoAssign();
   cadDrawWorkspace();cadDrawPattern();
   cadBuildFamBar();
-  // Update redundancy hint
   const el=document.getElementById('cadArcHint');
   if(el){
     const red=cadFindRedundant();
@@ -398,12 +767,10 @@ function cadUpdateAll(){
 }
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
-  // Update publish button visibility
   const pb=document.getElementById('cadPublishBtn');
   if(pb)pb.style.display=cadIsPublished?'none':'inline-block';
   const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!unique.length){c.innerHTML='';return;}
-  // Ensure cadFamOrder includes all used families (never remove empty ones)
   const used=[...new Set(cadFamilies.filter(f=>f>=0))];
   used.forEach(f=>{if(!cadFamOrder.includes(f))cadFamOrder.push(f);});
   c.innerHTML=cadFamOrder.map((fam,pos)=>{
@@ -422,21 +789,17 @@ window.cadMoveFam=function(dir){
   cadUpdateAll();
 };
 window.cadAddFam=function(){
-  // Find next available family number that's not in use
   const used=new Set(cadFamOrder);
   let nf=0;while(used.has(nf))nf++;
   cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
   cadFamOrder.push(nf);cadFamSel=cadFamOrder.length-1;cadFamsLocked=true;
   cadUpdateAll();
 };
-// Compact families: remove unused, renumber remaining to 0,1,2...
 function _compactFamilies(families, famOrder){
   const used=[...new Set(families.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!used.length)return{families:[], famOrder:[]};
-  // Build mapping: old family number → new compact number
   const map={};used.forEach((of,i)=>{map[of]=i;});
   const newFam=families.map(f=>f>=0?map[f]:-1);
-  // Keep only used families in order, preserving relative sequence
   const newOrder=famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
   return{families:newFam, famOrder:newOrder};
 }
@@ -503,7 +866,13 @@ window.cadStepPatMacro=function(d){
 window.cadMovePattern=function(du,dv){
   if(!cadLines.length)return;
   cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
-  cadLines=cadLines.map(l=>({...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]}));
+  cadLines=cadLines.map(l=>{
+    if(l.arc){
+      const nCenter=[l.center[0]+du,l.center[1]+dv];
+      return{...l,center:nCenter,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]};
+    }
+    return{...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]};
+  });
   cadUpdateAll();
 };
 window.cadRotate45=function(){
@@ -511,26 +880,63 @@ window.cadRotate45=function(){
   const bbox=cadBBox();if(!bbox)return;
   cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
   const cu=(bbox.minU+bbox.maxU)/2, cv=(bbox.minV+bbox.maxV)/2;
-  const C=Math.SQRT2/2; // cos(45°) = sin(45°)
+  const C=Math.SQRT2/2;
   const rot=([u,v])=>[cu+(u-cu)*C-(v-cv)*C, cv+(u-cu)*C+(v-cv)*C];
-  cadLines=cadLines.map(l=>({...l,start:rot(l.start),end:rot(l.end)}));
-  // Recenter in work area after rotation (bbox grows ~√2 diagonally)
+  cadLines=cadLines.map(l=>{
+    if(l.arc){
+      const nCenter=rot(l.center);
+      const nStart=rot(l.start);
+      const nEnd=rot(l.end);
+      // Rotation preserves the arc geometry in grid space, but angles change.
+      // Recompute from center and rotated start/end.
+      return _makeArcObj(nCenter, nStart, nEnd);
+    }
+    return{...l,start:rot(l.start),end:rot(l.end)};
+  });
   const nb=cadBBox();if(!nb)return;
   const tc=cadMacro*CAD_MICRO;
   const du=(tc-(nb.maxU-nb.minU))/2-nb.minU, dv=(tc-(nb.maxV-nb.minV))/2-nb.minV;
-  cadLines=cadLines.map(l=>({...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]}));
+  cadLines=cadLines.map(l=>{
+    if(l.arc){
+      const nCenter=[l.center[0]+du,l.center[1]+dv];
+      return{...l,center:nCenter,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]};
+    }
+    return{...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]};
+  });
   cadUpdateAll();
 };
+
+// Convert a CAD line (straight or arc) to the saved format relative to bbox.
+function _cadLineToSaved(l, minU, minV){
+  if(l.arc){
+    return{
+      arc:true,
+      center:[parseFloat((l.center[0]-minU).toFixed(3)),parseFloat((l.center[1]-minV).toFixed(3))],
+      r:parseFloat(l.r.toFixed(3)),
+      a1:parseFloat(l.a1.toFixed(6)),
+      a2:parseFloat(l.a2.toFixed(6)),
+      start:[parseFloat((l.start[0]-minU).toFixed(3)),parseFloat((l.start[1]-minV).toFixed(3))],
+      end:[parseFloat((l.end[0]-minU).toFixed(3)),parseFloat((l.end[1]-minV).toFixed(3))]
+    };
+  }
+  return{start:[parseFloat((l.start[0]-minU).toFixed(3)),parseFloat((l.start[1]-minV).toFixed(3))],end:[parseFloat((l.end[0]-minU).toFixed(3)),parseFloat((l.end[1]-minV).toFixed(3))]};
+}
+function _cadLineFromSaved(l, minU, minV){
+  if(l.arc){
+    const c=[l.center[0]-minU,l.center[1]-minV];
+    return{arc:true,center:c,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV]};
+  }
+  return{start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV]};
+}
+
 window.cadSaveToLibrary=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
-  // Filter out redundant lines
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
-  // Compact: remove unused families, renumber used ones to 0,1,2...
+  const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
@@ -568,13 +974,12 @@ window.cadPublishToLibrary=function(){
   const pw=prompt('Admin password:');
   if(pw!=='111'){alert('Wrong password');return;}
   if(!cadLines.length){alert('No lines to publish.');return;}
-  // Save first (same logic as cadSaveToLibrary)
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>({start:[parseFloat((l.start[0]-bbox.minU).toFixed(3)),parseFloat((l.start[1]-bbox.minV).toFixed(3))],end:[parseFloat((l.end[0]-bbox.minU).toFixed(3)),parseFloat((l.end[1]-bbox.minV).toFixed(3))]}));
+  const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
@@ -612,13 +1017,16 @@ window.cadTilePlay=function(){
   const redSet=new Set(cadFindRedundant());
   const clean=cadLines.filter((_,i)=>!redSet.has(i));
   if(!clean.length)return;
-  const lines=clean.map(l=>({start:[l.start[0]-bbox.minU,l.start[1]-bbox.minV],end:[l.end[0]-bbox.minU,l.end[1]-bbox.minV]}));
+  // Flatten arcs to segments for the tile play routing
+  const lines=clean.map(l=>{
+    const rel=_cadLineToSaved(l, bbox.minU, bbox.minV);
+    return rel;
+  });
   const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const path=buildExpPath(segs,pat.famOrder,cadRoutingMode);
   if(!path.length)return;
-  // Convert path grid coords to screen coords for bounding box
   const lay=computeExpLayout(pat);
   let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
   path.forEach(s=>{
@@ -688,7 +1096,6 @@ function cadInit(){
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     cadCur=cadSnapPoint(g.u,g.v);
     if(cadTool==='draw'){
-      // Click-to-assign: if a family is selected and we hit a line, assign it
       if(cadFamSel>=0){
         const hit=cadHoveredSeg(g.u,g.v);
         if(hit&&hit.li>=0&&cadFamSel<cadFamOrder.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadFamilies[hit.li]=cadFamOrder[cadFamSel];cadFamsLocked=true;cadUpdateAll();return;}
@@ -700,16 +1107,45 @@ function cadInit(){
       else if(cadArcState===1){cadArcStart=[...cadCur];cadArcState=2;}
       else if(cadArcState===2){
         cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
-        cadGenArc(cadArcCenter,cadArcStart,cadCur).forEach(l=>cadLines.push(l));
+        const newArc=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+        if(newArc)cadLines.push(newArc);
         cadFamsLocked=false;cadFamSel=-1;
         cadArcState=0;cadArcCenter=null;cadArcStart=null;
+        cadSplitAtIntersections();
       }
       cadArcLabel();
     }
     else if(cadTool==='erase'&&cadHover){
       cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
-      cadLines.splice(cadHover.li,1);
-      for(let i=0;i<cadHover.all.length-1;i++)if(i!==cadHover.ci)cadLines.push({start:[cadHover.all[i].u,cadHover.all[i].v],end:[cadHover.all[i+1].u,cadHover.all[i+1].v]});
+      if(cadHover.isArc){
+        // Erase the hovered arc sub-segment: split the arc at the segment boundaries
+        const arc=cadHover.arcData;
+        const li=cadHover.li;
+        const ci=cadHover.ci;
+        const all=cadHover.all;
+        // Remove the original arc
+        cadLines.splice(li,1);
+        // Create sub-arcs for all pieces except the one being erased.
+        // all[] is already sorted along the sweep by cadHoveredSeg; use all[i].t directly.
+        const a1=arc.a1, a2=arc.a2;
+        const sweepDir=a2>=a1?1:-1;
+        const totalSweep=Math.abs(a2-a1)||2*Math.PI;
+        for(let i=0;i<all.length-1;i++){
+          if(i===ci)continue;
+          const t0=all[i].t, t1=all[i+1].t;
+          if(t1-t0<0.001)continue;
+          const ang0=a1+sweepDir*t0*totalSweep;
+          const ang1=a1+sweepDir*t1*totalSweep;
+          const p0=[arc.center[0]+arc.r*Math.cos(ang0),arc.center[1]+arc.r*Math.sin(ang0)];
+          const p1=[arc.center[0]+arc.r*Math.cos(ang1),arc.center[1]+arc.r*Math.sin(ang1)];
+          if(Math.hypot(p1[0]-p0[0],p1[1]-p0[1])>0.005){
+            cadLines.push({arc:true,center:[...arc.center],r:arc.r,a1:ang0,a2:ang1,start:p0,end:p1});
+          }
+        }
+      }else{
+        cadLines.splice(cadHover.li,1);
+        for(let i=0;i<cadHover.all.length-1;i++)if(i!==cadHover.ci)cadLines.push({start:[cadHover.all[i].u,cadHover.all[i].v],end:[cadHover.all[i+1].u,cadHover.all[i+1].v]});
+      }
       cadHover=null;cadFamsLocked=false;cadFamSel=-1;
     }
     cadUpdateAll();
@@ -725,7 +1161,7 @@ function cadInit(){
   cv.addEventListener('pointerup',e=>{
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;}
+      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;cadSplitAtIntersections();}
     }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
@@ -746,7 +1182,6 @@ initGenUI();
 initAnimZoom();
 loadExpPatterns();
 buildGallery();
-// Deep-link: open pattern from URL hash (#pattern-id)
 if(location.hash){
   const id=location.hash.slice(1);
   const pat=PATTERNS.find(p=>p.id===id);
