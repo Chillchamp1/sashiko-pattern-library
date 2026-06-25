@@ -39,6 +39,10 @@ function buildGallery(){
     editBtn.className='exp-edit-btn';editBtn.title='Edit (admin)';editBtn.textContent='✎';
     editBtn.onclick=e=>{e.stopPropagation();editExpPattern(pat);};
     card.appendChild(editBtn);
+    const delBtn2=document.createElement('button');
+    delBtn2.className='exp-del-btn';delBtn2.title='Delete (admin)';delBtn2.textContent='✕';
+    delBtn2.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
+    card.appendChild(delBtn2);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
     const badge=document.createElement('div');badge.className='pcard-badge';
     const usedFams=new Set((pat.families||[]).filter(f=>f>=0));
