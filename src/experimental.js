@@ -1106,33 +1106,79 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   }
 
   if(mode==='contour'){
-    // Logik 3 — Contour / wave stitching.
-    // 1. buildContourStrokes chains arcs into long forward-marching WAVES (scallops) along
-    //    whichever axis yields the fewest/longest runs (auto: horizontal, vertical, diagonal).
-    //    This favours long repeating curves over short per-circle loops and avoids cusp spikes.
-    // 2. Sweep the resulting wave-rows in orientation-aware bands with snaking
-    //    (orderStrokesFamily) → one long wave completed before the next row begins.
-    // Closed loops enter at the point nearest the needle; shapes never merge.
-    const pooled=[], fiOf=new Map();
+    // Logik 3 — Contour / wave stitching, per family then per colour.
+    // 1. buildContourStrokes chains arcs into long forward-marching WAVES (scallops).
+    // 2. orderStrokesFamily sweeps wave-rows in orientation-aware bands with snaking.
+    // 3. Families are visited one after the other — all lines of one colour before the next.
+    const famContourStrokes=new Map(), famEnds=new Map();
     for(const[fi,segs]of famGroups){
-      buildContourStrokes(segs,maxTurn).forEach(pts=>{pooled.push(pts);fiOf.set(pts,fi);});
+      const raw=buildContourStrokes(segs,maxTurn);
+      if(!raw.length)continue;
+      const ordered=orderStrokesFamily(raw);
+      if(!ordered.length)continue;
+      famContourStrokes.set(fi,ordered);
+      const p0=ordered[0].pts[0];
+      const p1=ordered[ordered.length-1].pts[ordered[ordered.length-1].pts.length-1];
+      famEnds.set(fi,{p0,p1});
     }
-    if(!pooled.length)return[];
-    const ordered=orderStrokesFamily(pooled);  // band-snake; pts references preserved
-    const path=[]; let cur=null;
-    for(const s of ordered){
-      const fi=fiOf.get(s.pts);
-      let pts=s.pts;
-      if(cur){
-        const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
-        const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
-        if(dE<dS)pts=pts.slice().reverse();
+    if(!famContourStrokes.size)return[];
+
+    const allFamIds=[...famContourStrokes.keys()];
+    let bestOrder;
+    if(famOrderOverride && famOrderOverride.length){
+      bestOrder=famOrderOverride.filter(fi=>famContourStrokes.has(fi));
+      for(const fi of allFamIds)if(!bestOrder.includes(fi))bestOrder.push(fi);
+    }else{
+      bestOrder=allFamIds;
+    }
+    if(bestOrder.length>1&&!famOrderOverride){
+      const evalPerm=perm=>{
+        let cost=0,cur2=null;
+        for(const fi of perm){
+          const{p0,p1}=famEnds.get(fi);
+          if(!cur2){cur2=p1;continue;}
+          const dF=Math.hypot(p0[0]-cur2[0],p0[1]-cur2[1]);
+          const dB=Math.hypot(p1[0]-cur2[0],p1[1]-cur2[1]);
+          if(dF<=dB){cost+=dF;cur2=p1;}else{cost+=dB;cur2=p0;}
+        }
+        return cost;
+      };
+      if(bestOrder.length<=7){
+        let bestCost=Infinity;
+        for(const p of _permute(bestOrder)){const c=evalPerm(p);if(c<bestCost){bestCost=c;bestOrder=p;}}
+      }else{
+        const rem=new Set(bestOrder);bestOrder=[];let cur2=null;
+        while(rem.size){
+          let bf=null,bd=Infinity,useFront=true;
+          for(const fi of rem){
+            const{p0,p1}=famEnds.get(fi);
+            const dF=cur2?Math.hypot(p0[0]-cur2[0],p0[1]-cur2[1]):0;
+            const dB=cur2?Math.hypot(p1[0]-cur2[0],p1[1]-cur2[1]):0;
+            if(dF<bd){bd=dF;bf=fi;useFront=true;}
+            if(dB<bd){bd=dB;bf=fi;useFront=false;}
+          }
+          bestOrder.push(bf);rem.delete(bf);
+          if(useFront)cur2=famEnds.get(bf).p1;else cur2=famEnds.get(bf).p0;
+        }
       }
-      if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
-        pts=_rotateClosedEntry(pts,cur);
-      for(let k=0;k<pts.length-1;k++)
-        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
-      cur=pts[pts.length-1];
+    }
+
+    const path=[]; let cur=null;
+    for(const fi of bestOrder){
+      const ordered=famContourStrokes.get(fi);
+      for(const s of ordered){
+        let pts=s.pts;
+        if(cur){
+          const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
+          const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
+          if(dE<dS)pts=pts.slice().reverse();
+        }
+        if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+          pts=_rotateClosedEntry(pts,cur);
+        for(let k=0;k<pts.length-1;k++)
+          path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+        cur=pts[pts.length-1];
+      }
     }
     return path;
   }
