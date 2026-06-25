@@ -184,9 +184,16 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </div>
       </div>
       <div class="cad-panel">
-        <label class="cad-routing-toggle"><input type="checkbox" id="cadZigzagRouting" onchange="cadUpdateSettings()"> ⟿ Follow-path routing</label>
         <div class="cad-panel-top">
           <div class="cad-canvas-label">Live Tiling</div>
+          <label class="cad-routing-toggle">Routing:
+            <select id="cadRoutingMode" onchange="cadUpdateSettings()">
+              <option value="default" selected>Default</option>
+              <option value="smooth">Smooth strokes</option>
+              <option value="fewer-jumps">Fewer jumps</option>
+              <option value="continuous">Follow path</option>
+            </select>
+          </label>
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Tiles</span>
             <input type="number" id="cadPatSize" value="5" min="2" max="12" onchange="cadUpdateSettings()">

@@ -209,7 +209,7 @@ function loadPattern(pat){
 
   if(isEXP){
     setupExpCanvas(pat);
-    EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.zigzagRouting);
+    EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
