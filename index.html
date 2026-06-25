@@ -6934,7 +6934,15 @@ window.editExpPattern=function(idOrPat){
   // Restore families and order from saved pattern
   cadFamilies=(pat.families||[]).slice();
   while(cadFamilies.length<cadLines.length)cadFamilies.push(-1);
+  if(cadFamilies.length>cadLines.length)cadFamilies.length=cadLines.length;
   cadFamOrder=(pat.famOrder||[]).slice();
+  // If no families were saved, detect from geometry so routing matches gallery
+  if(!cadFamilies.some(f=>f>=0)){
+    const connFams=detectSymmetryFamilies({lines:cadLines, bbox:cadBBox()||pat.bbox||{minU:0,maxU:10,minV:0,maxV:10}});
+    cadFamilies.fill(-1);
+    connFams.forEach((group,fi)=>{group.forEach(li=>{cadFamilies[li]=fi;});});
+    cadFamOrder=[...Array(connFams.length).keys()];
+  }
   cadFamsLocked=cadFamilies.some(f=>f>=0);
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
@@ -8635,7 +8643,7 @@ window.cadRotate45=function(){
 
 // Convert a CAD line (straight or arc) to the saved format relative to bbox.
 function _cadLineToSaved(l, minU, minV){
-  if(l.arc){
+  if(l.arc&&l.center!==undefined){
     return{
       arc:true,
       center:[parseFloat((l.center[0]-minU).toFixed(3)),parseFloat((l.center[1]-minV).toFixed(3))],
@@ -8649,11 +8657,11 @@ function _cadLineToSaved(l, minU, minV){
   return{start:[parseFloat((l.start[0]-minU).toFixed(3)),parseFloat((l.start[1]-minV).toFixed(3))],end:[parseFloat((l.end[0]-minU).toFixed(3)),parseFloat((l.end[1]-minV).toFixed(3))]};
 }
 function _cadLineFromSaved(l, minU, minV){
-  if(l.arc){
+  if(l.arc&&l.center!==undefined){
     const c=[l.center[0]-minU,l.center[1]-minV];
     return{arc:true,center:c,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV]};
   }
-  return{start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV]};
+  return{start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV],...(l.arc?{arc:true}:{})};
 }
 
 window.cadSaveToLibrary=function(){
