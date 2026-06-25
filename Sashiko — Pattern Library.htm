@@ -7819,18 +7819,19 @@ function cadDistToArc(p, arc){
 
 // Normalise an angle into the sweep interval [a1,a2]. Returns null if outside.
 function cadAngleInArc(a, arc){
-  let a1=arc.a1, a2=arc.a2;
-  // Normalise input and arc bounds to [0, 2*PI)
-  let aa=a;
-  while(aa<0)aa+=2*Math.PI;
-  while(aa>=2*Math.PI)aa-=2*Math.PI;
-  while(a1<0)a1+=2*Math.PI; while(a1>=2*Math.PI)a1-=2*Math.PI;
-  while(a2<0)a2+=2*Math.PI; while(a2>=2*Math.PI)a2-=2*Math.PI;
+  const a1=arc.a1, a2=arc.a2;
   if(a2>=a1){
-    if(a2-a1>=2*Math.PI-0.001)return aa;
+    if(a2-a1>=2*Math.PI-0.001)return a;
+    let aa=a;
+    while(aa<a1)aa+=2*Math.PI;
+    while(aa>a2)aa-=2*Math.PI;
     return(aa>=a1-0.001&&aa<=a2+0.001)?aa:null;
   }else{
-    return(aa>=a1-0.001||aa<=a2+0.001)?aa:null;
+    // CW sweep: arc goes from a1 clockwise to a2
+    let aa=a;
+    while(aa>a1)aa-=2*Math.PI;
+    while(aa<a2)aa+=2*Math.PI;
+    return(aa<=a1+0.001&&aa>=a2-0.001)?aa:null;
   }
 }
 
@@ -7943,17 +7944,14 @@ function cadBBox(){
   let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
   cadLines.forEach(l=>{
     if(l.arc){
-      // Expand bbox for arc: include all 4 axis-aligned extrema + endpoints
       const cx=l.center[0], cy=l.center[1], r=l.r;
       mnu=Math.min(mnu,l.start[0],l.end[0]); mxu=Math.max(mxu,l.start[0],l.end[0]);
       mnv=Math.min(mnv,l.start[1],l.end[1]); mxv=Math.max(mxv,l.start[1],l.end[1]);
-      const a1=l.a1, a2=l.a2;
       for(const a of [0, Math.PI/2, Math.PI, 3*Math.PI/2]){
         if(cadAngleInArc(a,l)!==null){mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));}
       }
-      // Also check sweep extrema (where derivative=0: at angles a1 and a2 and any angle where cos/sin cross)
-      if(a2>=a1){
-        for(const a of [a1,a2]){mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));}
+      for(const a of [l.a1,l.a2]){
+        mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));
       }
     }else{
       mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);
@@ -7970,8 +7968,14 @@ function cadBBox2(lines){
       const cx=l.center[0], cy=l.center[1], r=l.r;
       mnu=Math.min(mnu,l.start[0],l.end[0]); mxu=Math.max(mxu,l.start[0],l.end[0]);
       mnv=Math.min(mnv,l.start[1],l.end[1]); mxv=Math.max(mxv,l.start[1],l.end[1]);
-      for(const a of [0, Math.PI/2, Math.PI, 3*Math.PI/2])if(cadAngleInArc(a,l)!==null){mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));}
-      if(l.a2>=l.a1)for(const a of [l.a1,l.a2]){mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));}
+      for(const a of [0, Math.PI/2, Math.PI, 3*Math.PI/2])if(cadAngleInArc(a,l)!==null){
+        mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));
+        mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));
+      }
+      for(const a of [l.a1,l.a2]){
+        mnu=Math.min(mnu,cx+r*Math.cos(a));mxu=Math.max(mxu,cx+r*Math.cos(a));
+        mnv=Math.min(mnv,cy+r*Math.sin(a));mxv=Math.max(mxv,cy+r*Math.sin(a));
+      }
     }else{
       mnu=Math.min(mnu,l.start[0],l.end[0]);mxu=Math.max(mxu,l.start[0],l.end[0]);
       mnv=Math.min(mnv,l.start[1],l.end[1]);mxv=Math.max(mxv,l.start[1],l.end[1]);
@@ -8214,6 +8218,36 @@ function cadArcLabel(){
   const labels=['Click to place center','Click to set radius','Click to set sweep (click center-start for full circle)'];
   const el=document.getElementById('cadArcHint');
   if(el)el.textContent=cadArcState<3?labels[cadArcState]:'';
+}
+
+// Auto-extend grid if any geometry extends beyond the current grid boundary
+function cadAutoExtendGrid(){
+  const bbox=cadBBox();
+  if(!bbox)return;
+  const tc=cadMacro*CAD_MICRO;
+  const oldZoom=cadZoom, oldPanX=cadPanX, oldPanY=cadPanY;
+  let changed=false;
+  while(bbox.maxU>=tc||bbox.maxV>=tc||bbox.minU<=-CAD_MICRO||bbox.minV<=-CAD_MICRO){
+    if(bbox.minU<-CAD_MICRO||bbox.minV<-CAD_MICRO){
+      const du=bbox.minU<-CAD_MICRO?-bbox.minU+CAD_MICRO:0;
+      const dv=bbox.minV<-CAD_MICRO?-bbox.minV+CAD_MICRO:0;
+      cadLines=cadLines.map(l=>{
+        if(l.arc){
+          const nc=[l.center[0]+du,l.center[1]+dv];
+          return{...l,center:nc,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]};
+        }
+        return{...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]};
+      });
+    }
+    if(cadMacro>=6)break;
+    cadMacro++;
+    document.getElementById('cadGridSize').value=cadMacro;
+    changed=true;
+    const nb=cadBBox();if(!nb)break;
+    const ntc=cadMacro*CAD_MICRO;
+    if(nb.maxU<ntc&&nb.maxV<ntc&&nb.minU>=-CAD_MICRO&&nb.minV>=-CAD_MICRO)break;
+  }
+  if(changed){cadZoom=oldZoom;cadPanX=oldPanX;cadPanY=oldPanY;cadUpdateSettings();}
 }
 
 function cadBakeLeft(){
@@ -8846,6 +8880,7 @@ function cadInit(){
         cadFamsLocked=false;cadFamSel=-1;
         cadArcState=0;cadArcCenter=null;cadArcStart=null;
         cadSplitAtIntersections();
+        cadAutoExtendGrid();
       }
       cadArcLabel();
     }
@@ -8895,7 +8930,7 @@ function cadInit(){
   cv.addEventListener('pointerup',e=>{
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;cadSplitAtIntersections();}
+      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;cadSplitAtIntersections();cadAutoExtendGrid();}
     }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
