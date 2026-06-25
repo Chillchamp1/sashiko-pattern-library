@@ -369,7 +369,15 @@ function loadExpPatterns(){
     // Sync local-only patterns up first, then fetch all from Firestore
     _syncLocalToFirestore()
       .then(()=>_fetchFromFirestore())
-      .then(()=>rebuildMyPatsView());
+      .then(()=>{
+        rebuildMyPatsView();
+        // Re-check deep link for exp patterns (Firebase wasn't ready at init time)
+        const hash=location.hash.slice(1);
+        if(hash&&!PATTERNS.find(p=>p.id===hash)){
+          const exp=EXP_PATTERNS.find(p=>p.id===hash);
+          if(exp)openExpPattern(exp);
+        }
+      });
   }
 }
 
