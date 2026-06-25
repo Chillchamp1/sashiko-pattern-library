@@ -1035,7 +1035,7 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   const mode=routingMode||'default';
   // Logik 1 (default) + legacy smooth/fewer-jumps = family band-snake, varying turn budget.
   // Logik 2 (continuous) = global-NN follow-path. Logik 3 (contour) = outline shapes, float between.
-  const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:90*Math.PI/180};
+  const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:120*Math.PI/180};
   const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
 
   const famGroups=new Map();
@@ -1072,16 +1072,16 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   }
 
   if(mode==='contour'){
-    // Logik 3 — Contour stitching with wave rastering.
-    // 1. Trace each closed shape / connected curve as ONE smooth outline (min-deflection,
-    //    turn budget 90° → right-angle corners stay in-stroke, sharper pointed turns break
-    //    instead of being forced → flowing curves, no spikes).
-    // 2. Sweep the strokes in orientation-aware bands with snaking (orderStrokesFamily),
-    //    so long smooth curves/waves are taken lane-by-lane — diagonal lanes included.
+    // Logik 3 — Contour / wave stitching.
+    // 1. buildContourStrokes chains arcs into long forward-marching WAVES (scallops) along
+    //    whichever axis yields the fewest/longest runs (auto: horizontal, vertical, diagonal).
+    //    This favours long repeating curves over short per-circle loops and avoids cusp spikes.
+    // 2. Sweep the resulting wave-rows in orientation-aware bands with snaking
+    //    (orderStrokesFamily) → one long wave completed before the next row begins.
     // Closed loops enter at the point nearest the needle; shapes never merge.
     const pooled=[], fiOf=new Map();
     for(const[fi,segs]of famGroups){
-      buildStrokesForFamily(segs,maxTurn).forEach(pts=>{pooled.push(pts);fiOf.set(pts,fi);});
+      buildContourStrokes(segs,maxTurn).forEach(pts=>{pooled.push(pts);fiOf.set(pts,fi);});
     }
     if(!pooled.length)return[];
     const ordered=orderStrokesFamily(pooled);  // band-snake; pts references preserved
@@ -1251,6 +1251,88 @@ function buildStrokesForFamily(segs, maxTurn){
   });
 
   return strokes;
+}
+
+// ── Contour/wave tracer (Logik 3) ────────────────────────────────────────────
+// Chains arc segments into long forward-marching waves (scallops) instead of closed
+// per-circle loops. Tries 4 sweep axes (horizontal, vertical, both diagonals) and keeps
+// the decomposition with the FEWEST strokes = longest continuous runs. Within a wave the
+// needle always progresses along the axis, picking the smoothest forward arc at each
+// crossing → long repeating curves, no cusp folds. Leftover edges (≈perpendicular to the
+// axis) are traced straightest-first as a fallback.
+function buildContourStrokes(segs, maxTurn){
+  const Q=1e-4;
+  const vId=new Map(), vPos=[];
+  const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
+    if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
+  const seen=new Set(), edges=[];
+  for(const l of segs){
+    const a=vidOf(l.start), b=vidOf(l.end);
+    if(a===b)continue;
+    const ek=a<b?a+'_'+b:b+'_'+a;
+    if(seen.has(ek))continue; seen.add(ek);
+    edges.push([a,b]);
+  }
+  if(!edges.length)return[];
+  const adj=vPos.map(()=>[]);
+  edges.forEach(([a,b],ei)=>{
+    let dx=vPos[b][0]-vPos[a][0], dy=vPos[b][1]-vPos[a][1];
+    const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
+    adj[a].push({e:ei,to:b,dir:[dx,dy]});
+    adj[b].push({e:ei,to:a,dir:[-dx,-dy]});
+  });
+
+  function traceAxis(ax,ay){
+    const usedE=new Uint8Array(edges.length), strokes=[];
+    const proj=i=>vPos[i][0]*ax+vPos[i][1]*ay;
+    const verts=[...Array(vPos.length).keys()].sort((i,j)=>proj(i)-proj(j));
+    const pick=(v,inDir)=>{           // smoothest UNused edge that progresses along the axis
+      let best=-1,bestTurn=Infinity;
+      for(let li=0;li<adj[v].length;li++){
+        const h=adj[v][li]; if(usedE[h.e])continue;
+        const fwd=h.dir[0]*ax+h.dir[1]*ay; if(fwd<=1e-6)continue;
+        let turn;
+        if(!inDir)turn=-fwd;            // start a wave on its most-forward arc
+        else{let dt=h.dir[0]*inDir[0]+h.dir[1]*inDir[1];dt=Math.max(-1,Math.min(1,dt));turn=Math.acos(dt);if(turn>maxTurn)continue;}
+        if(turn<bestTurn){bestTurn=turn;best=li;}
+      }
+      return best;
+    };
+    for(const v0 of verts){
+      let li;
+      while((li=pick(v0,null))>=0){
+        const pts=[vPos[v0].slice()]; let v=v0,cl=li,inDir=null;
+        for(;;){
+          const h=adj[v][cl]; if(usedE[h.e])break; usedE[h.e]=1;
+          pts.push(vPos[h.to].slice()); inDir=h.dir; v=h.to;
+          const nl=pick(v,inDir); if(nl<0)break; cl=nl;
+        }
+        if(pts.length>=2)strokes.push(pts);
+      }
+    }
+    // fallback for edges perpendicular to the axis (never "forward"): straightest-first trace
+    edges.forEach((e,ei)=>{
+      if(usedE[ei])return;
+      let v=e[0], c=adj[v].findIndex(h=>h.e===ei), inDir=null;
+      const pts=[vPos[v].slice()];
+      for(;;){
+        const h=adj[v][c]; if(usedE[h.e])break; usedE[h.e]=1;
+        pts.push(vPos[h.to].slice()); inDir=h.dir; v=h.to;
+        let best=-1,bt=Infinity;
+        for(let li=0;li<adj[v].length;li++){const hh=adj[v][li];if(usedE[hh.e])continue;
+          let dt=hh.dir[0]*inDir[0]+hh.dir[1]*inDir[1];dt=Math.max(-1,Math.min(1,dt));const turn=Math.acos(dt);
+          if(turn>maxTurn)continue; if(turn<bt){bt=turn;best=li;}}
+        if(best<0)break; c=best;
+      }
+      if(pts.length>=2)strokes.push(pts);
+    });
+    return strokes;
+  }
+
+  const axes=[[1,0],[Math.SQRT1_2,Math.SQRT1_2],[0,1],[-Math.SQRT1_2,Math.SQRT1_2]];
+  let best=null,bestN=Infinity;
+  for(const[ax,ay]of axes){const s=traceAxis(ax,ay); if(s.length<bestN){bestN=s.length;best=s;}}
+  return best||[];
 }
 
 // ── Stroke ordering within one super-family (ROUTING.md Rules 2+3: band-snake) ─
