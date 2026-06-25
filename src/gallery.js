@@ -51,7 +51,7 @@ function buildGallery(){
     likeRow.className='like-row';likeRow.dataset.id=pat.id;
     card.appendChild(likeRow);
     setTimeout(()=>renderLikeButtons(pat.id),0);
-    card.onclick=()=>openExpPattern(pat);
+    card.onclick=()=>window.open('#'+pat.id,'_blank');
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
