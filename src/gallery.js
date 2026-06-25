@@ -112,6 +112,7 @@ window.setFilter=function(btn){
 
 // ── View switching ─────────────────────────────────────────────────────────
 function openPattern(pat){
+  _animSource='gallery';
   history.replaceState(null,'','#'+pat.id);
   document.getElementById('galleryView').style.display='none';
   document.getElementById('animView').classList.add('open');
@@ -119,7 +120,7 @@ function openPattern(pat){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 window.showGallery=function(){
-  if(isEXP){
+  if(_animSource==='sandbox'){
     document.getElementById('animView').classList.remove('open');
     document.getElementById('myPatsView').classList.add('open');
     rebuildMyPatsView();

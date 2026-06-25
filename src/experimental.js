@@ -1327,6 +1327,8 @@ function renderExp(step){
 window.openExpPattern=function openExpPattern(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
+  // Track source: if gallery is visible we came from there, otherwise sandbox
+  _animSource=document.getElementById('galleryView').style.display!=='none'?'gallery':'sandbox';
   history.replaceState(null,'','#'+pat.id);
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.add('open');
