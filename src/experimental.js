@@ -316,44 +316,65 @@ async function _deleteFromFirestore(id){
   try{await _db.collection('patterns').doc(id).delete();}catch(e){console.warn('Firestore delete failed:',e);}
 }
 
-// Fetch all patterns from Firestore, merge with local thumbnail cache.
+// Fetch all patterns from Firestore, intelligently merge with local.
+// Timestamp-based: newer version wins for duplicate IDs.
+// Local-only patterns (new) get pushed to Firestore automatically.
 async function _fetchFromFirestore(){
   if(!_db)return;
   try{
     const snap=await _db.collection('patterns').orderBy('createdAt','desc').get();
     const remote=snap.docs.map(d=>d.data());
+    const remoteById=Object.fromEntries(remote.map(p=>[p.id,p]));
+    const uid=_getUserId();
+
     // One-time seed from backup-patterns.json (runs once per origin via localStorage flag)
     if(location.protocol!=='file:'&&!localStorage.getItem('sashiko_backup_seeded')){
       try{
         const res=await fetch('./backup-patterns.json');
         if(res.ok){
           const data=await res.json();
-          const uid=_getUserId();
           const remoteIds=new Set(remote.map(p=>p.id));
           for(const p of (data.patterns||[])){
             if(!p.id||remoteIds.has(p.id))continue;
             if(!p.creatorId)p.creatorId=uid;
             remote.push(p);
+            remoteById[p.id]=p;
             await _pushToFirestore(p);
           }
           localStorage.setItem('sashiko_backup_seeded','1');
         }
       }catch(e){console.warn('Auto-seed from backup failed:',e);}
     }
-    // Local always wins for patterns that exist here (more recent edits).
+
     const localById=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p]));
-    const remoteIds=new Set(remote.map(p=>p.id));
     const merged=[];
+    const seenIds=new Set();
+
+    // Merge: newer timestamp wins for duplicate IDs
     for(const p of remote){
-      if(localById[p.id]){
-        merged.push({...localById[p.id]});
+      seenIds.add(p.id);
+      const lpat=localById[p.id];
+      if(lpat && (lpat.createdAt||0) >= (p.createdAt||0)){
+        // Local is same age or newer — keep local, push to Firestore if newer
+        merged.push({...lpat});
+        if((lpat.createdAt||0) > (p.createdAt||0)){
+          await _pushToFirestore(lpat);
+        }
       }else{
+        // Remote is newer or local doesn't have it
         merged.push({...p,thumbnail:null});
+        _saveLocal();
       }
     }
+
+    // Local patterns not in remote: push to Firestore (they're new)
     for(const p of EXP_PATTERNS){
-      if(!remoteIds.has(p.id))merged.push(p);
+      if(seenIds.has(p.id))continue;
+      merged.push(p);
+      if(!p.creatorId)p.creatorId=uid;
+      await _pushToFirestore(p);
     }
+
     EXP_PATTERNS=merged;
     EXP_PATTERNS.forEach(p=>_normalizePat(p));
     _saveLocal();
@@ -366,9 +387,7 @@ function loadExpPatterns(){
   cleanTrash();
   _initFirebase();
   if(_firebaseReady){
-    // Sync local-only patterns up first, then fetch all from Firestore
-    _syncLocalToFirestore()
-      .then(()=>_fetchFromFirestore())
+    _fetchFromFirestore()
       .then(()=>{
         rebuildMyPatsView();
         // Re-check deep link for exp patterns (Firebase wasn't ready at init time)
