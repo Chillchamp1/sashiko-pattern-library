@@ -4,6 +4,17 @@ Binding rules for the **order** in which a pattern's stitches are animated / "se
 
 Goal: a stitch path a human embroiderer would actually sew — as continuous as possible, minimal thread waste.
 
+## Selectable routing modes (CAD editor)
+The CAD editor exposes three routing logics via the **Routing** dropdown (`cadRoutingMode`, stored per pattern as `routingMode`). All three obey the cost model below; they differ in how strokes are formed and ordered. Picked in `buildExpPath(lines, famOrder, routingMode)`.
+
+| # | Mode | value | Covers | How |
+|---|---|---|---|---|
+| **1** | Straight rows (Boustrophedon) | `default` | Kōshi, Hishi, Tasuki, Kikkō, all pure line grids | Family-by-family; min-deflection strokes (`maxTurn=90°`) ordered by band-snake. Short float at each row end. |
+| **2** | Zigzag rows (Follow path) | `continuous` | Yamagata, Nowaki, all wave/zigzag meshes | Strokes follow connected diagonals through every crossing (`maxTurn=180°`); all chains ordered globally by nearest-neighbour → long zigzag runs edge-to-edge, floats only between runs. |
+| **3** | Contours | `contour` | Seigaiha, Shippō, isolated shapes with gaps, curve/arc patterns | Each closed shape / connected curve traced as ONE outline (`maxTurn=135°`: right-angle corners stay in-stroke, sharp folds break). Shapes never merge; NN order with closed-loop entry rotation + retrace penalty → clean chains of contours. |
+
+Legacy values `smooth` (60°) and `fewer-jumps` (120°) are Logik-1 variants kept for backward compatibility; collapsed to `default` on edit.
+
 ## The human-makability cost (how we decide between two routings)
 A complete route covers every segment exactly once, as an ordered list of continuous **strokes** with **jumps** (needle re-insertions) between them. We approximately minimise, in strict priority order:
 

@@ -944,6 +944,8 @@ window.editExpPattern=function(idOrPat){
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
   cadRoutingMode=pat.routingMode||'default';
+  // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
+  if(cadRoutingMode==='smooth'||cadRoutingMode==='fewer-jumps')cadRoutingMode='default';
   document.getElementById('cadRoutingMode').value=cadRoutingMode;
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
@@ -1031,7 +1033,9 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   if(!lines||!lines.length)return[];
 
   const mode=routingMode||'default';
-  const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI};
+  // Logik 1 (default) + legacy smooth/fewer-jumps = family band-snake, varying turn budget.
+  // Logik 2 (continuous) = global-NN follow-path. Logik 3 (contour) = outline shapes, float between.
+  const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:135*Math.PI/180};
   const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
 
   const famGroups=new Map();
@@ -1060,6 +1064,42 @@ function buildExpPath(lines, famOrderOverride, routingMode){
       const pts=brev?rawPts.slice().reverse():[...rawPts];
       for(let k=0;k<pts.length-1;k++){
         path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+      }
+      cur=pts[pts.length-1];
+      rem.splice(best,1);
+    }
+    return path;
+  }
+
+  if(mode==='contour'){
+    // Logik 3 — Contour stitching: trace each closed shape / connected curve as ONE
+    // continuous outline (turn budget 135° so corners up to a right angle stay in-stroke,
+    // sharp near-folds break), then float to the nearest next shape. Shapes never merge.
+    // Closed loops enter at the point nearest the needle; the retrace penalty keeps the
+    // floats out of already-stitched areas → clean "chains of contours".
+    const allChains=[];
+    for(const[fi,segs]of famGroups){
+      buildStrokesForFamily(segs,maxTurn).forEach(pts=>allChains.push({pts,fi}));
+    }
+    const rem=allChains.slice(), path=[], stitched=[];
+    let cur=null;
+    while(rem.length){
+      let best=-1,bd=Infinity,brev=false;
+      for(let i=0;i<rem.length;i++){
+        const{pts}=rem[i];
+        const s=pts[0], e=pts[pts.length-1];
+        const ds=cur?Math.hypot(s[0]-cur[0],s[1]-cur[1])+_retraceCost(cur,s,stitched):0;
+        const de=cur?Math.hypot(e[0]-cur[0],e[1]-cur[1])+_retraceCost(cur,e,stitched):0;
+        if(ds<bd){bd=ds;best=i;brev=false;}
+        if(de<bd){bd=de;best=i;brev=true;}
+      }
+      const{pts:rawPts,fi}=rem[best];
+      let pts=brev?rawPts.slice().reverse():rawPts.slice();
+      if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+        pts=_rotateClosedEntry(pts,cur);
+      for(let k=0;k<pts.length-1;k++){
+        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+        stitched.push({start:pts[k],end:pts[k+1]});
       }
       cur=pts[pts.length-1];
       rem.splice(best,1);
