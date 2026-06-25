@@ -11,7 +11,7 @@ The CAD editor exposes three routing logics via the **Routing** dropdown (`cadRo
 |---|---|---|---|---|
 | **1** | Straight rows (Boustrophedon) | `default` | Kōshi, Hishi, Tasuki, Kikkō, all pure line grids | Family-by-family; min-deflection strokes (`maxTurn=90°`) ordered by band-snake. Short float at each row end. |
 | **2** | Zigzag rows (Follow path) | `continuous` | Yamagata, Nowaki, all wave/zigzag meshes | Strokes follow connected diagonals through every crossing (`maxTurn=180°`); all chains ordered globally by nearest-neighbour → long zigzag runs edge-to-edge, floats only between runs. |
-| **3** | Contours | `contour` | Seigaiha, Shippō, isolated shapes with gaps, curve/arc patterns | Each closed shape / connected curve traced as ONE outline (`maxTurn=135°`: right-angle corners stay in-stroke, sharp folds break). Shapes never merge; NN order with closed-loop entry rotation + retrace penalty → clean chains of contours. |
+| **3** | Contours | `contour` | Seigaiha, Shippō, isolated shapes with gaps, curve/arc patterns | Each closed shape / connected curve traced as ONE smooth outline (`maxTurn=90°`: right-angle corners stay in-stroke, sharper pointed turns break → flowing curves). Strokes then swept in orientation-aware bands with snaking (reuses `orderStrokesFamily`) so long curves/waves are taken lane-by-lane — diagonal lanes included. Closed loops enter nearest the needle; shapes never merge. |
 
 Legacy values `smooth` (60°) and `fewer-jumps` (120°) are Logik-1 variants kept for backward compatibility; collapsed to `default` on edit.
 
