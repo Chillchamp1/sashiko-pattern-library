@@ -7790,12 +7790,12 @@ function cadLineInter(p1,p2,p3,p4){
 function cadDistToArc(p, arc){
   const dx=p[0]-arc.center[0], dy=p[1]-arc.center[1];
   let ang=Math.atan2(dy,dx);
-  while(ang<0)ang+=2*Math.PI;
-  while(ang>=2*Math.PI)ang-=2*Math.PI;
+  if(ang<0)ang+=2*Math.PI;
+  if(ang>=2*Math.PI)ang-=2*Math.PI;
   let a1=arc.a1, a2=arc.a2;
   // Normalise a1,a2 into [0,2*PI) so distance comparsions work correctly
-  while(a1<0)a1+=2*Math.PI; while(a1>=2*Math.PI)a1-=2*Math.PI;
-  while(a2<0)a2+=2*Math.PI; while(a2>=2*Math.PI)a2-=2*Math.PI;
+  if(a1<0)a1+=2*Math.PI; if(a1>=2*Math.PI)a1-=2*Math.PI;
+  if(a2<0)a2+=2*Math.PI; if(a2>=2*Math.PI)a2-=2*Math.PI;
   if(a2>=a1){
     if(a2-a1>=2*Math.PI-0.001)return{dist:Math.abs(Math.hypot(dx,dy)-arc.r), angle:ang};
     if(ang>=a1-0.001&&ang<=a2+0.001){
@@ -7823,14 +7823,15 @@ function cadAngleInArc(a, arc){
   if(a2>=a1){
     if(a2-a1>=2*Math.PI-0.001)return a;
     let aa=a;
-    while(aa<a1)aa+=2*Math.PI;
-    while(aa>a2)aa-=2*Math.PI;
+    if(aa<a1)aa+=2*Math.PI;
+    if(aa>a2)aa-=2*Math.PI;
+    if(aa<a1-0.001)aa+=2*Math.PI;
     return(aa>=a1-0.001&&aa<=a2+0.001)?aa:null;
   }else{
-    // CW sweep: arc goes from a1 clockwise to a2
     let aa=a;
-    while(aa>a1)aa-=2*Math.PI;
-    while(aa<a2)aa+=2*Math.PI;
+    if(aa>a1)aa-=2*Math.PI;
+    if(aa<a2)aa+=2*Math.PI;
+    if(aa>a1+0.001)aa-=2*Math.PI;
     return(aa<=a1+0.001&&aa>=a2-0.001)?aa:null;
   }
 }
@@ -7899,8 +7900,8 @@ function cadHoveredSeg(ru,rv){
     // Convert angle to sweep parameter t ∈ [0,1] along the arc from a1 to a2
     const toSweep=a=>{
       let d=sweepDir>0?a-a1:a1-a;
-      while(d<0)d+=2*Math.PI;
-      while(d>=2*Math.PI)d-=2*Math.PI;
+      if(d<0)d+=2*Math.PI;
+      if(d>=2*Math.PI)d-=2*Math.PI;
       return Math.max(0,Math.min(1,d/totalSweep));
     };
     let pts=[{t:toSweep(best.a1),u:best.start[0],v:best.start[1]},
