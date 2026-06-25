@@ -32,10 +32,12 @@
     <button class="filt" onclick="exportAllPatterns()" style="margin-left:auto" title="Download all patterns as backup JSON">⬇ Backup</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
-</div>
+</div><!-- /galleryView -->
+</div><!-- /wrap -->
 
 <!-- Animation / Generator view -->
 <div id="animView">
+  <div class="anim-wrap">
   <div class="back-row">
     <button class="back-btn" onclick="showGallery()">← Patterns</button>
     <h2 class="anim-title" id="animTitle">Hitomezashi<span class="jp">一目刺し · Snowflake</span></h2>
@@ -119,6 +121,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     </div>
   </div>
   -->
+  </div><!-- .anim-wrap -->
 </div>
 
 <!-- CAD Pattern Editor — full-screen overlay -->
@@ -224,7 +227,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   </div>
 </div>
 
-</div>
 <!-- Firebase SDK (loaded async; app initialises lazily in experimental.js) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
