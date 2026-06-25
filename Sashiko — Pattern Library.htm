@@ -229,7 +229,7 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch:hover{border-color:#fff}
 .cad-fam-swatch.sel{border:3px solid #fff}
 /* ── Panel-top steppers (above canvases) ── */
-.cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:32px;flex-wrap:wrap}
 .cad-panel-stepper{display:inline-flex;align-items:center;gap:4px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:3px 8px}
 .cad-panel-stepper-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
 .cad-panel-stepper input{background:transparent;color:#e7eef6;border:none;padding:1px 0;font-size:12px;outline:none;text-align:center;width:24px;-moz-appearance:textfield}
@@ -247,12 +247,12 @@ button.ctrl.primary:hover{background:#275784}
 .cad-move-arrows{display:flex;flex-direction:column;align-items:center;gap:1px}
 .cad-move-arrows .cad-tool{width:28px;height:22px;padding:0;text-align:center;font-size:14px;line-height:1}
 .cad-move-arrows div{display:flex;gap:1px}
-.cad-workspace{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
-.cad-panel{display:flex;flex-direction:column;gap:8px;flex:1;min-width:300px;max-width:440px}
+.cad-workspace{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.cad-panel{display:flex;flex-direction:column;gap:8px;flex:1 1 0;min-width:300px;max-width:50%}
 .cad-canvas-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:center}
 .cad-canvas-wrap{border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);background:#1a3a5c;aspect-ratio:1;width:100%}
 .cad-canvas-wrap canvas{display:block;width:100%;height:100%}
-.cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:38px}
 .cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
 .cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
@@ -470,7 +470,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
           <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
           <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
-          <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
         <div class="cad-move-panel">
@@ -506,16 +505,12 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
           </span>
         </div>
-        <div class="cad-toolbar" style="visibility:hidden">
-          <button class="cad-tool">✏ Draw</button>
-          <button class="cad-tool">⭕ Arc</button>
-          <button class="cad-tool">✂ Cut</button>
-          <button class="cad-tool">↻ 45°</button>
-          <button class="cad-tool">▶ Play</button>
+        <div class="cad-toolbar">
+          <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
-        <div class="cad-move-panel" style="visibility:hidden">
-          <span class="cad-move-label">Move</span>
+        <div class="cad-move-panel">
+          <span class="cad-move-label"></span>
         </div>
   </div>
   <div class="remixes-section" id="remixesSection" style="display:none"></div>
