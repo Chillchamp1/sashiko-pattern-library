@@ -1008,17 +1008,16 @@ function buildExpPath(lines, famOrderOverride, zigzag){
   lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
 
   if(zigzag){
-    // Zigzag mode: stitch arc chains, then global NN across all families
+    // Follow-path (zigzag) mode: build continuous strokes per family
+    // with MAXTURN=π (no angle limit — full traversal through crossings).
+    // Then order all chains globally via nearest-neighbour to keep jumps short.
+    // Chains remain separate — no tolerance-based merging because it creates
+    // fake stitch segments between endpoints that aren't real pattern edges.
     const allChains=[];
     for(const[fi,segs]of famGroups){
       const raw=buildStrokesForFamily(segs,true);
-      // Dynamic tolerance: median arc-segment length × 1.5 — stitches near-miss arc endpoints
-      const lens=segs.map(s=>Math.hypot(s.end[0]-s.start[0],s.end[1]-s.start[1])).filter(l=>l>1e-9);
-      lens.sort((a,b)=>a-b);
-      const tol=(lens[lens.length>>1]||1)*1.5;
-      _stitchChains(raw,tol).forEach(pts=>allChains.push({pts,fi}));
+      raw.forEach(pts=>allChains.push({pts,fi}));
     }
-    // Global greedy NN — may interleave colours for shorter jumps
     const rem=allChains.slice(), path=[];
     let cur=null;
     while(rem.length){
