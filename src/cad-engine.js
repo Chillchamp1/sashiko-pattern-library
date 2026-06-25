@@ -110,7 +110,6 @@ function cadAngleInArc(a, arc){
     return(aa>=a1-0.001||aa<=a2+0.001)?aa:null;
   }
 }
-}
 
 // Intersect a line segment (p1→p2) with an arc. Returns array of {p:[u,v], t:lineParam, angle:arcAngle}.
 function cadLineArcIntersections(p1,p2,arc){
