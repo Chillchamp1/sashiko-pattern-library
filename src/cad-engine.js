@@ -96,18 +96,20 @@ function cadDistToArc(p, arc){
 
 // Normalise an angle into the sweep interval [a1,a2]. Returns null if outside.
 function cadAngleInArc(a, arc){
-  const a1=arc.a1, a2=arc.a2;
-  // Normalise input angle to [0, 2*PI)
+  let a1=arc.a1, a2=arc.a2;
+  // Normalise input and arc bounds to [0, 2*PI)
   let aa=a;
   while(aa<0)aa+=2*Math.PI;
   while(aa>=2*Math.PI)aa-=2*Math.PI;
+  while(a1<0)a1+=2*Math.PI; while(a1>=2*Math.PI)a1-=2*Math.PI;
+  while(a2<0)a2+=2*Math.PI; while(a2>=2*Math.PI)a2-=2*Math.PI;
   if(a2>=a1){
     if(a2-a1>=2*Math.PI-0.001)return aa;
     return(aa>=a1-0.001&&aa<=a2+0.001)?aa:null;
   }else{
-    // CW sweep: arc covers [a1,2*PI) ∪ [0,a2]
     return(aa>=a1-0.001||aa<=a2+0.001)?aa:null;
   }
+}
 }
 
 // Intersect a line segment (p1→p2) with an arc. Returns array of {p:[u,v], t:lineParam, angle:arcAngle}.
@@ -346,37 +348,35 @@ function cadFlattenArc(arc, nSegs){
 
 // Make an arc curve object from centre, start, end points.
 function _makeArcObj(center, start, end){
-  const r=Math.hypot(start[0]-center[0],start[1]-center[1]);
-  const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
-  const a2=Math.atan2(end[1]-center[1],end[0]-center[0]);
-  const isCircle=Math.hypot(end[0]-start[0],end[1]-start[1])<0.1;
-  return{
-    arc:true,
-    center:[center[0],center[1]],
-    r,
-    a1,
-    a2: isCircle?a1+2*Math.PI:a2,
-    start:[...start],
-    end: isCircle?[...start]:[...end]
-  };
+  return cadGenArc(center, start, end);
 }
 
 // Arc tool: 3 clicks — center, start (sets radius), end (sets sweep).
 // Returns a single curve object (not polyline segments).
+// Sweep is always the shortest path (≤180°) unless a full circle is requested.
 function cadGenArc(center,start,end){
   const r=Math.hypot(start[0]-center[0],start[1]-center[1]);
   if(r<0.01)return null;
-  const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
-  const a2=Math.atan2(end[1]-center[1],end[0]-center[0]);
   const isCircle=Math.hypot(end[0]-start[0],end[1]-start[1])<0.1;
+  if(isCircle){
+    const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
+    return{arc:true,center:[center[0],center[1]],r,a1,a2:a1+2*Math.PI,start:[...start],end:[...start]};
+  }
+  const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
+  let a2=Math.atan2(end[1]-center[1],end[0]-center[0]);
+  // Normalise sweep to [-PI, PI] so the arc takes the shortest path
+  let sweep=a2-a1;
+  while(sweep>Math.PI)sweep-=2*Math.PI;
+  while(sweep<=-Math.PI)sweep+=2*Math.PI;
+  a2=a1+sweep;
   return{
     arc:true,
     center:[center[0],center[1]],
     r,
     a1,
-    a2:isCircle?a1+2*Math.PI:a2,
-    start:[...start],
-    end:isCircle?[...start]:[...end]
+    a2,
+    start:[center[0]+r*Math.cos(a1),center[1]+r*Math.sin(a1)],
+    end:[center[0]+r*Math.cos(a2),center[1]+r*Math.sin(a2)]
   };
 }
 
