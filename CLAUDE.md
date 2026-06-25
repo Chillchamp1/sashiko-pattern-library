@@ -37,7 +37,8 @@ Interactive Sashiko pattern library with animated stitch-by-stitch preview. All 
 **Edit workflow:**
 1. Edit the desired `src/` file (e.g. `src/cad-engine.js` for CAD changes)
 2. Test locally with `python build.py`
-3. Push — Actions builds + deploys automatically
+3. Commit the change locally (`git add` + `git commit`)
+4. Push only when asked — Actions builds + deploys automatically on push
 
 **NEVER** edit `Sashiko — Pattern Library.htm` or `index.html` directly — those are build artefacts.
 
