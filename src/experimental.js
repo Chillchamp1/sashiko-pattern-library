@@ -316,6 +316,24 @@ async function _deleteFromFirestore(id){
   try{await _db.collection('patterns').doc(id).delete();}catch(e){console.warn('Firestore delete failed:',e);}
 }
 
+// Seed patterns from embedded backup data into localStorage (once per origin),
+// so offline / file:// testing also has the same seed patterns as the live site.
+function _seedLocalFromBackup(){
+  if(localStorage.getItem('sashiko_backup_seeded'))return;
+  const data=typeof SEED_PATTERNS!=='undefined'?SEED_PATTERNS:null;
+  if(!data||!Array.isArray(data.patterns))return;
+  const existingIds=new Set(EXP_PATTERNS.map(p=>p.id));
+  let added=false;
+  for(const p of data.patterns){
+    if(!p.id||existingIds.has(p.id))continue;
+    if(!p.creatorId)p.creatorId=_getUserId();
+    EXP_PATTERNS.push(p);
+    added=true;
+  }
+  if(added)_saveLocal();
+  localStorage.setItem('sashiko_backup_seeded','1');
+}
+
 // Fetch all patterns from Firestore, intelligently merge with local.
 // Timestamp-based: newer version wins for duplicate IDs.
 // Local-only patterns (new) get pushed to Firestore automatically.
@@ -326,25 +344,6 @@ async function _fetchFromFirestore(){
     const remote=snap.docs.map(d=>d.data());
     const remoteById=Object.fromEntries(remote.map(p=>[p.id,p]));
     const uid=_getUserId();
-
-    // One-time seed from backup-patterns.json (runs once per origin via localStorage flag)
-    if(location.protocol!=='file:'&&!localStorage.getItem('sashiko_backup_seeded')){
-      try{
-        const res=await fetch('./backup-patterns.json');
-        if(res.ok){
-          const data=await res.json();
-          const remoteIds=new Set(remote.map(p=>p.id));
-          for(const p of (data.patterns||[])){
-            if(!p.id||remoteIds.has(p.id))continue;
-            if(!p.creatorId)p.creatorId=uid;
-            remote.push(p);
-            remoteById[p.id]=p;
-            await _pushToFirestore(p);
-          }
-          localStorage.setItem('sashiko_backup_seeded','1');
-        }
-      }catch(e){console.warn('Auto-seed from backup failed:',e);}
-    }
 
     const localById=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p]));
     const merged=[];
@@ -385,6 +384,7 @@ async function _fetchFromFirestore(){
 function loadExpPatterns(){
   _loadLocal();
   cleanTrash();
+  _seedLocalFromBackup();
   _initFirebase();
   if(_firebaseReady){
     _fetchFromFirestore()
