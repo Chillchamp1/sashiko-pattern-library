@@ -67,38 +67,49 @@ function cadLineInter(p1,p2,p3,p4){
 function cadDistToArc(p, arc){
   const dx=p[0]-arc.center[0], dy=p[1]-arc.center[1];
   let ang=Math.atan2(dy,dx);
+  while(ang<0)ang+=2*Math.PI;
+  while(ang>=2*Math.PI)ang-=2*Math.PI;
   const a1=arc.a1, a2=arc.a2;
-  // Normalise ang into the arc's angle range
   if(a2>=a1){
     if(a2-a1>=2*Math.PI-0.001)return{dist:Math.abs(Math.hypot(dx,dy)-arc.r), angle:ang};
-    while(ang<a1)ang+=2*Math.PI;
-    while(ang>a2)ang-=2*Math.PI;
-    if(ang<a1-0.001)ang=a1;
-    if(ang>a2+0.001)ang=a2;
+    // Check if ang (in [0,2*PI)) is within [a1,a2]
+    if(ang>=a1-0.001&&ang<=a2+0.001){
+      const px=arc.center[0]+arc.r*Math.cos(ang), py=arc.center[1]+arc.r*Math.sin(ang);
+      return{dist:Math.hypot(p[0]-px,p[1]-py), angle:ang};
+    }
+    // Outside — measure circular distance to both endpoints, pick closer
+    const dA=Math.min(Math.abs(ang-a1),2*Math.PI-Math.abs(ang-a1));
+    const dB=Math.min(Math.abs(ang-a2),2*Math.PI-Math.abs(ang-a2));
+    const best=dA<=dB?a1:a2;
+    const px=arc.center[0]+arc.r*Math.cos(best), py=arc.center[1]+arc.r*Math.sin(best);
+    return{dist:Math.hypot(p[0]-px,p[1]-py), angle:best};
   }else{
-    while(ang>a1)ang-=2*Math.PI;
-    while(ang<a2)ang+=2*Math.PI;
-    if(ang>a1+0.001)ang=a1;
-    if(ang<a2-0.001)ang=a2;
+    // CW sweep: arc covers [a1,2*PI) ∪ [0,a2]
+    if(ang>=a1-0.001||ang<=a2+0.001){
+      const px=arc.center[0]+arc.r*Math.cos(ang), py=arc.center[1]+arc.r*Math.sin(ang);
+      return{dist:Math.hypot(p[0]-px,p[1]-py), angle:ang};
+    }
+    const dA=Math.min(Math.abs(ang-a1),2*Math.PI-Math.abs(ang-a1));
+    const dB=Math.min(Math.abs(ang-a2),2*Math.PI-Math.abs(ang-a2));
+    const best=dA<=dB?a1:a2;
+    const px=arc.center[0]+arc.r*Math.cos(best), py=arc.center[1]+arc.r*Math.sin(best);
+    return{dist:Math.hypot(p[0]-px,p[1]-py), angle:best};
   }
-  const px=arc.center[0]+arc.r*Math.cos(ang), py=arc.center[1]+arc.r*Math.sin(ang);
-  return{dist:Math.hypot(p[0]-px,p[1]-py), angle:ang};
 }
 
 // Normalise an angle into the sweep interval [a1,a2]. Returns null if outside.
 function cadAngleInArc(a, arc){
   const a1=arc.a1, a2=arc.a2;
+  // Normalise input angle to [0, 2*PI)
+  let aa=a;
+  while(aa<0)aa+=2*Math.PI;
+  while(aa>=2*Math.PI)aa-=2*Math.PI;
   if(a2>=a1){
-    if(a2-a1>=2*Math.PI-0.001)return a;
-    let aa=a;
-    while(aa<a1)aa+=2*Math.PI;
-    while(aa>a2)aa-=2*Math.PI;
+    if(a2-a1>=2*Math.PI-0.001)return aa;
     return(aa>=a1-0.001&&aa<=a2+0.001)?aa:null;
   }else{
-    let aa=a;
-    while(aa>a1)aa-=2*Math.PI;
-    while(aa<a2)aa+=2*Math.PI;
-    return(aa<=a1+0.001&&aa>=a2-0.001)?aa:null;
+    // CW sweep: arc covers [a1,2*PI) ∪ [0,a2]
+    return(aa>=a1-0.001||aa<=a2+0.001)?aa:null;
   }
 }
 
@@ -160,29 +171,33 @@ function cadHoveredSeg(ru,rv){
   if(!best)return null;
   if(best.arc){
     // Build breakpoints along the arc from intersections with other lines/arcs
-    let pts=[{angle:best.a1,u:best.start[0],v:best.start[1]},{angle:best.a2,u:best.end[0],v:best.end[1]}];
+    const a1=best.a1, a2=best.a2;
+    const sweepDir=a2>=a1?1:-1;
+    const totalSweep=Math.abs(a2-a1)||2*Math.PI;
+    // Convert angle to sweep parameter t ∈ [0,1] along the arc from a1 to a2
+    const toSweep=a=>{
+      let d=sweepDir>0?a-a1:a1-a;
+      while(d<0)d+=2*Math.PI;
+      while(d>=2*Math.PI)d-=2*Math.PI;
+      return Math.max(0,Math.min(1,d/totalSweep));
+    };
+    let pts=[{t:toSweep(best.a1),u:best.start[0],v:best.start[1]},
+             {t:toSweep(best.a2),u:best.end[0],v:best.end[1]}];
     cadLines.forEach((l,i)=>{
       if(i===li)return;
       let ixs;
       if(l.arc)ixs=cadArcArcIntersections(best,l);
       else ixs=cadLineArcIntersections(l.start,l.end,best);
-      ixs.forEach(ix=>pts.push({angle:ix.angleA!==undefined?ix.angleA:ix.angle,u:ix.p[0],v:ix.p[1]}));
+      ixs.forEach(ix=>{
+        const ang=ix.angleA!==undefined?ix.angleA:ix.angle;
+        pts.push({t:toSweep(ang),u:ix.p[0],v:ix.p[1]});
+      });
     });
-    // Sort by angle along sweep direction
-    const a1=best.a1, a2=best.a2;
-    const sweepDir=a2>=a1?1:-1;
-    pts.sort((a,b)=>{
-      let da=a.angle-a1;while(da<-Math.PI)da+=2*Math.PI;while(da>Math.PI)da-=2*Math.PI;
-      let db=b.angle-a1;while(db<-Math.PI)db+=2*Math.PI;while(db>Math.PI)db-=2*Math.PI;
-      return sweepDir>0?da-db:db-da;
-    });
-    // Deduplicate
-    const up=[pts[0]];for(let i=1;i<pts.length;i++)if(Math.abs(pts[i].angle-up[up.length-1].angle)>0.005)up.push(pts[i]);
-    // Build t-like parameter (0 to 1 along the sweep)
-    const total=Math.abs(a2-a1)||2*Math.PI;
-    const toT=a=>{let d=sweepDir>0?a-a1:a1-a;if(d<0)d+=2*Math.PI;return Math.max(0,Math.min(1,d/total));};
-    for(let i=0;i<up.length;i++)up[i].t=toT(up[i].angle);
-    const bt2=toT(bt);
+    // Sort by t (sweep parameter) and deduplicate
+    pts.sort((a,b)=>a.t-b.t);
+    const up=[pts[0]];for(let i=1;i<pts.length;i++)if(pts[i].t-up[up.length-1].t>0.001)up.push(pts[i]);
+    // Compute hover t parameter
+    const bt2=toSweep(bt);
     for(let i=0;i<up.length-1;i++)if(bt2>=up[i].t-0.005&&bt2<=up[i+1].t+0.005)return{li,start:up[i],end:up[i+1],all:up,ci:i,isArc:true,arcData:best};
     return null;
   }
