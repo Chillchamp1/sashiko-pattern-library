@@ -194,6 +194,8 @@ window.restoreFromTrash=function(idx){
   if(idx<0||idx>=trash.length)return;
   const restored=trash.splice(idx,1)[0].pattern;
   _saveTrash(trash);
+  // Clear from deleted list so Firestore sync doesn't filter it out
+  try{const del=JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');const i=del.indexOf(restored.id);if(i>=0){del.splice(i,1);localStorage.setItem('sashiko_deleted',JSON.stringify(del));}}catch(e){}
   EXP_PATTERNS.unshift(restored);
   _saveLocal();
   if(_firebaseReady)_pushToFirestore(restored);
@@ -345,12 +347,17 @@ async function _fetchFromFirestore(){
     const remoteById=Object.fromEntries(remote.map(p=>[p.id,p]));
     const uid=_getUserId();
 
+    // Filter out patterns that were explicitly deleted by the user
+    let deletedIds=[];
+    try{deletedIds=JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');}catch(e){}
+
     const localById=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p]));
     const merged=[];
     const seenIds=new Set();
 
     // Merge: newer timestamp wins for duplicate IDs
     for(const p of remote){
+      if(deletedIds.indexOf(p.id)>=0)continue; // skip user-deleted
       seenIds.add(p.id);
       const lpat=localById[p.id];
       if(lpat && (lpat.createdAt||0) >= (p.createdAt||0)){
@@ -1406,6 +1413,8 @@ window.removeExpPattern=async function removeExpPattern(id){
   if(!pat)return;
   moveToTrash(pat);
   EXP_PATTERNS=EXP_PATTERNS.filter(p=>p.id!==id);
+  // Persist deletion even if Firestore sync fails — prevents reappearing
+  try{const del=JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');del.push(id);localStorage.setItem('sashiko_deleted',JSON.stringify(del));}catch(e){}
   _saveLocal();
   await _deleteFromFirestore(id);
   rebuildMyPatsView();

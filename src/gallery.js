@@ -28,7 +28,7 @@ function buildGallery(){
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
   // Published custom patterns
-  EXP_PATTERNS.filter(p=>p.published).forEach(pat=>{
+  EXP_PATTERNS.filter(p=>p.published&&!deleted.includes(p.id)).forEach(pat=>{
     const card=document.createElement('button');
     card.className='pcard exp-card';
     card.dataset.id=pat.id;card.dataset.p='0';card.dataset.type='exp';
