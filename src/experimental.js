@@ -534,6 +534,24 @@ function detectSymmetryFamilies(pat){
   return [...groups.values()].sort((a,b)=>Math.min(...a)-Math.min(...b));
 }
 
+// Flatten an arc to polyline segments in grid space.
+function _flattenArc(l, nSegs){
+  const a1=l.a1, a2=l.a2;
+  let sweep=a2-a1;
+  if(sweep>=2*Math.PI-0.001)sweep=2*Math.PI;
+  else if(sweep<=-2*Math.PI+0.001)sweep=-2*Math.PI;
+  const totalSweep=Math.abs(sweep);
+  const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
+  const result=[]; let prev=[...l.start];
+  for(let i=1;i<=segs;i++){
+    const a=a1+sweep*(i/segs);
+    const next=[l.center[0]+l.r*Math.cos(a),l.center[1]+l.r*Math.sin(a)];
+    result.push({start:prev,end:next});
+    prev=next;
+  }
+  return result;
+}
+
 // ── Tiled segments (with symmetry-family assignment) ───────────────────────
 function genTiledSegs(pat){
   const lay=computeExpLayout(pat);
@@ -552,13 +570,23 @@ function genTiledSegs(pat){
   for(let li=0;li<nLines;li++){
     if(famOfLine[li]===undefined||famOfLine[li]<0)famOfLine[li]=nextFam++;
   }
-  const lines=pat.lines||[];
+  const rawLines=pat.lines||[];
+  // Build flat segments: expand arcs to polyline segments
+  const flatSegs=[];
+  const flatFamOf=[];
+  rawLines.forEach((l,li)=>{
+    if(l.arc){
+      _flattenArc(l, 60).forEach(s=>{flatSegs.push(s);flatFamOf.push(famOfLine[li]);});
+    }else{
+      flatSegs.push({start:[...l.start],end:[...l.end]});
+      flatFamOf.push(famOfLine[li]);
+    }
+  });
   const spacing=pat.spacing||0;
   const segs=[];
   if(pat.bboxRotated){
-    // 45° rotated diamond tiling: use p=u+v, q=u-v axes
     let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
-    lines.forEach(l=>{
+    flatSegs.forEach(l=>{
       const p1=l.start[0]+l.start[1], q1=l.start[0]-l.start[1];
       const p2=l.end[0]+l.end[1], q2=l.end[0]-l.end[1];
       mnP=Math.min(mnP,p1,p2);mxP=Math.max(mxP,p1,p2);
@@ -571,9 +599,9 @@ function genTiledSegs(pat){
     for(let a=-N;a<=N;a++){
       for(let b=-N;b<=N;b++){
         const ou=(a*sP+b*sQ)/2, ov=(a*sP-b*sQ)/2;
-        lines.forEach((l,li)=>{
+        flatSegs.forEach((l,fi)=>{
           const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
-          if(c)segs.push({start:c[0],end:c[1],fam:famOfLine[li]});
+          if(c)segs.push({start:c[0],end:c[1],fam:flatFamOf[fi]});
         });
       }
     }
@@ -583,9 +611,9 @@ function genTiledSegs(pat){
     const ov0=Math.floor((minV-dV)/sv)*sv, ov1=Math.ceil((maxV-0)/sv)*sv;
     for(let ou=ou0;ou<=ou1;ou+=su){
       for(let ov=ov0;ov<=ov1;ov+=sv){
-        lines.forEach((l,li)=>{
+        flatSegs.forEach((l,fi)=>{
           const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
-          if(c)segs.push({start:c[0],end:c[1],fam:famOfLine[li]});
+          if(c)segs.push({start:c[0],end:c[1],fam:flatFamOf[fi]});
         });
       }
     }
@@ -934,7 +962,13 @@ window.editExpPattern=function(idOrPat){
   {const tc=macroVal*CAD_MICRO;
    const cu=(pat.bbox.minU+pat.bbox.maxU)/2, cv=(pat.bbox.minV+pat.bbox.maxV)/2;
    const gc=tc/2;
-   cadLines=pat.lines.map(l=>({start:[l.start[0]+gc-cu,l.start[1]+gc-cv],end:[l.end[0]+gc-cu,l.end[1]+gc-cv],...(l.arc?{arc:true}:{})}));
+   cadLines=pat.lines.map(l=>{
+     if(l.arc&&l.center!==undefined){
+       const nc=[l.center[0]+gc-cu,l.center[1]+gc-cv];
+       return{arc:true,center:nc,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]+gc-cu,l.start[1]+gc-cv],end:[l.end[0]+gc-cu,l.end[1]+gc-cv]};
+     }
+     return{start:[l.start[0]+gc-cu,l.start[1]+gc-cv],end:[l.end[0]+gc-cu,l.end[1]+gc-cv],...(l.arc?{arc:true}:{})};
+   });
   }
   // Restore families and order from saved pattern
   cadFamilies=(pat.families||[]).slice();
