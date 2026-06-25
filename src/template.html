@@ -155,24 +155,25 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-panel-top">
           <div class="cad-canvas-label">Draw</div>
           <span class="cad-panel-stepper">
-            <span class="cad-panel-stepper-label">Size</span>
+            <span class="cad-panel-stepper-label">Grid</span>
             <input type="number" id="cadGridSize" value="3" min="2" max="6" onchange="cadUpdateSettings()">
             <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
           </span>
           <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling" style="font-size:11px;padding:3px 7px">◇ 45°</button>
+          <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
+          <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
+          <button class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
         </div>
         <div class="cad-toolbar">
           <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
           <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
           <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
-          <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
           <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
-          <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
-          <button class="cad-tool" onclick="cadResetView()">🔍 Reset View</button>
+          <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
         <div class="cad-move-panel">
-          <span class="cad-move-label">Move pattern on grid</span>
+          <span class="cad-move-label">Move</span>
           <div class="cad-move-arrows">
             <button class="cad-tool" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
             <div>
@@ -204,10 +205,17 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
           </span>
         </div>
-        <div class="cad-toolbar">
-          <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
+        <div class="cad-toolbar" style="visibility:hidden">
+          <button class="cad-tool">✏ Draw</button>
+          <button class="cad-tool">⭕ Arc</button>
+          <button class="cad-tool">✂ Cut</button>
+          <button class="cad-tool">↻ 45°</button>
+          <button class="cad-tool">▶ Play</button>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
+        <div class="cad-move-panel" style="visibility:hidden">
+          <span class="cad-move-label">Move</span>
+        </div>
   </div>
   <div class="remixes-section" id="remixesSection" style="display:none"></div>
 </div>

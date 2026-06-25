@@ -69,32 +69,29 @@ function cadDistToArc(p, arc){
   let ang=Math.atan2(dy,dx);
   while(ang<0)ang+=2*Math.PI;
   while(ang>=2*Math.PI)ang-=2*Math.PI;
-  const a1=arc.a1, a2=arc.a2;
+  let a1=arc.a1, a2=arc.a2;
+  // Normalise a1,a2 into [0,2*PI) so distance comparsions work correctly
+  while(a1<0)a1+=2*Math.PI; while(a1>=2*Math.PI)a1-=2*Math.PI;
+  while(a2<0)a2+=2*Math.PI; while(a2>=2*Math.PI)a2-=2*Math.PI;
   if(a2>=a1){
     if(a2-a1>=2*Math.PI-0.001)return{dist:Math.abs(Math.hypot(dx,dy)-arc.r), angle:ang};
-    // Check if ang (in [0,2*PI)) is within [a1,a2]
     if(ang>=a1-0.001&&ang<=a2+0.001){
       const px=arc.center[0]+arc.r*Math.cos(ang), py=arc.center[1]+arc.r*Math.sin(ang);
       return{dist:Math.hypot(p[0]-px,p[1]-py), angle:ang};
     }
-    // Outside — measure circular distance to both endpoints, pick closer
-    const dA=Math.min(Math.abs(ang-a1),2*Math.PI-Math.abs(ang-a1));
-    const dB=Math.min(Math.abs(ang-a2),2*Math.PI-Math.abs(ang-a2));
-    const best=dA<=dB?a1:a2;
-    const px=arc.center[0]+arc.r*Math.cos(best), py=arc.center[1]+arc.r*Math.sin(best);
-    return{dist:Math.hypot(p[0]-px,p[1]-py), angle:best};
   }else{
-    // CW sweep: arc covers [a1,2*PI) ∪ [0,a2]
+    // CW sweep (a1>a2 after normalisation): arc covers [a1,2*PI) ∪ [0,a2]
     if(ang>=a1-0.001||ang<=a2+0.001){
       const px=arc.center[0]+arc.r*Math.cos(ang), py=arc.center[1]+arc.r*Math.sin(ang);
       return{dist:Math.hypot(p[0]-px,p[1]-py), angle:ang};
     }
-    const dA=Math.min(Math.abs(ang-a1),2*Math.PI-Math.abs(ang-a1));
-    const dB=Math.min(Math.abs(ang-a2),2*Math.PI-Math.abs(ang-a2));
-    const best=dA<=dB?a1:a2;
-    const px=arc.center[0]+arc.r*Math.cos(best), py=arc.center[1]+arc.r*Math.sin(best);
-    return{dist:Math.hypot(p[0]-px,p[1]-py), angle:best};
   }
+  // Outside — measure circular distance to both endpoints, pick closer
+  const dA=Math.min(Math.abs(ang-a1),2*Math.PI-Math.abs(ang-a1));
+  const dB=Math.min(Math.abs(ang-a2),2*Math.PI-Math.abs(ang-a2));
+  const best=dA<=dB?a1:a2;
+  const px=arc.center[0]+arc.r*Math.cos(best), py=arc.center[1]+arc.r*Math.sin(best);
+  return{dist:Math.hypot(p[0]-px,p[1]-py), angle:best};
 }
 
 // Normalise an angle into the sweep interval [a1,a2]. Returns null if outside.
