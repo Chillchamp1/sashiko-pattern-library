@@ -51,8 +51,9 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .no-results{font-size:13px;color:var(--muted);padding:20px 0;grid-column:1/-1}
 
 /* ── Animation view ── */
-#animView{display:none;flex-direction:column;align-items:center;gap:14px}
-#animView.open{display:flex}
+#animView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
+#animView.open{display:flex;flex-direction:column;align-items:center;gap:14px}
+.anim-wrap{max-width:800px;width:100%;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px}
 .back-row{width:100%;display:flex;align-items:center;gap:10px}
 .anim-body{display:flex;justify-content:center;width:100%;overflow:hidden}
 /* ── Stitching Order Settings (collapsible, exp only) ── */
@@ -332,10 +333,12 @@ button.ctrl.primary:hover{background:#275784}
     <button class="filt" onclick="exportAllPatterns()" style="margin-left:auto" title="Download all patterns as backup JSON">⬇ Backup</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
-</div>
+</div><!-- /galleryView -->
+</div><!-- /wrap -->
 
 <!-- Animation / Generator view -->
 <div id="animView">
+  <div class="anim-wrap">
   <div class="back-row">
     <button class="back-btn" onclick="showGallery()">← Patterns</button>
     <h2 class="anim-title" id="animTitle">Hitomezashi<span class="jp">一目刺し · Snowflake</span></h2>
@@ -419,6 +422,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     </div>
   </div>
   -->
+  </div><!-- .anim-wrap -->
 </div>
 
 <!-- CAD Pattern Editor — full-screen overlay -->
@@ -524,7 +528,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   </div>
 </div>
 
-</div>
 <!-- Firebase SDK (loaded async; app initialises lazily in experimental.js) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -1033,6 +1036,7 @@ function renderPLThumb(canvas,pat){
 let curPat=null, PASSES=[], TOTAL=0;
 let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
+let _animSource='gallery'; // 'gallery' or 'sandbox' — tracks where we came from
 let TICK_MS=160, _zoom=1, _panX=0, _panY=0, _zoomInited=false;
 let _famToggles={};
 let _famPainting=false;
@@ -1214,7 +1218,7 @@ function loadPattern(pat){
 
   // Update back button label
   const bb=document.querySelector('#animView .back-btn');
-  if(bb)bb.textContent='← '+(isEXP?'Sandbox':'Gallery');
+  if(bb)bb.textContent='← '+(_animSource==='sandbox'?'Sandbox':'Gallery');
 
   const ss=document.getElementById('stitchSettings');if(ss)ss.style.display='none'; // commented out for later reuse
   if(!isEXP){
@@ -1605,7 +1609,7 @@ function renderThumb(canvas,pat){
 
 // ── gallery.js ──────────────────────────────
 // ── Gallery ────────────────────────────────────────────────────────────────
-let activeFilter=0;
+let activeFilters=new Set([0]);
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
   const deleted=_getDeleted();
@@ -1674,12 +1678,14 @@ window.filterGallery=function(){
     let pat=PATTERNS.find(p=>p.id===id);
     if(!pat)pat=EXP_PATTERNS.find(p=>p.id===id);
     if(!pat)return;
-    let mp;
-    if(activeFilter===0)mp=true;
-    else if(activeFilter==='hm')mp=type==='generator';
-    else if(activeFilter==='trad')mp=pat.traditional===true;
-    else if(type==='exp')mp=false;
-    else mp=parseInt(card.dataset.p)===activeFilter;
+    let mp=true;
+    if(!activeFilters.has(0)){
+      mp=false;
+      if(activeFilters.has('hm') && type==='generator') mp=true;
+      if(activeFilters.has('trad') && pat.traditional===true) mp=true;
+      if(activeFilters.has(2) && parseInt(card.dataset.p)===2) mp=true;
+      if(activeFilters.has(4) && parseInt(card.dataset.p)===4) mp=true;
+    }
     let mq=!q;
     if(q){
       if(type==='exp'){
@@ -1697,15 +1703,26 @@ window.filterGallery=function(){
   nr.style.display=vis===0?'block':'none';
 };
 window.setFilter=function(btn){
-  document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
   const f=btn.dataset.f;
-  activeFilter=f==='hm'?'hm':(f==='trad'?'trad':(f==='0'?0:parseInt(f)));
+  const fv=f==='hm'?'hm':(f==='trad'?'trad':(f==='0'?0:parseInt(f)));
+  if(fv===0){
+    activeFilters=new Set([0]);
+  }else{
+    activeFilters.delete(0);
+    if(activeFilters.has(fv))activeFilters.delete(fv);
+    else activeFilters.add(fv);
+    if(activeFilters.size===0)activeFilters.add(0);
+  }
+  document.querySelectorAll('.filt').forEach(b=>{
+    const v=b.dataset.f==='hm'?'hm':(b.dataset.f==='trad'?'trad':(b.dataset.f==='0'?0:parseInt(b.dataset.f)));
+    b.classList.toggle('on',activeFilters.has(v));
+  });
   filterGallery();
 };
 
 // ── View switching ─────────────────────────────────────────────────────────
 function openPattern(pat){
+  _animSource='gallery';
   history.replaceState(null,'','#'+pat.id);
   document.getElementById('galleryView').style.display='none';
   document.getElementById('animView').classList.add('open');
@@ -1713,7 +1730,7 @@ function openPattern(pat){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 window.showGallery=function(){
-  if(isEXP){
+  if(_animSource==='sandbox'){
     document.getElementById('animView').classList.remove('open');
     document.getElementById('myPatsView').classList.add('open');
     rebuildMyPatsView();
@@ -2064,44 +2081,65 @@ async function _deleteFromFirestore(id){
   try{await _db.collection('patterns').doc(id).delete();}catch(e){console.warn('Firestore delete failed:',e);}
 }
 
-// Fetch all patterns from Firestore, merge with local thumbnail cache.
+// Fetch all patterns from Firestore, intelligently merge with local.
+// Timestamp-based: newer version wins for duplicate IDs.
+// Local-only patterns (new) get pushed to Firestore automatically.
 async function _fetchFromFirestore(){
   if(!_db)return;
   try{
     const snap=await _db.collection('patterns').orderBy('createdAt','desc').get();
     const remote=snap.docs.map(d=>d.data());
+    const remoteById=Object.fromEntries(remote.map(p=>[p.id,p]));
+    const uid=_getUserId();
+
     // One-time seed from backup-patterns.json (runs once per origin via localStorage flag)
     if(location.protocol!=='file:'&&!localStorage.getItem('sashiko_backup_seeded')){
       try{
         const res=await fetch('./backup-patterns.json');
         if(res.ok){
           const data=await res.json();
-          const uid=_getUserId();
           const remoteIds=new Set(remote.map(p=>p.id));
           for(const p of (data.patterns||[])){
             if(!p.id||remoteIds.has(p.id))continue;
             if(!p.creatorId)p.creatorId=uid;
             remote.push(p);
+            remoteById[p.id]=p;
             await _pushToFirestore(p);
           }
           localStorage.setItem('sashiko_backup_seeded','1');
         }
       }catch(e){console.warn('Auto-seed from backup failed:',e);}
     }
-    // Local always wins for patterns that exist here (more recent edits).
+
     const localById=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p]));
-    const remoteIds=new Set(remote.map(p=>p.id));
     const merged=[];
+    const seenIds=new Set();
+
+    // Merge: newer timestamp wins for duplicate IDs
     for(const p of remote){
-      if(localById[p.id]){
-        merged.push({...localById[p.id]});
+      seenIds.add(p.id);
+      const lpat=localById[p.id];
+      if(lpat && (lpat.createdAt||0) >= (p.createdAt||0)){
+        // Local is same age or newer — keep local, push to Firestore if newer
+        merged.push({...lpat});
+        if((lpat.createdAt||0) > (p.createdAt||0)){
+          await _pushToFirestore(lpat);
+        }
       }else{
+        // Remote is newer or local doesn't have it
         merged.push({...p,thumbnail:null});
+        _saveLocal();
       }
     }
+
+    // Local patterns not in remote: push to Firestore (they're new)
     for(const p of EXP_PATTERNS){
-      if(!remoteIds.has(p.id))merged.push(p);
+      if(seenIds.has(p.id))continue;
+      merged.push(p);
+      if(!p.creatorId)p.creatorId=uid;
+      await _pushToFirestore(p);
     }
+
     EXP_PATTERNS=merged;
     EXP_PATTERNS.forEach(p=>_normalizePat(p));
     _saveLocal();
@@ -2114,9 +2152,7 @@ function loadExpPatterns(){
   cleanTrash();
   _initFirebase();
   if(_firebaseReady){
-    // Sync local-only patterns up first, then fetch all from Firestore
-    _syncLocalToFirestore()
-      .then(()=>_fetchFromFirestore())
+    _fetchFromFirestore()
       .then(()=>{
         rebuildMyPatsView();
         // Re-check deep link for exp patterns (Firebase wasn't ready at init time)
@@ -3075,6 +3111,8 @@ function renderExp(step){
 window.openExpPattern=function openExpPattern(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
+  // Track source: if gallery is visible we came from there, otherwise sandbox
+  _animSource=document.getElementById('galleryView').style.display!=='none'?'gallery':'sandbox';
   history.replaceState(null,'','#'+pat.id);
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.add('open');
