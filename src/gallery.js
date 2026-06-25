@@ -23,7 +23,7 @@ function buildGallery(){
     delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
     delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
     card.appendChild(delBtn);
-    card.onclick=()=>{window.open('#'+pat.id,'_blank');};
+    card.onclick=()=>openPattern(pat);
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
@@ -51,7 +51,7 @@ function buildGallery(){
     likeRow.className='like-row';likeRow.dataset.id=pat.id;
     card.appendChild(likeRow);
     setTimeout(()=>renderLikeButtons(pat.id),0);
-    card.onclick=()=>window.open('#'+pat.id,'_blank');
+    card.onclick=()=>openExpPattern(pat);
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
