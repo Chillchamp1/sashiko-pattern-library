@@ -3,3 +3,7 @@
 .claude/
 __pycache__/
 *.pyc
+
+# Build artifacts — rebuilt by GitHub Actions on every src/ push
+index.html
+Sashiko — Pattern Library.htm
