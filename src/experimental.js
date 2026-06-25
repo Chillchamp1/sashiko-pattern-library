@@ -433,19 +433,18 @@ function computeExpLayout(pat){
   const iso=pat.gridType==='isometric';
   const canvasH=SIZE;                             // always square
   const bbox=pat.bbox||{minU:0,maxU:ptc,minV:0,maxV:ptc};
-  const spacing=pat.spacing||0;
-  const dU=Math.max(bbox.maxU-bbox.minU,1)+spacing;
-  const dV=Math.max(bbox.maxV-bbox.minV,1)+spacing;
+  const dU=Math.max(bbox.maxU-bbox.minU,1);
+  const dV=Math.max(bbox.maxV-bbox.minV,1);
   let sz,ox,oy;
   if(iso){
     sz=SIZE/(2*ptc*_COS30);
-    // Center isometric tiling: shift by half the leftover in both u and v
-    const shU=(ptc%dU)/2, shV=(ptc%dV)/2;
-    ox=SIZE/2+(shU-shV)*sz*_COS30; oy=(shU+shV)*sz*_SIN30;
+    // Place bbox centre at canvas centre: g2s([dU/2, dV/2]) = (SIZE/2, SIZE/2)
+    ox=SIZE/2-(dU/2-dV/2)*sz*_COS30;
+    oy=SIZE/2-(dU/2+dV/2)*sz*_SIN30;
   }else{
     sz=SIZE/ptc;
-    // Center square tiling: offset by half the leftover so edge partial-tiles are equal
-    ox=((ptc%dU)/2)*sz; oy=((ptc%dV)/2)*sz;
+    // Place bbox centre at canvas centre
+    ox=(ptc-dU)/2*sz; oy=(ptc-dV)/2*sz;
   }
   function g2s(p){const u=p[0],v=p[1];
     if(iso)return{x:ox+(u-v)*sz*_COS30, y:oy+(u+v)*sz*_SIN30};
