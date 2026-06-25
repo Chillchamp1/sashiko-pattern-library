@@ -8365,7 +8365,9 @@ function cadDrawWorkspace(){
   cadLines.forEach((l,i)=>{
     const fi=cadFamilies[i];
     const col=fi>=0?FAM_PALETTE[fi%FAM_PALETTE.length]:'#00ffcc';
-    x.strokeStyle=(cadHover&&cadHover.li===i)?col+'55':col;
+    // Cut tool: keep full colour on hovered line (red glow drawn separately below)
+    const isHovered=cadHover&&cadHover.li===i;
+    x.strokeStyle=isHovered&&cadTool!=='erase'?col+'55':col;
     _cadDrawLine(x, l, fi, cadOX, cadOY, cadTileSize, g2s);
   });
 
@@ -8413,9 +8415,9 @@ function cadDrawWorkspace(){
     }
   }
 
+  // Cut tool highlight — bright red glow, drawn last so it sits on top
   if(cadTool==='erase'&&cadHover){
     if(cadHover.isArc){
-      // Highlight only the hovered sub-segment of the arc
       const arc=cadHover.arcData;
       const a1=arc.a1, a2=arc.a2;
       const totalSweep=Math.abs(a2-a1)||2*Math.PI;
@@ -8424,9 +8426,22 @@ function cadDrawWorkspace(){
       const all=cadHover.all;
       if(ci>=0&&ci<all.length-1){
         const t0=all[ci].t, t1=all[ci+1].t;
-        const segs=Math.max(2,Math.round(20*(t1-t0)));
-        x.lineWidth=4;x.strokeStyle='#ff3366';x.beginPath();
+        const segs=Math.max(4,Math.round(30*(t1-t0)));
+        // Glow
+        x.lineWidth=8;x.lineCap='round';x.strokeStyle='rgba(255,80,80,0.35)';
+        x.beginPath();
         let first=true;
+        for(let k=0;k<=segs;k++){
+          const tk=t0+(t1-t0)*(k/segs);
+          const ang=a1+sweepDir*tk*totalSweep;
+          const p=g2s(arc.center[0]+arc.r*Math.cos(ang),arc.center[1]+arc.r*Math.sin(ang));
+          if(first){x.moveTo(p.x,p.y);first=false;}else x.lineTo(p.x,p.y);
+        }
+        x.stroke();
+        // Core highlight
+        x.lineWidth=3;x.strokeStyle='#ff6060';
+        x.beginPath();
+        first=true;
         for(let k=0;k<=segs;k++){
           const tk=t0+(t1-t0)*(k/segs);
           const ang=a1+sweepDir*tk*totalSweep;
@@ -8437,7 +8452,12 @@ function cadDrawWorkspace(){
       }
     }else{
       const p1=g2s(cadHover.start.u,cadHover.start.v),p2=g2s(cadHover.end.u,cadHover.end.v);
-      x.lineWidth=4;x.strokeStyle='#ff3366';x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+      // Glow
+      x.lineWidth=8;x.lineCap='round';x.strokeStyle='rgba(255,80,80,0.35)';
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+      // Core highlight
+      x.lineWidth=3;x.lineCap='round';x.strokeStyle='#ff6060';
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
     }
   }
   if((cadTool==='draw'||cadTool==='arc')&&cadCur){
