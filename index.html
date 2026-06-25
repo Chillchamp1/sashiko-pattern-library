@@ -7882,10 +7882,19 @@ function cadArcArcIntersections(arcA, arcB){
 
 function cadHoveredSeg(ru,rv){
   const THRESH=15/cadTileSize;let best=null,bd=THRESH,li=-1,bt=0;
+  const interiorDist=(l,ang)=>{
+    const a1=l.a1, a2=l.a2;
+    if(a2>=a1){if(ang>a1+0.01&&ang<a2-0.01)return 0;return Math.min(Math.abs(ang-a1),Math.abs(ang-a2));}
+    else{if(ang<a1-0.01||ang>a2+0.01)return 0;return Math.min(Math.abs(ang-a1),Math.abs(ang-a2));}
+  };
   cadLines.forEach((l,i)=>{
     if(l.arc){
       const r=cadDistToArc([ru,rv],l);
-      if(r.dist<bd){bd=r.dist;best=l;bt=r.angle;li=i;}
+      if(r.dist<bd-1e-6){bd=r.dist;best=l;bt=r.angle;li=i;}
+      else if(Math.abs(r.dist-bd)<1e-6&&best&&best.arc){
+        // Tiebreaker: prefer the arc containing the angle in its interior
+        if(interiorDist(l,r.angle)<interiorDist(best,bt)){best=l;bt=r.angle;li=i;}
+      }
     }else{
       const r=cadDistToSeg([ru,rv],l.start,l.end);
       if(r.dist<bd){bd=r.dist;best=l;bt=r.t;li=i;}
