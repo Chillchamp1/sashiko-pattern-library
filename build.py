@@ -44,6 +44,10 @@ def main():
     html = html.replace("<!-- INJECT:styles.css -->", css)
     html = html.replace("<!-- INJECT:scripts -->", js)
 
+    # Inject backup seed data so offline / file:// also has patterns
+    backup_json = read("backup-patterns.json")
+    html = html.replace("<!-- INJECT:backup.json -->", backup_json)
+
     for out in OUTPUTS:
         with open(out, "w", encoding="utf-8") as f:
             f.write(html)
