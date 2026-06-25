@@ -1,5 +1,5 @@
 // ── Gallery ────────────────────────────────────────────────────────────────
-let activeFilter=0;
+let activeFilters=new Set([0]);
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
   const deleted=_getDeleted();
@@ -68,12 +68,14 @@ window.filterGallery=function(){
     let pat=PATTERNS.find(p=>p.id===id);
     if(!pat)pat=EXP_PATTERNS.find(p=>p.id===id);
     if(!pat)return;
-    let mp;
-    if(activeFilter===0)mp=true;
-    else if(activeFilter==='hm')mp=type==='generator';
-    else if(activeFilter==='trad')mp=pat.traditional===true;
-    else if(type==='exp')mp=false;
-    else mp=parseInt(card.dataset.p)===activeFilter;
+    let mp=true;
+    if(!activeFilters.has(0)){
+      mp=false;
+      if(activeFilters.has('hm') && type==='generator') mp=true;
+      if(activeFilters.has('trad') && pat.traditional===true) mp=true;
+      if(activeFilters.has(2) && parseInt(card.dataset.p)===2) mp=true;
+      if(activeFilters.has(4) && parseInt(card.dataset.p)===4) mp=true;
+    }
     let mq=!q;
     if(q){
       if(type==='exp'){
@@ -91,10 +93,20 @@ window.filterGallery=function(){
   nr.style.display=vis===0?'block':'none';
 };
 window.setFilter=function(btn){
-  document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
   const f=btn.dataset.f;
-  activeFilter=f==='hm'?'hm':(f==='trad'?'trad':(f==='0'?0:parseInt(f)));
+  const fv=f==='hm'?'hm':(f==='trad'?'trad':(f==='0'?0:parseInt(f)));
+  if(fv===0){
+    activeFilters=new Set([0]);
+  }else{
+    activeFilters.delete(0);
+    if(activeFilters.has(fv))activeFilters.delete(fv);
+    else activeFilters.add(fv);
+    if(activeFilters.size===0)activeFilters.add(0);
+  }
+  document.querySelectorAll('.filt').forEach(b=>{
+    const v=b.dataset.f==='hm'?'hm':(b.dataset.f==='trad'?'trad':(b.dataset.f==='0'?0:parseInt(b.dataset.f)));
+    b.classList.toggle('on',activeFilters.has(v));
+  });
   filterGallery();
 };
 
