@@ -8222,67 +8222,86 @@ function cadSplitAt(u,v){
   return didSplit;
 }
 
-// Split cadLines at off-grid intersections only. Grid-aligned intersections are left
-// for the manual Split tool. Called after new geometry is added.
-function cadSplitOffGrid(){
+// Split the last-added entry against all others at off-grid intersections.
+// Only splits involving the new entry — doesn't re-split previously processed geometry.
+function cadSplitOffGrid(newIdx){
   const EPS=1e-5;
   const isOnGrid=p=>Math.abs(p[0]-Math.round(p[0]))<0.01&&Math.abs(p[1]-Math.round(p[1]))<0.01;
-  const newLines=[];
-  for(let i=0;i<cadLines.length;i++){
-    const l=cadLines[i];
-    if(l.arc){
-      // Collect all cut angles from intersections with other lines/arcs
-      const cutAngles=[];
-      for(let j=0;j<cadLines.length;j++){
-        if(j===i)continue;
-        const m=cadLines[j];
-        if(m.arc){
-          cadArcArcIntersections(l,m).forEach(ix=>{
-            if(isOnGrid(ix.p))return;
-            const dS=Math.hypot(ix.p[0]-l.start[0],ix.p[1]-l.start[1]);
-            const dE=Math.hypot(ix.p[0]-l.end[0],ix.p[1]-l.end[1]);
-            if(dS>EPS&&dE>EPS)cutAngles.push(ix.angleA!==undefined?ix.angleA:ix.angle);
-          });
-        }else{
-          cadLineArcIntersections(m.start,m.end,l).forEach(ix=>{
-            if(isOnGrid(ix.p))return;
-            const dS=Math.hypot(ix.p[0]-l.start[0],ix.p[1]-l.start[1]);
-            const dE=Math.hypot(ix.p[0]-l.end[0],ix.p[1]-l.end[1]);
-            if(dS>EPS&&dE>EPS)cutAngles.push(ix.angle);
-          });
-        }
+  const out=[...cadLines];
+  const l=out[newIdx]; if(!l)return;
+  const mods=[]; // {idx: oldIndex, replace: [...]}
+
+  if(l.arc){
+    const cutAngles=[];
+    for(let j=0;j<out.length;j++){
+      if(j===newIdx)continue;
+      const m=out[j];
+      let ixList=[];
+      if(m.arc) ixList=cadArcArcIntersections(l,m);
+      else ixList=cadLineArcIntersections(m.start,m.end,l);
+      if(!ixList.length)continue;
+      const ix=ixList[0]; // first intersection
+      if(isOnGrid(ix.p))continue;
+      const dS=Math.hypot(ix.p[0]-l.start[0],ix.p[1]-l.start[1]);
+      const dE=Math.hypot(ix.p[0]-l.end[0],ix.p[1]-l.end[1]);
+      if(dS>EPS&&dE>EPS)cutAngles.push(ix.angleA!==undefined?ix.angleA:ix.angle);
+      // Split the other entry at this intersection
+      const dSm=Math.hypot(ix.p[0]-m.start[0],ix.p[1]-m.start[1]);
+      const dEm=Math.hypot(ix.p[0]-m.end[0],ix.p[1]-m.end[1]);
+      if(dSm<=EPS&&dEm<=EPS)continue;
+      if(m.arc){
+        const ang=ix.angleB!==undefined?ix.angleB:ix.angle;
+        mods.push({idx:j, replace:_splitArc(m,[ang])});
+      }else{
+        const t=ix.t;
+        if(t>EPS&&t<1-EPS)mods.push({idx:j, replace:[
+          {start:[m.start[0],m.start[1]],end:[ix.p[0],ix.p[1]]},
+          {start:[ix.p[0],ix.p[1]],end:[m.end[0],m.end[1]]}]});
       }
-      _splitArc(l, cutAngles).forEach(a=>newLines.push(a));
-    }else{
-      // Straight line: split at arc crossings
-      const a=l.start, b=l.end;
+    }
+    if(cutAngles.length)mods.push({idx:newIdx, replace:_splitArc(l,cutAngles)});
+  }else{
+    const a=l.start, b=l.end;
+    let hasCuts=false;
+    for(let j=0;j<out.length;j++){
+      if(j===newIdx)continue;
+      const m=out[j];
+      if(!m.arc)continue;
+      const ixList=cadLineArcIntersections(a,b,m);
+      if(!ixList.length)continue;
+      const ix=ixList[0];
+      if(isOnGrid(ix.p))continue;
+      const dSm=Math.hypot(ix.p[0]-m.start[0],ix.p[1]-m.start[1]);
+      const dEm=Math.hypot(ix.p[0]-m.end[0],ix.p[1]-m.end[1]);
+      if(dSm>EPS&&dEm>EPS)mods.push({idx:j, replace:_splitArc(m,[ix.angle])});
+      if(ix.t>EPS&&ix.t<1-EPS)hasCuts=true;
+    }
+    if(hasCuts){
+      // Collect all cut t values along this line from its arc intersections
       const cuts=[];
-      for(let j=0;j<cadLines.length;j++){
-        if(j===i)continue;
-        const m=cadLines[j];
-        if(m.arc){
-          cadLineArcIntersections(a,b,m).forEach(ix=>{
-            if(isOnGrid(ix.p))return;
-            if(ix.t>EPS&&ix.t<1-EPS)cuts.push({t:ix.t,p:ix.p});
-          });
-        }else{
-          // Only split line-line if the OTHER is an arc (we already checked m.arc above)
-          // Line-line crossings are left alone
-        }
+      for(let j=0;j<out.length;j++){
+        if(j===newIdx)continue;
+        const m=out[j];
+        if(!m.arc)continue;
+        cadLineArcIntersections(a,b,m).forEach(ix=>{
+          if(isOnGrid(ix.p))return;
+          if(ix.t>EPS&&ix.t<1-EPS)cuts.push({t:ix.t,p:ix.p});
+        });
       }
-      if(!cuts.length){newLines.push(l);continue;}
       cuts.sort((x,y)=>x.t-y.t);
       const pts=[a]; let lastT=0;
       for(const c of cuts)if(c.t-lastT>EPS){pts.push(c.p);lastT=c.t;}
       pts.push(b);
-      for(let k=0;k<pts.length-1;k++){
-        const sub={...l,start:[pts[k][0],pts[k][1]],end:[pts[k+1][0],pts[k+1][1]]};
-        delete sub.arc; // split pieces of a straight line are not arcs
-        newLines.push(sub);
-      }
+      const subs=[];
+      for(let k=0;k<pts.length-1;k++)subs.push({start:[pts[k][0],pts[k][1]],end:[pts[k+1][0],pts[k+1][1]]});
+      mods.push({idx:newIdx, replace:subs});
     }
   }
-  cadLines=newLines;
+
+  // Apply modifications in descending index order
+  mods.sort((a,b)=>b.idx-a.idx);
+  for(const{idx,replace}of mods)out.splice(idx,1,...replace);
+  cadLines=out;
 }
 
 // Flatten all arcs in cadLines to segments (for downstream processing).
@@ -9193,7 +9212,7 @@ function cadInit(){
         if(newArc)cadLines.push(newArc);
         cadFamsLocked=false;cadFamSel=-1;
         cadArcState=0;cadArcCenter=null;cadArcStart=null;
-        cadSplitOffGrid();
+        cadSplitOffGrid(cadLines.length-1);
         cadAutoExtendGrid();
       }
       cadArcLabel();
@@ -9255,7 +9274,7 @@ function cadInit(){
   cv.addEventListener('pointerup',e=>{
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;cadSplitOffGrid();cadAutoExtendGrid();}
+      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;cadSplitOffGrid(cadLines.length-1);cadAutoExtendGrid();}
     }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
