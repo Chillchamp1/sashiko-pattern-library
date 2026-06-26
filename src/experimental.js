@@ -1441,44 +1441,47 @@ function buildContourStrokes(segs, maxTurn){
   return best||[];
 }
 
-// ── Stroke ordering within one super-family (ROUTING.md Rules 2+3: band-snake) ─
+// ── Stroke ordering within one family: band-snake (reliable for all orientations) ─
 function orderStrokesFamily(strokes){
   if(strokes.length<=1)return strokes.map(pts=>({pts}));
 
-  // metrics per stroke
+  // Compute dominant orientation from all stroke endpoints
   const S=strokes.map(pts=>{
-    let cx=0,cy=0;
-    pts.forEach(p=>{cx+=p[0];cy+=p[1];});
-    cx/=pts.length; cy/=pts.length;
-    let dx=pts[pts.length-1][0]-pts[0][0], dy=pts[pts.length-1][1]-pts[0][1];
+    const first=pts[0], last=pts[pts.length-1];
+    const dx=last[0]-first[0], dy=last[1]-first[1];
     const len=Math.hypot(dx,dy);
-    if(len<1e-6){
-      const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
-      dx=Math.max(...xs)-Math.min(...xs); dy=Math.max(...ys)-Math.min(...ys);
-    }
-    let ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI; if(ang>=Math.PI)ang-=Math.PI;
-    return{pts,cx,cy,ang};
+    if(len<1e-6)return{pts, ang:0, len:0};
+    let ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI;
+    return{pts, ang, len, first, last,
+      ac0:0, ac1:0}; // filled later
   });
 
-  // mean orientation via double-angle weighting
+  // Mean orientation via double-angle weighting (handles 0°/90° ambiguity)
   let sc=0,ss=0;
-  S.forEach(s=>{const w=Math.hypot(s.pts[s.pts.length-1][0]-s.pts[0][0],s.pts[s.pts.length-1][1]-s.pts[0][1])||1; sc+=w*Math.cos(2*s.ang); ss+=w*Math.sin(2*s.ang);});
-  const tf=0.5*Math.atan2(ss,sc);
-  const dir=[Math.cos(tf),Math.sin(tf)], perp=[-Math.sin(tf),Math.cos(tf)];
+  S.forEach(s=>{const w=s.len||1; sc+=w*Math.cos(2*s.ang); ss+=w*Math.sin(2*s.ang);});
+  const axisAng=0.5*Math.atan2(ss,sc);
+  const axis=[Math.cos(axisAng),Math.sin(axisAng)];        // along-band direction
+  const perp=[-Math.sin(axisAng),Math.cos(axisAng)];       // cross-band (perpendicular)
 
-  // band coordinate = perpendicular projection of centroid
-  S.forEach(s=>{s.bc=s.cx*perp[0]+s.cy*perp[1]; s.ac=s.cx*dir[0]+s.cy*dir[1];});
+  // Band coordinate = perpendicular component of first point
+  S.forEach(s=>{
+    s.bc=s.first[0]*perp[0]+s.first[1]*perp[1];
+    s.ac=s.first[0]*axis[0]+s.first[1]*axis[1]; // along-axis = position within band
+  });
 
-  // detect natural band pitch — use 4-decimal rounding, not Math.round, to avoid integer aliasing
-  const sortedBcs=[...new Set(S.map(s=>+s.bc.toFixed(4)))].sort((a,b)=>a-b);
+  // Band assignment: detect pitch from unique band coordinates
+  const uniqueBcs=[...new Set(S.map(s=>Math.round(s.bc*1e4)/1e4))].sort((a,b)=>a-b);
   let pitch=Infinity;
-  for(let i=1;i<sortedBcs.length;i++)pitch=Math.min(pitch,sortedBcs[i]-sortedBcs[i-1]);
-  if(!isFinite(pitch)||pitch<1e-6)pitch=1;
+  for(let i=1;i<uniqueBcs.length;i++)pitch=Math.min(pitch,uniqueBcs[i]-uniqueBcs[i-1]);
+  if(!isFinite(pitch)||pitch<1e-4)pitch=1;
   const minbc=Math.min(...S.map(s=>s.bc));
   S.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
 
-  // snake the bands: even bands forward, odd bands backward
-  S.sort((a,b)=> a.band-b.band || (a.band%2===0 ? a.ac-b.ac : b.ac-a.ac));
+  // Sort: primary by band, secondary by along-axis (snake: even fwd, odd rev)
+  S.sort((a,b)=>{
+    if(a.band!==b.band)return a.band-b.band;
+    return a.band%2===0 ? a.ac-b.ac : b.ac-a.ac;
+  });
 
   return S;
 }
