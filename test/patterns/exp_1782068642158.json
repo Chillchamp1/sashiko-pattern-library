@@ -1,0 +1,96 @@
+{
+  "bbox": {
+    "minU": 0,
+    "maxV": 18,
+    "maxU": 12,
+    "minV": 0
+  },
+  "families": [
+    2,
+    0,
+    2,
+    0,
+    1,
+    2,
+    1
+  ],
+  "creatorId": "u78tgmm0drm",
+  "lines": [
+    {
+      "start": [
+        1,
+        0
+      ],
+      "end": [
+        10,
+        0
+      ]
+    },
+    {
+      "start": [
+        10,
+        0
+      ],
+      "end": [
+        8,
+        4
+      ]
+    },
+    {
+      "end": [
+        12,
+        4
+      ],
+      "start": [
+        8,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        18
+      ],
+      "start": [
+        12,
+        4
+      ]
+    },
+    {
+      "start": [
+        1,
+        0
+      ],
+      "end": [
+        0,
+        7
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        0,
+        7
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        2,
+        18
+      ]
+    }
+  ],
+  "createdAt": 1782068642173,
+  "name": "Lightning bolt 1",
+  "type": "exp",
+  "id": "exp_1782068642158",
+  "patMacro": 5,
+  "gridType": "square"
+}

@@ -1,0 +1,48 @@
+{
+  "lines": [
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        0,
+        2
+      ]
+    }
+  ],
+  "spacing": 5,
+  "famOrder": [
+    0,
+    1
+  ],
+  "creatorId": "ux1nzh07kvl",
+  "families": [
+    1,
+    0
+  ],
+  "bboxRotated": false,
+  "id": "exp_1782335960866",
+  "traditional": false,
+  "name": "Jūji-zashi十字刺し · Cross Stitch",
+  "createdAt": 1782335960866,
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 4,
+    "maxU": 4
+  },
+  "gridType": "square",
+  "patMacro": 4,
+  "type": "exp"
+}

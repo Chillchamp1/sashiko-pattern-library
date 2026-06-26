@@ -1,0 +1,893 @@
+{
+  "exp_1781799251118:default": {
+    "segs": 3654,
+    "strokes": 189,
+    "jumps": 188,
+    "jumpLen": 2557.5,
+    "stitchLen": 3943.1,
+    "maxTurn": 90,
+    "midArc": 0
+  },
+  "exp_1781799251118:continuous": {
+    "segs": 3654,
+    "strokes": 70,
+    "jumps": 69,
+    "jumpLen": 79.6,
+    "stitchLen": 3943.1,
+    "maxTurn": 167,
+    "midArc": 0
+  },
+  "exp_1781799251118:contour": {
+    "segs": 3654,
+    "strokes": 216,
+    "jumps": 215,
+    "jumpLen": 971.3,
+    "stitchLen": 3943.1,
+    "maxTurn": 13,
+    "midArc": 0
+  },
+  "exp_1781799376730:default": {
+    "segs": 3179,
+    "strokes": 327,
+    "jumps": 326,
+    "jumpLen": 7473,
+    "stitchLen": 21548,
+    "maxTurn": 90,
+    "midArc": 0
+  },
+  "exp_1781799376730:continuous": {
+    "segs": 3179,
+    "strokes": 324,
+    "jumps": 323,
+    "jumpLen": 2203.8,
+    "stitchLen": 21548,
+    "maxTurn": 143,
+    "midArc": 0
+  },
+  "exp_1781799376730:contour": {
+    "segs": 3179,
+    "strokes": 647,
+    "jumps": 646,
+    "jumpLen": 48367.9,
+    "stitchLen": 21548,
+    "maxTurn": 117,
+    "midArc": 0
+  },
+  "exp_1781813334725:default": {
+    "segs": 3654,
+    "strokes": 756,
+    "jumps": 755,
+    "jumpLen": 14739.3,
+    "stitchLen": 3943,
+    "maxTurn": 13,
+    "midArc": 0
+  },
+  "exp_1781813334725:continuous": {
+    "segs": 3654,
+    "strokes": 756,
+    "jumps": 755,
+    "jumpLen": 76.7,
+    "stitchLen": 3943,
+    "maxTurn": 13,
+    "midArc": 0
+  },
+  "exp_1781813334725:contour": {
+    "segs": 3654,
+    "strokes": 765,
+    "jumps": 764,
+    "jumpLen": 15791.4,
+    "stitchLen": 3943,
+    "maxTurn": 13,
+    "midArc": 0
+  },
+  "exp_1781819811459:default": {
+    "segs": 1089,
+    "strokes": 166,
+    "jumps": 165,
+    "jumpLen": 3269.8,
+    "stitchLen": 8879.5,
+    "maxTurn": 90,
+    "midArc": 0
+  },
+  "exp_1781819811459:continuous": {
+    "segs": 1089,
+    "strokes": 151,
+    "jumps": 150,
+    "jumpLen": 1062.1,
+    "stitchLen": 8879.5,
+    "maxTurn": 143,
+    "midArc": 0
+  },
+  "exp_1781819811459:contour": {
+    "segs": 1089,
+    "strokes": 286,
+    "jumps": 285,
+    "jumpLen": 13966.2,
+    "stitchLen": 8879.5,
+    "maxTurn": 117,
+    "midArc": 0
+  },
+  "exp_1782060653629:default": {
+    "segs": 2548,
+    "strokes": 2079,
+    "jumps": 2078,
+    "jumpLen": 7396.3,
+    "stitchLen": 3035.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782060653629:continuous": {
+    "segs": 2548,
+    "strokes": 2079,
+    "jumps": 2078,
+    "jumpLen": 893,
+    "stitchLen": 3035.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782060653629:contour": {
+    "segs": 2548,
+    "strokes": 2079,
+    "jumps": 2078,
+    "jumpLen": 7508.2,
+    "stitchLen": 3035.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782065677440:default": {
+    "segs": 2744,
+    "strokes": 2238,
+    "jumps": 2237,
+    "jumpLen": 7861.3,
+    "stitchLen": 5009,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782065677440:continuous": {
+    "segs": 2744,
+    "strokes": 2238,
+    "jumps": 2237,
+    "jumpLen": 1573.9,
+    "stitchLen": 5009,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782065677440:contour": {
+    "segs": 2744,
+    "strokes": 2238,
+    "jumps": 2237,
+    "jumpLen": 8034.8,
+    "stitchLen": 5009,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782068235130:default": {
+    "segs": 900,
+    "strokes": 100,
+    "jumps": 99,
+    "jumpLen": 2512.6,
+    "stitchLen": 1493.8,
+    "maxTurn": 13,
+    "midArc": 0
+  },
+  "exp_1782068235130:continuous": {
+    "segs": 900,
+    "strokes": 75,
+    "jumps": 74,
+    "jumpLen": 326.5,
+    "stitchLen": 1493.8,
+    "maxTurn": 99,
+    "midArc": 0
+  },
+  "exp_1782068235130:contour": {
+    "segs": 900,
+    "strokes": 75,
+    "jumps": 74,
+    "jumpLen": 2142.6,
+    "stitchLen": 1493.8,
+    "maxTurn": 99,
+    "midArc": 0
+  },
+  "exp_1782068642158:default": {
+    "segs": 245,
+    "strokes": 245,
+    "jumps": 244,
+    "jumpLen": 5362.4,
+    "stitchLen": 2035.2,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782068642158:continuous": {
+    "segs": 245,
+    "strokes": 245,
+    "jumps": 244,
+    "jumpLen": 391.6,
+    "stitchLen": 2035.2,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782068642158:contour": {
+    "segs": 245,
+    "strokes": 245,
+    "jumps": 244,
+    "jumpLen": 5571,
+    "stitchLen": 2035.2,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782081165754:default": {
+    "segs": 784,
+    "strokes": 446,
+    "jumps": 445,
+    "jumpLen": 3794.4,
+    "stitchLen": 3506.2,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782081165754:continuous": {
+    "segs": 784,
+    "strokes": 54,
+    "jumps": 53,
+    "jumpLen": 64,
+    "stitchLen": 3506.2,
+    "maxTurn": 127,
+    "midArc": 0
+  },
+  "exp_1782081165754:contour": {
+    "segs": 784,
+    "strokes": 446,
+    "jumps": 445,
+    "jumpLen": 4014.4,
+    "stitchLen": 3506.2,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782081897964:default": {
+    "segs": 3179,
+    "strokes": 1035,
+    "jumps": 1034,
+    "jumpLen": 19540.7,
+    "stitchLen": 21548,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782081897964:continuous": {
+    "segs": 3179,
+    "strokes": 1035,
+    "jumps": 1034,
+    "jumpLen": 2079.4,
+    "stitchLen": 21548,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782081897964:contour": {
+    "segs": 3179,
+    "strokes": 1035,
+    "jumps": 1034,
+    "jumpLen": 20158.2,
+    "stitchLen": 21548,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782109629829:default": {
+    "segs": 1950,
+    "strokes": 180,
+    "jumps": 179,
+    "jumpLen": 4049,
+    "stitchLen": 2857.9,
+    "maxTurn": 13,
+    "midArc": 0
+  },
+  "exp_1782109629829:continuous": {
+    "segs": 1950,
+    "strokes": 120,
+    "jumps": 119,
+    "jumpLen": 608.7,
+    "stitchLen": 2857.9,
+    "maxTurn": 177,
+    "midArc": 0
+  },
+  "exp_1782109629829:contour": {
+    "segs": 1950,
+    "strokes": 246,
+    "jumps": 245,
+    "jumpLen": 4384.9,
+    "stitchLen": 2857.9,
+    "maxTurn": 106,
+    "midArc": 0
+  },
+  "exp_1782110462735:default": {
+    "segs": 2975,
+    "strokes": 375,
+    "jumps": 374,
+    "jumpLen": 8907.5,
+    "stitchLen": 4674.3,
+    "maxTurn": 17,
+    "midArc": 0
+  },
+  "exp_1782110462735:continuous": {
+    "segs": 2975,
+    "strokes": 350,
+    "jumps": 349,
+    "jumpLen": 1123.1,
+    "stitchLen": 4674.3,
+    "maxTurn": 162,
+    "midArc": 0
+  },
+  "exp_1782110462735:contour": {
+    "segs": 2975,
+    "strokes": 425,
+    "jumps": 424,
+    "jumpLen": 11838.5,
+    "stitchLen": 4674.3,
+    "maxTurn": 17,
+    "midArc": 0
+  },
+  "exp_1782252110987:default": {
+    "segs": 729,
+    "strokes": 486,
+    "jumps": 485,
+    "jumpLen": 3914.1,
+    "stitchLen": 2749.2,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782252110987:continuous": {
+    "segs": 729,
+    "strokes": 486,
+    "jumps": 485,
+    "jumpLen": 1098.2,
+    "stitchLen": 2749.2,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782252110987:contour": {
+    "segs": 729,
+    "strokes": 486,
+    "jumps": 485,
+    "jumpLen": 3916.4,
+    "stitchLen": 2749.2,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782254084612:default": {
+    "segs": 2205,
+    "strokes": 2205,
+    "jumps": 2204,
+    "jumpLen": 16852.4,
+    "stitchLen": 9034,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782254084612:continuous": {
+    "segs": 2205,
+    "strokes": 2205,
+    "jumps": 2204,
+    "jumpLen": 2243.7,
+    "stitchLen": 9034,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782254084612:contour": {
+    "segs": 2205,
+    "strokes": 2205,
+    "jumps": 2204,
+    "jumpLen": 17021.7,
+    "stitchLen": 9034,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782254781220:default": {
+    "segs": 4500,
+    "strokes": 3600,
+    "jumps": 3599,
+    "jumpLen": 21484.1,
+    "stitchLen": 16450.4,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782254781220:continuous": {
+    "segs": 4500,
+    "strokes": 3600,
+    "jumps": 3599,
+    "jumpLen": 4413.3,
+    "stitchLen": 16450.4,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782254781220:contour": {
+    "segs": 4500,
+    "strokes": 3600,
+    "jumps": 3599,
+    "jumpLen": 21593.8,
+    "stitchLen": 16450.4,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782256720347:default": {
+    "segs": 775,
+    "strokes": 475,
+    "jumps": 474,
+    "jumpLen": 5825.3,
+    "stitchLen": 1803.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782256720347:continuous": {
+    "segs": 775,
+    "strokes": 475,
+    "jumps": 474,
+    "jumpLen": 751.2,
+    "stitchLen": 1803.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782256720347:contour": {
+    "segs": 775,
+    "strokes": 475,
+    "jumps": 474,
+    "jumpLen": 5825.3,
+    "stitchLen": 1803.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782328735477:default": {
+    "segs": 1089,
+    "strokes": 227,
+    "jumps": 226,
+    "jumpLen": 1792.2,
+    "stitchLen": 8879.5,
+    "maxTurn": 37,
+    "midArc": 0
+  },
+  "exp_1782328735477:continuous": {
+    "segs": 1089,
+    "strokes": 227,
+    "jumps": 226,
+    "jumpLen": 981.6,
+    "stitchLen": 8879.5,
+    "maxTurn": 37,
+    "midArc": 0
+  },
+  "exp_1782328735477:contour": {
+    "segs": 1089,
+    "strokes": 227,
+    "jumps": 226,
+    "jumpLen": 2134.6,
+    "stitchLen": 8879.5,
+    "maxTurn": 37,
+    "midArc": 0
+  },
+  "exp_1782334860500:default": {
+    "segs": 336,
+    "strokes": 168,
+    "jumps": 167,
+    "jumpLen": 1621.7,
+    "stitchLen": 669.6,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782334860500:continuous": {
+    "segs": 336,
+    "strokes": 168,
+    "jumps": 167,
+    "jumpLen": 412.7,
+    "stitchLen": 669.6,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782334860500:contour": {
+    "segs": 336,
+    "strokes": 168,
+    "jumps": 167,
+    "jumpLen": 1743.7,
+    "stitchLen": 669.6,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782335960866:default": {
+    "segs": 98,
+    "strokes": 98,
+    "jumps": 97,
+    "jumpLen": 584,
+    "stitchLen": 392,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782335960866:continuous": {
+    "segs": 98,
+    "strokes": 98,
+    "jumps": 97,
+    "jumpLen": 484.5,
+    "stitchLen": 392,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782335960866:contour": {
+    "segs": 98,
+    "strokes": 98,
+    "jumps": 97,
+    "jumpLen": 584,
+    "stitchLen": 392,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782335965777:default": {
+    "segs": 162,
+    "strokes": 162,
+    "jumps": 161,
+    "jumpLen": 770,
+    "stitchLen": 648,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782335965777:continuous": {
+    "segs": 162,
+    "strokes": 162,
+    "jumps": 161,
+    "jumpLen": 720,
+    "stitchLen": 648,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782335965777:contour": {
+    "segs": 162,
+    "strokes": 162,
+    "jumps": 161,
+    "jumpLen": 770,
+    "stitchLen": 648,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782336864528:default": {
+    "segs": 162,
+    "strokes": 162,
+    "jumps": 161,
+    "jumpLen": 1097.2,
+    "stitchLen": 916.4,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782336864528:continuous": {
+    "segs": 162,
+    "strokes": 162,
+    "jumps": 161,
+    "jumpLen": 644,
+    "stitchLen": 916.4,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782336864528:contour": {
+    "segs": 162,
+    "strokes": 162,
+    "jumps": 161,
+    "jumpLen": 1097.2,
+    "stitchLen": 916.4,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782379813625:default": {
+    "segs": 1000,
+    "strokes": 440,
+    "jumps": 439,
+    "jumpLen": 882.7,
+    "stitchLen": 2400,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782379813625:continuous": {
+    "segs": 1000,
+    "strokes": 440,
+    "jumps": 439,
+    "jumpLen": 327.6,
+    "stitchLen": 2400,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782379813625:contour": {
+    "segs": 1000,
+    "strokes": 440,
+    "jumps": 439,
+    "jumpLen": 891.1,
+    "stitchLen": 2400,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782392569307:default": {
+    "segs": 1078,
+    "strokes": 238,
+    "jumps": 237,
+    "jumpLen": 1555.7,
+    "stitchLen": 3136,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782392569307:continuous": {
+    "segs": 1078,
+    "strokes": 226,
+    "jumps": 225,
+    "jumpLen": 696.9,
+    "stitchLen": 3136,
+    "maxTurn": 180,
+    "midArc": 0
+  },
+  "exp_1782392569307:contour": {
+    "segs": 1078,
+    "strokes": 238,
+    "jumps": 237,
+    "jumpLen": 1555.7,
+    "stitchLen": 3136,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782393370706:default": {
+    "segs": 1127,
+    "strokes": 446,
+    "jumps": 445,
+    "jumpLen": 2406.2,
+    "stitchLen": 4704,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782393370706:continuous": {
+    "segs": 1127,
+    "strokes": 446,
+    "jumps": 445,
+    "jumpLen": 1330.6,
+    "stitchLen": 4704,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782393370706:contour": {
+    "segs": 1127,
+    "strokes": 446,
+    "jumps": 445,
+    "jumpLen": 2406.2,
+    "stitchLen": 4704,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782393634573:default": {
+    "segs": 6525,
+    "strokes": 2310,
+    "jumps": 2309,
+    "jumpLen": 44730.7,
+    "stitchLen": 27000,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782393634573:continuous": {
+    "segs": 6525,
+    "strokes": 2310,
+    "jumps": 2309,
+    "jumpLen": 7066,
+    "stitchLen": 27000,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782393634573:contour": {
+    "segs": 6525,
+    "strokes": 2310,
+    "jumps": 2309,
+    "jumpLen": 45070.5,
+    "stitchLen": 27000,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409076073:default": {
+    "segs": 1960,
+    "strokes": 604,
+    "jumps": 603,
+    "jumpLen": 4783,
+    "stitchLen": 7672,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409076073:continuous": {
+    "segs": 1960,
+    "strokes": 604,
+    "jumps": 603,
+    "jumpLen": 1582.9,
+    "stitchLen": 7672,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409076073:contour": {
+    "segs": 1960,
+    "strokes": 604,
+    "jumps": 603,
+    "jumpLen": 4783,
+    "stitchLen": 7672,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409901380:default": {
+    "segs": 924,
+    "strokes": 344,
+    "jumps": 343,
+    "jumpLen": 867.8,
+    "stitchLen": 2066.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409901380:continuous": {
+    "segs": 924,
+    "strokes": 344,
+    "jumps": 343,
+    "jumpLen": 258,
+    "stitchLen": 2066.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409901380:contour": {
+    "segs": 924,
+    "strokes": 344,
+    "jumps": 343,
+    "jumpLen": 867.8,
+    "stitchLen": 2066.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409906383:default": {
+    "segs": 924,
+    "strokes": 344,
+    "jumps": 343,
+    "jumpLen": 867.8,
+    "stitchLen": 2066.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409906383:continuous": {
+    "segs": 924,
+    "strokes": 344,
+    "jumps": 343,
+    "jumpLen": 258,
+    "stitchLen": 2066.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782409906383:contour": {
+    "segs": 924,
+    "strokes": 344,
+    "jumps": 343,
+    "jumpLen": 867.8,
+    "stitchLen": 2066.1,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782416982541:default": {
+    "segs": 3450,
+    "strokes": 1375,
+    "jumps": 1374,
+    "jumpLen": 38785.7,
+    "stitchLen": 5064.6,
+    "maxTurn": 90,
+    "midArc": 0
+  },
+  "exp_1782416982541:continuous": {
+    "segs": 3450,
+    "strokes": 1275,
+    "jumps": 1274,
+    "jumpLen": 874.6,
+    "stitchLen": 5064.6,
+    "maxTurn": 114,
+    "midArc": 0
+  },
+  "exp_1782416982541:contour": {
+    "segs": 3450,
+    "strokes": 1425,
+    "jumps": 1424,
+    "jumpLen": 43221.1,
+    "stitchLen": 5064.6,
+    "maxTurn": 114,
+    "midArc": 0
+  },
+  "exp_1782421629701:default": {
+    "segs": 5880,
+    "strokes": 392,
+    "jumps": 391,
+    "jumpLen": 1370.2,
+    "stitchLen": 3077.4,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782421629701:continuous": {
+    "segs": 5880,
+    "strokes": 392,
+    "jumps": 391,
+    "jumpLen": 67.1,
+    "stitchLen": 3077.4,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782421629701:contour": {
+    "segs": 5880,
+    "strokes": 56,
+    "jumps": 55,
+    "jumpLen": 319.3,
+    "stitchLen": 3077.4,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782425172806:default": {
+    "segs": 5800,
+    "strokes": 400,
+    "jumps": 399,
+    "jumpLen": 12098.7,
+    "stitchLen": 4646.7,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782425172806:continuous": {
+    "segs": 5800,
+    "strokes": 400,
+    "jumps": 399,
+    "jumpLen": 811.1,
+    "stitchLen": 4646.7,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782425172806:contour": {
+    "segs": 5800,
+    "strokes": 360,
+    "jumps": 359,
+    "jumpLen": 6434.9,
+    "stitchLen": 4646.7,
+    "maxTurn": 90,
+    "midArc": 0
+  },
+  "exp_1782425579806:default": {
+    "segs": 6100,
+    "strokes": 425,
+    "jumps": 424,
+    "jumpLen": 4571.8,
+    "stitchLen": 4926.9,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782425579806:continuous": {
+    "segs": 6100,
+    "strokes": 425,
+    "jumps": 424,
+    "jumpLen": 876.1,
+    "stitchLen": 4926.9,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782425579806:contour": {
+    "segs": 6100,
+    "strokes": 353,
+    "jumps": 352,
+    "jumpLen": 5585.9,
+    "stitchLen": 4926.9,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782481281581:default": {
+    "segs": 8820,
+    "strokes": 490,
+    "jumps": 489,
+    "jumpLen": 2239,
+    "stitchLen": 2769.6,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782481281581:continuous": {
+    "segs": 8820,
+    "strokes": 490,
+    "jumps": 489,
+    "jumpLen": 567.2,
+    "stitchLen": 2769.6,
+    "maxTurn": 6,
+    "midArc": 0
+  },
+  "exp_1782481281581:contour": {
+    "segs": 8820,
+    "strokes": 224,
+    "jumps": 223,
+    "jumpLen": 2141.4,
+    "stitchLen": 2769.6,
+    "maxTurn": 90,
+    "midArc": 0
+  }
+}
