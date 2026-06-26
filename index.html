@@ -7302,8 +7302,8 @@ function buildStrokesForFamily(segs, maxTurn){
     const cost=(i,j)=>{
       let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
       dt=Math.max(-1,Math.min(1,dt)); let c=Math.PI-Math.acos(dt);
-      // Heavy penalty for pairing edges from different arcs (prefer same-arc continuity)
-      if(list[i].aid>=0&&list[j].aid>=0&&list[i].aid!==list[j].aid)c+=0.5;
+      // Penalise pairing edges from different arcs (or arc↔line). Only skip penalty when both are plain lines (aid<0).
+      if(!(list[i].aid<0&&list[j].aid<0) && list[i].aid!==list[j].aid) c+=2.0;
       return c;
     };
     partner[v].set(matchVertex(d,cost,maxTurn));
