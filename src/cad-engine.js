@@ -2,7 +2,7 @@
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
-let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[],cadFamGroups=[],cadGroupMode=false;
+let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
@@ -507,6 +507,78 @@ function cadArcLabel(){
   if(el)el.textContent=cadArcState<3?labels[cadArcState]:'';
 }
 
+// Find two mergeable segments that meet at point [u,v]. Returns {i,j} indices or null.
+function cadFindMergeAt(u,v){
+  const EPS=0.01; const matches=[];
+  for(let i=0;i<cadLines.length;i++){
+    const l=cadLines[i];
+    if(Math.hypot(l.start[0]-u,l.start[1]-v)<EPS||Math.hypot(l.end[0]-u,l.end[1]-v)<EPS)
+      matches.push(i);
+  }
+  if(matches.length!==2)return null;
+  const a=cadLines[matches[0]], b=cadLines[matches[1]];
+  // Both arcs: must share center & radius
+  if(a.arc&&b.arc&&a.center[0]===b.center[0]&&a.center[1]===b.center[1]&&Math.abs(a.r-b.r)<0.001)return{i:matches[0],j:matches[1]};
+  // Both lines: must be collinear
+  if(!a.arc&&!b.arc){
+    const dxA=a.end[0]-a.start[0], dyA=a.end[1]-a.start[1];
+    const dxB=b.end[0]-b.start[0], dyB=b.end[1]-b.start[1];
+    const cross=dxA*dyB-dyA*dxB;
+    if(Math.abs(cross)<0.001)return{i:matches[0],j:matches[1]};
+  }
+  return null;
+}
+
+// Merge two segments into one. Returns the merged segment or null.
+function cadMergeSegments(ai, bi){
+  const a=cadLines[ai], b=cadLines[bi];
+  if(a.arc&&b.arc){
+    const cx=a.center[0], cy=a.center[1], r=a.r;
+    // Determine the combined angle range
+    const a1a=a.a1, a2a=a.a2, a1b=b.a1, a2b=b.a2;
+    let startPt, endPt, newA1, newA2;
+    // Check all 4 combinations of start/end to find the two extremes
+    const cand=[];
+    // Collect all 4 points and their angles
+    const pts=[{p:a.start, ang:a.a1}, {p:a.end, ang:a.a2}, {p:b.start, ang:b.a1}, {p:b.end, ang:b.a2}];
+    // Find the two points that are farthest apart (they're the merged arc endpoints)
+    let maxDist=0, p0,p1, ang0,ang1;
+    for(let i=0;i<4;i++){
+      for(let j=i+1;j<4;j++){
+        const d=Math.hypot(pts[i].p[0]-pts[j].p[0],pts[i].p[1]-pts[j].p[1]);
+        if(d>maxDist){maxDist=d; p0=pts[i].p; p1=pts[j].p; ang0=pts[i].ang; ang1=pts[j].ang;}
+      }
+    }
+    // Determine sweep direction from the two arcs' sweep
+    const sweepA=a.a2-a.a1, sweepB=b.a2-b.a1;
+    const cwA=sweepA<0, cwB=sweepB<0;
+    if(cwA!==cwB)return null; // inconsistent sweep, don't merge
+    const keepCW=cwA;
+    // Ensure ang0→ang1 matches the sweep direction
+    let sweep=ang1-ang0;
+    if(keepCW&&sweep>0)sweep-=2*Math.PI;
+    if(!keepCW&&sweep<0)sweep+=2*Math.PI;
+    newA1=ang0; newA2=ang1;
+    startPt=[p0[0],p0[1]]; endPt=[p1[0],p1[1]];
+    return{arc:true,center:[cx,cy],r,a1:newA1,a2:newA2,start:startPt,end:endPt};
+  }else{
+    // Straight lines: find the two farthest endpoints
+    const pts=[a.start,a.end,b.start,b.end];
+    let maxDist2=0, p0,p1;
+    for(let i=0;i<4;i++){
+      for(let j=i+1;j<4;j++){
+        const d=Math.hypot(pts[i][0]-pts[j][0],pts[i][1]-pts[j][1]);
+        if(d>maxDist2){maxDist2=d; p0=pts[i]; p1=pts[j];}
+      }
+    }
+    return{start:[p0[0],p0[1]],end:[p1[0],p1[1]]};
+  }
+}
+  const labels=['Click to place center','Click to set radius','Click to set sweep (click center-start for full circle)'];
+  const el=document.getElementById('cadArcHint');
+  if(el)el.textContent=cadArcState<3?labels[cadArcState]:'';
+}
+
 // Auto-extend grid if any geometry extends beyond the current grid boundary
 function cadAutoExtendGrid(){
   const bbox=cadBBox();
@@ -746,6 +818,23 @@ function cadDrawWorkspace(){
       x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
     }
   }
+  // Show mergeable intersection points when cut tool is active
+  if(cadTool==='erase'){
+    const seen=new Set();
+    for(let i=0;i<cadLines.length;i++){
+      for(const p of [cadLines[i].start,cadLines[i].end]){
+        const key=Math.round(p[0]*100)+','+Math.round(p[1]*100);
+        if(seen.has(key))continue;
+        seen.add(key);
+        const m=cadFindMergeAt(p[0],p[1]);
+        if(m){
+          const s=g2s(p[0],p[1]);
+          x.fillStyle='rgba(100,255,180,0.8)';x.beginPath();x.arc(s.x,s.y,5,0,Math.PI*2);x.fill();
+          x.strokeStyle='rgba(100,255,180,0.5)';x.lineWidth=1;x.beginPath();x.arc(s.x,s.y,8,0,Math.PI*2);x.stroke();
+        }
+      }
+    }
+  }
   if((cadTool==='draw'||cadTool==='arc')&&cadCur){
     const s=g2s(cadCur[0],cadCur[1]);
     x.fillStyle='#00ffcc';x.beginPath();x.arc(s.x,s.y,6,0,Math.PI*2);x.fill();
@@ -848,49 +937,18 @@ function cadBuildFamBar(){
   if(!unique.length){c.innerHTML='';return;}
   const used=[...new Set(cadFamilies.filter(f=>f>=0))];
   used.forEach(f=>{if(!cadFamOrder.includes(f))cadFamOrder.push(f);});
-  while(cadFamGroups.length<cadFamOrder.length)cadFamGroups.push(0);
-  if(cadFamGroups.length>cadFamOrder.length)cadFamGroups.length=cadFamOrder.length;
-  // Swatches with group borders when group mode is on
   c.innerHTML=cadFamOrder.map((fam,pos)=>{
     const col=FAM_PALETTE[fam%FAM_PALETTE.length];
-    const grp=cadGroupMode?(cadFamGroups[pos]||0):0;
-    const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'')+(cadGroupMode&&grp===1?' g1':'');
-    const title='Family '+(fam+1)+(cadGroupMode?' · Group '+(grp===0?'A':'B'):'')+' · Click to select';
-    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="'+title+'"></button>';
+    const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'');
+    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="Family '+(fam+1)+'"></button>';
   }).join('');
-  // Group mode toggle switch
-  const toggle=cadGroupMode
-    ? '<label class="cad-group-toggle" style="font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-left:4px;color:#ff9bb0" onclick="cadToggleGroupMode()" title="Turn off colour group routing"><input type="checkbox" checked onchange="cadToggleGroupMode()"> Groups</label>'
-    : '<label class="cad-group-toggle" style="font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-left:4px;color:var(--muted)" onclick="cadToggleGroupMode()" title="Turn on colour group routing: odd/even rows use different colours"><input type="checkbox" onchange="cadToggleGroupMode()"> Groups</label>';
-  c.insertAdjacentHTML('beforeend',toggle);
-  if(cadGroupMode&&cadFamSel>=0&&cadFamSel<cadFamGroups.length){
-    const btn=cadFamGroups[cadFamSel]===0
-      ? '<button class="cad-tool" onclick="cadToggleFamGroup()" style="font-size:10px;padding:4px 6px" title="Move to Group B">→ B</button>'
-      : '<button class="cad-tool" onclick="cadToggleFamGroup()" style="font-size:10px;padding:4px 6px" title="Move to Group A">→ A</button>';
-    c.insertAdjacentHTML('beforeend',btn);
-  }
 }
 window.cadSelectFam=function(pos){cadFamSel=cadFamSel===pos?-1:pos;cadUpdateAll();};
-window.cadToggleGroupMode=function(){
-  cadGroupMode=!cadGroupMode;
-  if(!cadGroupMode)cadFamGroups.fill(0);
-  cadUpdateAll();
-};
-window.cadToggleFamGroup=function(){
-  if(!cadGroupMode||cadFamSel<0||cadFamSel>=cadFamGroups.length)return;
-  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups],gm:cadGroupMode});
-  cadFamGroups[cadFamSel]=cadFamGroups[cadFamSel]===0?1:0;
-  cadFamsLocked=true;
-  cadUpdateAll();
-};
 window.cadMoveFam=function(dir){
   if(cadFamSel<0||cadFamSel>=cadFamOrder.length)return;
   const oi=cadFamSel+dir;if(oi<0||oi>=cadFamOrder.length)return;
-  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
   [cadFamOrder[cadFamSel],cadFamOrder[oi]]=[cadFamOrder[oi],cadFamOrder[cadFamSel]];
-  if(cadFamGroups.length>Math.max(cadFamSel,oi)){
-    [cadFamGroups[cadFamSel],cadFamGroups[oi]]=[cadFamGroups[oi],cadFamGroups[cadFamSel]];
-  }
   cadFamSel=oi;cadFamsLocked=true;
   cadUpdateAll();
 };
@@ -901,14 +959,13 @@ window.cadAddFam=function(){
   cadFamOrder.push(nf);cadFamSel=cadFamOrder.length-1;cadFamsLocked=true;
   cadUpdateAll();
 };
-function _compactFamilies(families, famOrder, famGroups){
+function _compactFamilies(families, famOrder){
   const used=[...new Set(families.filter(f=>f>=0))].sort((a,b)=>a-b);
-  if(!used.length)return{families:[], famOrder:[], famGroups:[]};
+  if(!used.length)return{families:[], famOrder:[]};
   const map={};used.forEach((of,i)=>{map[of]=i;});
   const newFam=families.map(f=>f>=0?map[f]:-1);
   const newOrder=famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
-  const newGroups=famOrder.map((f,pos)=>famGroups&&famGroups[pos]||0).filter((_,i)=>used.includes(famOrder[i]));
-  return{families:newFam, famOrder:newOrder, famGroups:newGroups};
+  return{families:newFam, famOrder:newOrder};
 }
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
@@ -939,11 +996,11 @@ window.cadSetTool=function(t){
 window.cadUndo=function(){
   if(!cadHistory.length)return;
   const state=cadHistory.pop();
-  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];if(state.o)cadFamOrder=state.o;if(state.g)cadFamGroups=state.g;if('gm' in state)cadGroupMode=state.gm;}
+  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];if(state.o)cadFamOrder=state.o;}
   else{cadLines=state;cadFamilies=new Array(cadLines.length).fill(-1);}
   cadFamsLocked=true;cadUpdateAll();
 };
-window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamGroups=[];cadFamSel=-1;cadUpdateAll();}};
+window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;cadUpdateAll();}};
 window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
 window.cadToggleBBoxRotate=function(){
   cadBBoxRotated=!cadBBoxRotated;
@@ -1044,10 +1101,10 @@ window.cadSaveToLibrary=function(){
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
-  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder], [...cadFamGroups]);
+  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,famGroups:cf.famGroups,groupMode:cadGroupMode,traditional:cadTraditional,routingMode:cadRoutingMode};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1129,10 +1186,10 @@ window.cadTilePlay=function(){
     const rel=_cadLineToSaved(l, bbox.minU, bbox.minV);
     return rel;
   });
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],famGroups:[...cadFamGroups],groupMode:cadGroupMode,routingMode:cadRoutingMode};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,pat.famGroups,pat.groupMode);
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
   if(!fullPath.length)return;
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);
@@ -1229,7 +1286,23 @@ function cadInit(){
       }
       cadArcLabel();
     }
-    else if(cadTool==='erase'&&cadHover){
+    else if(cadTool==='erase'){
+      // First try to merge at intersection point
+      const merge=cadFindMergeAt(cadCur[0],cadCur[1]);
+      if(merge){
+        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+        const merged=cadMergeSegments(merge.i,merge.j);
+        if(merged){
+          // Remove the two original segments (highest index first)
+          const hi=Math.max(merge.i,merge.j), lo=Math.min(merge.i,merge.j);
+          cadLines.splice(hi,1); cadLines.splice(lo,1);
+          cadLines.push(merged);
+        }
+        cadHover=null;cadFamsLocked=false;cadFamSel=-1;
+        cadUpdateAll();return;
+      }
+      // Normal erase: cut the hovered segment
+      if(!cadHover)return;
       cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
       if(cadHover.isArc){
         // Erase the hovered arc sub-segment: split the arc at the segment boundaries

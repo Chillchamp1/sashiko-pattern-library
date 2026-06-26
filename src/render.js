@@ -210,7 +210,7 @@ function loadPattern(pat){
   if(isEXP){
     setupExpCanvas(pat);
     const expLay=computeExpLayout(pat);
-    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode,pat.famGroups,pat.groupMode),expLay);
+    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
