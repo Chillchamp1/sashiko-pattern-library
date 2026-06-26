@@ -1079,14 +1079,14 @@ function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
 
   const famGroups2=famGroups||[];  // group 0 or 1 per family-order position
 
-  const famGroups=new Map();
-  lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
+  const famMap=new Map();
+  lines.forEach(l=>{const fi=l.fam||0;if(!famMap.has(fi))famMap.set(fi,[]);famMap.get(fi).push(l);});
 
   if(mode==='continuous'){
     // Follow-path: build strokes per family with no turn limit,
     // then order all chains globally via nearest-neighbour.
     const allChains=[];
-    for(const[fi,segs]of famGroups){
+    for(const[fi,segs]of famMap){
       buildStrokesForFamily(segs,maxTurn).forEach(pts=>allChains.push({pts,fi}));
     }
     const rem=allChains.slice(), path=[];
@@ -1118,7 +1118,7 @@ function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
     // 2. orderStrokesFamily sweeps wave-rows in orientation-aware bands with snaking.
     // 3. Families are visited one after the other — all lines of one colour before the next.
     const famContourStrokes=new Map(), famEnds=new Map();
-    for(const[fi,segs]of famGroups){
+    for(const[fi,segs]of famMap){
       const raw=buildContourStrokes(segs,maxTurn);
       if(!raw.length)continue;
       const ordered=orderStrokesFamily(raw);
@@ -1193,7 +1193,7 @@ function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
   // Family-by-family routing: build strokes per family, order with band-snake,
   // then visit families in optimised order.
   const famStrokes=new Map(), famEnds=new Map();
-  for(const[fi,segs]of famGroups){
+  for(const[fi,segs]of famMap){
     const ordered=orderStrokesFamily(buildStrokesForFamily(segs,maxTurn));
     if(!ordered.length)continue;
     famStrokes.set(fi,ordered);
