@@ -5439,7 +5439,8 @@ function loadPattern(pat){
 
   if(isEXP){
     setupExpCanvas(pat);
-    EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode);
+    const expLay=computeExpLayout(pat);
+    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
@@ -7238,6 +7239,26 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   return path;
 }
 
+// Filter a stitch path to only include segments visible in the canvas viewport.
+// Maintains jump flags so the needle jumps across invisible regions.
+function filterVisiblePath(path, lay){
+  const w=SIZE, h=lay.canvasH||SIZE;
+  const g2s=lay.g2s;
+  const result=[];
+  let skipped=false;
+  for(const s of path){
+    const a=g2s(s.start), b=g2s(s.end);
+    const vis=(a.x>-50&&a.x<w+50&&a.y>-50&&a.y<h+50)||(b.x>-50&&b.x<w+50&&b.y>-50&&b.y<h+50);
+    if(vis){
+      result.push({...s, jump:s.jump||skipped});
+      skipped=false;
+    }else{
+      skipped=true;
+    }
+  }
+  return result;
+}
+
 // ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
 function buildStrokesForFamily(segs, maxTurn){
   const Q=1e-4;
@@ -8821,9 +8842,11 @@ window.cadTilePlay=function(){
   const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const path=buildExpPath(segs,pat.famOrder,cadRoutingMode);
-  if(!path.length)return;
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
+  if(!fullPath.length)return;
   const lay=computeExpLayout(pat);
+  const path=filterVisiblePath(fullPath,lay);
+  if(!path.length)return;
   // Only consider path points visible in canvas viewport for bounding box
   const [minGu,maxGu]=lay.uRange, [minGv,maxGv]=lay.vRange;
   let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;

@@ -1100,9 +1100,11 @@ window.cadTilePlay=function(){
   const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const path=buildExpPath(segs,pat.famOrder,cadRoutingMode);
-  if(!path.length)return;
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
+  if(!fullPath.length)return;
   const lay=computeExpLayout(pat);
+  const path=filterVisiblePath(fullPath,lay);
+  if(!path.length)return;
   // Only consider path points visible in canvas viewport for bounding box
   const [minGu,maxGu]=lay.uRange, [minGv,maxGv]=lay.vRange;
   let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
