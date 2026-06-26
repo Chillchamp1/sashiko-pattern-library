@@ -8361,7 +8361,8 @@ function cadIsMergePoint(u,v){
 
 // Merge all mergeable segments at point [u,v], recursively healing the entire break.
 // Returns true if any merge happened.
-function cadMergeAllAt(u,v){
+function cadMergeAllAt(u,v, depth=0){
+  if(depth>20)return false; // safety limit
   const EPS=0.01;
   const affectedEndpoints=[]; // collect endpoints of merged arcs for recursive check
 
@@ -8462,7 +8463,7 @@ function cadMergeAllAt(u,v){
   // Recursively check affected endpoints
   if(didMerge){
     for(const ep of affectedEndpoints){
-      cadMergeAllAt(ep[0],ep[1]);
+      cadMergeAllAt(ep[0],ep[1], depth+1);
     }
   }
   return didMerge;
@@ -9218,8 +9219,8 @@ function cadInit(){
       cadArcLabel();
     }
     else if(cadTool==='erase'){
-      // Try to merge at intersection point
-      const didMerge=cadMergeAllAt(cadCur[0],cadCur[1]);
+      // Try to merge at intersection point (use raw coords, then snapped)
+      const didMerge=cadMergeAllAt(g.u,g.v)||cadMergeAllAt(cadCur[0],cadCur[1]);
       if(didMerge){
         cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
         cadHover=null;cadFamsLocked=false;cadFamSel=-1;
