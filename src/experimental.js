@@ -535,7 +535,7 @@ function detectSymmetryFamilies(pat){
 }
 
 // Flatten an arc to polyline segments in grid space.
-function _flattenArc(l, nSegs){
+function _flattenArc(l, nSegs, arcId){
   const a1=l.a1, a2=l.a2;
   let sweep=a2-a1;
   if(sweep>=2*Math.PI-0.001)sweep=2*Math.PI;
@@ -546,7 +546,7 @@ function _flattenArc(l, nSegs){
   for(let i=1;i<=segs;i++){
     const a=a1+sweep*(i/segs);
     const next=[l.center[0]+l.r*Math.cos(a),l.center[1]+l.r*Math.sin(a)];
-    result.push({start:prev,end:next});
+    result.push({start:prev,end:next,aid:arcId});
     prev=next;
   }
   return result;
@@ -571,47 +571,42 @@ function genTiledSegs(pat){
     if(famOfLine[li]===undefined||famOfLine[li]<0)famOfLine[li]=nextFam++;
   }
   const rawLines=pat.lines||[];
-  // Build flat segments: expand arcs to polyline segments
+  // Build flat segments: expand arcs to polyline segments, assign unique arc IDs
   const flatSegs=[];
   const flatFamOf=[];
+  let arcIdCounter=0;
   rawLines.forEach((l,li)=>{
     if(l.arc){
-      _flattenArc(l, 60).forEach(s=>{flatSegs.push(s);flatFamOf.push(famOfLine[li]);});
+      _flattenArc(l, 60, arcIdCounter).forEach(s=>{flatSegs.push(s);flatFamOf.push(famOfLine[li]);});
+      arcIdCounter++;
     }else{
-      flatSegs.push({start:[...l.start],end:[...l.end]});
+      flatSegs.push({start:[...l.start],end:[...l.end],aid:-1});
       flatFamOf.push(famOfLine[li]);
     }
   });
   const spacing=pat.spacing||0;
   const segs=[];
+  let tileAid=arcIdCounter;  // running counter for tiled copies
   if(pat.bboxRotated){
-    let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
-    flatSegs.forEach(l=>{
-      const p1=l.start[0]+l.start[1], q1=l.start[0]-l.start[1];
-      const p2=l.end[0]+l.end[1], q2=l.end[0]-l.end[1];
-      mnP=Math.min(mnP,p1,p2);mxP=Math.max(mxP,p1,p2);
-      mnQ=Math.min(mnQ,q1,q2);mxQ=Math.max(mxQ,q1,q2);
-    });
-    const sP=Math.max(mxP-mnP+spacing,1), sQ=Math.max(mxQ-mnQ+spacing,1);
-    const base_u=(mnP+mnQ)/2, base_v=(mnP-mnQ)/2;
-    const pad=sP+sQ;
-    const N=Math.ceil((Math.abs(maxU-minU)+Math.abs(maxV-minV)+pad)/Math.min(sP,sQ));
+    ...
     for(let a=-N;a<=N;a++){
       for(let b=-N;b<=N;b++){
         const ou=(a*sP+b*sQ)/2, ov=(a*sP-b*sQ)/2;
+        const base=tileAid; tileAid+=arcIdCounter;
         flatSegs.forEach((l,fi)=>{
-          segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi]});
+          const aid=l.aid>=0?base+l.aid:-1;
+          segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid});
         });
       }
     }
   }else{
-    const su=dU+spacing, sv=dV+spacing;
-    const ou0=Math.floor((minU-dU)/su)*su, ou1=Math.ceil((maxU-0)/su)*su;
-    const ov0=Math.floor((minV-dV)/sv)*sv, ov1=Math.ceil((maxV-0)/sv)*sv;
+    ...
     for(let ou=ou0;ou<=ou1;ou+=su){
       for(let ov=ov0;ov<=ov1;ov+=sv){
+        const base=tileAid; tileAid+=arcIdCounter;
         flatSegs.forEach((l,fi)=>{
-          segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi]});
+          const aid=l.aid>=0?base+l.aid:-1;
+          segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid});
         });
       }
     }
@@ -1301,13 +1296,14 @@ function buildStrokesForFamily(segs, maxTurn){
   const vId=new Map(), vPos=[];
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
     if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
-  const seen=new Set(), edges=[];
+  const seen=new Set(), edges=[], edgeAid=[];  // arc ID per edge
   for(const l of segs){
     const a=vidOf(l.start), b=vidOf(l.end);
     if(a===b)continue;
     const ek=a<b?a+'_'+b:b+'_'+a;
     if(seen.has(ek))continue; seen.add(ek);
     edges.push([a,b]);
+    edgeAid.push(l.aid===undefined?-1:l.aid);
   }
   if(!edges.length)return[];
 
@@ -1315,8 +1311,8 @@ function buildStrokesForFamily(segs, maxTurn){
   edges.forEach(([a,b],ei)=>{
     let dx=vPos[b][0]-vPos[a][0], dy=vPos[b][1]-vPos[a][1];
     const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
-    adj[a].push({e:ei,to:b,dir:[dx,dy],tw:-1});
-    adj[b].push({e:ei,to:a,dir:[-dx,-dy],tw:-1});
+    adj[a].push({e:ei,to:b,dir:[dx,dy],tw:-1,aid:edgeAid[ei]});
+    adj[b].push({e:ei,to:a,dir:[-dx,-dy],tw:-1,aid:edgeAid[ei]});
   });
   {const slot=new Map();
   adj.forEach((list,v)=>list.forEach((h,li)=>{
@@ -1328,8 +1324,13 @@ function buildStrokesForFamily(segs, maxTurn){
   const partner=adj.map(list=>new Int32Array(list.length).fill(-1));
   adj.forEach((list,v)=>{
     const d=list.length; if(d<2)return;
-    const cost=(i,j)=>{let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
-      dt=Math.max(-1,Math.min(1,dt)); return Math.PI-Math.acos(dt);};
+    const cost=(i,j)=>{
+      let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
+      dt=Math.max(-1,Math.min(1,dt)); let c=Math.PI-Math.acos(dt);
+      // Heavy penalty for pairing edges from different arcs (prefer same-arc continuity)
+      if(list[i].aid>=0&&list[j].aid>=0&&list[i].aid!==list[j].aid)c+=0.5;
+      return c;
+    };
     partner[v].set(matchVertex(d,cost,maxTurn));
   });
 
