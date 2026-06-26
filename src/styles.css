@@ -221,6 +221,7 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch{width:22px;height:22px;border-radius:4px;border:1px solid transparent;cursor:pointer;margin:0 2px;transition:.15s}
 .cad-fam-swatch:hover{border-color:#fff}
 .cad-fam-swatch.sel{border:3px solid #fff}
+.cad-fam-swatch.g1{box-shadow:0 0 0 2px #ff9bb0}
 /* ── Panel-top steppers (above canvases) ── */
 .cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:32px;flex-wrap:wrap}
 .cad-panel-stepper{display:inline-flex;align-items:center;gap:4px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:3px 8px}
