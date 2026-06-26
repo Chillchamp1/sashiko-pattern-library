@@ -1664,7 +1664,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode,curPat.famGroups);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);

@@ -941,7 +941,7 @@ window.cadUndo=function(){
   else{cadLines=state;cadFamilies=new Array(cadLines.length).fill(-1);}
   cadFamsLocked=true;cadUpdateAll();
 };
-window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;cadUpdateAll();}};
+window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamGroups=[];cadFamSel=-1;cadUpdateAll();}};
 window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
 window.cadToggleBBoxRotate=function(){
   cadBBoxRotated=!cadBBoxRotated;

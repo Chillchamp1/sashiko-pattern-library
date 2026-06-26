@@ -7627,7 +7627,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode,curPat.famGroups);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -8761,7 +8761,7 @@ window.cadUndo=function(){
   else{cadLines=state;cadFamilies=new Array(cadLines.length).fill(-1);}
   cadFamsLocked=true;cadUpdateAll();
 };
-window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;cadUpdateAll();}};
+window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamGroups=[];cadFamSel=-1;cadUpdateAll();}};
 window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
 window.cadToggleBBoxRotate=function(){
   cadBBoxRotated=!cadBBoxRotated;
