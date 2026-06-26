@@ -1277,6 +1277,26 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   return path;
 }
 
+// Filter a stitch path to only include segments visible in the canvas viewport.
+// Maintains jump flags so the needle jumps across invisible regions.
+function filterVisiblePath(path, lay){
+  const w=SIZE, h=lay.canvasH||SIZE;
+  const g2s=lay.g2s;
+  const result=[];
+  let skipped=false;
+  for(const s of path){
+    const a=g2s(s.start), b=g2s(s.end);
+    const vis=(a.x>-50&&a.x<w+50&&a.y>-50&&a.y<h+50)||(b.x>-50&&b.x<w+50&&b.y>-50&&b.y<h+50);
+    if(vis){
+      result.push({...s, jump:s.jump||skipped});
+      skipped=false;
+    }else{
+      skipped=true;
+    }
+  }
+  return result;
+}
+
 // ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
 function buildStrokesForFamily(segs, maxTurn){
   const Q=1e-4;
