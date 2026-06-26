@@ -538,33 +538,41 @@ function cadMergeSegments(ai, bi){
   const a=cadLines[ai], b=cadLines[bi];
   if(a.arc&&b.arc){
     const cx=a.center[0], cy=a.center[1], r=a.r;
-    // Determine the combined angle range
-    const a1a=a.a1, a2a=a.a2, a1b=b.a1, a2b=b.a2;
-    let startPt, endPt, newA1, newA2;
-    // Check all 4 combinations of start/end to find the two extremes
-    const cand=[];
-    // Collect all 4 points and their angles
-    const pts=[{p:a.start, ang:a.a1}, {p:a.end, ang:a.a2}, {p:b.start, ang:b.a1}, {p:b.end, ang:b.a2}];
-    // Find the two points that are farthest apart (they're the merged arc endpoints)
-    let maxDist=0, p0,p1, ang0,ang1;
-    for(let i=0;i<4;i++){
-      for(let j=i+1;j<4;j++){
-        const d=Math.hypot(pts[i].p[0]-pts[j].p[0],pts[i].p[1]-pts[j].p[1]);
-        if(d>maxDist){maxDist=d; p0=pts[i].p; p1=pts[j].p; ang0=pts[i].ang; ang1=pts[j].ang;}
+    // Find which endpoints match (the shared break point) and which are unique (the true arc ends)
+    const eps=0.01;
+    const ptsA=[{p:a.start, a:a.a1}, {p:a.end, a:a.a2}];
+    const ptsB=[{p:b.start, a:b.a1}, {p:b.end, a:b.a2}];
+    let shared=-1; // index in ptsA that matches something in ptsB
+    for(let i=0;i<2;i++){
+      for(let j=0;j<2;j++){
+        if(Math.hypot(ptsA[i].p[0]-ptsB[j].p[0],ptsA[i].p[1]-ptsB[j].p[1])<eps){shared=i;break;}
       }
+      if(shared>=0)break;
     }
-    // Determine sweep direction from the two arcs' sweep
-    const sweepA=a.a2-a.a1, sweepB=b.a2-b.a1;
-    const cwA=sweepA<0, cwB=sweepB<0;
-    if(cwA!==cwB)return null; // inconsistent sweep, don't merge
-    const keepCW=cwA;
-    // Ensure ang0→ang1 matches the sweep direction
-    let sweep=ang1-ang0;
-    if(keepCW&&sweep>0)sweep-=2*Math.PI;
-    if(!keepCW&&sweep<0)sweep+=2*Math.PI;
-    newA1=ang0; newA2=ang1;
-    startPt=[p0[0],p0[1]]; endPt=[p1[0],p1[1]];
-    return{arc:true,center:[cx,cy],r,a1:newA1,a2:newA2,start:startPt,end:endPt};
+    if(shared<0)return null; // no shared point, can't merge
+    // The unshared points are the true arc endpoints
+    const uA=ptsA[1-shared], uB=ptsB[0]; // find the unshared B point
+    let sharedB=-1;
+    for(let j=0;j<2;j++)if(Math.hypot(ptsA[shared].p[0]-ptsB[j].p[0],ptsA[shared].p[1]-ptsB[j].p[1])<eps){sharedB=j;break;}
+    const uBPt=ptsB[1-sharedB];
+    // Determine sweep direction from one of the original arcs
+    const sweepA=a.a2-a.a1;
+    const isCW=sweepA<0;
+    // Order the two unique endpoints along the sweep
+    const ang1=uA.a, ang2=uBPt.a;
+    let newA1, newA2;
+    if(isCW){
+      // CW: start from higher angle, go to lower
+      let d=ang2-ang1;
+      while(d>0)d-=2*Math.PI;
+      newA1=ang1; newA2=ang1+d;
+    }else{
+      // CCW: start from lower angle, go to higher
+      let d=ang2-ang1;
+      while(d<0)d+=2*Math.PI;
+      newA1=ang1; newA2=ang1+d;
+    }
+    return{arc:true,center:[cx,cy],r,a1:newA1,a2:newA2,start:[uA.p[0],uA.p[1]],end:[uBPt.p[0],uBPt.p[1]]};
   }else{
     // Straight lines: find the two farthest endpoints
     const pts=[a.start,a.end,b.start,b.end];
