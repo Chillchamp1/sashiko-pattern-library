@@ -7274,31 +7274,57 @@ function buildExpPath(lines, famOrderOverride, routingMode, famGroups, groupMode
     }
     if(!allStrokes.length){return path;}
 
-    // Sort: by band, within band by group (even bands: group 0 first, odd bands: group 1 first)
-    allStrokes.sort((a,b)=>{
-      if(a.band!==b.band)return a.band-b.band;
-      if(a.grp!==b.grp){
-        return a.band%2===0 ? a.grp-b.grp : b.grp-a.grp;
-      }
-      return a.band%2===0 ? a.ac-b.ac : b.ac-a.ac;
-    });
+    // Group families: build ordered lists of families per group
+    const groupFams=[[],[]]; // groupFams[0] = group A, groupFams[1] = group B
+    for(let i=0;i<bestOrder.length;i++){
+      const fi=bestOrder[i];
+      const grp=famGroupsSrc[i]||0;
+      if(famStrokes.has(fi))groupFams[grp].push(fi);
+    }
 
-    // Stitch in sorted order
+    // Collect all bands and assign each to a specific family
+    const bandMap=new Map(); // band -> {fi, strokes}
     for(const s of allStrokes){
-      let pts=s.pts.slice();
-      const fi=s.fi;
-      if(cur){
-        const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
-        const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
-        if(dE<dS)pts=pts.reverse();
-        if(pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
-          pts=_rotateClosedEntry(pts,cur);
+      const band=s.band;
+      if(!bandMap.has(band)){
+        // Determine which group this band belongs to
+        const grp=band%2===0?0:1;
+        // Pick family from group, cycling by band index within group
+        const grpBandIdx=Math.floor(band/2);
+        const fams=groupFams[grp];
+        if(!fams.length)continue;
+        const fi=fams[grpBandIdx%fams.length];
+        bandMap.set(band,{fi, strokes:[]});
       }
-      for(let k=0;k<pts.length-1;k++){
-        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
-        stitched.push({start:pts[k],end:pts[k+1]});
+      const entry=bandMap.get(band);
+      if(entry.fi===s.fi)entry.strokes.push(s);
+    }
+
+    // Sort bands and stitch
+    const sortedBands=[...bandMap.keys()].sort((a,b)=>a-b);
+    for(const band of sortedBands){
+      const entry=bandMap.get(band);
+      // Sort strokes within band by along-axis (snake direction)
+      const stks=entry.strokes;
+      stks.sort((a,b)=>{
+        return band%2===0 ? a.ac-b.ac : b.ac-a.ac;
+      });
+      for(const s of stks){
+        let pts=s.pts.slice();
+        const fi=s.fi;
+        if(cur){
+          const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
+          const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
+          if(dE<dS)pts=pts.reverse();
+          if(pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+            pts=_rotateClosedEntry(pts,cur);
+        }
+        for(let k=0;k<pts.length-1;k++){
+          path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+          stitched.push({start:pts[k],end:pts[k+1]});
+        }
+        cur=pts[pts.length-1];
       }
-      cur=pts[pts.length-1];
     }
   }
   return path;
