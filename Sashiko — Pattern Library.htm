@@ -6551,7 +6551,17 @@ function genTiledSegs(pat){
   const segs=[];
   let tileAid=arcIdCounter;  // running counter for tiled copies
   if(pat.bboxRotated){
-    ...
+    let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
+    flatSegs.forEach(l=>{
+      const p1=l.start[0]+l.start[1], q1=l.start[0]-l.start[1];
+      const p2=l.end[0]+l.end[1], q2=l.end[0]-l.end[1];
+      mnP=Math.min(mnP,p1,p2);mxP=Math.max(mxP,p1,p2);
+      mnQ=Math.min(mnQ,q1,q2);mxQ=Math.max(mxQ,q1,q2);
+    });
+    const sP=Math.max(mxP-mnP+spacing,1), sQ=Math.max(mxQ-mnQ+spacing,1);
+    const base_u=(mnP+mnQ)/2, base_v=(mnP-mnQ)/2;
+    const pad=sP+sQ;
+    const N=Math.ceil((Math.abs(maxU-minU)+Math.abs(maxV-minV)+pad)/Math.min(sP,sQ));
     for(let a=-N;a<=N;a++){
       for(let b=-N;b<=N;b++){
         const ou=(a*sP+b*sQ)/2, ov=(a*sP-b*sQ)/2;
@@ -6563,7 +6573,9 @@ function genTiledSegs(pat){
       }
     }
   }else{
-    ...
+    const su=dU+spacing, sv=dV+spacing;
+    const ou0=Math.floor((minU-dU)/su)*su, ou1=Math.ceil((maxU-0)/su)*su;
+    const ov0=Math.floor((minV-dV)/sv)*sv, ov1=Math.ceil((maxV-0)/sv)*sv;
     for(let ou=ou0;ou<=ou1;ou+=su){
       for(let ov=ov0;ov<=ov1;ov+=sv){
         const base=tileAid; tileAid+=arcIdCounter;
