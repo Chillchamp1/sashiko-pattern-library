@@ -1,0 +1,129 @@
+{
+  "name": "Asanoha (Hemp Leaf) Remix",
+  "id": "exp_1782328735477",
+  "traditional": false,
+  "published": true,
+  "bboxRotated": false,
+  "families": [
+    5,
+    1,
+    3,
+    4,
+    4,
+    2,
+    2,
+    0,
+    0
+  ],
+  "creatorId": "uy09jle01o7",
+  "famOrder": [
+    3,
+    0,
+    1,
+    5,
+    2,
+    4
+  ],
+  "lines": [
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        10
+      ]
+    },
+    {
+      "end": [
+        10,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "start": [
+        10,
+        10
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        3.333,
+        6.667
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        3.333,
+        6.667
+      ],
+      "start": [
+        10,
+        10
+      ]
+    },
+    {
+      "start": [
+        10,
+        10
+      ],
+      "end": [
+        6.667,
+        3.333
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        6.667,
+        3.333
+      ]
+    },
+    {
+      "start": [
+        0,
+        10
+      ],
+      "end": [
+        3.333,
+        6.667
+      ]
+    },
+    {
+      "end": [
+        10,
+        0
+      ],
+      "start": [
+        6.667,
+        3.333
+      ]
+    }
+  ],
+  "type": "exp",
+  "patMacro": 3,
+  "gridType": "isometric",
+  "bbox": {
+    "minU": 0,
+    "maxU": 10,
+    "maxV": 10,
+    "minV": 0
+  },
+  "createdAt": 1782328735477
+}

@@ -44,6 +44,23 @@ Interactive Sashiko pattern library with animated stitch-by-stitch preview. All 
 
 ---
 
+## Debugging Routing (headless — no browser, no clicking)
+
+`tools/routing/` runs the **real** router from `src/` in Node against real pattern geometry, so routing changes can be measured before touching the browser. Plain Node (v18+), no deps — works under Claude Code, opencode/DeepSeek, or a human shell. See `tools/routing/README.md`.
+
+```bash
+node tools/routing/fetch-patterns.js        # pull all patterns from Firestore → test/patterns/*.json (public read, unattended)
+node tools/routing/route.js                 # metrics for every fixture in its saved mode
+node tools/routing/route.js seigaiha        # one pattern (id or name substring), all 3 modes
+node tools/routing/route.js shippo contour  # one pattern, one mode
+node tools/routing/route.js --snapshot      # write golden test/routing-snapshots.json
+node tools/routing/route.js --check         # diff vs golden, exit 1 on any change
+```
+
+Metrics: `strokes`, `jumps`, `jumpLen`, `maxTurn` (sharpest in-stroke turn), `midArc` (strokes that start mid-arc — **must be 0**). `load-routing.js` loads the live `src/` functions (no copy-paste, can't drift). Fixtures in `test/patterns/` and the snapshot are committed. When a routing change is intentional, re-run `--snapshot`.
+
+---
+
 ## Architecture
 
 Three separate rendering engines:

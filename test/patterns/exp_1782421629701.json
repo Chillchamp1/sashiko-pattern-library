@@ -1,0 +1,180 @@
+{
+  "bboxRotated": false,
+  "families": [
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0
+  ],
+  "creatorId": "un4bcd6du2x",
+  "famOrder": [
+    0,
+    1
+  ],
+  "spacing": 0,
+  "lines": [
+    {
+      "a1": 0,
+      "center": [
+        5,
+        5
+      ],
+      "end": [
+        5,
+        10
+      ],
+      "a2": 1.570796,
+      "arc": true,
+      "start": [
+        10,
+        5
+      ],
+      "r": 5
+    },
+    {
+      "a2": 3.141593,
+      "center": [
+        5,
+        5
+      ],
+      "a1": 1.570796,
+      "end": [
+        0,
+        5
+      ],
+      "r": 5,
+      "start": [
+        5,
+        10
+      ],
+      "arc": true
+    },
+    {
+      "arc": true,
+      "start": [
+        0,
+        5
+      ],
+      "r": 5,
+      "end": [
+        5,
+        0
+      ],
+      "a1": 3.141593,
+      "center": [
+        5,
+        5
+      ],
+      "a2": 4.712389
+    },
+    {
+      "r": 5,
+      "start": [
+        5,
+        0
+      ],
+      "arc": true,
+      "a2": 6.283185,
+      "center": [
+        5,
+        5
+      ],
+      "a1": 4.712389,
+      "end": [
+        10,
+        5
+      ]
+    },
+    {
+      "r": 5,
+      "arc": true,
+      "start": [
+        5,
+        0
+      ],
+      "a2": 1.570796,
+      "a1": 0,
+      "center": [
+        0,
+        0
+      ],
+      "end": [
+        0,
+        4
+      ]
+    },
+    {
+      "a2": 1.570796,
+      "end": [
+        10,
+        5
+      ],
+      "a1": 3.141593,
+      "center": [
+        10,
+        0
+      ],
+      "r": 5,
+      "arc": true,
+      "start": [
+        5,
+        0
+      ]
+    },
+    {
+      "center": [
+        0,
+        10
+      ],
+      "a1": 0,
+      "end": [
+        0,
+        5
+      ],
+      "a2": -1.570796,
+      "start": [
+        5,
+        10
+      ],
+      "arc": true,
+      "r": 5
+    },
+    {
+      "a2": 4.712389,
+      "a1": 3.141593,
+      "center": [
+        10,
+        10
+      ],
+      "end": [
+        10,
+        5
+      ],
+      "r": 5,
+      "arc": true,
+      "start": [
+        5,
+        10
+      ]
+    }
+  ],
+  "name": "Shippo tsunagi (Seven Treasures)",
+  "id": "exp_1782421629701",
+  "traditional": false,
+  "published": true,
+  "bbox": {
+    "maxU": 10.000001633974485,
+    "minV": 0,
+    "maxV": 10.000001732051032,
+    "minU": 0
+  },
+  "routingMode": "contour",
+  "createdAt": 1782421629701,
+  "type": "exp",
+  "patMacro": 4,
+  "gridType": "square"
+}

@@ -35,6 +35,13 @@ Within a continuous stroke the needle should run as **straight or smoothly-curvi
 
 Functions: `tracePaired(edges)` for the built-in lattice patterns (collinear pairing); `buildExpPath` + `matchVertex` for custom patterns (general min-deflection matching, handles curves).
 
+**Arcs are atomic traversal units — a stroke can only START an arc at one of its endpoints, never mid-arc.** Each drawn arc (its flattened segments share an `aid`) is pulled out by `extractArcStrokes` as ONE whole polyline running endpoint→endpoint, *before* the line matcher / wave tracer runs. A wave may **chain** one arc into the next at a shared endpoint, but can never enter or leave an arc in its middle. This means:
+
+- **Logik 1/2** (`buildStrokesForFamily`): arcs are emitted whole and only straight lines go through min-deflection matching. Arcs do not merge with crossing lines/other arcs into one stroke.
+- **Logik 3 / contour** (`buildContourStrokes`): each arc is a **super-edge** between its two endpoints; the axis-wave tracer chains whole arcs at shared endpoints. Tangent-smooth meets chain into one long run (e.g. **Shippō**'s diagonal sine curves); cusp meets exceed `maxTurn` and stay separate (e.g. **Seigaiha**'s scallops) — but the needle always starts at a drawn endpoint either way.
+
+The stroke ordering only ever enters a stroke at one of its two ends, so the needle always begins an **open** arc at a drawn endpoint. (Closed full-circle arcs have *no* endpoint, so this rule doesn't apply to them: `default`/`contour` rotate the closed loop to start at the point nearest the needle — `_rotateClosedEntry`, shortest jump — while `continuous` starts it at the drawn start. `orderStrokesFamily` carries `first`/`last` for zero-length closed strokes and drops degenerate <2-point strokes so curve patterns don't crash.) The headless harness's `midArc` metric counts only open-arc violations and is expected to be 0.
+
 ## Rule 2 — Short jumps between strokes
 When a continuous stroke ends and the next begins, the "jump" (re-inserting the needle) should be as short as possible.
 

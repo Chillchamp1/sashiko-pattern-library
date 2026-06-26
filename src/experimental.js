@@ -1301,9 +1301,45 @@ function filterVisiblePath(path, lay){
   return result;
 }
 
+// ── Arc atomicity (routing rule: an arc starts at one of its endpoints) ─────
+// Each drawn arc (segments sharing an aid≥0) is pulled out as ONE complete stroke
+// running from one endpoint to the other. This guarantees — in every routing mode —
+// that the needle begins an arc at a drawn endpoint, never somewhere in its middle.
+// The flattened segments arrive in sweep order and chain end→start, so the polyline
+// is just their points concatenated. Returns {arcStrokes:[[pt,…]], lineSegs:[…]}.
+function extractArcStrokes(segs){
+  const order=[], byAid=new Map(), lineSegs=[];
+  for(const s of segs){
+    if(s.aid!==undefined && s.aid>=0){
+      if(!byAid.has(s.aid)){byAid.set(s.aid,[]);order.push(s.aid);}
+      byAid.get(s.aid).push(s);
+    }else lineSegs.push(s);
+  }
+  const arcStrokes=[];
+  for(const aid of order){
+    const list=byAid.get(aid);
+    if(!list.length)continue;
+    const pts=[list[0].start.slice()];
+    let prev=list[0].start;
+    for(const s of list){
+      // Tolerate a rare ordering gap: re-anchor if this segment doesn't continue the chain.
+      if(Math.hypot(s.start[0]-prev[0],s.start[1]-prev[1])>1e-3)pts.push(s.start.slice());
+      pts.push(s.end.slice());
+      prev=s.end;
+    }
+    if(pts.length>=2)arcStrokes.push(pts);
+  }
+  return {arcStrokes, lineSegs};
+}
+
 // ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
 function buildStrokesForFamily(segs, maxTurn){
   const Q=1e-4;
+
+  // Arcs route atomically (start at an endpoint); only straight lines go through matching.
+  const {arcStrokes, lineSegs}=extractArcStrokes(segs);
+  segs=lineSegs;
+  if(!segs.length)return arcStrokes;
 
   const vId=new Map(), vPos=[];
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
@@ -1366,43 +1402,74 @@ function buildStrokesForFamily(segs, maxTurn){
     trace(a, adj[a].findIndex(h=>h.e===ei));
   });
 
-  return strokes;
+  return arcStrokes.concat(strokes);
 }
 
 // ── Contour/wave tracer (Logik 3) ────────────────────────────────────────────
-// Chains arc segments into long forward-marching waves (scallops) instead of closed
-// per-circle loops. Tries 4 sweep axes (horizontal, vertical, both diagonals) and keeps
-// the decomposition with the FEWEST strokes = longest continuous runs. Within a wave the
-// needle always progresses along the axis, picking the smoothest forward arc at each
-// crossing → long repeating curves, no cusp folds. Leftover edges (≈perpendicular to the
-// axis) are traced straightest-first as a fallback.
+// Chains whole arcs into long forward-marching waves (scallops / diagonal sines).
+//
+// Each arc is an ATOMIC super-edge between its two drawn endpoints: a wave may chain
+// one arc into the next at a shared endpoint, but can never enter or leave an arc in
+// its middle. This restores Shippō's continuous diagonal sine curves (arcs that meet
+// tangent-smooth chain into one wave) while keeping the start-at-endpoint rule, and
+// Seigaiha's scallops stay separate because their meets are cusps that exceed maxTurn.
+//
+// Tries 4 sweep axes (horizontal, vertical, both diagonals) and keeps the decomposition
+// with the FEWEST strokes = longest continuous runs. Within a wave the needle always
+// progresses along the axis, taking the smoothest forward arc at each shared endpoint.
+// Leftover super-edges (≈perpendicular to the axis) are traced straightest-first.
 function buildContourStrokes(segs, maxTurn){
   const Q=1e-4;
+  // Arcs become whole-polyline super-edges; straight lines are single-segment super-edges.
+  const {arcStrokes, lineSegs}=extractArcStrokes(segs);
+
   const vId=new Map(), vPos=[];
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
     if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
-  const seen=new Set(), edges=[];
-  for(const l of segs){
+
+  const E=[];               // super-edges: {a,b,pts}  (pts run a→b)
+  for(const pts of arcStrokes){
+    const a=vidOf(pts[0]), b=vidOf(pts[pts.length-1]);
+    E.push({a,b,pts:pts.map(p=>p.slice())});
+  }
+  const seen=new Set();
+  for(const l of lineSegs){
     const a=vidOf(l.start), b=vidOf(l.end);
     if(a===b)continue;
     const ek=a<b?a+'_'+b:b+'_'+a;
     if(seen.has(ek))continue; seen.add(ek);
-    edges.push([a,b]);
+    E.push({a,b,pts:[l.start.slice(),l.end.slice()]});
   }
-  if(!edges.length)return[];
+  if(!E.length)return[];
+
+  // Tangent of a super-edge at an endpoint, pointing INTO the edge (continuation dir
+  // when entering from that end). Uses the first/last polyline segment.
+  const dirInto=(e,fromA)=>{
+    const p=e.pts, n=p.length;
+    let dx,dy;
+    if(fromA){dx=p[1][0]-p[0][0];dy=p[1][1]-p[0][1];}
+    else     {dx=p[n-2][0]-p[n-1][0];dy=p[n-2][1]-p[n-1][1];}
+    const L=Math.hypot(dx,dy)||1; return[dx/L,dy/L];
+  };
+  // Direction of travel as the needle ARRIVES at the far end (used as inDir for the next pick).
+  const dirArrive=(e,fromA)=>{
+    const p=fromA?e.pts:e.pts.slice().reverse(), n=p.length;
+    let dx=p[n-1][0]-p[n-2][0], dy=p[n-1][1]-p[n-2][1];
+    const L=Math.hypot(dx,dy)||1; return[dx/L,dy/L];
+  };
+  const polyFrom=(e,fromA)=> fromA ? e.pts.map(p=>p.slice()) : e.pts.slice().reverse().map(p=>p.slice());
+
   const adj=vPos.map(()=>[]);
-  edges.forEach(([a,b],ei)=>{
-    let dx=vPos[b][0]-vPos[a][0], dy=vPos[b][1]-vPos[a][1];
-    const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
-    adj[a].push({e:ei,to:b,dir:[dx,dy]});
-    adj[b].push({e:ei,to:a,dir:[-dx,-dy]});
+  E.forEach((e,ei)=>{
+    adj[e.a].push({e:ei,to:e.b,fromA:true, dir:dirInto(e,true)});
+    adj[e.b].push({e:ei,to:e.a,fromA:false,dir:dirInto(e,false)});
   });
 
   function traceAxis(ax,ay){
-    const usedE=new Uint8Array(edges.length), strokes=[];
+    const usedE=new Uint8Array(E.length), strokes=[];
     const proj=i=>vPos[i][0]*ax+vPos[i][1]*ay;
     const verts=[...Array(vPos.length).keys()].sort((i,j)=>proj(i)-proj(j));
-    const pick=(v,inDir)=>{           // smoothest UNused edge that progresses along the axis
+    const pick=(v,inDir)=>{           // smoothest UNused super-edge that progresses along the axis
       let best=-1,bestTurn=Infinity;
       for(let li=0;li<adj[v].length;li++){
         const h=adj[v][li]; if(usedE[h.e])continue;
@@ -1414,33 +1481,25 @@ function buildContourStrokes(segs, maxTurn){
       }
       return best;
     };
-    for(const v0 of verts){
-      let li;
-      while((li=pick(v0,null))>=0){
-        const pts=[vPos[v0].slice()]; let v=v0,cl=li,inDir=null;
-        for(;;){
-          const h=adj[v][cl]; if(usedE[h.e])break; usedE[h.e]=1;
-          pts.push(vPos[h.to].slice()); inDir=h.dir; v=h.to;
-          const nl=pick(v,inDir); if(nl<0)break; cl=nl;
-        }
-        if(pts.length>=2)strokes.push(pts);
-      }
-    }
-    // fallback for edges perpendicular to the axis (never "forward"): straightest-first trace
-    edges.forEach((e,ei)=>{
-      if(usedE[ei])return;
-      let v=e[0], c=adj[v].findIndex(h=>h.e===ei), inDir=null;
-      const pts=[vPos[v].slice()];
+    const run=(v0,cl0)=>{              // follow super-edges from v0, appending whole polylines
+      let pts=null, v=v0, cl=cl0, inDir=null;
       for(;;){
-        const h=adj[v][c]; if(usedE[h.e])break; usedE[h.e]=1;
-        pts.push(vPos[h.to].slice()); inDir=h.dir; v=h.to;
-        let best=-1,bt=Infinity;
-        for(let li=0;li<adj[v].length;li++){const hh=adj[v][li];if(usedE[hh.e])continue;
-          let dt=hh.dir[0]*inDir[0]+hh.dir[1]*inDir[1];dt=Math.max(-1,Math.min(1,dt));const turn=Math.acos(dt);
-          if(turn>maxTurn)continue; if(turn<bt){bt=turn;best=li;}}
-        if(best<0)break; c=best;
+        const h=adj[v][cl]; if(usedE[h.e])break; usedE[h.e]=1;
+        const poly=polyFrom(E[h.e],h.fromA);
+        if(!pts)pts=[poly[0]];
+        for(let k=1;k<poly.length;k++)pts.push(poly[k]);
+        inDir=dirArrive(E[h.e],h.fromA); v=h.to;
+        const nl=pick(v,inDir); if(nl<0)break; cl=nl;
       }
-      if(pts.length>=2)strokes.push(pts);
+      if(pts&&pts.length>=2)strokes.push(pts);
+    };
+    for(const v0 of verts){
+      let li; while((li=pick(v0,null))>=0)run(v0,li);
+    }
+    // fallback for super-edges ≈perpendicular to the axis (never "forward"): straightest-first
+    E.forEach((e,ei)=>{
+      if(usedE[ei])return;
+      run(e.a, adj[e.a].findIndex(h=>h.e===ei));
     });
     return strokes;
   }
@@ -1453,6 +1512,7 @@ function buildContourStrokes(segs, maxTurn){
 
 // ── Stroke ordering within one family: band-snake (reliable for all orientations) ─
 function orderStrokesFamily(strokes){
+  strokes=strokes.filter(pts=>pts&&pts.length>=2);  // drop degenerate/empty strokes
   if(strokes.length<=1)return strokes.map(pts=>({pts}));
 
   // Compute dominant orientation from all stroke endpoints
@@ -1460,7 +1520,7 @@ function orderStrokesFamily(strokes){
     const first=pts[0], last=pts[pts.length-1];
     const dx=last[0]-first[0], dy=last[1]-first[1];
     const len=Math.hypot(dx,dy);
-    if(len<1e-6)return{pts, ang:0, len:0};
+    if(len<1e-6)return{pts, ang:0, len:0, first, last};  // closed loop (e.g. full-circle arc)
     let ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI;
     return{pts, ang, len, first, last,
       ac0:0, ac1:0}; // filled later
