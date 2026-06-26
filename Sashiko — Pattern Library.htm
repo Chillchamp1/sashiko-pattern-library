@@ -228,7 +228,6 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch{width:22px;height:22px;border-radius:4px;border:1px solid transparent;cursor:pointer;margin:0 2px;transition:.15s}
 .cad-fam-swatch:hover{border-color:#fff}
 .cad-fam-swatch.sel{border:3px solid #fff}
-.cad-fam-swatch.g1{box-shadow:0 0 0 2px #ff9bb0}
 /* ── Panel-top steppers (above canvases) ── */
 .cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:32px;flex-wrap:wrap}
 .cad-panel-stepper{display:inline-flex;align-items:center;gap:4px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:3px 8px}
@@ -5441,7 +5440,7 @@ function loadPattern(pat){
   if(isEXP){
     setupExpCanvas(pat);
     const expLay=computeExpLayout(pat);
-    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode,pat.famGroups),expLay);
+    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
@@ -6936,7 +6935,6 @@ window.editExpPattern=function(idOrPat){
   while(cadFamilies.length<cadLines.length)cadFamilies.push(-1);
   if(cadFamilies.length>cadLines.length)cadFamilies.length=cadLines.length;
   cadFamOrder=(pat.famOrder||[]).slice();
-  cadFamGroups=(pat.famGroups||[]).slice();
   // If no families were saved, detect from geometry so routing matches gallery
   if(!cadFamilies.some(f=>f>=0)){
     const connFams=detectSymmetryFamilies({lines:cadLines, bbox:cadBBox()||pat.bbox||{minU:0,maxU:10,minV:0,maxV:10}});
@@ -7033,14 +7031,14 @@ function _stitchChains(chains, tol){
   return chains;
 }
 
-function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
+function buildExpPath(lines, famOrderOverride, routingMode){
   if(!lines||!lines.length)return[];
 
   const mode=routingMode||'default';
+  // Logik 1 (default) + legacy smooth/fewer-jumps = family band-snake, varying turn budget.
+  // Logik 2 (continuous) = global-NN follow-path. Logik 3 (contour) = outline shapes, float between.
   const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:120*Math.PI/180};
   const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
-
-  const famGroups2=famGroups||[];  // group 0 or 1 per family-order position
 
   const famGroups=new Map();
   lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
@@ -7213,96 +7211,23 @@ function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
   const stitched=[];
   let cur=null;
 
-  // Check if groups are active (at least one family in group 1)
-  const hasGroups=famGroups2.length&&famGroups2.some(g=>g===1);
-
-  if(!hasGroups){
-    // ── Standard: visit families in order ──
-    for(const fi of bestOrder){
-      const ordered=famStrokes.get(fi);
-      if(cur&&ordered.length>0){
-        const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
-        const fPt=sFirst[0], bPt=sLast[sLast.length-1];
-        const dF=Math.hypot(fPt[0]-cur[0],fPt[1]-cur[1])+_retraceCost(cur,fPt,stitched);
-        const dB=Math.hypot(bPt[0]-cur[0],bPt[1]-cur[1])+_retraceCost(cur,bPt,stitched);
-        if(dB<dF){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
-      }
-      for(let si=0;si<ordered.length;si++){
-        let pts=ordered[si].pts;
-        if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
-          pts=_rotateClosedEntry(pts,cur);
-        if(cur){
-          const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
-          const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
-          if(dE<dS)pts=pts.slice().reverse();
-        }
-        for(let k=0;k<pts.length-1;k++){
-          path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
-          stitched.push({start:pts[k],end:pts[k+1]});
-        }
-        cur=pts[pts.length-1];
-      }
+  for(const fi of bestOrder){
+    const ordered=famStrokes.get(fi);
+    if(cur&&ordered.length>0){
+      const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
+      const fPt=sFirst[0], bPt=sLast[sLast.length-1];
+      const dF=Math.hypot(fPt[0]-cur[0],fPt[1]-cur[1])+_retraceCost(cur,fPt,stitched);
+      const dB=Math.hypot(bPt[0]-cur[0],bPt[1]-cur[1])+_retraceCost(cur,bPt,stitched);
+      if(dB<dF){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
     }
-  }else{
-    // ── Grouped: interleave bands from group 0 and group 1 ──
-    // Flatten all ordered strokes with family index
-    const allStrokes=[];
-    for(const fi of bestOrder){
-      const ordered=famStrokes.get(fi);
-      const pos=bestOrder.indexOf(fi);
-      const grp=famGroups2[pos]||0;
-      ordered.forEach(s=>allStrokes.push({...s, fi, grp}));
-    }
-    if(!allStrokes.length)return path;
-
-    // Determine dominate axis from all strokes and assign bands
-    const S=allStrokes.map(s=>{
-      const pts=s.pts, first=pts[0], last=pts[pts.length-1];
-      const dx=last[0]-first[0], dy=last[1]-first[1];
-      const len=Math.hypot(dx,dy);
-      let ang=0;
-      if(len<1e-6){
-        const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
-        ang=Math.atan2(Math.max(...ys)-Math.min(...ys),Math.max(...xs)-Math.min(...xs));
-      }else{
-        ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI;
-      }
-      return{...s, ang, len:len||1, first};
-    });
-    let sc2=0,ss2=0;
-    S.forEach(s=>{const w=s.len; sc2+=w*Math.cos(2*s.ang); ss2+=w*Math.sin(2*s.ang);});
-    const axisAng=0.5*Math.atan2(ss2,sc2);
-    const axis=[Math.cos(axisAng),Math.sin(axisAng)];
-    const perp=[-Math.sin(axisAng),Math.cos(axisAng)];
-    S.forEach(s=>{
-      s.bc=s.first[0]*perp[0]+s.first[1]*perp[1];
-      s.ac=s.first[0]*axis[0]+s.first[1]*axis[1];
-    });
-    const uniqueBcs=[...new Set(S.map(s=>Math.round(s.bc*1e4)/1e4))].sort((a,b)=>a-b);
-    let pitch=Infinity;
-    for(let i=1;i<uniqueBcs.length;i++)pitch=Math.min(pitch,uniqueBcs[i]-uniqueBcs[i-1]);
-    if(!isFinite(pitch)||pitch<1e-4)pitch=1;
-    const minbc=Math.min(...S.map(s=>s.bc));
-    S.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
-
-    // Sort by band, then by group within band (group 0 first in even bands, group 1 first in odd bands)
-    S.sort((a,b)=>{
-      if(a.band!==b.band)return a.band-b.band;
-      const even=a.band%2===0;
-      if(a.grp!==b.grp)return even?a.grp-b.grp:b.grp-a.grp;
-      return even?a.ac-b.ac:b.ac-a.ac;
-    });
-
-    // Stitch all strokes in sorted order
-    for(const s of S){
-      let pts=s.pts.slice();
-      const fi=s.fi;
+    for(let si=0;si<ordered.length;si++){
+      let pts=ordered[si].pts;
+      if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+        pts=_rotateClosedEntry(pts,cur);
       if(cur){
         const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
         const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
-        if(dE<dS)pts=pts.reverse();
-        if(pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
-          pts=_rotateClosedEntry(pts,cur);
+        if(dE<dS)pts=pts.slice().reverse();
       }
       for(let k=0;k<pts.length-1;k++){
         path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
@@ -7822,7 +7747,7 @@ window.showGalleryFromCAD=function(){
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
-let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[],cadFamGroups=[];
+let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
@@ -8668,47 +8593,18 @@ function cadBuildFamBar(){
   if(!unique.length){c.innerHTML='';return;}
   const used=[...new Set(cadFamilies.filter(f=>f>=0))];
   used.forEach(f=>{if(!cadFamOrder.includes(f))cadFamOrder.push(f);});
-  // Keep cadFamGroups in sync with cadFamOrder length
-  while(cadFamGroups.length<cadFamOrder.length)cadFamGroups.push(0);
-  if(cadFamGroups.length>cadFamOrder.length)cadFamGroups.length=cadFamOrder.length;
   c.innerHTML=cadFamOrder.map((fam,pos)=>{
     const col=FAM_PALETTE[fam%FAM_PALETTE.length];
-    const grp=cadFamGroups[pos]||0;
-    const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'')+(grp===1?' g1':'');
-    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="Family '+(fam+1)+(grp===1?' · Group B':' · Group A')+'"></button>';
+    const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'');
+    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="Family '+(fam+1)+'"></button>';
   }).join('');
-  // Group toggle button
-  const hasGroups=cadFamGroups.some(g=>g===1);
-  const toggleBtn=hasGroups
-    ? '<button class="cad-tool" onclick="cadToggleFamGroup()" style="font-size:10px;padding:4px 8px" title="Move selected colour to other group">⇆ Group</button>'
-    : '<button class="cad-tool" onclick="cadEnableGroups()" style="font-size:10px;padding:4px 8px;color:#88cc88" title="Split colours into two alternating groups">⊕ Groups</button>';
-  c.insertAdjacentHTML('beforeend',toggleBtn);
 }
 window.cadSelectFam=function(pos){cadFamSel=cadFamSel===pos?-1:pos;cadUpdateAll();};
-window.cadToggleFamGroup=function(){
-  if(cadFamSel<0||cadFamSel>=cadFamGroups.length)return;
-  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});
-  cadFamGroups[cadFamSel]=cadFamGroups[cadFamSel]===0?1:0;
-  cadFamsLocked=true;
-  cadUpdateAll();
-};
-window.cadEnableGroups=function(){
-  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});
-  // Split approx half of families into group 1
-  const mid=Math.ceil(cadFamOrder.length/2);
-  cadFamGroups=cadFamOrder.map((_,i)=>i<mid?0:1);
-  cadFamsLocked=true;
-  cadUpdateAll();
-};
 window.cadMoveFam=function(dir){
   if(cadFamSel<0||cadFamSel>=cadFamOrder.length)return;
   const oi=cadFamSel+dir;if(oi<0||oi>=cadFamOrder.length)return;
-  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
   [cadFamOrder[cadFamSel],cadFamOrder[oi]]=[cadFamOrder[oi],cadFamOrder[cadFamSel]];
-  // Also swap group assignments
-  if(cadFamGroups.length>Math.max(cadFamSel,oi)){
-    [cadFamGroups[cadFamSel],cadFamGroups[oi]]=[cadFamGroups[oi],cadFamGroups[cadFamSel]];
-  }
   cadFamSel=oi;cadFamsLocked=true;
   cadUpdateAll();
 };
@@ -8719,14 +8615,13 @@ window.cadAddFam=function(){
   cadFamOrder.push(nf);cadFamSel=cadFamOrder.length-1;cadFamsLocked=true;
   cadUpdateAll();
 };
-function _compactFamilies(families, famOrder, famGroups){
+function _compactFamilies(families, famOrder){
   const used=[...new Set(families.filter(f=>f>=0))].sort((a,b)=>a-b);
-  if(!used.length)return{families:[], famOrder:[], famGroups:[]};
+  if(!used.length)return{families:[], famOrder:[]};
   const map={};used.forEach((of,i)=>{map[of]=i;});
   const newFam=families.map(f=>f>=0?map[f]:-1);
   const newOrder=famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
-  const newGroups=famOrder.map((f,pos)=>famGroups&&famGroups[pos]||0).filter((_,i)=>used.includes(famOrder[i]));
-  return{families:newFam, famOrder:newOrder, famGroups:newGroups};
+  return{families:newFam, famOrder:newOrder};
 }
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
@@ -8757,7 +8652,7 @@ window.cadSetTool=function(t){
 window.cadUndo=function(){
   if(!cadHistory.length)return;
   const state=cadHistory.pop();
-  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];if(state.o)cadFamOrder=state.o;if(state.g)cadFamGroups=state.g;}
+  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];if(state.o)cadFamOrder=state.o;}
   else{cadLines=state;cadFamilies=new Array(cadLines.length).fill(-1);}
   cadFamsLocked=true;cadUpdateAll();
 };
@@ -8862,10 +8757,10 @@ window.cadSaveToLibrary=function(){
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
-  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder], [...cadFamGroups]);
+  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,famGroups:cf.famGroups,traditional:cadTraditional,routingMode:cadRoutingMode};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -8906,9 +8801,9 @@ window.cadPublishToLibrary=function(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
-  const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder], [...cadFamGroups]);
+  const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,famGroups:cf2.famGroups,traditional:cadTraditional,routingMode:cadRoutingMode,published:true};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -8947,10 +8842,10 @@ window.cadTilePlay=function(){
     const rel=_cadLineToSaved(l, bbox.minU, bbox.minV);
     return rel;
   });
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],famGroups:[...cadFamGroups],routingMode:cadRoutingMode};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,pat.famGroups);
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
   if(!fullPath.length)return;
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);
