@@ -1129,7 +1129,7 @@ window.cadTilePlay=function(){
     const rel=_cadLineToSaved(l, bbox.minU, bbox.minV);
     return rel;
   });
-  const pat={...,famOrder:[...cadFamOrder],famGroups:[...cadFamGroups],groupMode:cadGroupMode,routingMode:cadRoutingMode};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],famGroups:[...cadFamGroups],groupMode:cadGroupMode,routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,pat.famGroups,pat.groupMode);
