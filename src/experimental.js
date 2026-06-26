@@ -584,6 +584,8 @@ function genTiledSegs(pat){
   });
   const spacing=pat.spacing||0;
   const segs=[];
+  // Helper: check if point lies on a clipping plane (canvas boundary)
+  const isBnd=p=>{for(const{n,c}of lay.planes)if(Math.abs(n[0]*p[0]+n[1]*p[1]-c)<1e-6)return true;return false;};
   if(pat.bboxRotated){
     let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
     flatSegs.forEach(l=>{
@@ -601,7 +603,7 @@ function genTiledSegs(pat){
         const ou=(a*sP+b*sQ)/2, ov=(a*sP-b*sQ)/2;
         flatSegs.forEach((l,fi)=>{
           const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
-          if(c)segs.push({start:c[0],end:c[1],fam:flatFamOf[fi]});
+          if(c)segs.push({start:c[0],end:c[1],fam:flatFamOf[fi],bndS:isBnd(c[0]),bndE:isBnd(c[1])});
         });
       }
     }
@@ -613,7 +615,7 @@ function genTiledSegs(pat){
       for(let ov=ov0;ov<=ov1;ov+=sv){
         flatSegs.forEach((l,fi)=>{
           const c=clipSegConvex([l.start[0]+ou,l.start[1]+ov],[l.end[0]+ou,l.end[1]+ov],lay.planes);
-          if(c)segs.push({start:c[0],end:c[1],fam:flatFamOf[fi]});
+          if(c)segs.push({start:c[0],end:c[1],fam:flatFamOf[fi],bndS:isBnd(c[0]),bndE:isBnd(c[1])});
         });
       }
     }
@@ -1283,7 +1285,7 @@ function buildExpPath(lines, famOrderOverride, routingMode){
 function buildStrokesForFamily(segs, maxTurn){
   const Q=1e-4;
 
-  const vId=new Map(), vPos=[];
+  const vId=new Map(), vPos=[], vBnd=new Set();
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
     if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
   const seen=new Set(), edges=[];
@@ -1292,6 +1294,8 @@ function buildStrokesForFamily(segs, maxTurn){
     if(a===b)continue;
     const ek=a<b?a+'_'+b:b+'_'+a;
     if(seen.has(ek))continue; seen.add(ek);
+    if(l.bndS)vBnd.add(a);
+    if(l.bndE)vBnd.add(b);
     edges.push([a,b]);
   }
   if(!edges.length)return[];
@@ -1313,6 +1317,8 @@ function buildStrokesForFamily(segs, maxTurn){
   const partner=adj.map(list=>new Int32Array(list.length).fill(-1));
   adj.forEach((list,v)=>{
     const d=list.length; if(d<2)return;
+    // Don't pair edges at canvas boundary vertices — each edge starts/stops its own stroke
+    if(vBnd.has(v))return;
     const cost=(i,j)=>{let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
       dt=Math.max(-1,Math.min(1,dt)); return Math.PI-Math.acos(dt);};
     partner[v].set(matchVertex(d,cost,maxTurn));
@@ -1350,7 +1356,7 @@ function buildStrokesForFamily(segs, maxTurn){
 // axis) are traced straightest-first as a fallback.
 function buildContourStrokes(segs, maxTurn){
   const Q=1e-4;
-  const vId=new Map(), vPos=[];
+  const vId=new Map(), vPos=[], vBnd=new Set();
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
     if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
   const seen=new Set(), edges=[];
@@ -1359,6 +1365,8 @@ function buildContourStrokes(segs, maxTurn){
     if(a===b)continue;
     const ek=a<b?a+'_'+b:b+'_'+a;
     if(seen.has(ek))continue; seen.add(ek);
+    if(l.bndS)vBnd.add(a);
+    if(l.bndE)vBnd.add(b);
     edges.push([a,b]);
   }
   if(!edges.length)return[];
@@ -1375,6 +1383,7 @@ function buildContourStrokes(segs, maxTurn){
     const proj=i=>vPos[i][0]*ax+vPos[i][1]*ay;
     const verts=[...Array(vPos.length).keys()].sort((i,j)=>proj(i)-proj(j));
     const pick=(v,inDir)=>{           // smoothest UNused edge that progresses along the axis
+      if(vBnd.has(v))return -1;         // don't continue from canvas boundary vertices
       let best=-1,bestTurn=Infinity;
       for(let li=0;li<adj[v].length;li++){
         const h=adj[v][li]; if(usedE[h.e])continue;
@@ -1406,6 +1415,7 @@ function buildContourStrokes(segs, maxTurn){
       for(;;){
         const h=adj[v][c]; if(usedE[h.e])break; usedE[h.e]=1;
         pts.push(vPos[h.to].slice()); inDir=h.dir; v=h.to;
+        if(vBnd.has(v))break;           // stop at canvas boundary
         let best=-1,bt=Infinity;
         for(let li=0;li<adj[v].length;li++){const hh=adj[v][li];if(usedE[hh.e])continue;
           let dt=hh.dir[0]*inDir[0]+hh.dir[1]*inDir[1];dt=Math.max(-1,Math.min(1,dt));const turn=Math.acos(dt);
