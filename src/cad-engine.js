@@ -951,20 +951,20 @@ function cadDrawWorkspace(){
       x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
     }
   }
-  // Show mergeable intersection points (green) + split-table points (orange)
-  if(cadTool==='erase'||cadTool==='split'){
+  // Show mergeable (green) and splittable (orange) intersection points for Split tool
+  if(cadTool==='split'){
     const seen=new Set();
     for(let i=0;i<cadLines.length;i++){
       for(const p of [cadLines[i].start,cadLines[i].end]){
         const key=Math.round(p[0]*100)+','+Math.round(p[1]*100);
         if(seen.has(key))continue;
         seen.add(key);
-        if(cadTool==='erase'&&cadIsMergePoint(p[0],p[1])){
+        if(cadIsMergePoint(p[0],p[1])){
           const s=g2s(p[0],p[1]);
           x.fillStyle='rgba(100,255,180,0.8)';x.beginPath();x.arc(s.x,s.y,5,0,Math.PI*2);x.fill();
           x.strokeStyle='rgba(100,255,180,0.5)';x.lineWidth=1;x.beginPath();x.arc(s.x,s.y,8,0,Math.PI*2);x.stroke();
         }
-        if(cadTool==='split'&&cadIsSplitPoint(p[0],p[1])){
+        if(cadIsSplitPoint(p[0],p[1])){
           const s=g2s(p[0],p[1]);
           x.fillStyle='rgba(255,180,100,0.8)';x.beginPath();x.arc(s.x,s.y,5,0,Math.PI*2);x.fill();
           x.strokeStyle='rgba(255,180,100,0.5)';x.lineWidth=1;x.beginPath();x.arc(s.x,s.y,8,0,Math.PI*2);x.stroke();
@@ -1440,7 +1440,13 @@ function cadInit(){
       cadUpdateAll();return;
     }
     else if(cadTool==='split'){
-      // Manual split: click on an intersection to break both segments there
+      // Click break point → merge (remove split). Click crossing → split (add break).
+      const didMerge=cadMergeAllAt(g.u,g.v)||cadMergeAllAt(cadCur[0],cadCur[1]);
+      if(didMerge){
+        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+        cadFamsLocked=false;cadFamSel=-1;
+        cadUpdateAll();return;
+      }
       if(cadSplitAt(cadCur[0],cadCur[1])){
         cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
         cadFamsLocked=false;cadFamSel=-1;
@@ -1462,13 +1468,6 @@ function cadInit(){
       cadArcLabel();
     }
     else if(cadTool==='erase'){
-      // Try to merge at intersection point (use raw coords, then snapped)
-      const didMerge=cadMergeAllAt(g.u,g.v)||cadMergeAllAt(cadCur[0],cadCur[1]);
-      if(didMerge){
-        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
-        cadHover=null;cadFamsLocked=false;cadFamSel=-1;
-        cadUpdateAll();return;
-      }
       // Normal erase: cut the hovered segment
       if(!cadHover)return;
       cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
