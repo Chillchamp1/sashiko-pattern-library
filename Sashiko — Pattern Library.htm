@@ -8316,11 +8316,6 @@ function cadMergeSegments(ai, bi){
     return{start:[p0[0],p0[1]],end:[p1[0],p1[1]]};
   }
 }
-  const labels=['Click to place center','Click to set radius','Click to set sweep (click center-start for full circle)'];
-  const el=document.getElementById('cadArcHint');
-  if(el)el.textContent=cadArcState<3?labels[cadArcState]:'';
-}
-
 // Auto-extend grid if any geometry extends beyond the current grid boundary
 function cadAutoExtendGrid(){
   const bbox=cadBBox();
