@@ -2,7 +2,7 @@
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
-let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[],cadFamGroups=[];
+let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[],cadFamGroups=[],cadGroupMode=false;
 let cadTraditional=false;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
@@ -850,30 +850,36 @@ function cadBuildFamBar(){
   used.forEach(f=>{if(!cadFamOrder.includes(f))cadFamOrder.push(f);});
   while(cadFamGroups.length<cadFamOrder.length)cadFamGroups.push(0);
   if(cadFamGroups.length>cadFamOrder.length)cadFamGroups.length=cadFamOrder.length;
+  // Swatches with group borders when group mode is on
   c.innerHTML=cadFamOrder.map((fam,pos)=>{
     const col=FAM_PALETTE[fam%FAM_PALETTE.length];
-    const grp=cadFamGroups[pos]||0;
-    const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'')+(grp===1?' g1':'');
-    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="Family '+(fam+1)+(grp===1?' · Group B':' · Group A')+'"></button>';
+    const grp=cadGroupMode?(cadFamGroups[pos]||0):0;
+    const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'')+(cadGroupMode&&grp===1?' g1':'');
+    const title='Family '+(fam+1)+(cadGroupMode?' · Group '+(grp===0?'A':'B'):'')+' · Click to select';
+    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="'+title+'"></button>';
   }).join('');
-  const hasGroups=cadFamGroups.some(g=>g===1);
-  const toggleBtn=hasGroups
-    ? '<button class="cad-tool" onclick="cadToggleFamGroup()" style="font-size:10px;padding:4px 8px" title="Move selected colour to other group">⇆ Group</button>'
-    : '<button class="cad-tool" onclick="cadEnableGroups()" style="font-size:10px;padding:4px 8px;color:#88cc88" title="Split colours into two alternating groups">⊕ Groups</button>';
-  c.insertAdjacentHTML('beforeend',toggleBtn);
+  // Group mode toggle switch
+  const toggle=cadGroupMode
+    ? '<label class="cad-group-toggle" style="font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-left:4px;color:#ff9bb0" onclick="cadToggleGroupMode()" title="Turn off colour group routing"><input type="checkbox" checked onchange="cadToggleGroupMode()"> Groups</label>'
+    : '<label class="cad-group-toggle" style="font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-left:4px;color:var(--muted)" onclick="cadToggleGroupMode()" title="Turn on colour group routing: odd/even rows use different colours"><input type="checkbox" onchange="cadToggleGroupMode()"> Groups</label>';
+  c.insertAdjacentHTML('beforeend',toggle);
+  if(cadGroupMode&&cadFamSel>=0&&cadFamSel<cadFamGroups.length){
+    const btn=cadFamGroups[cadFamSel]===0
+      ? '<button class="cad-tool" onclick="cadToggleFamGroup()" style="font-size:10px;padding:4px 6px" title="Move to Group B">→ B</button>'
+      : '<button class="cad-tool" onclick="cadToggleFamGroup()" style="font-size:10px;padding:4px 6px" title="Move to Group A">→ A</button>';
+    c.insertAdjacentHTML('beforeend',btn);
+  }
 }
 window.cadSelectFam=function(pos){cadFamSel=cadFamSel===pos?-1:pos;cadUpdateAll();};
-window.cadToggleFamGroup=function(){
-  if(cadFamSel<0||cadFamSel>=cadFamGroups.length)return;
-  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});
-  cadFamGroups[cadFamSel]=cadFamGroups[cadFamSel]===0?1:0;
-  cadFamsLocked=true;
+window.cadToggleGroupMode=function(){
+  cadGroupMode=!cadGroupMode;
+  if(!cadGroupMode)cadFamGroups.fill(0);
   cadUpdateAll();
 };
-window.cadEnableGroups=function(){
-  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups]});
-  const mid=Math.ceil(cadFamOrder.length/2);
-  cadFamGroups=cadFamOrder.map((_,i)=>i<mid?0:1);
+window.cadToggleFamGroup=function(){
+  if(!cadGroupMode||cadFamSel<0||cadFamSel>=cadFamGroups.length)return;
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder],g:[...cadFamGroups],gm:cadGroupMode});
+  cadFamGroups[cadFamSel]=cadFamGroups[cadFamSel]===0?1:0;
   cadFamsLocked=true;
   cadUpdateAll();
 };
@@ -933,7 +939,7 @@ window.cadSetTool=function(t){
 window.cadUndo=function(){
   if(!cadHistory.length)return;
   const state=cadHistory.pop();
-  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];if(state.o)cadFamOrder=state.o;if(state.g)cadFamGroups=state.g;}
+  if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];if(state.o)cadFamOrder=state.o;if(state.g)cadFamGroups=state.g;if('gm' in state)cadGroupMode=state.gm;}
   else{cadLines=state;cadFamilies=new Array(cadLines.length).fill(-1);}
   cadFamsLocked=true;cadUpdateAll();
 };
@@ -1041,7 +1047,7 @@ window.cadSaveToLibrary=function(){
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder], [...cadFamGroups]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,famGroups:cf.famGroups,traditional:cadTraditional,routingMode:cadRoutingMode};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,famGroups:cf.famGroups,groupMode:cadGroupMode,traditional:cadTraditional,routingMode:cadRoutingMode};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1123,10 +1129,10 @@ window.cadTilePlay=function(){
     const rel=_cadLineToSaved(l, bbox.minU, bbox.minV);
     return rel;
   });
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],famGroups:[...cadFamGroups],routingMode:cadRoutingMode};
+  const pat={...,famOrder:[...cadFamOrder],famGroups:[...cadFamGroups],groupMode:cadGroupMode,routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,pat.famGroups);
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,pat.famGroups,pat.groupMode);
   if(!fullPath.length)return;
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);
