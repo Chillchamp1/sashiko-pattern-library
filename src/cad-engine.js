@@ -1103,12 +1103,16 @@ window.cadTilePlay=function(){
   const path=buildExpPath(segs,pat.famOrder,cadRoutingMode);
   if(!path.length)return;
   const lay=computeExpLayout(pat);
+  // Only consider path points visible in canvas viewport for bounding box
+  const [minGu,maxGu]=lay.uRange, [minGv,maxGv]=lay.vRange;
   let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
   path.forEach(s=>{
+    if(s.start[0]<minGu-5||s.start[0]>maxGu+5||s.start[1]<minGv-5||s.start[1]>maxGv+5)return;
     const a=lay.g2s(s.start),b=lay.g2s(s.end);
     mx=Math.min(mx,a.x,b.x);Mx=Math.max(Mx,a.x,b.x);
     my=Math.min(my,a.y,b.y);My=Math.max(My,a.y,b.y);
   });
+  if(!isFinite(mx)){mx=0;Mx=SIZE;my=0;My=SIZE;}
   const pw=Mx-mx||1,ph=My-my||1;
   const pad=12,sc=Math.min((500-2*pad)/pw,(500-2*pad)/ph);
   const ox=(500-pw*sc)/2-mx*sc,oy=(500-ph*sc)/2-my*sc;
