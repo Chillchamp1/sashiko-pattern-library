@@ -1,7 +1,7 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
-let cadGridType='isometric',cadMacro=3,cadPatMacro=5,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
+let cadGridType='isometric',cadMacro=3,cadPatMacro=2,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
 const CAD_MICRO=10;
@@ -10,6 +10,7 @@ let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
 let cadBase=1,cadTileSize,cadOX,cadOY;
 let cadPTile,cadPOX,cadPOY;
 let cadDrawing=false,cadStart=null,cadCur=null,cadHover=null;
+let cadRecolorOn=false;  // recolor paint mode
 let cadArcState=0,cadArcCenter=null,cadArcStart=null; // arc tool state
 let cadLeftBuf=null,cadRightBuf=null;
 let cadInited=false;
@@ -515,16 +516,19 @@ function cadFindMergeAt(u,v){
     if(Math.hypot(l.start[0]-u,l.start[1]-v)<EPS||Math.hypot(l.end[0]-u,l.end[1]-v)<EPS)
       matches.push(i);
   }
-  if(matches.length!==2)return null;
-  const a=cadLines[matches[0]], b=cadLines[matches[1]];
-  // Both arcs: must share center & radius
-  if(a.arc&&b.arc&&a.center[0]===b.center[0]&&a.center[1]===b.center[1]&&Math.abs(a.r-b.r)<0.001)return{i:matches[0],j:matches[1]};
-  // Both lines: must be collinear
-  if(!a.arc&&!b.arc){
-    const dxA=a.end[0]-a.start[0], dyA=a.end[1]-a.start[1];
-    const dxB=b.end[0]-b.start[0], dyB=b.end[1]-b.start[1];
-    const cross=dxA*dyB-dyA*dxB;
-    if(Math.abs(cross)<0.001)return{i:matches[0],j:matches[1]};
+  // Try all pairs among matches to find a mergeable pair
+  for(let mi=0;mi<matches.length;mi++){
+    for(let mj=mi+1;mj<matches.length;mj++){
+      const a=cadLines[matches[mi]], b=cadLines[matches[mj]];
+      if(a.arc&&b.arc&&a.center[0]===b.center[0]&&a.center[1]===b.center[1]&&Math.abs(a.r-b.r)<0.001)
+        return{i:matches[mi],j:matches[mj]};
+      if(!a.arc&&!b.arc){
+        const dxA=a.end[0]-a.start[0], dyA=a.end[1]-a.start[1];
+        const dxB=b.end[0]-b.start[0], dyB=b.end[1]-b.start[1];
+        const cross=dxA*dyB-dyA*dxB;
+        if(Math.abs(cross)<0.001)return{i:matches[mi],j:matches[mj]};
+      }
+    }
   }
   return null;
 }
@@ -830,6 +834,24 @@ function cadDrawWorkspace(){
       }
     }
   }
+  // Recolor tool preview — blue glow on hovered line
+  if(cadTool==='recolor'&&cadHover&&cadFamSel>=0){
+    const col=FAM_PALETTE[cadFamOrder[cadFamSel]%FAM_PALETTE.length];
+    if(cadHover.isArc){
+      const arc=cadHover.arcData;
+      const segs=cadFlattenArc(arc,60);
+      if(segs.length){
+        x.lineWidth=6;x.lineCap='round';x.strokeStyle=col+'aa';
+        x.beginPath();const p0=g2s(segs[0].start[0],segs[0].start[1]);x.moveTo(p0.x,p0.y);
+        for(const s of segs){const p=g2s(s.end[0],s.end[1]);x.lineTo(p.x,p.y);}
+        x.stroke();
+      }
+    }else{
+      const p1=g2s(cadHover.start.u,cadHover.start.v),p2=g2s(cadHover.end.u,cadHover.end.v);
+      x.lineWidth=6;x.lineCap='round';x.strokeStyle=col+'aa';
+      x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
+    }
+  }
   if((cadTool==='draw'||cadTool==='arc')&&cadCur){
     const s=g2s(cadCur[0],cadCur[1]);
     x.fillStyle='#00ffcc';x.beginPath();x.arc(s.x,s.y,6,0,Math.PI*2);x.fill();
@@ -984,8 +1006,10 @@ window.cadSetTool=function(t){
   document.getElementById('cadBtnDraw').classList.toggle('on',t==='draw');
   document.getElementById('cadBtnArc').classList.toggle('on',t==='arc');
   document.getElementById('cadBtnErase').classList.toggle('on',t==='erase');
+  document.getElementById('cadBtnRecolor').classList.toggle('on',t==='recolor');
   cadDrawing=false;cadStart=null;cadHover=null;
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
+  cadRecolorOn=false;
   cadArcLabel();cadUpdateAll();
 };
 window.cadUndo=function(){
@@ -1267,6 +1291,15 @@ function cadInit(){
       }
       cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];
     }
+    else if(cadTool==='recolor'){
+      // Paint mode: click on a line to assign selected color
+      if(cadFamSel>=0&&cadFamSel<cadFamOrder.length&&cadHover&&cadHover.li>=0){
+        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+        cadFamilies[cadHover.li]=cadFamOrder[cadFamSel];
+        cadFamsLocked=true;
+      }
+      cadUpdateAll();return;
+    }
     else if(cadTool==='arc'){
       if(cadArcState===0){cadArcCenter=[...cadCur];cadArcState=1;}
       else if(cadArcState===1){cadArcStart=[...cadCur];cadArcState=2;}
@@ -1337,6 +1370,7 @@ function cadInit(){
     if(cadPanning){cadPanX+=pos.x-cadPanStart.x;cadPanY+=pos.y-cadPanStart.y;cadPanStart=pos;cadApplyView();cadBakeLeft();cadUpdateAll();return;}
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     if(cadTool==='draw'||cadTool==='arc')cadCur=cadSnapPoint(g.u,g.v);
+    else if(cadTool==='recolor'){cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     else{cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     cadUpdateAll();
   });
