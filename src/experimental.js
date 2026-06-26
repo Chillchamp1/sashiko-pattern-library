@@ -911,7 +911,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode,curPat.famGroups,curPat.groupMode);
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -974,6 +974,7 @@ window.editExpPattern=function(idOrPat){
   if(cadFamilies.length>cadLines.length)cadFamilies.length=cadLines.length;
   cadFamOrder=(pat.famOrder||[]).slice();
   cadFamGroups=(pat.famGroups||[]).slice();
+  cadGroupMode=pat.groupMode||false;
   // If no families were saved, detect from geometry so routing matches gallery
   if(!cadFamilies.some(f=>f>=0)){
     const connFams=detectSymmetryFamilies({lines:cadLines, bbox:cadBBox()||pat.bbox||{minU:0,maxU:10,minV:0,maxV:10}});
@@ -1070,7 +1071,7 @@ function _stitchChains(chains, tol){
   return chains;
 }
 
-function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
+function buildExpPath(lines, famOrderOverride, routingMode, famGroups, groupMode){
   if(!lines||!lines.length)return[];
 
   const mode=routingMode||'default';
@@ -1078,6 +1079,7 @@ function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
   const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
 
   const famGroupsSrc=famGroups||[];
+  const useGroupMode=groupMode&&famGroupsSrc.some(g=>g===1);
 
   const famMap=new Map();
   lines.forEach(l=>{const fi=l.fam||0;if(!famMap.has(fi))famMap.set(fi,[]);famMap.get(fi).push(l);});
@@ -1246,13 +1248,10 @@ function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
     }
   }
 
-  const path=[];
-  const stitched=[];
+  const path=[], stitched=[];
   let cur=null;
 
-  const hasGroups=famGroupsSrc.length&&famGroupsSrc.some(g=>g===1);
-
-  if(!hasGroups){
+  if(!useGroupMode){
     for(const fi of bestOrder){
       const ordered=famStrokes.get(fi);
       if(cur&&ordered.length>0){
@@ -1279,53 +1278,50 @@ function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
       }
     }
   }else{
-    // Grouped: interleave bands from group 0 and group 1
+    // Grouped mode: even bands stitch group-0 families, odd bands stitch group-1 families
+    // Collect all strokes with family and band info
     const allStrokes=[];
     for(const fi of bestOrder){
       const ordered=famStrokes.get(fi);
+      if(!ordered.length)continue;
       const pos=bestOrder.indexOf(fi);
       const grp=famGroupsSrc[pos]||0;
-      ordered.forEach(s=>allStrokes.push({...s, fi, grp}));
+      // Determine band for each stroke using first-point based band assignment
+      const oriented=ordered.map(s=>{
+        const pts=s.pts, first=pts[0], last=pts[pts.length-1];
+        const dx=last[0]-first[0], dy=last[1]-first[1];
+        const len=Math.hypot(dx,dy);
+        return{pts, first, len:len||1};
+      });
+      // Compute dominant axis for this family's strokes
+      let sc=0,ss=0;
+      oriented.forEach(o=>{const dx=o.pts[o.pts.length-1][0]-o.pts[0][0],dy=o.pts[o.pts.length-1][1]-o.pts[0][1];let a=Math.atan2(dy,dx);if(a<0)a+=Math.PI;sc+=o.len*Math.cos(2*a);ss+=o.len*Math.sin(2*a);});
+      const ax=0.5*Math.atan2(ss,sc);
+      const per=[-Math.sin(ax),Math.cos(ax)], along=[Math.cos(ax),Math.sin(ax)];
+      oriented.forEach(o=>{o.bc=o.first[0]*per[0]+o.first[1]*per[1];o.ac=o.first[0]*along[0]+o.first[1]*along[1];});
+      // Assign bands
+      const bcs=oriented.map(o=>o.bc);
+      const uniqueBcs=[...new Set(bcs.map(v=>Math.round(v*1e4)/1e4))].sort((a,b)=>a-b);
+      let pitch=Infinity;
+      for(let i=1;i<uniqueBcs.length;i++)pitch=Math.min(pitch,uniqueBcs[i]-uniqueBcs[i-1]);
+      if(!isFinite(pitch)||pitch<1e-4)pitch=1;
+      const minbc=Math.min(...bcs);
+      oriented.forEach(o=>o.band=Math.round((o.bc-minbc)/pitch));
+      oriented.forEach(o=>allStrokes.push({...o, fi, grp, ac:o.ac}));
     }
     if(!allStrokes.length){return path;}
 
-    const S=allStrokes.map(s=>{
-      const pts=s.pts, first=pts[0], last=pts[pts.length-1];
-      const dx=last[0]-first[0], dy=last[1]-first[1];
-      const len=Math.hypot(dx,dy);
-      let ang=0;
-      if(len<1e-6){
-        const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
-        ang=Math.atan2(Math.max(...ys)-Math.min(...ys),Math.max(...xs)-Math.min(...xs));
-      }else{
-        ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI;
-      }
-      return{...s, ang, len:len||1, first};
-    });
-    let sc2=0,ss2=0;
-    S.forEach(s=>{const w=s.len; sc2+=w*Math.cos(2*s.ang); ss2+=w*Math.sin(2*s.ang);});
-    const axisAng=0.5*Math.atan2(ss2,sc2);
-    const axis=[Math.cos(axisAng),Math.sin(axisAng)];
-    const perp=[-Math.sin(axisAng),Math.cos(axisAng)];
-    S.forEach(s=>{
-      s.bc=s.first[0]*perp[0]+s.first[1]*perp[1];
-      s.ac=s.first[0]*axis[0]+s.first[1]*axis[1];
-    });
-    const uniqueBcs=[...new Set(S.map(s=>Math.round(s.bc*1e4)/1e4))].sort((a,b)=>a-b);
-    let pitch=Infinity;
-    for(let i=1;i<uniqueBcs.length;i++)pitch=Math.min(pitch,uniqueBcs[i]-uniqueBcs[i-1]);
-    if(!isFinite(pitch)||pitch<1e-4)pitch=1;
-    const minbc=Math.min(...S.map(s=>s.bc));
-    S.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
-
-    S.sort((a,b)=>{
+    // Sort: by band, within band by group (even bands: group 0 first, odd bands: group 1 first)
+    allStrokes.sort((a,b)=>{
       if(a.band!==b.band)return a.band-b.band;
-      const even=a.band%2===0;
-      if(a.grp!==b.grp)return even?a.grp-b.grp:b.grp-a.grp;
-      return even?a.ac-b.ac:b.ac-a.ac;
+      if(a.grp!==b.grp){
+        return a.band%2===0 ? a.grp-b.grp : b.grp-a.grp;
+      }
+      return a.band%2===0 ? a.ac-b.ac : b.ac-a.ac;
     });
 
-    for(const s of S){
+    // Stitch in sorted order
+    for(const s of allStrokes){
       let pts=s.pts.slice();
       const fi=s.fi;
       if(cur){
@@ -1658,7 +1654,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode,curPat.famGroups);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode,curPat.famGroups,curPat.groupMode);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
