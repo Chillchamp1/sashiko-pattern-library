@@ -973,6 +973,7 @@ window.editExpPattern=function(idOrPat){
   while(cadFamilies.length<cadLines.length)cadFamilies.push(-1);
   if(cadFamilies.length>cadLines.length)cadFamilies.length=cadLines.length;
   cadFamOrder=(pat.famOrder||[]).slice();
+  cadFamGroups=(pat.famGroups||[]).slice();
   // If no families were saved, detect from geometry so routing matches gallery
   if(!cadFamilies.some(f=>f>=0)){
     const connFams=detectSymmetryFamilies({lines:cadLines, bbox:cadBBox()||pat.bbox||{minU:0,maxU:10,minV:0,maxV:10}});
@@ -1069,23 +1070,23 @@ function _stitchChains(chains, tol){
   return chains;
 }
 
-function buildExpPath(lines, famOrderOverride, routingMode){
+function buildExpPath(lines, famOrderOverride, routingMode, famGroups){
   if(!lines||!lines.length)return[];
 
   const mode=routingMode||'default';
-  // Logik 1 (default) + legacy smooth/fewer-jumps = family band-snake, varying turn budget.
-  // Logik 2 (continuous) = global-NN follow-path. Logik 3 (contour) = outline shapes, float between.
   const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:120*Math.PI/180};
   const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
 
-  const famGroups=new Map();
-  lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
+  const famGroupsSrc=famGroups||[];
+
+  const famMap=new Map();
+  lines.forEach(l=>{const fi=l.fam||0;if(!famMap.has(fi))famMap.set(fi,[]);famMap.get(fi).push(l);});
 
   if(mode==='continuous'){
     // Follow-path: build strokes per family with no turn limit,
     // then order all chains globally via nearest-neighbour.
     const allChains=[];
-    for(const[fi,segs]of famGroups){
+    for(const[fi,segs]of famMap){
       buildStrokesForFamily(segs,maxTurn).forEach(pts=>allChains.push({pts,fi}));
     }
     const rem=allChains.slice(), path=[];
@@ -1117,7 +1118,7 @@ function buildExpPath(lines, famOrderOverride, routingMode){
     // 2. orderStrokesFamily sweeps wave-rows in orientation-aware bands with snaking.
     // 3. Families are visited one after the other — all lines of one colour before the next.
     const famContourStrokes=new Map(), famEnds=new Map();
-    for(const[fi,segs]of famGroups){
+    for(const[fi,segs]of famMap){
       const raw=buildContourStrokes(segs,maxTurn);
       if(!raw.length)continue;
       const ordered=orderStrokesFamily(raw);
@@ -1192,7 +1193,7 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   // Family-by-family routing: build strokes per family, order with band-snake,
   // then visit families in optimised order.
   const famStrokes=new Map(), famEnds=new Map();
-  for(const[fi,segs]of famGroups){
+  for(const[fi,segs]of famMap){
     const ordered=orderStrokesFamily(buildStrokesForFamily(segs,maxTurn));
     if(!ordered.length)continue;
     famStrokes.set(fi,ordered);
@@ -1249,23 +1250,90 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   const stitched=[];
   let cur=null;
 
-  for(const fi of bestOrder){
-    const ordered=famStrokes.get(fi);
-    if(cur&&ordered.length>0){
-      const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
-      const fPt=sFirst[0], bPt=sLast[sLast.length-1];
-      const dF=Math.hypot(fPt[0]-cur[0],fPt[1]-cur[1])+_retraceCost(cur,fPt,stitched);
-      const dB=Math.hypot(bPt[0]-cur[0],bPt[1]-cur[1])+_retraceCost(cur,bPt,stitched);
-      if(dB<dF){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
+  const hasGroups=famGroupsSrc.length&&famGroupsSrc.some(g=>g===1);
+
+  if(!hasGroups){
+    for(const fi of bestOrder){
+      const ordered=famStrokes.get(fi);
+      if(cur&&ordered.length>0){
+        const sFirst=ordered[0].pts, sLast=ordered[ordered.length-1].pts;
+        const fPt=sFirst[0], bPt=sLast[sLast.length-1];
+        const dF=Math.hypot(fPt[0]-cur[0],fPt[1]-cur[1])+_retraceCost(cur,fPt,stitched);
+        const dB=Math.hypot(bPt[0]-cur[0],bPt[1]-cur[1])+_retraceCost(cur,bPt,stitched);
+        if(dB<dF){ordered.reverse();ordered.forEach(s=>{s.pts=s.pts.slice().reverse();});}
+      }
+      for(let si=0;si<ordered.length;si++){
+        let pts=ordered[si].pts;
+        if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+          pts=_rotateClosedEntry(pts,cur);
+        if(cur){
+          const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
+          const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
+          if(dE<dS)pts=pts.slice().reverse();
+        }
+        for(let k=0;k<pts.length-1;k++){
+          path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
+          stitched.push({start:pts[k],end:pts[k+1]});
+        }
+        cur=pts[pts.length-1];
+      }
     }
-    for(let si=0;si<ordered.length;si++){
-      let pts=ordered[si].pts;
-      if(cur&&pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
-        pts=_rotateClosedEntry(pts,cur);
+  }else{
+    // Grouped: interleave bands from group 0 and group 1
+    const allStrokes=[];
+    for(const fi of bestOrder){
+      const ordered=famStrokes.get(fi);
+      const pos=bestOrder.indexOf(fi);
+      const grp=famGroupsSrc[pos]||0;
+      ordered.forEach(s=>allStrokes.push({...s, fi, grp}));
+    }
+    if(!allStrokes.length){return path;}
+
+    const S=allStrokes.map(s=>{
+      const pts=s.pts, first=pts[0], last=pts[pts.length-1];
+      const dx=last[0]-first[0], dy=last[1]-first[1];
+      const len=Math.hypot(dx,dy);
+      let ang=0;
+      if(len<1e-6){
+        const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+        ang=Math.atan2(Math.max(...ys)-Math.min(...ys),Math.max(...xs)-Math.min(...xs));
+      }else{
+        ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI;
+      }
+      return{...s, ang, len:len||1, first};
+    });
+    let sc2=0,ss2=0;
+    S.forEach(s=>{const w=s.len; sc2+=w*Math.cos(2*s.ang); ss2+=w*Math.sin(2*s.ang);});
+    const axisAng=0.5*Math.atan2(ss2,sc2);
+    const axis=[Math.cos(axisAng),Math.sin(axisAng)];
+    const perp=[-Math.sin(axisAng),Math.cos(axisAng)];
+    S.forEach(s=>{
+      s.bc=s.first[0]*perp[0]+s.first[1]*perp[1];
+      s.ac=s.first[0]*axis[0]+s.first[1]*axis[1];
+    });
+    const uniqueBcs=[...new Set(S.map(s=>Math.round(s.bc*1e4)/1e4))].sort((a,b)=>a-b);
+    let pitch=Infinity;
+    for(let i=1;i<uniqueBcs.length;i++)pitch=Math.min(pitch,uniqueBcs[i]-uniqueBcs[i-1]);
+    if(!isFinite(pitch)||pitch<1e-4)pitch=1;
+    const minbc=Math.min(...S.map(s=>s.bc));
+    S.forEach(s=>s.band=Math.round((s.bc-minbc)/pitch));
+
+    S.sort((a,b)=>{
+      if(a.band!==b.band)return a.band-b.band;
+      const even=a.band%2===0;
+      if(a.grp!==b.grp)return even?a.grp-b.grp:b.grp-a.grp;
+      return even?a.ac-b.ac:b.ac-a.ac;
+    });
+
+    for(const s of S){
+      let pts=s.pts.slice();
+      const fi=s.fi;
       if(cur){
         const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
         const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
-        if(dE<dS)pts=pts.slice().reverse();
+        if(dE<dS)pts=pts.reverse();
+        if(pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3)
+          pts=_rotateClosedEntry(pts,cur);
       }
       for(let k=0;k<pts.length-1;k++){
         path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
@@ -1590,7 +1658,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
+  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode,curPat.famGroups);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
