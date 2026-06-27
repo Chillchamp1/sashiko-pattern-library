@@ -259,6 +259,17 @@ button.ctrl.primary:hover{background:#275784}
 .cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:38px}
 .cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
 .cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
+/* Stitch-view toggle switch */
+.cad-switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;font-size:12px;color:#b0c8e0;padding:3px 6px}
+.cad-switch input{position:absolute;opacity:0;width:0;height:0}
+.cad-switch-track{position:relative;width:36px;height:20px;border-radius:11px;background:#1c3045;border:1px solid var(--line);transition:background .18s}
+.cad-switch-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#7f93ac;transition:transform .18s,background .18s}
+.cad-switch input:checked + .cad-switch-track{background:#27406e;border-color:#5b86c4}
+.cad-switch input:checked + .cad-switch-track .cad-switch-knob{transform:translateX(16px);background:#efe7d0}
+.cad-switch input:focus-visible + .cad-switch-track{box-shadow:0 0 0 2px rgba(106,171,255,.5)}
+.cad-stitch-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;padding:7px 8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-stitch-controls input[type=range]{accent-color:#efe7d0;cursor:pointer;width:96px;vertical-align:middle}
+.cad-stitch-val{font-size:11px;color:#cfe0f2;min-width:16px;text-align:center}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
@@ -513,6 +524,26 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </div>
         <div class="cad-toolbar">
           <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
+          <label class="cad-switch" title="Switch between coloured and realistic denim + thread view">
+            <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
+            <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
+            <span class="cad-switch-text">🪡 Stitch view</span>
+          </label>
+        </div>
+        <div class="cad-stitch-controls" id="cadStitchControls" style="display:none">
+          <span class="cad-panel-stepper">
+            <span class="cad-panel-stepper-label">Stitch</span>
+            <input type="range" id="cadStitchLen" min="8" max="40" step="1" value="16" oninput="cadSetStitchLen(this.value)">
+            <span class="cad-stitch-val" id="cadStitchLenVal">16</span>
+          </span>
+          <label class="cad-routing-toggle">Ratio
+            <select id="cadStitchRatio" onchange="cadSetStitchRatio(this.value)">
+              <option value="standard" selected>Standard · 3 : 1</option>
+              <option value="relaxed">Relaxed · 2 : 1</option>
+              <option value="long">Long · 3 : 2</option>
+              <option value="even">Even · 1 : 1</option>
+            </select>
+          </label>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
         <div class="cad-thumb-preview">
@@ -7873,6 +7904,23 @@ let cadArcState=0,cadArcCenter=null,cadArcStart=null; // arc tool state
 let cadLeftBuf=null,cadRightBuf=null;
 let cadInited=false;
 
+// ── Realistic stitch view (indigo denim + off-white yarn) ────────────────────
+let cadStitchView=false;        // toggle: false = coloured family view, true = stitch view
+let cadStitchLen=16;            // visible stitch length in patCanvas px
+let cadStitchRatio='standard';  // key into CAD_STITCH_RATIOS (stitch : pause)
+let _cadStitchCache=null;       // {sig, stitches} — recomputed only when sig changes
+let _cadDenimBuf=null;          // baked denim background (500×500)
+// Stitch : pause (gap) ratios. Traditional sashiko keeps the gap ≈ 1/3 the stitch
+// length ("Standard" 3:1); other common looks offered below.
+const CAD_STITCH_RATIOS={
+  standard:{s:3,g:1},  // gap = 1/3 stitch (traditional default)
+  even:    {s:1,g:1},  // stitch = gap
+  relaxed: {s:2,g:1},  // gap = 1/2 stitch
+  long:    {s:3,g:2},  // gap = 2/3 stitch
+};
+const CAD_STITCH_CORNER=35*Math.PI/180;  // turn angle that counts as a corner (curve vertices ≈6° don't)
+const CAD_DENIM='#27406e', CAD_YARN='#efe7d0';
+
 function cadApplyView(){
   cadTileSize=cadBase*cadZoom;
   const tc=Math.ceil(cadMacro*CAD_MICRO);
@@ -8545,6 +8593,7 @@ function cadDrawWorkspace(){
 
 function cadDrawPattern(){
   const pv=document.getElementById('patCanvas');if(!pv)return;
+  if(cadStitchView&&!_tpOn){_cadDrawStitchStatic();return;}
   const x=pv.getContext('2d');
   x.clearRect(0,0,500,500);
   if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
@@ -8918,6 +8967,11 @@ let _tpOn=false,_tpStep=0,_tpSts=[],_tpRAF=null,_tpLast=0;
 window.cadTilePlay=function(){
   if(_tpOn){_stopTilePlay();return;}
   if(!cadLines.length)return;
+  if(cadStitchView){
+    const sc=_cadStitchScene();
+    if(!sc.stitches.length)return;
+    _tpSts=sc.stitches;
+  }else{
   const bbox=cadBBox();if(!bbox)return;
   const redSet=new Set(cadFindRedundant());
   const clean=cadLines.filter((_,i)=>!redSet.has(i));
@@ -8952,6 +9006,7 @@ window.cadTilePlay=function(){
     const a=lay.g2s(s.start),b=lay.g2s(s.end);
     return{fam:s.fam,x1:ox+a.x*sc,y1:oy+a.y*sc,x2:ox+b.x*sc,y2:oy+b.y*sc};
   });
+  }
   _tpStep=0;_tpOn=true;_tpLast=0;
   document.getElementById('cadBtnTilePlay').textContent='⏹ Stop';
   document.getElementById('cadBtnTilePlay').style.color='#ff8888';
@@ -8969,6 +9024,12 @@ function _renderTileFrame(){
   const pv=document.getElementById('patCanvas');if(!pv||!_tpSts)return;
   const x=pv.getContext('2d');
   x.clearRect(0,0,500,500);
+  if(cadStitchView){
+    _cadDrawDenim(x);
+    const w=_cadStitchW();
+    _tpSts.forEach((s,i)=>{if(i<_tpStep)_cadDrawStitch(x,s,w);});
+    return;
+  }
   if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
   x.lineWidth=2.5;x.lineCap='round';
   _tpSts.forEach((s,i)=>{
@@ -8989,6 +9050,187 @@ function _tpLoop(t){
   }
   _tpRAF=requestAnimationFrame(_tpLoop);
 }
+// ── Realistic stitch scene ───────────────────────────────────────────────────
+function _cadStitchSig(){
+  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadPatMacro+'|'+cadSpacing+'|'+
+    cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio;
+}
+// Bake the indigo-denim background once (base wash + twill diagonal + speckle).
+function _cadBakeDenim(){
+  _cadDenimBuf=document.createElement('canvas');_cadDenimBuf.width=500;_cadDenimBuf.height=500;
+  const d=_cadDenimBuf.getContext('2d');
+  const g=d.createLinearGradient(0,0,0,500);
+  g.addColorStop(0,'#2c4878');g.addColorStop(1,'#213a64');
+  d.fillStyle=g;d.fillRect(0,0,500,500);
+  // Twill weave: faint parallel diagonals
+  d.lineWidth=1;
+  for(let i=-500;i<500;i+=4){
+    d.strokeStyle='rgba(255,255,255,0.035)';
+    d.beginPath();d.moveTo(i,500);d.lineTo(i+500,0);d.stroke();
+    d.strokeStyle='rgba(0,0,0,0.05)';
+    d.beginPath();d.moveTo(i+1.4,500);d.lineTo(i+501.4,0);d.stroke();
+  }
+  // Speckle (indigo flecks / white slubs)
+  for(let i=0;i<2600;i++){
+    const x=Math.random()*500,y=Math.random()*500,r=Math.random()*0.9+0.2;
+    d.fillStyle=Math.random()<0.5?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.07)';
+    d.beginPath();d.arc(x,y,r,0,Math.PI*2);d.fill();
+  }
+  // Soft vignette
+  const v=d.createRadialGradient(250,250,120,250,250,360);
+  v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,0.22)');
+  d.fillStyle=v;d.fillRect(0,0,500,500);
+}
+function _cadDrawDenim(x){if(!_cadDenimBuf)_cadBakeDenim();x.drawImage(_cadDenimBuf,0,0);}
+
+// Proper interior intersection of segments a→b and c→d. Returns {t,u} or null.
+function _segInt(a,b,c,d){
+  const r0=b[0]-a[0],r1=b[1]-a[1],s0=d[0]-c[0],s1=d[1]-c[1];
+  const den=r0*s1-r1*s0;
+  if(Math.abs(den)<1e-9)return null;
+  const t=((c[0]-a[0])*s1-(c[1]-a[1])*s0)/den;
+  const u=((c[0]-a[0])*r1-(c[1]-a[1])*r0)/den;
+  if(t>1e-4&&t<1-1e-4&&u>1e-4&&u<1-1e-4)return{t,u};
+  return null;
+}
+// Point at arc-length `dist` along a stroke (pts + cumulative cum).
+function _ptAlong(d,dist){
+  const{pts,cum}=d;
+  let lo=0,hi=cum.length-1;
+  while(lo<hi-1){const m=(lo+hi)>>1;if(cum[m]<=dist)lo=m;else hi=m;}
+  const seg=cum[hi]-cum[lo]||1, f=(dist-cum[lo])/seg;
+  return[pts[lo][0]+(pts[hi][0]-pts[lo][0])*f, pts[lo][1]+(pts[hi][1]-pts[lo][1])*f];
+}
+// Lay running stitches along each stroke. Gaps land on every corner and crossing
+// (the sashiko rule: stitches meet at the gaps, never over an intersection).
+function _cadLayStitches(strokes){
+  const ratio=CAD_STITCH_RATIOS[cadStitchRatio]||CAD_STITCH_RATIOS.standard;
+  const L=Math.max(4,cadStitchLen), G=L*ratio.g/ratio.s, U=L+G;
+  const data=strokes.map(st=>{
+    const pts=st.pts,cum=[0];
+    for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+    return{pts,cum,fam:st.fam,total:cum[cum.length-1]};
+  });
+  const anchors=data.map(d=>[0,d.total]);
+  // Corners (sharp direction changes within a stroke)
+  data.forEach((d,si)=>{
+    for(let i=1;i<d.pts.length-1;i++){
+      const a=d.pts[i-1],b=d.pts[i],c=d.pts[i+1];
+      let dd=Math.abs(Math.atan2(b[1]-a[1],b[0]-a[0])-Math.atan2(c[1]-b[1],c[0]-b[0]));
+      if(dd>Math.PI)dd=2*Math.PI-dd;
+      if(dd>CAD_STITCH_CORNER)anchors[si].push(d.cum[i]);
+    }
+  });
+  // Crossings between strokes (and non-adjacent self-crossings)
+  const SEG=[];
+  data.forEach((d,si)=>{for(let i=0;i<d.pts.length-1;i++){
+    const p=d.pts[i],q=d.pts[i+1];
+    SEG.push({si,idx:i,p,q,s0:d.cum[i],len:d.cum[i+1]-d.cum[i],
+      x0:Math.min(p[0],q[0]),x1:Math.max(p[0],q[0]),y0:Math.min(p[1],q[1]),y1:Math.max(p[1],q[1])});
+  }});
+  for(let i=0;i<SEG.length;i++){const A=SEG[i];
+    for(let j=i+1;j<SEG.length;j++){const B=SEG[j];
+      if(A.x1<B.x0||B.x1<A.x0||A.y1<B.y0||B.y1<A.y0)continue;        // bbox reject
+      if(A.si===B.si&&Math.abs(A.idx-B.idx)<=1)continue;             // skip adjacent
+      const X=_segInt(A.p,A.q,B.p,B.q);if(!X)continue;
+      anchors[A.si].push(A.s0+X.t*A.len);
+      anchors[B.si].push(B.s0+X.u*B.len);
+    }
+  }
+  const out=[];
+  data.forEach((d,si)=>{
+    let an=anchors[si].filter(v=>v>=-1e-6&&v<=d.total+1e-6).sort((a,b)=>a-b);
+    const m=[an[0]];for(let k=1;k<an.length;k++)if(an[k]-m[m.length-1]>1e-3)m.push(an[k]);
+    for(let k=0;k<m.length-1;k++){
+      const a=m[k],b=m[k+1],D=b-a;if(D<1e-3)continue;
+      const n=Math.max(1,Math.round(D/U)),unit=D/n,gap=unit*ratio.g/(ratio.s+ratio.g),st=unit-gap;
+      for(let s=0;s<n;s++){
+        const ds=a+s*unit+gap/2, de=ds+st;
+        const P=_ptAlong(d,ds),Q=_ptAlong(d,de);
+        out.push({x1:P[0],y1:P[1],x2:Q[0],y2:Q[1],fam:d.fam});
+      }
+    }
+  });
+  return out;
+}
+// Build (and cache) the off-white stitch list for the current geometry, fitted to the 500px canvas.
+function _cadStitchScene(){
+  const sig=_cadStitchSig();
+  if(_cadStitchCache&&_cadStitchCache.sig===sig)return _cadStitchCache;
+  const empty={sig,stitches:[]};
+  const bbox=cadBBox();
+  if(!cadLines.length||!bbox){return(_cadStitchCache=empty);}
+  const redSet=new Set(cadFindRedundant());
+  const clean=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!clean.length){return(_cadStitchCache=empty);}
+  const lines=clean.map(l=>_cadLineToSaved(l,bbox.minU,bbox.minV));
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},
+    patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
+  pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
+  const segs=genTiledSegs(pat);
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
+  if(!fullPath.length){return(_cadStitchCache=empty);}
+  const lay=computeExpLayout(pat);
+  const path=filterVisiblePath(fullPath,lay);
+  if(!path.length){return(_cadStitchCache=empty);}
+  const[minGu,maxGu]=lay.uRange,[minGv,maxGv]=lay.vRange;
+  let mx=Infinity,Mx=-Infinity,my=Infinity,My=-Infinity;
+  path.forEach(s=>{
+    if(s.start[0]<minGu-5||s.start[0]>maxGu+5||s.start[1]<minGv-5||s.start[1]>maxGv+5)return;
+    const a=lay.g2s(s.start),b=lay.g2s(s.end);
+    mx=Math.min(mx,a.x,b.x);Mx=Math.max(Mx,a.x,b.x);my=Math.min(my,a.y,b.y);My=Math.max(My,a.y,b.y);
+  });
+  if(!isFinite(mx)){mx=0;Mx=SIZE;my=0;My=SIZE;}
+  const pw=Mx-mx||1,ph=My-my||1,pad=16,sc=Math.min((500-2*pad)/pw,(500-2*pad)/ph);
+  const ox=(500-pw*sc)/2-mx*sc,oy=(500-ph*sc)/2-my*sc;
+  const T=p=>{const a=lay.g2s(p);return[ox+a.x*sc,oy+a.y*sc];};
+  // Group routed segments into continuous strokes via the `jump` flag
+  const strokes=[];let cur=null;
+  path.forEach(s=>{
+    const a=T(s.start),b=T(s.end);
+    if(s.jump||!cur){cur={fam:s.fam||0,pts:[a,b]};strokes.push(cur);return;}
+    const last=cur.pts[cur.pts.length-1];
+    if(Math.hypot(last[0]-a[0],last[1]-a[1])<0.5)cur.pts.push(b);
+    else{cur={fam:s.fam||0,pts:[a,b]};strokes.push(cur);}
+  });
+  return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes)});
+}
+// Draw one off-white sashiko stitch with a little depth (shadow + sheen).
+function _cadDrawStitch(x,s,w){
+  x.lineCap='round';
+  x.strokeStyle='rgba(8,16,34,0.40)';x.lineWidth=w+1.5;
+  x.beginPath();x.moveTo(s.x1+0.6,s.y1+1.3);x.lineTo(s.x2+0.6,s.y2+1.3);x.stroke();
+  x.strokeStyle=CAD_YARN;x.lineWidth=w;
+  x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
+  x.strokeStyle='rgba(255,255,255,0.30)';x.lineWidth=Math.max(0.8,w*0.34);
+  x.beginPath();x.moveTo(s.x1-0.4,s.y1-0.7);x.lineTo(s.x2-0.4,s.y2-0.7);x.stroke();
+}
+function _cadStitchW(){return Math.max(2.5,Math.min(6,cadStitchLen*0.22));}
+// Render the finished stitch view (all stitches) onto the pattern canvas.
+function _cadDrawStitchStatic(){
+  const pv=document.getElementById('patCanvas');if(!pv)return;
+  const x=pv.getContext('2d');
+  x.clearRect(0,0,500,500);_cadDrawDenim(x);
+  const sc=_cadStitchScene(),w=_cadStitchW();
+  sc.stitches.forEach(s=>_cadDrawStitch(x,s,w));
+}
+window.cadToggleStitchView=function(){
+  if(_tpOn)_stopTilePlay();
+  cadStitchView=document.getElementById('cadStitchToggle').checked;
+  document.getElementById('cadStitchControls').style.display=cadStitchView?'flex':'none';
+  cadDrawPattern();
+};
+window.cadSetStitchLen=function(v){
+  cadStitchLen=parseInt(v)||16;
+  const el=document.getElementById('cadStitchLenVal');if(el)el.textContent=cadStitchLen;
+  _cadStitchCache=null;
+  if(!_tpOn)cadDrawPattern();
+};
+window.cadSetStitchRatio=function(v){
+  cadStitchRatio=v;_cadStitchCache=null;
+  if(!_tpOn)cadDrawPattern();
+};
+
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
 function cadInit(){
   if(cadInited)return;cadInited=true;

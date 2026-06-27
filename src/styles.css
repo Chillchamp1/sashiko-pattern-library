@@ -252,6 +252,17 @@ button.ctrl.primary:hover{background:#275784}
 .cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:38px}
 .cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
 .cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
+/* Stitch-view toggle switch */
+.cad-switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;font-size:12px;color:#b0c8e0;padding:3px 6px}
+.cad-switch input{position:absolute;opacity:0;width:0;height:0}
+.cad-switch-track{position:relative;width:36px;height:20px;border-radius:11px;background:#1c3045;border:1px solid var(--line);transition:background .18s}
+.cad-switch-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#7f93ac;transition:transform .18s,background .18s}
+.cad-switch input:checked + .cad-switch-track{background:#27406e;border-color:#5b86c4}
+.cad-switch input:checked + .cad-switch-track .cad-switch-knob{transform:translateX(16px);background:#efe7d0}
+.cad-switch input:focus-visible + .cad-switch-track{box-shadow:0 0 0 2px rgba(106,171,255,.5)}
+.cad-stitch-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;padding:7px 8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-stitch-controls input[type=range]{accent-color:#efe7d0;cursor:pointer;width:96px;vertical-align:middle}
+.cad-stitch-val{font-size:11px;color:#cfe0f2;min-width:16px;text-align:center}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
