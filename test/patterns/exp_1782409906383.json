@@ -1,139 +1,17 @@
 {
+  "published": true,
+  "creatorId": "uyqa6wy657m",
   "patMacro": 3,
-  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
-  "routingMode": "default",
-  "type": "exp",
   "gridType": "square",
+  "routingMode": "default",
+  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
   "bbox": {
-    "minV": 0,
     "minU": 0,
+    "minV": 0,
     "maxV": 4,
     "maxU": 8
   },
-  "lines": [
-    {
-      "start": [
-        2,
-        2
-      ],
-      "end": [
-        0,
-        3
-      ]
-    },
-    {
-      "start": [
-        0,
-        3
-      ],
-      "end": [
-        2,
-        4
-      ]
-    },
-    {
-      "start": [
-        2,
-        4
-      ],
-      "end": [
-        4,
-        3
-      ]
-    },
-    {
-      "start": [
-        4,
-        3
-      ],
-      "end": [
-        2,
-        2
-      ]
-    },
-    {
-      "start": [
-        2,
-        0
-      ],
-      "end": [
-        4,
-        1
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
-      ],
-      "end": [
-        4,
-        1
-      ]
-    },
-    {
-      "start": [
-        0,
-        1
-      ],
-      "end": [
-        2,
-        0
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
-      ],
-      "end": [
-        0,
-        1
-      ]
-    },
-    {
-      "start": [
-        4,
-        3
-      ],
-      "end": [
-        6,
-        2
-      ]
-    },
-    {
-      "start": [
-        6,
-        2
-      ],
-      "end": [
-        8,
-        3
-      ]
-    },
-    {
-      "start": [
-        4,
-        3
-      ],
-      "end": [
-        6,
-        4
-      ]
-    },
-    {
-      "start": [
-        6,
-        4
-      ],
-      "end": [
-        8,
-        3
-      ]
-    }
-  ],
-  "id": "exp_1782409906383",
-  "createdAt": 1782409906383,
+  "traditional": true,
   "families": [
     1,
     0,
@@ -148,13 +26,135 @@
     0,
     1
   ],
-  "spacing": 0,
   "famOrder": [
     0,
     1
   ],
-  "traditional": true,
-  "creatorId": "uyqa6wy657m",
-  "published": true,
+  "createdAt": 1782409906383,
+  "spacing": 0,
+  "lines": [
+    {
+      "end": [
+        0,
+        3
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        0
+      ],
+      "start": [
+        0,
+        1
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        0,
+        1
+      ]
+    },
+    {
+      "end": [
+        6,
+        2
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "start": [
+        6,
+        2
+      ],
+      "end": [
+        8,
+        3
+      ]
+    },
+    {
+      "end": [
+        6,
+        4
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        8,
+        3
+      ],
+      "start": [
+        6,
+        4
+      ]
+    }
+  ],
+  "id": "exp_1782409906383",
+  "type": "exp",
   "bboxRotated": false
 }

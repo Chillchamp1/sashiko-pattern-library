@@ -1,15 +1,11 @@
 {
-  "gridType": "isometric",
-  "type": "exp",
-  "creatorId": "ud5nn2wgvk7",
-  "id": "exp_1781799376730",
-  "patMacro": 5,
   "bbox": {
-    "maxV": 10,
-    "maxU": 10,
+    "minU": 0,
     "minV": 0,
-    "minU": 0
+    "maxV": 10,
+    "maxU": 10
   },
+  "creatorId": "ud5nn2wgvk7",
   "lines": [
     {
       "end": [
@@ -22,13 +18,13 @@
       ]
     },
     {
-      "end": [
-        3.333,
-        6.667
-      ],
       "start": [
         0,
         0
+      ],
+      "end": [
+        3.333,
+        6.667
       ]
     },
     {
@@ -52,32 +48,32 @@
       ]
     },
     {
-      "end": [
-        3.333,
-        6.667
-      ],
       "start": [
         0,
         10
+      ],
+      "end": [
+        3.333,
+        6.667
       ]
     },
     {
-      "end": [
-        10,
-        0
-      ],
       "start": [
         6.667,
         3.333
+      ],
+      "end": [
+        10,
+        0
       ]
     },
     {
-      "start": [
-        10,
-        0
-      ],
       "end": [
         0,
+        0
+      ],
+      "start": [
+        10,
         0
       ]
     },
@@ -122,6 +118,10 @@
       ]
     }
   ],
+  "createdAt": 1781799376740,
+  "id": "exp_1781799376730",
+  "type": "exp",
+  "patMacro": 5,
   "name": "My Pattern",
-  "createdAt": 1781799376740
+  "gridType": "isometric"
 }

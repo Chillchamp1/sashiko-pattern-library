@@ -1,86 +1,71 @@
 {
-  "creatorId": "u78tgmm0drm",
-  "published": true,
-  "type": "exp",
-  "families": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-  ],
-  "gridType": "isometric",
-  "createdAt": 1781819811462,
-  "name": "Asanoha (Hemp Leaf)",
   "bbox": {
     "maxU": 10,
     "maxV": 10,
-    "minU": 0,
-    "minV": 0
+    "minV": 0,
+    "minU": 0
   },
+  "published": true,
+  "creatorId": "u78tgmm0drm",
   "lines": [
     {
-      "end": [
-        0,
-        0
-      ],
       "start": [
         0,
         10
+      ],
+      "end": [
+        0,
+        0
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         10,
         0
+      ],
+      "start": [
+        0,
+        0
       ]
     },
     {
-      "end": [
-        0,
-        0
-      ],
       "start": [
         10,
         10
+      ],
+      "end": [
+        0,
+        0
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         3.333,
         6.667
+      ],
+      "start": [
+        0,
+        0
       ]
     },
     {
-      "start": [
-        10,
-        10
-      ],
       "end": [
         3.333,
         6.667
-      ]
-    },
-    {
+      ],
       "start": [
         10,
         10
-      ],
+      ]
+    },
+    {
       "end": [
         6.667,
         3.333
+      ],
+      "start": [
+        10,
+        10
       ]
     },
     {
@@ -114,6 +99,21 @@
       ]
     }
   ],
+  "createdAt": 1781819811462,
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
   "id": "exp_1781819811459",
+  "name": "Asanoha (Hemp Leaf)",
+  "gridType": "isometric",
+  "type": "exp",
   "patMacro": 3
 }

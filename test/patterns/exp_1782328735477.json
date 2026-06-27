@@ -1,4 +1,27 @@
 {
+  "name": "Asanoha (Hemp Leaf) Remix",
+  "gridType": "isometric",
+  "patMacro": 3,
+  "published": true,
+  "creatorId": "uy09jle01o7",
+  "id": "exp_1782328735477",
+  "bboxRotated": false,
+  "type": "exp",
+  "traditional": false,
+  "bbox": {
+    "maxV": 10,
+    "maxU": 10,
+    "minU": 0,
+    "minV": 0
+  },
+  "famOrder": [
+    3,
+    0,
+    1,
+    5,
+    2,
+    4
+  ],
   "createdAt": 1782328735477,
   "lines": [
     {
@@ -12,63 +35,63 @@
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         10,
+        0
+      ],
+      "start": [
+        0,
         0
       ]
     },
     {
+      "end": [
+        0,
+        0
+      ],
       "start": [
         10,
         10
-      ],
-      "end": [
-        0,
-        0
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         3.333,
         6.667
-      ]
-    },
-    {
-      "start": [
-        10,
-        10
       ],
-      "end": [
-        3.333,
-        6.667
-      ]
-    },
-    {
-      "start": [
-        10,
-        10
-      ],
-      "end": [
-        6.667,
-        3.333
-      ]
-    },
-    {
       "start": [
         0,
         0
+      ]
+    },
+    {
+      "end": [
+        3.333,
+        6.667
       ],
+      "start": [
+        10,
+        10
+      ]
+    },
+    {
       "end": [
         6.667,
         3.333
+      ],
+      "start": [
+        10,
+        10
+      ]
+    },
+    {
+      "end": [
+        6.667,
+        3.333
+      ],
+      "start": [
+        0,
+        0
       ]
     },
     {
@@ -92,16 +115,6 @@
       ]
     }
   ],
-  "bbox": {
-    "minV": 0,
-    "minU": 0,
-    "maxV": 10,
-    "maxU": 10
-  },
-  "id": "exp_1782328735477",
-  "published": true,
-  "bboxRotated": false,
-  "creatorId": "uy09jle01o7",
   "families": [
     5,
     1,
@@ -112,18 +125,5 @@
     2,
     0,
     0
-  ],
-  "famOrder": [
-    3,
-    0,
-    1,
-    5,
-    2,
-    4
-  ],
-  "traditional": false,
-  "name": "Asanoha (Hemp Leaf) Remix",
-  "patMacro": 3,
-  "type": "exp",
-  "gridType": "isometric"
+  ]
 }
