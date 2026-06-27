@@ -11,6 +11,7 @@ const FIREBASE_CONFIG = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 let EXP_PATTERNS=[];
+let _cadSource='sandbox';
 let _db=null;   // Firestore instance, set after SDK loads
 let _firebaseReady=false;
 
@@ -1716,7 +1717,7 @@ function expCardHTML(pat){
       <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>
-    <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();editExpPattern('${esc(pat.id)}')">✎</button>
+     <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();_cadSource='sandbox';editExpPattern('${esc(pat.id)}')">✎</button>
     <button class="exp-del-btn" title="Delete" onclick="event.stopPropagation();removeExpPattern('${esc(pat.id)}')">✕</button>
   </div>`;
 }
@@ -1809,6 +1810,7 @@ function renderLikeButtons(id){
   });
 }
 window.remixPattern=function(id){
+  _cadSource='sandbox';
   const pat=EXP_PATTERNS.find(p=>p.id===id);
   if(!pat)return;
   if(!confirm('Create a remix of "'+(pat.name||'Custom')+'"?'))return;
@@ -1869,6 +1871,7 @@ window.exportAllPatterns=function(){
   URL.revokeObjectURL(a.href);
 };
 window.showCAD=function(){
+  _cadSource='sandbox';
   document.getElementById('galleryView').style.display='none';
   document.getElementById('myPatsView').classList.remove('open');
   document.getElementById('animView').classList.remove('open');
@@ -1883,6 +1886,11 @@ window.showCAD=function(){
 window.showGalleryFromCAD=function(){
   cadEditId=null;
   document.getElementById('cadView').classList.remove('open');
-  document.getElementById('myPatsView').classList.add('open');
-  rebuildMyPatsView();
+  if(_cadSource==='gallery'){
+    document.getElementById('galleryView').style.display='block';
+    buildGallery();
+  }else{
+    document.getElementById('myPatsView').classList.add('open');
+    rebuildMyPatsView();
+  }
 };
