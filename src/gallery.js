@@ -1,9 +1,11 @@
 // ── Gallery ────────────────────────────────────────────────────────────────
 let activeFilters=new Set([0]);
 let _galleryZoom=1;
+let _galleryCells=0;
 window.galleryZoomStep=function(dir){
-  _galleryZoom=Math.max(1,Math.min(3,Math.round((_galleryZoom+dir*0.25)*10)/10));
-  document.getElementById('galleryZoomVal').textContent=_galleryZoom.toFixed(1);
+  _galleryCells=Math.max(0,_galleryCells+dir);
+  const lbl=document.getElementById('galleryZoomVal');
+  if(lbl)lbl.textContent=_galleryCells>0?_galleryCells+'\u2009cells':'auto';
   buildGallery();
 };
 function buildGallery(){

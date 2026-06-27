@@ -335,7 +335,7 @@ button.ctrl.primary:hover{background:#275784}
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
     <span class="gallery-zoom">
       <button onclick="galleryZoomStep(-1)" title="Zoom out thumbnails">−</button>
-      <span id="galleryZoomVal">1.0</span>
+      <span id="galleryZoomVal">auto</span>
       <button onclick="galleryZoomStep(1)" title="Zoom in thumbnails">+</button>
     </span>
     <div class="filt-row">
@@ -5791,7 +5791,7 @@ function renderThumb(canvas,pat){
   const isPLPat=pat.type==='polyline';
   const isHMPat=pat.type==='generator'||pat.type==='hitomezashi';
   const TN=4, THUMB_SIZE=(TN-1)*G+2*PAD;
-  const gz=window._galleryZoom||1;
+  const gc=window._galleryCells||0;
 
   let ctxSX=TDPR, ctxSY=TDPR, expTranslateX=0, expTranslateY=0;
   let expLay=null;
@@ -5799,19 +5799,19 @@ function renderThumb(canvas,pat){
     expLay=computeExpLayout(pat);
     const tc=pat.thumbCells||0;
     const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
-    if(tc>0||cells>3||gz>1){
-      const target=tc>0?tc:(cells>3?3:cells);
-      const eff=target/gz;
-      const s=THUMB_SIZE/SIZE*cells/eff;
+    if(tc>0||cells>3||gc>0){
+      const target=gc>0?gc:(tc>0?tc:(cells>3?3:cells));
+      const s=THUMB_SIZE/SIZE*cells/target;
       ctxSX=TDPR*s; ctxSY=TDPR*s;
       expTranslateX=THUMB_SIZE/(2*s)-SIZE/2; expTranslateY=THUMB_SIZE/(2*s)-SIZE/2;
     }else{
       ctxSX=TDPR*(THUMB_SIZE/SIZE); ctxSY=TDPR*(THUMB_SIZE/SIZE);
     }
-  }else if(gz!==1){
-    ctxSX=TDPR*gz; ctxSY=TDPR*gz;
-    expTranslateX=THUMB_SIZE/(2*gz)-THUMB_SIZE/2;
-    expTranslateY=THUMB_SIZE/(2*gz)-THUMB_SIZE/2;
+  }else if(gc>0){
+    const scale=3/gc;
+    ctxSX=TDPR*scale; ctxSY=TDPR*scale;
+    expTranslateX=THUMB_SIZE/(2*scale)-THUMB_SIZE/2;
+    expTranslateY=THUMB_SIZE/(2*scale)-THUMB_SIZE/2;
   }
 
   canvas.width=THUMB_SIZE*TDPR; canvas.height=THUMB_SIZE*TDPR;
@@ -5874,9 +5874,11 @@ function renderThumb(canvas,pat){
 // ── Gallery ────────────────────────────────────────────────────────────────
 let activeFilters=new Set([0]);
 let _galleryZoom=1;
+let _galleryCells=0;
 window.galleryZoomStep=function(dir){
-  _galleryZoom=Math.max(1,Math.min(3,Math.round((_galleryZoom+dir*0.25)*10)/10));
-  document.getElementById('galleryZoomVal').textContent=_galleryZoom.toFixed(1);
+  _galleryCells=Math.max(0,_galleryCells+dir);
+  const lbl=document.getElementById('galleryZoomVal');
+  if(lbl)lbl.textContent=_galleryCells>0?_galleryCells+'\u2009cells':'auto';
   buildGallery();
 };
 function buildGallery(){
