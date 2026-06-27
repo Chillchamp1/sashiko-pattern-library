@@ -514,7 +514,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           </label>
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Tiles</span>
-            <input type="number" id="cadPatSize" value="2" min="2" max="12" onchange="cadUpdateSettings()">
+            <input type="number" id="cadPatSize" value="3" min="2" max="12" onchange="cadUpdateSettings()">
             <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>
           </span>
           <span class="cad-panel-stepper">
@@ -7053,7 +7053,7 @@ window.editExpPattern=function(idOrPat){
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
-  document.getElementById('cadPatSize').value=2;  // standard Live-Tiling tile count
+  document.getElementById('cadPatSize').value=pat.patMacro||3;
   document.getElementById('cadPatName').value=pat.name||'Custom Pattern';
   cadEditId=pat.id;
   cadIsPublished=pat.published||false;
@@ -7857,7 +7857,7 @@ window.remixPattern=function(id){
   const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
   const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
   document.getElementById('cadGridSize').value=macroVal;
-  document.getElementById('cadPatSize').value=2;  // standard Live-Tiling tile count
+  document.getElementById('cadPatSize').value=pat.patMacro||3;
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
@@ -7936,7 +7936,7 @@ window.showGalleryFromCAD=function(){
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
-let cadGridType='isometric',cadMacro=3,cadPatMacro=2,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
+let cadGridType='isometric',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
 let cadThumbCells=0;
