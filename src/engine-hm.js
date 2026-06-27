@@ -132,7 +132,7 @@ function updateInfoHM(st){
 
 // ── HM thumbnail ───────────────────────────────────────────────────────────
 function renderHMThumb(canvas,seq,thumbN){
-  const TN=thumbN||11, TPAD=3, TS=64, TG=(TS-2*TPAD)/(TN-1);
+  const TN=thumbN||4, TPAD=3, TS=64, TG=(TS-2*TPAD)/(TN-1);
   const TDPR=Math.min(window.devicePixelRatio||1,2);
   canvas.width=TS*TDPR; canvas.height=TS*TDPR;
   canvas.style.width='64px'; canvas.style.height='64px';
