@@ -209,26 +209,23 @@ function renderThumb(canvas,pat){
   const isPLPat=pat.type==='polyline';
   const isHMPat=pat.type==='generator'||pat.type==='hitomezashi';
   const TN=4, THUMB_SIZE=(TN-1)*G+2*PAD;
+  const gz=window._galleryZoom||1;
 
   let ctxSX=TDPR, ctxSY=TDPR, expTranslateX=0, expTranslateY=0;
   let expLay=null;
   if(isExpPat){
     expLay=computeExpLayout(pat);
-    const tz=pat.thumbZoom||0;
-    if(tz>0){
-      const baseScale=THUMB_SIZE/SIZE, s=baseScale*tz;
-      ctxSX=TDPR*s; ctxSY=TDPR*s;
-      expTranslateX=(THUMB_SIZE-SIZE*s)/2; expTranslateY=(THUMB_SIZE-SIZE*s)/2;
-    }else{
-      const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
-      if(cells>3){
-        const s=3/cells;
-        ctxSX=TDPR/s; ctxSY=TDPR/s;
-        expTranslateX=-SIZE*(1-s)/2; expTranslateY=-SIZE*(1-s)/2;
-      }else{
-        ctxSX=TDPR*(THUMB_SIZE/SIZE); ctxSY=TDPR*(THUMB_SIZE/SIZE);
-      }
-    }
+    const tc=pat.thumbCells||0;
+    const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
+    const target=tc>0?tc:(cells>3?3:cells);
+    const eff=target/gz;
+    const s=THUMB_SIZE/SIZE*cells/eff;
+    ctxSX=TDPR*s; ctxSY=TDPR*s;
+    expTranslateX=(THUMB_SIZE-SIZE*s)/2; expTranslateY=(THUMB_SIZE-SIZE*s)/2;
+  }else if(gz!==1){
+    ctxSX=TDPR*gz; ctxSY=TDPR*gz;
+    expTranslateX=(THUMB_SIZE-THUMB_SIZE/gz)/2;
+    expTranslateY=(THUMB_SIZE-THUMB_SIZE/gz)/2;
   }
 
   canvas.width=THUMB_SIZE*TDPR; canvas.height=THUMB_SIZE*TDPR;
@@ -245,13 +242,13 @@ function renderThumb(canvas,pat){
   const sEXpath=EXP_path,sEXg2s=EXP_g2s,sEXh=EXP_canvasH;
 
   ctx=canvas.getContext('2d'); ctx.scale(ctxSX,ctxSY);
+  if(expTranslateX||expTranslateY) ctx.translate(expTranslateX,expTranslateY);
   curPat=pat; playing=false;
   isEXP=isExpPat; isPL=isPLPat;
   isHM=isHMPat;
 
   try{
     if(isEXP){
-      ctx.translate(expTranslateX,expTranslateY);
       EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
       EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode);
       TOTAL=EXP_path.length;

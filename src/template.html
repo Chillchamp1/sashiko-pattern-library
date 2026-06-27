@@ -21,6 +21,11 @@
     Two shades per pass show which rows start offset.</p>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
+    <span class="gallery-zoom">
+      <button onclick="galleryZoomStep(-1)" title="Zoom out thumbnails">−</button>
+      <span id="galleryZoomVal">1.0</span>
+      <button onclick="galleryZoomStep(1)" title="Zoom in thumbnails">+</button>
+    </span>
     <div class="filt-row">
       <button class="filt on" data-f="0" onclick="setFilter(this)">All</button>
       <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>

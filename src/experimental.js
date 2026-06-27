@@ -1009,7 +1009,7 @@ window.editExpPattern=function(idOrPat){
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
   cadRoutingMode=pat.routingMode||'default';
-  cadThumbZoom=pat.thumbZoom||1;
+  cadThumbCells=pat.thumbCells||0;
   // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
   if(cadRoutingMode==='smooth'||cadRoutingMode==='fewer-jumps')cadRoutingMode='default';
   document.getElementById('cadRoutingMode').value=cadRoutingMode;
@@ -1874,7 +1874,7 @@ window.showCAD=function(){
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
-  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';cadThumbZoom=1;
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';cadThumbCells=0;
   document.getElementById('cadRoutingMode').value='default';
   cadInited=false;
   cadInit();
