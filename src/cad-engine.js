@@ -4,7 +4,7 @@ let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=2,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
-let cadThumbZoom=1;
+let cadThumbCells=0;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -1088,7 +1088,6 @@ function cadUpdateAll(){
 }
 function cadUpdateThumbPreview(){
   const c=document.getElementById('cadThumbCanvas'); if(!c)return;
-  const zl=document.getElementById('cadThumbZoomVal'); if(zl)zl.textContent=cadThumbZoom.toFixed(1);
   const TDPR=Math.min(window.devicePixelRatio||1,2);
   const w=120,pw=w*TDPR; c.width=pw;c.height=pw;
   c.style.width=w+'px';c.style.height=w+'px';
@@ -1096,22 +1095,27 @@ function cadUpdateThumbPreview(){
   tc.fillStyle='#1a3a5c'; tc.fillRect(0,0,w,w);
   if(!cadLines.length)return;
   const bbox=cadBBox(); if(!bbox)return;
-  const ts=w/SIZE*cadThumbZoom;
-  const off=(w-SIZE*ts)/2;
-  tc.translate(off,off); tc.scale(ts,ts);
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
-  const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbZoom:cadThumbZoom};
+  const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbCells:cadThumbCells};
+  const lay=computeExpLayout(previewPat);
+  const nCells=Math.round(lay.ptc/Math.max(lay.dU,lay.dV,1));
+  const cells=cadThumbCells>0?cadThumbCells:nCells;
+  const ts=w/SIZE*nCells/cells;
+  const off=(w-SIZE*ts)/2;
+  const zl=document.getElementById('cadThumbZoomVal');
+  if(zl)zl.textContent=cadThumbCells>0?cells+'\u2009cells':(nCells+'\u2009cells (auto)');
+  tc.translate(off,off); tc.scale(ts,ts);
+
   const origCtx=ctx;
   const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
   const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH;
   ctx=tc; curPat=previewPat; playing=false;
   isEXP=true;isPL=false;isHM=false;
   try{
-    const lay=computeExpLayout(previewPat);
     EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
     EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode);
     TOTAL=EXP_path.length;
@@ -1123,7 +1127,7 @@ function cadUpdateThumbPreview(){
   EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;
 }
 window.cadThumbZoomStep=function(dir){
-  cadThumbZoom=Math.max(0.5,Math.min(3,Math.round((cadThumbZoom+dir*0.25)*10)/10));
+  cadThumbCells=Math.max(0,cadThumbCells+dir);
   cadUpdateThumbPreview();
 };
 function cadBuildFamBar(){
@@ -1304,7 +1308,7 @@ window.cadSaveToLibrary=function(){
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbZoom:cadThumbZoom};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbCells:cadThumbCells};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1347,7 +1351,7 @@ window.cadPublishToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbZoom:cadThumbZoom};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbCells:cadThumbCells};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -1438,7 +1442,13 @@ function _renderTileFrame(){
 }
 function _tpLoop(t){
   if(!_tpOn)return;
-  if(t-_tpLast>=40){_tpLast=t;_tpStep++;_renderTileFrame();}
+  const tpTick=_tpSts.length>0?10000/_tpSts.length:40;
+  const adv=Math.floor((t-_tpLast)/tpTick);
+  if(adv>0){
+    _tpStep+=adv;
+    _tpLast+=adv*tpTick;
+    _renderTileFrame();
+  }
   _tpRAF=requestAnimationFrame(_tpLoop);
 }
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
