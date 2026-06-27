@@ -1,16 +1,17 @@
 {
-  "bbox": {
-    "maxU": 12,
-    "minV": 0,
-    "maxV": 12,
-    "minU": 0
-  },
-  "createdAt": 1782393634573,
+  "gridType": "square",
   "type": "exp",
   "zigzagRouting": false,
   "patMacro": 5,
-  "gridType": "square",
-  "bboxRotated": true,
+  "name": "Hirasan Kuzushi (Checkered Sankuzushi)",
+  "traditional": false,
+  "famOrder": [
+    2,
+    3,
+    0,
+    1
+  ],
+  "spacing": 0,
   "families": [
     2,
     0,
@@ -42,23 +43,18 @@
     2,
     3
   ],
+  "bboxRotated": true,
   "creatorId": "uyqa6wy657m",
-  "famOrder": [
-    2,
-    3,
-    0,
-    1
-  ],
-  "spacing": 0,
+  "id": "exp_1782393634573",
   "lines": [
     {
-      "end": [
-        0,
-        6
-      ],
       "start": [
         0,
         0
+      ],
+      "end": [
+        0,
+        6
       ]
     },
     {
@@ -82,22 +78,22 @@
       ]
     },
     {
+      "start": [
+        2,
+        0
+      ],
       "end": [
         0,
         0
-      ],
-      "start": [
-        2,
-        0
       ]
     },
     {
-      "end": [
-        4,
-        0
-      ],
       "start": [
         2,
+        0
+      ],
+      "end": [
+        4,
         0
       ]
     },
@@ -112,63 +108,63 @@
       ]
     },
     {
+      "start": [
+        4,
+        6
+      ],
       "end": [
         2,
         6
-      ],
-      "start": [
-        4,
-        6
-      ]
-    },
-    {
-      "end": [
-        6,
-        0
-      ],
-      "start": [
-        4,
-        0
       ]
     },
     {
       "start": [
-        6,
+        4,
         0
       ],
       "end": [
         6,
-        6
+        0
       ]
     },
     {
-      "end": [
-        4,
-        6
-      ],
       "start": [
+        6,
+        0
+      ],
+      "end": [
         6,
         6
       ]
     },
     {
+      "start": [
+        6,
+        6
+      ],
+      "end": [
+        4,
+        6
+      ]
+    },
+    {
+      "start": [
+        6,
+        6
+      ],
       "end": [
         6,
         8
-      ],
-      "start": [
-        6,
-        6
       ]
     },
     {
+      "start": [
+        12,
+        8
+      ],
       "end": [
         12,
         11
-      ],
-      "start": [
-        12,
-        8
       ]
     },
     {
@@ -202,13 +198,13 @@
       ]
     },
     {
-      "end": [
-        6,
-        12
-      ],
       "start": [
         6,
         10
+      ],
+      "end": [
+        6,
+        12
       ]
     },
     {
@@ -222,13 +218,13 @@
       ]
     },
     {
+      "start": [
+        12,
+        0
+      ],
       "end": [
         12,
         6
-      ],
-      "start": [
-        12,
-        0
       ]
     },
     {
@@ -242,12 +238,12 @@
       ]
     },
     {
-      "end": [
-        11,
+      "start": [
+        6,
         4
       ],
-      "start": [
-        6,
+      "end": [
+        11,
         4
       ]
     },
@@ -302,12 +298,12 @@
       ]
     },
     {
-      "end": [
-        6,
-        10
-      ],
       "start": [
         0,
+        10
+      ],
+      "end": [
+        6,
         10
       ]
     },
@@ -332,17 +328,21 @@
       ]
     },
     {
-      "end": [
-        12,
-        12
-      ],
       "start": [
         6,
+        12
+      ],
+      "end": [
+        12,
         12
       ]
     }
   ],
-  "name": "Hirasan Kuzushi (Checkered Sankuzushi)",
-  "traditional": false,
-  "id": "exp_1782393634573"
+  "bbox": {
+    "maxU": 12,
+    "maxV": 12,
+    "minU": 0,
+    "minV": 0
+  },
+  "createdAt": 1782393634573
 }

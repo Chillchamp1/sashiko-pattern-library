@@ -1,34 +1,29 @@
 {
-  "createdAt": 1782379813625,
-  "bbox": {
-    "minU": 0,
-    "maxU": 8,
-    "maxV": 8,
-    "minV": 0
-  },
+  "name": "My Kakuyose (Layered Squares)",
   "patMacro": 2,
-  "gridType": "square",
   "zigzagRouting": false,
   "type": "exp",
+  "gridType": "square",
+  "createdAt": 1782379813625,
   "lines": [
     {
-      "end": [
-        3,
-        4
-      ],
       "start": [
         3,
         2
+      ],
+      "end": [
+        3,
+        4
       ]
     },
     {
-      "end": [
-        4,
-        4
-      ],
       "start": [
         4,
         2
+      ],
+      "end": [
+        4,
+        4
       ]
     },
     {
@@ -42,12 +37,12 @@
       ]
     },
     {
-      "end": [
-        6,
+      "start": [
+        4,
         5
       ],
-      "start": [
-        4,
+      "end": [
+        6,
         5
       ]
     },
@@ -62,13 +57,13 @@
       ]
     },
     {
+      "start": [
+        3,
+        5
+      ],
       "end": [
         3,
         7
-      ],
-      "start": [
-        3,
-        5
       ]
     },
     {
@@ -82,12 +77,12 @@
       ]
     },
     {
-      "end": [
-        1,
+      "start": [
+        3,
         4
       ],
-      "start": [
-        3,
+      "end": [
+        1,
         4
       ]
     },
@@ -152,22 +147,22 @@
       ]
     },
     {
-      "end": [
-        0,
-        1
-      ],
       "start": [
         0,
         8
+      ],
+      "end": [
+        0,
+        1
       ]
     },
     {
-      "end": [
-        7,
-        1
-      ],
       "start": [
         0,
+        1
+      ],
+      "end": [
+        7,
         1
       ]
     },
@@ -192,13 +187,13 @@
       ]
     },
     {
-      "end": [
-        3,
-        1
-      ],
       "start": [
         3,
         2
+      ],
+      "end": [
+        3,
+        1
       ]
     },
     {
@@ -212,23 +207,23 @@
       ]
     },
     {
-      "end": [
-        7,
-        4
-      ],
       "start": [
         6,
         4
+      ],
+      "end": [
+        7,
+        4
       ]
     },
     {
-      "end": [
-        5,
-        3
-      ],
       "start": [
         5,
         1
+      ],
+      "end": [
+        5,
+        3
       ]
     },
     {
@@ -252,12 +247,12 @@
       ]
     },
     {
-      "end": [
-        7,
-        6
-      ],
       "start": [
         5,
+        6
+      ],
+      "end": [
+        7,
         6
       ]
     },
@@ -272,13 +267,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        8
-      ],
       "start": [
         4,
         7
+      ],
+      "end": [
+        4,
+        8
       ]
     },
     {
@@ -302,12 +297,12 @@
       ]
     },
     {
-      "end": [
-        0,
-        4
-      ],
       "start": [
         1,
+        4
+      ],
+      "end": [
+        0,
         4
       ]
     },
@@ -332,43 +327,43 @@
       ]
     },
     {
-      "end": [
-        2,
-        0
-      ],
       "start": [
         2,
         1
-      ]
-    },
-    {
-      "start": [
-        3,
-        1
       ],
       "end": [
-        3,
+        2,
         0
       ]
     },
     {
-      "end": [
-        4,
-        0
-      ],
       "start": [
-        4,
+        3,
         1
+      ],
+      "end": [
+        3,
+        0
       ]
     },
     {
-      "end": [
-        5,
-        0
+      "start": [
+        4,
+        1
       ],
+      "end": [
+        4,
+        0
+      ]
+    },
+    {
       "start": [
         5,
         1
+      ],
+      "end": [
+        5,
+        0
       ]
     },
     {
@@ -402,22 +397,26 @@
       ]
     },
     {
-      "end": [
-        8,
-        6
-      ],
       "start": [
         7,
+        6
+      ],
+      "end": [
+        8,
         6
       ]
     }
   ],
-  "famOrder": [
-    0,
-    1
-  ],
-  "spacing": 0,
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxU": 8,
+    "maxV": 8
+  },
+  "id": "exp_1782379813625",
+  "published": true,
   "bboxRotated": false,
+  "creatorId": "uyqa6wy657m",
   "families": [
     1,
     1,
@@ -460,9 +459,10 @@
     0,
     0
   ],
-  "creatorId": "uyqa6wy657m",
-  "published": true,
-  "traditional": true,
-  "id": "exp_1782379813625",
-  "name": "My Kakuyose (Layered Squares)"
+  "spacing": 0,
+  "famOrder": [
+    0,
+    1
+  ],
+  "traditional": true
 }

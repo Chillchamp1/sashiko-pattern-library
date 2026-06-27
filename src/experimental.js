@@ -997,9 +997,7 @@ window.editExpPattern=function(idOrPat){
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
-  const pmOpts=[3,4,5,8,12];let bestPM=5,bestD=Infinity;
-  pmOpts.forEach(o=>{const d=Math.abs(o-(pat.patMacro||5));if(d<bestD){bestD=d;bestPM=o;}});
-  document.getElementById('cadPatSize').value=bestPM;
+  document.getElementById('cadPatSize').value=2;  // standard Live-Tiling tile count
   document.getElementById('cadPatName').value=pat.name||'Custom Pattern';
   cadEditId=pat.id;
   cadIsPublished=pat.published||false;
@@ -1335,10 +1333,16 @@ function extractArcStrokes(segs){
 // ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
 // Arcs and straight lines both become whole SUPER-EDGES, entered only at a drawn
 // endpoint (the start-at-endpoint rule). Min-deflection matching chains them at
-// shared endpoints into long strokes: smooth arc→arc joins merge (e.g. Seigaiha's
-// scallop bumps — a circle drawn as quarter-arcs — and adjacent bumps into one
-// scalloped wave), joins sharper than maxTurn break. A super-edge is always
-// traversed in full, so a stroke can never start in the middle of an arc.
+// shared endpoints into long strokes. A super-edge is always traversed in full,
+// so a stroke can never start in the middle of an arc.
+//
+// Arc continuation is TANGENT-ONLY: an arc chains into a neighbour only if the join
+// is near-smooth (same curve continuing) — so a circle drawn as quarter-arcs becomes
+// one half-circle, but a corner/cusp where two scallops meet (e.g. Seigaiha's ~90°
+// joins) BREAKS, leaving each bump its own half-circle stroke to be swept row-by-row.
+// Pure line junctions keep the full maxTurn budget (straight through crossings).
+// (The Waves/contour engine, by contrast, deliberately chains scallops across cusps.)
+const ARC_TANGENT=45*Math.PI/180;
 function buildStrokesForFamily(segs, maxTurn){
   const Q=1e-4;
   const {arcStrokes, lineSegs}=extractArcStrokes(segs);
@@ -1347,11 +1351,11 @@ function buildStrokesForFamily(segs, maxTurn){
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
     if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
 
-  const E=[];                 // open super-edges {a,b,pts} (pts run a→b)
+  const E=[];                 // open super-edges {a,b,pts,isArc} (pts run a→b)
   const closedStrokes=[];     // closed-loop arcs (no endpoint) — can't chain, emitted as-is
   for(const pts of arcStrokes){
     if(Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-6){closedStrokes.push(pts);continue;}
-    E.push({a:vidOf(pts[0]),b:vidOf(pts[pts.length-1]),pts:pts.map(p=>p.slice())});
+    E.push({a:vidOf(pts[0]),b:vidOf(pts[pts.length-1]),pts:pts.map(p=>p.slice()),isArc:true});
   }
   const seen=new Set();
   for(const l of lineSegs){
@@ -1359,7 +1363,7 @@ function buildStrokesForFamily(segs, maxTurn){
     if(a===b)continue;
     const ek=a<b?a+'_'+b:b+'_'+a;
     if(seen.has(ek))continue; seen.add(ek);
-    E.push({a,b,pts:[l.start.slice(),l.end.slice()]});
+    E.push({a,b,pts:[l.start.slice(),l.end.slice()],isArc:false});
   }
   if(!E.length)return closedStrokes;
 
@@ -1374,8 +1378,8 @@ function buildStrokesForFamily(segs, maxTurn){
 
   const adj=vPos.map(()=>[]);
   E.forEach((e,ei)=>{
-    adj[e.a].push({e:ei,to:e.b,fromA:true, dir:dirInto(e,true), tw:-1});
-    adj[e.b].push({e:ei,to:e.a,fromA:false,dir:dirInto(e,false),tw:-1});
+    adj[e.a].push({e:ei,to:e.b,fromA:true, dir:dirInto(e,true), tw:-1, arc:e.isArc});
+    adj[e.b].push({e:ei,to:e.a,fromA:false,dir:dirInto(e,false),tw:-1, arc:e.isArc});
   });
   {const slot=new Map();
   adj.forEach((list,v)=>list.forEach((h,li)=>{
@@ -1389,7 +1393,10 @@ function buildStrokesForFamily(segs, maxTurn){
     const d=list.length; if(d<2)return;
     const cost=(i,j)=>{
       let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
-      dt=Math.max(-1,Math.min(1,dt)); return Math.PI-Math.acos(dt);  // deviation from straight-through
+      dt=Math.max(-1,Math.min(1,dt)); const turn=Math.PI-Math.acos(dt);  // deviation from straight-through
+      // An arc only continues into a near-tangent neighbour; a corner/cusp breaks it.
+      if((list[i].arc||list[j].arc) && turn>ARC_TANGENT) return 9;  // > any maxTurn ⇒ forbidden
+      return turn;
     };
     partner[v].set(matchVertex(d,cost,maxTurn));
   });
@@ -1793,9 +1800,7 @@ window.remixPattern=function(id){
   const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
   const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
   document.getElementById('cadGridSize').value=macroVal;
-  const pmOpts=[3,4,5,8,12];let bestPM=5,bestD=Infinity;
-  pmOpts.forEach(o=>{const d=Math.abs(o-(pat.patMacro||5));if(d<bestD){bestD=d;bestPM=o;}});
-  document.getElementById('cadPatSize').value=bestPM;
+  document.getElementById('cadPatSize').value=2;  // standard Live-Tiling tile count
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';

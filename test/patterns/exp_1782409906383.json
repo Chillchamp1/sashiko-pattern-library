@@ -1,29 +1,15 @@
 {
+  "patMacro": 3,
   "name": "Yotsukumi Hishi (Four Linked Diamonds)",
-  "id": "exp_1782409906383",
-  "traditional": true,
-  "published": true,
-  "creatorId": "uyqa6wy657m",
-  "families": [
-    1,
-    0,
-    1,
-    0,
-    0,
-    1,
-    1,
-    0,
-    1,
-    0,
-    0,
-    1
-  ],
-  "bboxRotated": false,
-  "spacing": 0,
-  "famOrder": [
-    0,
-    1
-  ],
+  "routingMode": "default",
+  "type": "exp",
+  "gridType": "square",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 4,
+    "maxU": 8
+  },
   "lines": [
     {
       "start": [
@@ -46,27 +32,27 @@
       ]
     },
     {
-      "end": [
-        4,
-        3
-      ],
       "start": [
         2,
         4
-      ]
-    },
-    {
-      "end": [
-        2,
-        2
       ],
-      "start": [
+      "end": [
         4,
         3
       ]
     },
     {
       "start": [
+        4,
+        3
+      ],
+      "end": [
+        2,
+        2
+      ]
+    },
+    {
+      "start": [
         2,
         0
       ],
@@ -76,43 +62,43 @@
       ]
     },
     {
+      "start": [
+        2,
+        2
+      ],
       "end": [
         4,
         1
-      ],
-      "start": [
-        2,
-        2
       ]
     },
     {
+      "start": [
+        0,
+        1
+      ],
       "end": [
         2,
         0
-      ],
-      "start": [
-        0,
-        1
       ]
     },
     {
-      "end": [
-        0,
-        1
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        0,
+        1
       ]
     },
     {
+      "start": [
+        4,
+        3
+      ],
       "end": [
         6,
         2
-      ],
-      "start": [
-        4,
-        3
       ]
     },
     {
@@ -146,15 +132,29 @@
       ]
     }
   ],
-  "type": "exp",
-  "gridType": "square",
-  "patMacro": 3,
-  "bbox": {
-    "minU": 0,
-    "maxU": 8,
-    "minV": 0,
-    "maxV": 4
-  },
-  "routingMode": "default",
-  "createdAt": 1782409906383
+  "id": "exp_1782409906383",
+  "createdAt": 1782409906383,
+  "families": [
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1
+  ],
+  "spacing": 0,
+  "famOrder": [
+    0,
+    1
+  ],
+  "traditional": true,
+  "creatorId": "uyqa6wy657m",
+  "published": true,
+  "bboxRotated": false
 }

@@ -1,49 +1,49 @@
 {
+  "createdAt": 1782335965777,
+  "bbox": {
+    "maxU": 4,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
   "lines": [
     {
-      "start": [
-        2,
-        0
-      ],
       "end": [
         2,
         4
+      ],
+      "start": [
+        2,
+        0
       ]
     },
     {
-      "start": [
-        0,
-        2
-      ],
       "end": [
         4,
+        2
+      ],
+      "start": [
+        0,
         2
       ]
     }
   ],
+  "id": "exp_1782335965777",
   "creatorId": "uy09jle01o7",
+  "published": true,
+  "bboxRotated": false,
   "families": [
     1,
     0
   ],
-  "bboxRotated": false,
-  "spacing": 4,
   "famOrder": [
     0,
     1
   ],
-  "id": "exp_1782335965777",
   "traditional": false,
-  "published": true,
+  "spacing": 4,
   "name": "Jūji-zashi· Cross Stitch",
-  "createdAt": 1782335965777,
-  "bbox": {
-    "maxV": 4,
-    "minV": 0,
-    "maxU": 4,
-    "minU": 0
-  },
-  "gridType": "square",
   "patMacro": 5,
-  "type": "exp"
+  "type": "exp",
+  "gridType": "square"
 }

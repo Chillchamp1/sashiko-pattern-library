@@ -1,24 +1,40 @@
 {
-  "createdAt": 1782409901380,
-  "bbox": {
-    "minU": 0,
-    "maxU": 8,
-    "maxV": 4,
-    "minV": 0
-  },
-  "routingMode": "default",
-  "patMacro": 3,
-  "gridType": "square",
   "type": "exp",
+  "gridType": "square",
+  "patMacro": 3,
+  "routingMode": "default",
+  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
+  "families": [
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1
+  ],
+  "famOrder": [
+    0,
+    1
+  ],
+  "traditional": true,
+  "spacing": 0,
+  "bboxRotated": false,
+  "creatorId": "uyqa6wy657m",
   "lines": [
     {
-      "end": [
-        0,
-        3
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        0,
+        3
       ]
     },
     {
@@ -82,23 +98,23 @@
       ]
     },
     {
-      "end": [
-        0,
-        1
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        0,
+        1
       ]
     },
     {
+      "start": [
+        4,
+        3
+      ],
       "end": [
         6,
         2
-      ],
-      "start": [
-        4,
-        3
       ]
     },
     {
@@ -132,28 +148,12 @@
       ]
     }
   ],
-  "bboxRotated": false,
-  "creatorId": "uyqa6wy657m",
-  "families": [
-    1,
-    0,
-    1,
-    0,
-    0,
-    1,
-    1,
-    0,
-    1,
-    0,
-    0,
-    1
-  ],
-  "famOrder": [
-    0,
-    1
-  ],
-  "spacing": 0,
-  "traditional": true,
+  "bbox": {
+    "maxU": 8,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
   "id": "exp_1782409901380",
-  "name": "Yotsukumi Hishi (Four Linked Diamonds)"
+  "createdAt": 1782409901380
 }
