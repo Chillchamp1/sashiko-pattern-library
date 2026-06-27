@@ -73,9 +73,11 @@
     <button class="ctrl" id="bFwd" title="Step forward">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
     </button>
-    <button class="ctrl speed-btn" data-speed="slow">🐢 Slow</button>
-    <button class="ctrl speed-btn sel" data-speed="medium">Medium</button>
-    <button class="ctrl speed-btn" data-speed="fast">⚡ Fast</button>
+    <span class="speed-slider" title="Animation speed">
+      <span aria-hidden="true">🐢</span>
+      <input type="range" id="animSpeed" min="0" max="100" step="1" value="82">
+      <span aria-hidden="true">⚡</span>
+    </span>
     <span class="anim-zoom">
       <button class="ctrl" onclick="galleryZoomStep(-1)" title="Fewer cells">−</button>
       <span id="galleryZoomVal">auto</span>
@@ -212,6 +214,11 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </div>
         <div class="cad-toolbar">
           <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
+          <span class="speed-slider" title="Animation speed">
+            <span aria-hidden="true">🐢</span>
+            <input type="range" id="cadSpeed" min="0" max="100" step="1" value="82" oninput="cadSetSpeed(this.value)">
+            <span aria-hidden="true">⚡</span>
+          </span>
           <label class="cad-switch" title="Switch between coloured and realistic denim + thread view">
             <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
             <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
@@ -221,8 +228,8 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-stitch-controls" id="cadStitchControls" style="display:none">
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Stitch</span>
-            <input type="range" id="cadStitchLen" min="8" max="40" step="1" value="16" oninput="cadSetStitchLen(this.value)">
-            <span class="cad-stitch-val" id="cadStitchLenVal">16</span>
+            <input type="range" id="cadStitchLen" min="3" max="40" step="1" value="8" oninput="cadSetStitchLen(this.value)">
+            <span class="cad-stitch-val" id="cadStitchLenVal">8</span>
           </span>
           <label class="cad-routing-toggle">Ratio
             <select id="cadStitchRatio" onchange="cadSetStitchRatio(this.value)">
@@ -231,6 +238,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <option value="long">Long · 3 : 2</option>
               <option value="even">Even · 1 : 1</option>
             </select>
+          </label>
+          <label class="cad-routing-toggle" title="Show the fabric grid">
+            <input type="checkbox" id="cadStitchGrid" onchange="cadToggleStitchGrid()"> Grid
           </label>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>

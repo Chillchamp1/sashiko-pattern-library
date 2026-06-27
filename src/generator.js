@@ -160,11 +160,9 @@ function initGenUI(){
 
 // ── Playback ───────────────────────────────────────────────────────────────
 const bPlay=document.getElementById('bPlay');
-let _speed='medium';
 function updateSpeed(){
   if(TOTAL<=0){TICK_MS=160;return;}
-  const targets={slow:30000,medium:20000,fast:10000};
-  TICK_MS=(targets[_speed]||20000)/TOTAL;
+  TICK_MS=_speedTotal(_animSpeedV)/TOTAL;
 }
 function setPlayIcon(pl){
   bPlay.querySelector('span').textContent=pl?'Pause':'Play';
@@ -187,14 +185,8 @@ bPlay.onclick=()=>playing?pause():play();
 document.getElementById('bReset').onclick=()=>{pause();step=0;render(step);};
 document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);render(step);};
 document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
-document.querySelectorAll('.speed-btn').forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll('.speed-btn').forEach(x=>x.classList.remove('sel'));
-    b.classList.add('sel');
-    _speed=b.dataset.speed;
-    updateSpeed();
-  };
-});
+{const sl=document.getElementById('animSpeed');
+ if(sl){sl.value=_animSpeedV;sl.oninput=()=>{_animSpeedV=parseInt(sl.value);updateSpeed();};}}
 window.addEventListener('keydown',e=>{
   if(!document.getElementById('animView').classList.contains('open'))return;
   if(e.code==='Space'){e.preventDefault();playing?pause():play();}

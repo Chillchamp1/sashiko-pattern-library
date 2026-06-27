@@ -142,8 +142,6 @@ canvas#cv{display:block}
 .jumpbar button:hover{background:#1d3850}
 .jumpbar button.on{background:#214a72;border-color:#3a6ea3}
 .jumpbar button.off{opacity:0.35;text-decoration:line-through}
-.speed-btn{font-size:11px!important;padding:6px 10px!important}
-.speed-btn.sel{background:#214a72;border-color:#3a6ea3;color:#e7eef6}
 .ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 button.ctrl{background:var(--panel);color:#e7eef6;border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;
@@ -270,6 +268,9 @@ button.ctrl.primary:hover{background:#275784}
 .cad-stitch-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;padding:7px 8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
 .cad-stitch-controls input[type=range]{accent-color:#efe7d0;cursor:pointer;width:96px;vertical-align:middle}
 .cad-stitch-val{font-size:11px;color:#cfe0f2;min-width:16px;text-align:center}
+/* Speed slider (gallery animation + CAD play) */
+.speed-slider{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:1}
+.speed-slider input[type=range]{accent-color:#6aabff;cursor:pointer;width:100px;vertical-align:middle}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
@@ -385,9 +386,11 @@ button.ctrl.primary:hover{background:#275784}
     <button class="ctrl" id="bFwd" title="Step forward">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
     </button>
-    <button class="ctrl speed-btn" data-speed="slow">🐢 Slow</button>
-    <button class="ctrl speed-btn sel" data-speed="medium">Medium</button>
-    <button class="ctrl speed-btn" data-speed="fast">⚡ Fast</button>
+    <span class="speed-slider" title="Animation speed">
+      <span aria-hidden="true">🐢</span>
+      <input type="range" id="animSpeed" min="0" max="100" step="1" value="82">
+      <span aria-hidden="true">⚡</span>
+    </span>
     <span class="anim-zoom">
       <button class="ctrl" onclick="galleryZoomStep(-1)" title="Fewer cells">−</button>
       <span id="galleryZoomVal">auto</span>
@@ -524,6 +527,11 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         </div>
         <div class="cad-toolbar">
           <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
+          <span class="speed-slider" title="Animation speed">
+            <span aria-hidden="true">🐢</span>
+            <input type="range" id="cadSpeed" min="0" max="100" step="1" value="82" oninput="cadSetSpeed(this.value)">
+            <span aria-hidden="true">⚡</span>
+          </span>
           <label class="cad-switch" title="Switch between coloured and realistic denim + thread view">
             <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
             <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
@@ -533,8 +541,8 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-stitch-controls" id="cadStitchControls" style="display:none">
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Stitch</span>
-            <input type="range" id="cadStitchLen" min="8" max="40" step="1" value="16" oninput="cadSetStitchLen(this.value)">
-            <span class="cad-stitch-val" id="cadStitchLenVal">16</span>
+            <input type="range" id="cadStitchLen" min="3" max="40" step="1" value="8" oninput="cadSetStitchLen(this.value)">
+            <span class="cad-stitch-val" id="cadStitchLenVal">8</span>
           </span>
           <label class="cad-routing-toggle">Ratio
             <select id="cadStitchRatio" onchange="cadSetStitchRatio(this.value)">
@@ -543,6 +551,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <option value="long">Long · 3 : 2</option>
               <option value="even">Even · 1 : 1</option>
             </select>
+          </label>
+          <label class="cad-routing-toggle" title="Show the fabric grid">
+            <input type="checkbox" id="cadStitchGrid" onchange="cadToggleStitchGrid()"> Grid
           </label>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
@@ -5275,6 +5286,10 @@ let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
 let _animSource='gallery'; // 'gallery' or 'sandbox' — tracks where we came from
 let TICK_MS=160, _zoom=1, _panX=0, _panY=0, _zoomInited=false;
+// Shared animation speed: slider value 0..100 → total animation duration (ms).
+// v=100 = fastest (10s, the old "Fast"); v=0 = slowest (90s, 3× the old "Slow").
+let _animSpeedV=82;  // ~20s = the old "Medium" default
+function _speedTotal(v){return 90000-(Math.max(0,Math.min(100,v))/100)*80000;}
 let _famToggles={};
 let _famPainting=false;
 
@@ -5765,11 +5780,9 @@ function initGenUI(){
 
 // ── Playback ───────────────────────────────────────────────────────────────
 const bPlay=document.getElementById('bPlay');
-let _speed='medium';
 function updateSpeed(){
   if(TOTAL<=0){TICK_MS=160;return;}
-  const targets={slow:30000,medium:20000,fast:10000};
-  TICK_MS=(targets[_speed]||20000)/TOTAL;
+  TICK_MS=_speedTotal(_animSpeedV)/TOTAL;
 }
 function setPlayIcon(pl){
   bPlay.querySelector('span').textContent=pl?'Pause':'Play';
@@ -5792,14 +5805,8 @@ bPlay.onclick=()=>playing?pause():play();
 document.getElementById('bReset').onclick=()=>{pause();step=0;render(step);};
 document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);render(step);};
 document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
-document.querySelectorAll('.speed-btn').forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll('.speed-btn').forEach(x=>x.classList.remove('sel'));
-    b.classList.add('sel');
-    _speed=b.dataset.speed;
-    updateSpeed();
-  };
-});
+{const sl=document.getElementById('animSpeed');
+ if(sl){sl.value=_animSpeedV;sl.oninput=()=>{_animSpeedV=parseInt(sl.value);updateSpeed();};}}
 window.addEventListener('keydown',e=>{
   if(!document.getElementById('animView').classList.contains('open'))return;
   if(e.code==='Space'){e.preventDefault();playing?pause():play();}
@@ -7906,8 +7913,10 @@ let cadInited=false;
 
 // ── Realistic stitch view (indigo denim + off-white yarn) ────────────────────
 let cadStitchView=false;        // toggle: false = coloured family view, true = stitch view
-let cadStitchLen=16;            // visible stitch length in patCanvas px
+let cadStitchGrid=false;        // overlay the fabric grid in stitch view
+let cadStitchLen=8;             // visible stitch length in patCanvas px
 let cadStitchRatio='standard';  // key into CAD_STITCH_RATIOS (stitch : pause)
+let _cadSpeedV=82;              // tile-play speed (shares _speedTotal with the gallery)
 let _cadStitchCache=null;       // {sig, stitches} — recomputed only when sig changes
 let _cadDenimBuf=null;          // baked denim background (500×500)
 // Stitch : pause (gap) ratios. Traditional sashiko keeps the gap ≈ 1/3 the stitch
@@ -9026,6 +9035,7 @@ function _renderTileFrame(){
   x.clearRect(0,0,500,500);
   if(cadStitchView){
     _cadDrawDenim(x);
+    if(cadStitchGrid)_cadDrawStitchGrid(x,_cadStitchCache);
     const w=_cadStitchW();
     _tpSts.forEach((s,i)=>{if(i<_tpStep)_cadDrawStitch(x,s,w);});
     return;
@@ -9041,7 +9051,7 @@ function _renderTileFrame(){
 function _tpLoop(t){
   if(!_tpOn)return;
   if(!_tpLast)_tpLast=t;
-  const tpTick=_tpSts.length>0?10000/_tpSts.length:40;
+  const tpTick=_tpSts.length>0?_speedTotal(_cadSpeedV)/_tpSts.length:40;
   const adv=Math.floor((t-_tpLast)/tpTick);
   if(adv>0){
     _tpStep+=adv;
@@ -9137,6 +9147,10 @@ function _cadLayStitches(strokes){
       anchors[B.si].push(B.s0+X.u*B.len);
     }
   }
+  // Round line-caps extend a stitch by half its width past each endpoint; inset the
+  // drawn endpoints by exactly that much so the *visible* thread spans `st` and the
+  // denim gaps match the chosen ratio (otherwise every gap reads shorter than it is).
+  const cap=_cadStitchW()/2;
   const out=[];
   data.forEach((d,si)=>{
     let an=anchors[si].filter(v=>v>=-1e-6&&v<=d.total+1e-6).sort((a,b)=>a-b);
@@ -9146,7 +9160,9 @@ function _cadLayStitches(strokes){
       const n=Math.max(1,Math.round(D/U)),unit=D/n,gap=unit*ratio.g/(ratio.s+ratio.g),st=unit-gap;
       for(let s=0;s<n;s++){
         const ds=a+s*unit+gap/2, de=ds+st;
-        const P=_ptAlong(d,ds),Q=_ptAlong(d,de);
+        let P=_ptAlong(d,ds),Q=_ptAlong(d,de);
+        const dx=Q[0]-P[0],dy=Q[1]-P[1],len=Math.hypot(dx,dy);
+        if(len>2*cap+0.5){const ix=dx/len*cap,iy=dy/len*cap;P=[P[0]+ix,P[1]+iy];Q=[Q[0]-ix,Q[1]-iy];}
         out.push({x1:P[0],y1:P[1],x2:Q[0],y2:Q[1],fam:d.fam});
       }
     }
@@ -9193,7 +9209,19 @@ function _cadStitchScene(){
     if(Math.hypot(last[0]-a[0],last[1]-a[1])<0.5)cur.pts.push(b);
     else{cur={fam:s.fam||0,pts:[a,b]};strokes.push(cur);}
   });
-  return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes)});
+  const tf={g2s:lay.g2s,ox,oy,sc};
+  return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes),tf,ur:lay.uRange,vr:lay.vRange});
+}
+// Faint fabric grid (main lines every CAD_MICRO), mapped through the stitch-scene transform.
+function _cadDrawStitchGrid(x,scene){
+  if(!scene||!scene.tf)return;
+  const tf=scene.tf,M=CAD_MICRO;
+  const[mnU,mxU]=scene.ur,[mnV,mxV]=scene.vr;
+  const S=(u,v)=>{const a=tf.g2s([u,v]);return[tf.ox+a.x*tf.sc,tf.oy+a.y*tf.sc];};
+  const u0=Math.floor(mnU/M)*M,u1=Math.ceil(mxU/M)*M,v0=Math.floor(mnV/M)*M,v1=Math.ceil(mxV/M)*M;
+  x.strokeStyle='rgba(220,235,255,0.16)';x.lineWidth=1;
+  for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+  for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
 }
 // Draw one off-white sashiko stitch with a little depth (shadow + sheen).
 function _cadDrawStitch(x,s,w){
@@ -9212,6 +9240,7 @@ function _cadDrawStitchStatic(){
   const x=pv.getContext('2d');
   x.clearRect(0,0,500,500);_cadDrawDenim(x);
   const sc=_cadStitchScene(),w=_cadStitchW();
+  if(cadStitchGrid)_cadDrawStitchGrid(x,sc);
   sc.stitches.forEach(s=>_cadDrawStitch(x,s,w));
 }
 window.cadToggleStitchView=function(){
@@ -9230,6 +9259,11 @@ window.cadSetStitchRatio=function(v){
   cadStitchRatio=v;_cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
 };
+window.cadToggleStitchGrid=function(){
+  cadStitchGrid=document.getElementById('cadStitchGrid').checked;
+  if(!_tpOn)cadDrawPattern();else _renderTileFrame();
+};
+window.cadSetSpeed=function(v){_cadSpeedV=parseInt(v)||0;};
 
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
 function cadInit(){

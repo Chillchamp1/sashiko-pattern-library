@@ -206,8 +206,11 @@ Implementation (Tsuzuki Yamagata, 2 classes per family):
 ## Animation Engine
 
 ```javascript
-let TICK_MS = 160;  // medium speed, ~6 stitches/sec (was 40=fast before speed changes)
-// Speeds: slow=240ms, medium=160ms, fast=13ms (~75 stitches/sec)
+let TICK_MS = 160;  // per-tick ms, derived from the speed slider via updateSpeed()
+// Speed slider (render.js): `_animSpeedV` 0..100 → `_speedTotal(v)` = total animation
+// duration in ms (v=100 → 10s fastest, v=0 → 90s slowest = 3× the old "Slow").
+// TICK_MS = _speedTotal(_animSpeedV)/TOTAL. The gallery slider is #animSpeed; the CAD
+// tile-play slider is #cadSpeed (own `_cadSpeedV`, same `_speedTotal` mapping).
 
 let step = 0;        // 0 = start, TOTAL = finished
 let playing = false;
@@ -308,7 +311,7 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 
 ## Known Decisions / Constraints
 
-- **Speed modes:** slow `TICK_MS=240` (~4 st/s), medium `160` (~6 st/s), fast `13` (~75 st/s)
+- **Speed:** continuous slider (`#animSpeed` gallery, `#cadSpeed` CAD) → `_speedTotal(v)` total duration 10s (fast) … 90s (slow); `TICK_MS=_speedTotal(v)/TOTAL`
 - **Line width scales with HM_CELL:** `lw = max(1, min(3, HM_CELL * 0.15))` — looks good from Order 1 (100px cells) to Order 3 (4.5px cells)
 - **Generator always shows `step=TOTAL`:** editing/preset/order immediately renders the full pattern (preview). Play restarts the animation.
 - **Back-thread / jump lines REMOVED** — no dotted lines showing needle jumps between stitches (drawBack, drawHMBack, renderExp back-thread all stripped)
@@ -363,7 +366,8 @@ Lines are colored by family in real-time as you draw. Both the Draw canvas and L
 
 ### Realistic Stitch View (denim + off-white yarn)
 - **🪡 Stitch view** toggle switch in the Live Tiling toolbar (`#cadStitchToggle` → `cadToggleStitchView`). OFF = coloured family view (as before); ON = indigo-denim fabric with off-white running stitches on the **same** right canvas (`patCanvas`), both static and Play.
-- Two controls appear only when ON (`#cadStitchControls`): **Stitch length** slider (`cadStitchLen`, px) and **Ratio** dropdown (`cadStitchRatio`, stitch : pause) — `CAD_STITCH_RATIOS` = Standard 3:1 (default, traditional gap ≈ ⅓ stitch), Relaxed 2:1, Long 3:2, Even 1:1.
+- Controls appear only when ON (`#cadStitchControls`): **Stitch length** slider (`cadStitchLen` px, range 3–40, default 8), **Ratio** dropdown (`cadStitchRatio`, stitch : pause) — `CAD_STITCH_RATIOS` = Standard 3:1 (default, gap ≈ ⅓ stitch), Relaxed 2:1, Long 3:2, Even 1:1 — and a **Grid** checkbox (`cadStitchGrid`) overlaying the fabric grid via the scene transform (`_cadDrawStitchGrid`, main lines every `CAD_MICRO`).
+- **Round-cap inset:** stitches use round line-caps (puffy thread look), which add `w/2` past each drawn endpoint; `_cadLayStitches` insets the drawn endpoints by exactly `_cadStitchW()/2` so the *visible* thread spans the intended stitch length and the gaps match the chosen ratio (without this, every gap reads shorter than the stitch).
 - **Sashiko stitch rules enforced** by `_cadLayStitches`: running stitches are laid by arc-length along each routed stroke; a **gap always lands on every crossing and corner** (the rule "stitches meet at the gaps, never over an intersection" — the thread dips under the fabric). Each stroke is cut at anchors = endpoints + sharp corners (turn > `CAD_STITCH_CORNER` 35°, so curve vertices ≈6° are not corners) + intersections with other strokes (`_segInt`, O(n²) with bbox reject); each sub-run gets a whole number of evenly-fitted stitches with half-gaps at both anchors.
 - Pipeline: `_cadStitchScene()` mirrors `cadTilePlay`'s pat/`genTiledSegs`/`buildExpPath`/`filterVisiblePath`/fit, then groups segments into strokes via the `jump` flag and calls `_cadLayStitches`. Result cached by `_cadStitchSig()` (cadLines + settings + stitch params) so hover redraws are cheap. Denim background baked once in `_cadDenimBuf` (`_cadBakeDenim`: indigo gradient + twill diagonals + speckle + vignette); each stitch drawn by `_cadDrawStitch` (shadow + off-white core + sheen). Colours: `CAD_DENIM`, `CAD_YARN`.
 - `cadDrawPattern` (static) and `_renderTileFrame` (Play) both branch on `cadStitchView`. Play animation uses the existing `requestAnimationFrame` loop (`_tpLoop`) — note rAF is throttled in hidden/headless tabs, so the Play animation can't be observed in the preview harness, only the synchronous static view.
