@@ -314,6 +314,7 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 - **Back-thread / jump lines REMOVED** — no dotted lines showing needle jumps between stitches (drawBack, drawHMBack, renderExp back-thread all stripped)
 - **No `el.onclick=null`** in update functions — breaks the Reset/Play button
 - **Arc resolution in CAD editor:** max 30 segments per full circle (`Math.max(3, Math.round(sweep/2pi * 30))`) — sashiko stitching needs low-poly curves
+- **Drawn shapes are kept whole (NOT auto-split at intersections):** each line/arc drawn in one piece stays a single `cadLines` entry, so the router's arc-atomicity (each `aid` = one atomic stroke, `extractArcStrokes` in `experimental.js`) makes it stitch as ONE continuous line (e.g. Maru Shippō circles route as full loops). The **Cut tool** (`erase`) still segments a whole shape on demand: `cadHoveredSeg` computes break points from intersections dynamically, so you can cut at any crossing without the geometry being pre-split. The old auto-splitter (`cadSplitOffGrid`) and the **Split tool** (`cadSplitAt`/`cadMergeAllAt`/`cadIsSplitPoint`/`cadIsMergePoint`/`_splitArc`) were removed — they were an earlier approach that broke shapes into segments and hurt routing.
 
 ## Custom Pattern Features (Experimental)
 
@@ -341,11 +342,10 @@ Lines are colored by family in real-time as you draw. Both the Draw canvas and L
 - Community profiles: save/share/load stitching orders per pattern
 - Cat avatar system for profile creators
 
-### Trash Can
-- Deleting a pattern moves it to trash (localStorage `sashiko_trash`) with 1-week retention
-- Confirmation dialog before deletion
-- Trash section in My Patterns view with Restore / Permanent Delete buttons
-- Auto-cleanup of expired entries on page load
+### Deletion (permanent)
+- Deleting a pattern (gallery ✕ or My Patterns ✕) removes it permanently after one confirm dialog — no trash/recovery
+- `removeExpPattern` (in `experimental.js`) deletes from `EXP_PATTERNS`, records the id in `sashiko_deleted` (so Firestore sync won't resurrect it), and calls `_deleteFromFirestore`
+- The old trash system (1-week retention, Restore, `sashiko_trash`) was removed
 
 ### Deep Links
 - URL hash `#pattern-id` opens that pattern directly (e.g. `#juji`, `#exp_123`)
