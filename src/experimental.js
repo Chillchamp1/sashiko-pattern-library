@@ -1333,34 +1333,49 @@ function extractArcStrokes(segs){
 }
 
 // ── Stroke formation for one family (Rule 1: min-deflection) ──────────────
+// Arcs and straight lines both become whole SUPER-EDGES, entered only at a drawn
+// endpoint (the start-at-endpoint rule). Min-deflection matching chains them at
+// shared endpoints into long strokes: smooth arc→arc joins merge (e.g. Seigaiha's
+// scallop bumps — a circle drawn as quarter-arcs — and adjacent bumps into one
+// scalloped wave), joins sharper than maxTurn break. A super-edge is always
+// traversed in full, so a stroke can never start in the middle of an arc.
 function buildStrokesForFamily(segs, maxTurn){
   const Q=1e-4;
-
-  // Arcs route atomically (start at an endpoint); only straight lines go through matching.
   const {arcStrokes, lineSegs}=extractArcStrokes(segs);
-  segs=lineSegs;
-  if(!segs.length)return arcStrokes;
 
   const vId=new Map(), vPos=[];
   const vidOf=p=>{const k=Math.round(p[0]/Q)+','+Math.round(p[1]/Q);let id=vId.get(k);
     if(id===undefined){id=vPos.length;vId.set(k,id);vPos.push([p[0],p[1]]);}return id;};
-  const seen=new Set(), edges=[], edgeAid=[];  // arc ID per edge
-  for(const l of segs){
+
+  const E=[];                 // open super-edges {a,b,pts} (pts run a→b)
+  const closedStrokes=[];     // closed-loop arcs (no endpoint) — can't chain, emitted as-is
+  for(const pts of arcStrokes){
+    if(Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-6){closedStrokes.push(pts);continue;}
+    E.push({a:vidOf(pts[0]),b:vidOf(pts[pts.length-1]),pts:pts.map(p=>p.slice())});
+  }
+  const seen=new Set();
+  for(const l of lineSegs){
     const a=vidOf(l.start), b=vidOf(l.end);
     if(a===b)continue;
     const ek=a<b?a+'_'+b:b+'_'+a;
     if(seen.has(ek))continue; seen.add(ek);
-    edges.push([a,b]);
-    edgeAid.push(l.aid===undefined?-1:l.aid);
+    E.push({a,b,pts:[l.start.slice(),l.end.slice()]});
   }
-  if(!edges.length)return[];
+  if(!E.length)return closedStrokes;
+
+  // Tangent at an endpoint, pointing INTO the super-edge (continuation dir from that end).
+  const dirInto=(e,fromA)=>{
+    const p=e.pts, n=p.length; let dx,dy;
+    if(fromA){dx=p[1][0]-p[0][0];dy=p[1][1]-p[0][1];}
+    else     {dx=p[n-2][0]-p[n-1][0];dy=p[n-2][1]-p[n-1][1];}
+    const L=Math.hypot(dx,dy)||1; return[dx/L,dy/L];
+  };
+  const polyFrom=(e,fromA)=> fromA ? e.pts.map(p=>p.slice()) : e.pts.slice().reverse().map(p=>p.slice());
 
   const adj=vPos.map(()=>[]);
-  edges.forEach(([a,b],ei)=>{
-    let dx=vPos[b][0]-vPos[a][0], dy=vPos[b][1]-vPos[a][1];
-    const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
-    adj[a].push({e:ei,to:b,dir:[dx,dy],tw:-1,aid:edgeAid[ei]});
-    adj[b].push({e:ei,to:a,dir:[-dx,-dy],tw:-1,aid:edgeAid[ei]});
+  E.forEach((e,ei)=>{
+    adj[e.a].push({e:ei,to:e.b,fromA:true, dir:dirInto(e,true), tw:-1});
+    adj[e.b].push({e:ei,to:e.a,fromA:false,dir:dirInto(e,false),tw:-1});
   });
   {const slot=new Map();
   adj.forEach((list,v)=>list.forEach((h,li)=>{
@@ -1374,35 +1389,34 @@ function buildStrokesForFamily(segs, maxTurn){
     const d=list.length; if(d<2)return;
     const cost=(i,j)=>{
       let dt=list[i].dir[0]*list[j].dir[0]+list[i].dir[1]*list[j].dir[1];
-      dt=Math.max(-1,Math.min(1,dt)); let c=Math.PI-Math.acos(dt);
-      // Penalise pairing edges from different arcs (or arc↔line). Only skip penalty when both are plain lines (aid<0).
-      if(!(list[i].aid<0&&list[j].aid<0) && list[i].aid!==list[j].aid) c+=2.0;
-      return c;
+      dt=Math.max(-1,Math.min(1,dt)); return Math.PI-Math.acos(dt);  // deviation from straight-through
     };
     partner[v].set(matchVertex(d,cost,maxTurn));
   });
 
-  const usedE=new Uint8Array(edges.length), strokes=[];
+  const usedE=new Uint8Array(E.length), strokes=[];
   function trace(v0,li0){
-    const pts=[vPos[v0].slice()]; let v=v0,li=li0;
+    let v=v0,li=li0,pts=null;
     for(;;){
       const h=adj[v][li]; if(usedE[h.e])break; usedE[h.e]=1;
-      pts.push(vPos[h.to].slice());
+      const poly=polyFrom(E[h.e],h.fromA);
+      if(!pts)pts=[poly[0]];
+      for(let k=1;k<poly.length;k++)pts.push(poly[k]);
       const nl=partner[h.to][h.tw];
       if(nl<0)break;
       v=h.to; li=nl;
     }
-    if(pts.length>=2)strokes.push(pts);
+    if(pts&&pts.length>=2)strokes.push(pts);
   }
   adj.forEach((list,v)=>list.forEach((h,li)=>{
     if(partner[v][li]<0 && !usedE[h.e])trace(v,li);
   }));
-  edges.forEach(([a],ei)=>{
+  E.forEach((e,ei)=>{
     if(usedE[ei])return;
-    trace(a, adj[a].findIndex(h=>h.e===ei));
+    trace(e.a, adj[e.a].findIndex(h=>h.e===ei));
   });
 
-  return arcStrokes.concat(strokes);
+  return closedStrokes.concat(strokes);
 }
 
 // ── Contour/wave tracer (Logik 3) ────────────────────────────────────────────
