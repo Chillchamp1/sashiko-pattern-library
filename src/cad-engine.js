@@ -4,6 +4,7 @@ let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=2,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
+let cadThumbZoom=1;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -1077,6 +1078,7 @@ function cadUpdateAll(){
   cadAutoAssign();
   cadDrawWorkspace();cadDrawPattern();
   cadBuildFamBar();
+  cadUpdateThumbPreview();
   const el=document.getElementById('cadArcHint');
   if(el){
     const red=cadFindRedundant();
@@ -1084,6 +1086,46 @@ function cadUpdateAll(){
     else if(cadTool!=='arc')el.textContent='';
   }
 }
+function cadUpdateThumbPreview(){
+  const c=document.getElementById('cadThumbCanvas'); if(!c)return;
+  const zl=document.getElementById('cadThumbZoomVal'); if(zl)zl.textContent=cadThumbZoom.toFixed(1);
+  const TDPR=Math.min(window.devicePixelRatio||1,2);
+  const w=120,pw=w*TDPR; c.width=pw;c.height=pw;
+  c.style.width=w+'px';c.style.height=w+'px';
+  const tc=c.getContext('2d'); tc.scale(TDPR,TDPR);
+  tc.fillStyle='#1a3a5c'; tc.fillRect(0,0,w,w);
+  if(!cadLines.length)return;
+  const bbox=cadBBox(); if(!bbox)return;
+  const ts=w/SIZE*cadThumbZoom;
+  const off=(w-SIZE*ts)/2;
+  tc.translate(off,off); tc.scale(ts,ts);
+  const redSet=new Set(cadFindRedundant());
+  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!cleanLines.length)return;
+  const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
+  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
+  const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbZoom:cadThumbZoom};
+  const origCtx=ctx;
+  const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
+  const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH;
+  ctx=tc; curPat=previewPat; playing=false;
+  isEXP=true;isPL=false;isHM=false;
+  try{
+    const lay=computeExpLayout(previewPat);
+    EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
+    EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode);
+    TOTAL=EXP_path.length;
+    renderExp(TOTAL);
+  }catch(e){console.warn('cadThumbPreview',e);}
+  ctx=origCtx;
+  curPat=sCP;PASSES=sP;TOTAL=sT;step=sSt;playing=sPl;
+  isHM=sHM;isPL=sPL;isEXP=sEX;
+  EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;
+}
+window.cadThumbZoomStep=function(dir){
+  cadThumbZoom=Math.max(0.5,Math.min(3,Math.round((cadThumbZoom+dir*0.25)*10)/10));
+  cadUpdateThumbPreview();
+};
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
   const pb=document.getElementById('cadPublishBtn');
@@ -1262,7 +1304,7 @@ window.cadSaveToLibrary=function(){
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbZoom:cadThumbZoom};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1305,7 +1347,7 @@ window.cadPublishToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbZoom:cadThumbZoom};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){

@@ -214,13 +214,20 @@ function renderThumb(canvas,pat){
   let expLay=null;
   if(isExpPat){
     expLay=computeExpLayout(pat);
-    const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
-    if(cells>3){
-      const s=3/cells;
-      ctxSX=TDPR/s; ctxSY=TDPR/s;
-      expTranslateX=-SIZE*(1-s)/2; expTranslateY=-SIZE*(1-s)/2;
+    const tz=pat.thumbZoom||0;
+    if(tz>0){
+      const baseScale=THUMB_SIZE/SIZE, s=baseScale*tz;
+      ctxSX=TDPR*s; ctxSY=TDPR*s;
+      expTranslateX=(THUMB_SIZE-SIZE*s)/2; expTranslateY=(THUMB_SIZE-SIZE*s)/2;
     }else{
-      ctxSX=TDPR*(THUMB_SIZE/SIZE); ctxSY=TDPR*(THUMB_SIZE/SIZE);
+      const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
+      if(cells>3){
+        const s=3/cells;
+        ctxSX=TDPR/s; ctxSY=TDPR/s;
+        expTranslateX=-SIZE*(1-s)/2; expTranslateY=-SIZE*(1-s)/2;
+      }else{
+        ctxSX=TDPR*(THUMB_SIZE/SIZE); ctxSY=TDPR*(THUMB_SIZE/SIZE);
+      }
     }
   }
 

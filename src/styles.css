@@ -255,6 +255,13 @@ button.ctrl.primary:hover{background:#275784}
 .pcard.new-pattern-card{border:2px dashed #2a4a2a;background:#111a11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:100px}
 .pcard.new-pattern-card:hover{background:#162016;border-color:#3a6a3a}
 .pcard-new-icon{font-size:32px;line-height:1;color:#4a9a4a;font-weight:300}
+/* CAD thumbnail preview */
+.cad-thumb-preview{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px;padding:8px;background:#0a121c;border-radius:8px}
+.cad-thumb-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.cad-thumb-controls{display:flex;align-items:center;gap:6px}
+.cad-thumb-btn{width:22px;height:22px;padding:0;font-size:14px;line-height:1}
+.cad-thumb-zoom{font-size:12px;color:#e7eef6;min-width:32px;text-align:center}
+#cadThumbCanvas{border-radius:6px;background:#1a3a5c;display:block;width:100px;height:100px}
 /* Experimental gallery cards */
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
