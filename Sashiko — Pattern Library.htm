@@ -6507,9 +6507,15 @@ function _flattenArc(l, nSegs, arcId){
   const totalSweep=Math.abs(sweep);
   const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
   const result=[]; let prev=[...l.start];
+  // Use the exact center→start radius, not the stored l.r (which may be rounded, e.g.
+  // 1.414 vs √2). A rounded radius drifts the computed points off the clean grid by
+  // float noise — enough to break arc→arc endpoint merging when tiled (dead-ends, no
+  // wave chaining). Recomputing keeps the curve through its real endpoints; arcs whose
+  // stored radius is already exact (e.g. r=5) are unaffected.
+  const r=Math.hypot(l.start[0]-l.center[0],l.start[1]-l.center[1])||l.r;
   for(let i=1;i<=segs;i++){
     const a=a1+sweep*(i/segs);
-    const next=[l.center[0]+l.r*Math.cos(a),l.center[1]+l.r*Math.sin(a)];
+    const next=[l.center[0]+r*Math.cos(a),l.center[1]+r*Math.sin(a)];
     result.push({start:prev,end:next,aid:arcId});
     prev=next;
   }
@@ -6520,7 +6526,12 @@ function _flattenArc(l, nSegs, arcId){
 function genTiledSegs(pat){
   const lay=computeExpLayout(pat);
   const bbox=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
-  const dU=Math.max(bbox.maxU-bbox.minU,1), dV=Math.max(bbox.maxV-bbox.minV,1);
+  // Snap a near-integer tiling period to the integer (float noise only, e.g. 4.0003→4).
+  // Tiling by the noisy bbox offsets each tile a hair from the true period, so arcs
+  // never meet across tiles (dead-ends, no wave chaining). Genuine non-integer periods
+  // (Hearts, Waves, …) are >0.005 off an integer and left untouched.
+  const snapInt=v=>{const r=Math.round(v);return Math.abs(v-r)<0.005?r:v;};
+  const dU=Math.max(snapInt(bbox.maxU-bbox.minU),1), dV=Math.max(snapInt(bbox.maxV-bbox.minV),1);
   const [minU,maxU]=lay.uRange, [minV,maxV]=lay.vRange;
   const families=pat.families||detectSymmetryFamilies(pat);
   const nLines=(pat.lines||[]).length;
