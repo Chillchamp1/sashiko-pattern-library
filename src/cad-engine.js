@@ -1442,6 +1442,7 @@ function _renderTileFrame(){
 }
 function _tpLoop(t){
   if(!_tpOn)return;
+  if(!_tpLast)_tpLast=t;
   const tpTick=_tpSts.length>0?10000/_tpSts.length:40;
   const adv=Math.floor((t-_tpLast)/tpTick);
   if(adv>0){
