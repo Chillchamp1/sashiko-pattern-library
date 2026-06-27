@@ -5731,7 +5731,13 @@ function play(){if(step>=TOTAL)step=0;updateSpeed();playing=true;setPlayIcon(tru
 function pause(){playing=false;setPlayIcon(false);cancelAnimationFrame(raf);}
 function tick(t){
   if(!last)last=t;
-  if(t-last>=TICK_MS){if(step>=TOTAL){pause();return;}step++;render(step);last=t;}
+  const adv=Math.floor((t-last)/TICK_MS);
+  if(adv>0){
+    step=Math.min(TOTAL,step+adv);
+    render(step);
+    last+=adv*TICK_MS;
+    if(step>=TOTAL){pause();return;}
+  }
   raf=requestAnimationFrame(tick);
 }
 bPlay.onclick=()=>playing?pause():play();
@@ -5760,11 +5766,20 @@ function renderThumb(canvas,pat){
   const isPLPat=pat.type==='polyline';
   const isHMPat=pat.type==='generator'||pat.type==='hitomezashi';
   const TN=4, THUMB_SIZE=(TN-1)*G+2*PAD;
-  const THUMB_SCALE=THUMB_SIZE/SIZE;
 
-  const expLay=isExpPat?computeExpLayout(pat):null;
-  const ctxSX=isExpPat?TDPR*THUMB_SCALE:TDPR;
-  const ctxSY=isExpPat?TDPR*THUMB_SCALE:TDPR;
+  let ctxSX=TDPR, ctxSY=TDPR, expTranslateX=0, expTranslateY=0;
+  let expLay=null;
+  if(isExpPat){
+    expLay=computeExpLayout(pat);
+    const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
+    if(cells>3){
+      const s=3/cells;
+      ctxSX=TDPR/s; ctxSY=TDPR/s;
+      expTranslateX=-SIZE*(1-s)/2; expTranslateY=-SIZE*(1-s)/2;
+    }else{
+      ctxSX=TDPR*(THUMB_SIZE/SIZE); ctxSY=TDPR*(THUMB_SIZE/SIZE);
+    }
+  }
 
   canvas.width=THUMB_SIZE*TDPR; canvas.height=THUMB_SIZE*TDPR;
   canvas.style.cssText=isExpPat
@@ -5786,6 +5801,7 @@ function renderThumb(canvas,pat){
 
   try{
     if(isEXP){
+      ctx.translate(expTranslateX,expTranslateY);
       EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
       EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode);
       TOTAL=EXP_path.length;
