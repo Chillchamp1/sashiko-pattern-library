@@ -209,7 +209,7 @@ function renderThumb(canvas,pat){
   const isPLPat=pat.type==='polyline';
   const isHMPat=pat.type==='generator'||pat.type==='hitomezashi';
   const TN=4, THUMB_SIZE=(TN-1)*G+2*PAD;
-  const gz=window._galleryZoom||1;
+  const gc=window._galleryCells||0;
 
   let ctxSX=TDPR, ctxSY=TDPR, expTranslateX=0, expTranslateY=0;
   let expLay=null;
@@ -217,19 +217,19 @@ function renderThumb(canvas,pat){
     expLay=computeExpLayout(pat);
     const tc=pat.thumbCells||0;
     const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
-    if(tc>0||cells>3||gz>1){
-      const target=tc>0?tc:(cells>3?3:cells);
-      const eff=target/gz;
-      const s=THUMB_SIZE/SIZE*cells/eff;
+    if(tc>0||cells>3||gc>0){
+      const target=gc>0?gc:(tc>0?tc:(cells>3?3:cells));
+      const s=THUMB_SIZE/SIZE*cells/target;
       ctxSX=TDPR*s; ctxSY=TDPR*s;
       expTranslateX=THUMB_SIZE/(2*s)-SIZE/2; expTranslateY=THUMB_SIZE/(2*s)-SIZE/2;
     }else{
       ctxSX=TDPR*(THUMB_SIZE/SIZE); ctxSY=TDPR*(THUMB_SIZE/SIZE);
     }
-  }else if(gz!==1){
-    ctxSX=TDPR*gz; ctxSY=TDPR*gz;
-    expTranslateX=THUMB_SIZE/(2*gz)-THUMB_SIZE/2;
-    expTranslateY=THUMB_SIZE/(2*gz)-THUMB_SIZE/2;
+  }else if(gc>0){
+    const scale=3/gc;
+    ctxSX=TDPR*scale; ctxSY=TDPR*scale;
+    expTranslateX=THUMB_SIZE/(2*scale)-THUMB_SIZE/2;
+    expTranslateY=THUMB_SIZE/(2*scale)-THUMB_SIZE/2;
   }
 
   canvas.width=THUMB_SIZE*TDPR; canvas.height=THUMB_SIZE*TDPR;
