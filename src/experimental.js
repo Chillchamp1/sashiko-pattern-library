@@ -163,74 +163,6 @@ function _getUserId(){
   if(!id){id='u'+Math.random().toString(36).slice(2,12);localStorage.setItem('sashiko_uid',id);}
   return id;
 }
-// ── Trash (1-week retention) ──────────────────────────────────────────────
-const TRASH_KEY='sashiko_trash';
-const WEEK_MS=7*24*60*60*1000;
-function _loadTrash(){
-  try{return JSON.parse(localStorage.getItem(TRASH_KEY)||'[]');}catch(e){return[];}
-}
-function _saveTrash(trash){
-  try{localStorage.setItem(TRASH_KEY,JSON.stringify(trash));}catch(e){}
-}
-function cleanTrash(){
-  const trash=_loadTrash();
-  const now=Date.now();
-  const kept=trash.filter(t=>now-t.deletedAt<WEEK_MS);
-  if(kept.length!==trash.length)_saveTrash(kept);
-}
-function moveToTrash(pat){
-  const trash=_loadTrash();
-  trash.unshift({pattern:pat,deletedAt:Date.now()});
-  _saveTrash(trash);
-}
-window.toggleTrash=function(){
-  const sec=document.getElementById('trashSection');
-  if(!sec)return;
-  const open=sec.style.display!=='none';
-  sec.style.display=open?'none':'block';
-  if(!open)renderTrash();
-};
-window.restoreFromTrash=function(idx){
-  const trash=_loadTrash();
-  if(idx<0||idx>=trash.length)return;
-  const restored=trash.splice(idx,1)[0].pattern;
-  _saveTrash(trash);
-  // Clear from deleted list so Firestore sync doesn't filter it out
-  try{const del=JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');const i=del.indexOf(restored.id);if(i>=0){del.splice(i,1);localStorage.setItem('sashiko_deleted',JSON.stringify(del));}}catch(e){}
-  EXP_PATTERNS.unshift(restored);
-  _saveLocal();
-  if(_firebaseReady)_pushToFirestore(restored);
-  rebuildMyPatsView();
-  renderTrash();
-};
-window.permDeleteFromTrash=function(idx){
-  if(!confirm('Permanently delete this pattern? This cannot be undone.'))return;
-  const trash=_loadTrash();
-  if(idx<0||idx>=trash.length)return;
-  trash.splice(idx,1);
-  _saveTrash(trash);
-  renderTrash();
-};
-function renderTrash(){
-  cleanTrash();
-  const el=document.getElementById('trashList');
-  if(!el)return;
-  const trash=_loadTrash();
-  if(!trash.length){el.innerHTML='<p style="font-size:11px;color:#665555;text-align:center;padding:12px">Trash is empty.</p>';return;}
-  const now=Date.now();
-  el.innerHTML=trash.map((t,i)=>{
-    const pat=t.pattern;
-    const remaining=Math.max(0,WEEK_MS-(now-t.deletedAt));
-    const days=Math.ceil(remaining/(24*60*60*1000));
-    const meta=days<=0?'expires soon':days+'d left';
-    return`<div class="trash-item">
-      <span class="trash-name">${(pat.name||'Custom').replace(/[<>"'&]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'}[c]))}</span>
-      <span class="trash-meta">${meta}</span>
-      <button class="trash-restore-btn" onclick="event.stopPropagation();restoreFromTrash(${i})">Restore</button>
-      <button class="trash-perm-del-btn" onclick="event.stopPropagation();permDeleteFromTrash(${i})">✕</button>
-    </div>`;
-  }).join('');
-}
 
 /* ═══ CONTINUED: STITCHING PROFILES + FAMILY EDITOR (commented out) ═══
 // ── Stitching profiles (per-pattern community submissions) ────────────────
@@ -391,7 +323,6 @@ async function _fetchFromFirestore(){
 // ── Public API ───────────────────────────────────────────────────────────────
 function loadExpPatterns(){
   _loadLocal();
-  cleanTrash();
   _seedLocalFromBackup();
   _initFirebase();
   if(_firebaseReady){
@@ -1738,18 +1669,14 @@ function rebuildMyPatsView(){
       setTimeout(()=>renderLikeButtons(pat.id),0);
     });
   }
-  const trash=_loadTrash();
-  const tbtn=document.getElementById('trashToggleBtn');
-  if(tbtn)tbtn.textContent=trash.length?'🗑 Trash ('+trash.length+')':'🗑 Trash';
 }
 
 function rebuildExpGallery(){rebuildMyPatsView();}
 
 window.removeExpPattern=async function removeExpPattern(id){
-  if(!confirm('Move this pattern to trash? It can be restored within 1 week.'))return;
+  if(!confirm('Permanently delete this pattern? This cannot be undone.'))return;
   const pat=EXP_PATTERNS.find(p=>p.id===id);
   if(!pat)return;
-  moveToTrash(pat);
   EXP_PATTERNS=EXP_PATTERNS.filter(p=>p.id!==id);
   // Persist deletion even if Firestore sync fails — prevents reappearing
   try{const del=JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');del.push(id);localStorage.setItem('sashiko_deleted',JSON.stringify(del));}catch(e){}
@@ -1762,10 +1689,6 @@ window.showMyPatterns=function(){
   document.getElementById('galleryView').style.display='none';
   document.getElementById('cadView').classList.remove('open');
   document.getElementById('myPatsView').classList.add('open');
-  const trash=_loadTrash();
-  const tbtn=document.getElementById('trashToggleBtn');
-  if(tbtn)tbtn.textContent=trash.length?'🗑 Trash ('+trash.length+')':'🗑 Trash';
-  document.getElementById('trashSection').style.display='none';
   // Always refresh from Firestore when opening the view
   if(_firebaseReady){_fetchFromFirestore().then(()=>rebuildMyPatsView());}
   else{rebuildMyPatsView();}
