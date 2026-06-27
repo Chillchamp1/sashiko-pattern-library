@@ -193,7 +193,7 @@ function cadHoveredSeg(ru,rv){
       return Math.max(0,Math.min(1,d/totalSweep));
     };
     let pts=[{t:toSweep(best.a1),u:best.start[0],v:best.start[1]},
-             {t:toSweep(best.a2),u:best.end[0],v:best.end[1]}];
+             {t:toSweep(best.a2)||1,u:best.end[0],v:best.end[1]}];
     cadLines.forEach((l,i)=>{
       if(i===li)return;
       let ixs;
