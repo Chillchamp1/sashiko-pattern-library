@@ -361,6 +361,13 @@ Lines are colored by family in real-time as you draw. Both the Draw canvas and L
 - Dropdown (0–12) adds padding between tiled pattern units in both Live Tiling and Play views
 - Stored in `cadSpacing` variable, read by `cadUpdateSettings()`
 
+### Realistic Stitch View (denim + off-white yarn)
+- **🪡 Stitch view** toggle switch in the Live Tiling toolbar (`#cadStitchToggle` → `cadToggleStitchView`). OFF = coloured family view (as before); ON = indigo-denim fabric with off-white running stitches on the **same** right canvas (`patCanvas`), both static and Play.
+- Two controls appear only when ON (`#cadStitchControls`): **Stitch length** slider (`cadStitchLen`, px) and **Ratio** dropdown (`cadStitchRatio`, stitch : pause) — `CAD_STITCH_RATIOS` = Standard 3:1 (default, traditional gap ≈ ⅓ stitch), Relaxed 2:1, Long 3:2, Even 1:1.
+- **Sashiko stitch rules enforced** by `_cadLayStitches`: running stitches are laid by arc-length along each routed stroke; a **gap always lands on every crossing and corner** (the rule "stitches meet at the gaps, never over an intersection" — the thread dips under the fabric). Each stroke is cut at anchors = endpoints + sharp corners (turn > `CAD_STITCH_CORNER` 35°, so curve vertices ≈6° are not corners) + intersections with other strokes (`_segInt`, O(n²) with bbox reject); each sub-run gets a whole number of evenly-fitted stitches with half-gaps at both anchors.
+- Pipeline: `_cadStitchScene()` mirrors `cadTilePlay`'s pat/`genTiledSegs`/`buildExpPath`/`filterVisiblePath`/fit, then groups segments into strokes via the `jump` flag and calls `_cadLayStitches`. Result cached by `_cadStitchSig()` (cadLines + settings + stitch params) so hover redraws are cheap. Denim background baked once in `_cadDenimBuf` (`_cadBakeDenim`: indigo gradient + twill diagonals + speckle + vignette); each stitch drawn by `_cadDrawStitch` (shadow + off-white core + sheen). Colours: `CAD_DENIM`, `CAD_YARN`.
+- `cadDrawPattern` (static) and `_renderTileFrame` (Play) both branch on `cadStitchView`. Play animation uses the existing `requestAnimationFrame` loop (`_tpLoop`) — note rAF is throttled in hidden/headless tabs, so the Play animation can't be observed in the preview harness, only the synchronous static view.
+
 ## Known Issues / Gotchas
 
 - **Syntax errors are fatal** — the entire script is one IIFE; an extra `}` anywhere (like the one found in `drawPLGuide`) prevents ALL JavaScript from executing, causing "is not defined" for every onclick handler
