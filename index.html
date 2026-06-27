@@ -6423,8 +6423,11 @@ function computeExpLayout(pat){
   const iso=pat.gridType==='isometric';
   const canvasH=SIZE;                             // always square
   const bbox=pat.bbox||{minU:0,maxU:ptc,minV:0,maxV:ptc};
-  const dU=Math.max(bbox.maxU-bbox.minU,1);
-  const dV=Math.max(bbox.maxV-bbox.minV,1);
+  // Same near-integer period snap as genTiledSegs, so the layout's cell size matches
+  // the tiled geometry exactly (otherwise float noise misaligns the viewport edge).
+  const snapInt=v=>{const r=Math.round(v);return Math.abs(v-r)<0.005?r:v;};
+  const dU=Math.max(snapInt(bbox.maxU-bbox.minU),1);
+  const dV=Math.max(snapInt(bbox.maxV-bbox.minV),1);
   let sz,ox,oy;
   if(iso){
     sz=SIZE/(2*ptc*_COS30);
@@ -6432,9 +6435,13 @@ function computeExpLayout(pat){
     ox=SIZE/2-(dU/2-dV/2)*sz*_COS30;
     oy=SIZE/2-(dU/2+dV/2)*sz*_SIN30;
   }else{
-    sz=SIZE/ptc;
-    // Place bbox centre at canvas centre
-    ox=(ptc-dU)/2*sz; oy=(ptc-dV)/2*sz;
+    // Show a whole number of cells so the viewport edges land exactly on cell borders
+    // (no pattern cut mid-cell at the window edge). nU cells fill the width at a uniform
+    // scale; the cell block is anchored to the top-left cell border (u=v=0). For a square
+    // cell this exactly fills and centres the SIZE×SIZE canvas.
+    const nU=Math.max(1,Math.round(ptc/dU));
+    sz=SIZE/(nU*dU);
+    ox=0; oy=0;
   }
   function g2s(p){const u=p[0],v=p[1];
     if(iso)return{x:ox+(u-v)*sz*_COS30, y:oy+(u+v)*sz*_SIN30};
