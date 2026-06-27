@@ -18,8 +18,10 @@ let cadInited=false;
 
 // ── Realistic stitch view (indigo denim + off-white yarn) ────────────────────
 let cadStitchView=false;        // toggle: false = coloured family view, true = stitch view
-let cadStitchLen=16;            // visible stitch length in patCanvas px
+let cadStitchGrid=false;        // overlay the fabric grid in stitch view
+let cadStitchLen=8;             // visible stitch length in patCanvas px
 let cadStitchRatio='standard';  // key into CAD_STITCH_RATIOS (stitch : pause)
+let _cadSpeedV=82;              // tile-play speed (shares _speedTotal with the gallery)
 let _cadStitchCache=null;       // {sig, stitches} — recomputed only when sig changes
 let _cadDenimBuf=null;          // baked denim background (500×500)
 // Stitch : pause (gap) ratios. Traditional sashiko keeps the gap ≈ 1/3 the stitch
@@ -1138,6 +1140,7 @@ function _renderTileFrame(){
   x.clearRect(0,0,500,500);
   if(cadStitchView){
     _cadDrawDenim(x);
+    if(cadStitchGrid)_cadDrawStitchGrid(x,_cadStitchCache);
     const w=_cadStitchW();
     _tpSts.forEach((s,i)=>{if(i<_tpStep)_cadDrawStitch(x,s,w);});
     return;
@@ -1153,7 +1156,7 @@ function _renderTileFrame(){
 function _tpLoop(t){
   if(!_tpOn)return;
   if(!_tpLast)_tpLast=t;
-  const tpTick=_tpSts.length>0?10000/_tpSts.length:40;
+  const tpTick=_tpSts.length>0?_speedTotal(_cadSpeedV)/_tpSts.length:40;
   const adv=Math.floor((t-_tpLast)/tpTick);
   if(adv>0){
     _tpStep+=adv;
@@ -1249,6 +1252,10 @@ function _cadLayStitches(strokes){
       anchors[B.si].push(B.s0+X.u*B.len);
     }
   }
+  // Round line-caps extend a stitch by half its width past each endpoint; inset the
+  // drawn endpoints by exactly that much so the *visible* thread spans `st` and the
+  // denim gaps match the chosen ratio (otherwise every gap reads shorter than it is).
+  const cap=_cadStitchW()/2;
   const out=[];
   data.forEach((d,si)=>{
     let an=anchors[si].filter(v=>v>=-1e-6&&v<=d.total+1e-6).sort((a,b)=>a-b);
@@ -1258,7 +1265,9 @@ function _cadLayStitches(strokes){
       const n=Math.max(1,Math.round(D/U)),unit=D/n,gap=unit*ratio.g/(ratio.s+ratio.g),st=unit-gap;
       for(let s=0;s<n;s++){
         const ds=a+s*unit+gap/2, de=ds+st;
-        const P=_ptAlong(d,ds),Q=_ptAlong(d,de);
+        let P=_ptAlong(d,ds),Q=_ptAlong(d,de);
+        const dx=Q[0]-P[0],dy=Q[1]-P[1],len=Math.hypot(dx,dy);
+        if(len>2*cap+0.5){const ix=dx/len*cap,iy=dy/len*cap;P=[P[0]+ix,P[1]+iy];Q=[Q[0]-ix,Q[1]-iy];}
         out.push({x1:P[0],y1:P[1],x2:Q[0],y2:Q[1],fam:d.fam});
       }
     }
@@ -1305,7 +1314,19 @@ function _cadStitchScene(){
     if(Math.hypot(last[0]-a[0],last[1]-a[1])<0.5)cur.pts.push(b);
     else{cur={fam:s.fam||0,pts:[a,b]};strokes.push(cur);}
   });
-  return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes)});
+  const tf={g2s:lay.g2s,ox,oy,sc};
+  return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes),tf,ur:lay.uRange,vr:lay.vRange});
+}
+// Faint fabric grid (main lines every CAD_MICRO), mapped through the stitch-scene transform.
+function _cadDrawStitchGrid(x,scene){
+  if(!scene||!scene.tf)return;
+  const tf=scene.tf,M=CAD_MICRO;
+  const[mnU,mxU]=scene.ur,[mnV,mxV]=scene.vr;
+  const S=(u,v)=>{const a=tf.g2s([u,v]);return[tf.ox+a.x*tf.sc,tf.oy+a.y*tf.sc];};
+  const u0=Math.floor(mnU/M)*M,u1=Math.ceil(mxU/M)*M,v0=Math.floor(mnV/M)*M,v1=Math.ceil(mxV/M)*M;
+  x.strokeStyle='rgba(220,235,255,0.16)';x.lineWidth=1;
+  for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+  for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
 }
 // Draw one off-white sashiko stitch with a little depth (shadow + sheen).
 function _cadDrawStitch(x,s,w){
@@ -1324,6 +1345,7 @@ function _cadDrawStitchStatic(){
   const x=pv.getContext('2d');
   x.clearRect(0,0,500,500);_cadDrawDenim(x);
   const sc=_cadStitchScene(),w=_cadStitchW();
+  if(cadStitchGrid)_cadDrawStitchGrid(x,sc);
   sc.stitches.forEach(s=>_cadDrawStitch(x,s,w));
 }
 window.cadToggleStitchView=function(){
@@ -1342,6 +1364,11 @@ window.cadSetStitchRatio=function(v){
   cadStitchRatio=v;_cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
 };
+window.cadToggleStitchGrid=function(){
+  cadStitchGrid=document.getElementById('cadStitchGrid').checked;
+  if(!_tpOn)cadDrawPattern();else _renderTileFrame();
+};
+window.cadSetSpeed=function(v){_cadSpeedV=parseInt(v)||0;};
 
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
 function cadInit(){

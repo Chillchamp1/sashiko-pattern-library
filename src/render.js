@@ -4,6 +4,10 @@ let step=0, playing=false, raf=null, last=0;
 let isHM=false, isPL=false, isEXP=false;
 let _animSource='gallery'; // 'gallery' or 'sandbox' — tracks where we came from
 let TICK_MS=160, _zoom=1, _panX=0, _panY=0, _zoomInited=false;
+// Shared animation speed: slider value 0..100 → total animation duration (ms).
+// v=100 = fastest (10s, the old "Fast"); v=0 = slowest (90s, 3× the old "Slow").
+let _animSpeedV=82;  // ~20s = the old "Medium" default
+function _speedTotal(v){return 90000-(Math.max(0,Math.min(100,v))/100)*80000;}
 let _famToggles={};
 let _famPainting=false;
 

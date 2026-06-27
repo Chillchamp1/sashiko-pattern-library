@@ -135,8 +135,6 @@ canvas#cv{display:block}
 .jumpbar button:hover{background:#1d3850}
 .jumpbar button.on{background:#214a72;border-color:#3a6ea3}
 .jumpbar button.off{opacity:0.35;text-decoration:line-through}
-.speed-btn{font-size:11px!important;padding:6px 10px!important}
-.speed-btn.sel{background:#214a72;border-color:#3a6ea3;color:#e7eef6}
 .ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 button.ctrl{background:var(--panel);color:#e7eef6;border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;
@@ -263,6 +261,9 @@ button.ctrl.primary:hover{background:#275784}
 .cad-stitch-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;padding:7px 8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
 .cad-stitch-controls input[type=range]{accent-color:#efe7d0;cursor:pointer;width:96px;vertical-align:middle}
 .cad-stitch-val{font-size:11px;color:#cfe0f2;min-width:16px;text-align:center}
+/* Speed slider (gallery animation + CAD play) */
+.speed-slider{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:1}
+.speed-slider input[type=range]{accent-color:#6aabff;cursor:pointer;width:100px;vertical-align:middle}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
