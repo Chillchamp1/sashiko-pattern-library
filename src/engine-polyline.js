@@ -6,7 +6,7 @@
 // images, shown in the two phase shades. Encoded on a HALF-grid lattice as a unit cell
 // + generators. Verified to reproduce the extracted edge set 100% (0 false positives).
 // Pass 1 = horizontal (shallow, green H shades), Pass 2 = vertical (steep, blue V shades).
-const PL_NHU=28;                       // TY: half-grid units across the canvas (= 14 "grid squares")
+let PL_NHU=28;                       // TY: half-grid units across the canvas (= 14 "grid squares")
 let PL_N=PL_NHU;                        // lattice units across the canvas (set per pattern)
 let PL_HU=(SIZE-2*PAD)/PL_N;            // px per lattice unit (recomputed in loadPattern)
 let PL_guideStep=2;                     // guide grid drawn every N units (= one "grid square")
@@ -218,13 +218,13 @@ function updateInfoPL(st){
 function renderPLThumb(canvas,pat){
   const TDPR=Math.min(window.devicePixelRatio||1,2);
   const isAsa=pat&&pat.engine==='asanoha';
-  const TPAD=3,TS=64;
+  const TPAD=3,TS=64,TN=8;
   canvas.width=TS*TDPR;canvas.height=TS*TDPR;
   canvas.style.width='64px';canvas.style.height='64px';
   const tc=canvas.getContext('2d');tc.scale(TDPR,TDPR);
   tc.fillStyle='#1a3a5c';tc.fillRect(0,0,TS,TS);
   tc.lineCap='round';
-  const TN=PL_NHU, TG=(TS-2*TPAD)/TN;
+  const TG=(TS-2*TPAD)/TN;
   const{path}=buildTsuzukiYamagata(TN);
   tc.lineWidth=1;
   for(const seg of path){

@@ -160,11 +160,17 @@ function initGenUI(){
 
 // ── Playback ───────────────────────────────────────────────────────────────
 const bPlay=document.getElementById('bPlay');
+let _speed='medium';
+function updateSpeed(){
+  if(TOTAL<=0){TICK_MS=160;return;}
+  const targets={slow:30000,medium:20000,fast:10000};
+  TICK_MS=(targets[_speed]||20000)/TOTAL;
+}
 function setPlayIcon(pl){
   bPlay.querySelector('span').textContent=pl?'Pause':'Play';
   bPlay.querySelector('svg').innerHTML=pl?'<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>':'<path d="M8 5v14l11-7z"/>';
 }
-function play(){if(step>=TOTAL)step=0;playing=true;setPlayIcon(true);last=0;raf=requestAnimationFrame(tick);}
+function play(){if(step>=TOTAL)step=0;updateSpeed();playing=true;setPlayIcon(true);last=0;raf=requestAnimationFrame(tick);}
 function pause(){playing=false;setPlayIcon(false);cancelAnimationFrame(raf);}
 function tick(t){
   if(!last)last=t;
@@ -179,10 +185,8 @@ document.querySelectorAll('.speed-btn').forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll('.speed-btn').forEach(x=>x.classList.remove('sel'));
     b.classList.add('sel');
-    const s=b.dataset.speed;
-    if(s==='slow')TICK_MS=240;
-    else if(s==='fast')TICK_MS=13;
-    else TICK_MS=160;
+    _speed=b.dataset.speed;
+    updateSpeed();
   };
 });
 window.addEventListener('keydown',e=>{
@@ -192,14 +196,20 @@ window.addEventListener('keydown',e=>{
   else if(e.code==='ArrowLeft'){pause();step=Math.max(0,step-1);render(step);}
 });
 
-// ── Thumbnail — renders via real animation pipeline at full SIZE, displayed scaled ──
+// ── Thumbnail — renders via real animation pipeline at 3×3 unit cells, displayed scaled ──
 function renderThumb(canvas,pat){
   const TDPR=Math.min(window.devicePixelRatio||1,2);
   const isExpPat=pat.type==='exp';
-  const expLay=isExpPat?computeExpLayout(pat):null;
-  const thumbH=isExpPat?expLay.canvasH:SIZE;
+  const isPLPat=pat.type==='polyline';
+  const isHMPat=pat.type==='generator'||pat.type==='hitomezashi';
+  const TN=4, THUMB_SIZE=(TN-1)*G+2*PAD;
+  const THUMB_SCALE=THUMB_SIZE/SIZE;
 
-  canvas.width=SIZE*TDPR; canvas.height=thumbH*TDPR;
+  const expLay=isExpPat?computeExpLayout(pat):null;
+  const ctxSX=isExpPat?TDPR*THUMB_SCALE:TDPR;
+  const ctxSY=isExpPat?TDPR*THUMB_SCALE:TDPR;
+
+  canvas.width=THUMB_SIZE*TDPR; canvas.height=THUMB_SIZE*TDPR;
   canvas.style.cssText=isExpPat
     ?'width:100%;height:auto;border-radius:7px;display:block'
     :'width:100%;aspect-ratio:1;border-radius:7px;display:block';
@@ -207,14 +217,15 @@ function renderThumb(canvas,pat){
   // Save all mutable global state
   const origCtx=ctx;
   const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
+  const sN=N,sSZ=SIZE,sG=G;
   const sHMN=HM_N,sHMC=HM_CELL,sHMPth=HM_path,sHMFr=HM_fronts,sHMPO=HM_phase_order;
-  const sPLp=PL_path,sPLf=PL_fronts,sPLps=PL_passes,sPLN=PL_N,sPLHU=PL_HU,sPLSh=PL_shCount;
+  const sPLp=PL_path,sPLf=PL_fronts,sPLps=PL_passes,sPLN=PL_N,sPLHU=PL_HU,sPLSh=PL_shCount,sPLNHU=PL_NHU;
   const sEXpath=EXP_path,sEXg2s=EXP_g2s,sEXh=EXP_canvasH;
 
-  ctx=canvas.getContext('2d'); ctx.scale(TDPR,TDPR);
+  ctx=canvas.getContext('2d'); ctx.scale(ctxSX,ctxSY);
   curPat=pat; playing=false;
-  isEXP=isExpPat; isPL=pat.type==='polyline';
-  isHM=pat.type==='generator'||pat.type==='hitomezashi';
+  isEXP=isExpPat; isPL=isPLPat;
+  isHM=isHMPat;
 
   try{
     if(isEXP){
@@ -223,15 +234,18 @@ function renderThumb(canvas,pat){
       TOTAL=EXP_path.length;
       renderExp(TOTAL);
     } else if(isPL){
+      SIZE=THUMB_SIZE;
+      PL_NHU=(TN-1)*2; PL_N=PL_NHU; PL_HU=(SIZE-2*PAD)/PL_N;
       const built=buildTsuzukiYamagata(PL_NHU);
-      PL_N=PL_NHU; PL_HU=(SIZE-2*PAD)/PL_N;
       PL_path=built.path; PL_fronts=built.fronts;
       PL_passes=built.passes; PL_shCount=built.shCount;
       TOTAL=PL_fronts.length; renderPolyline(TOTAL);
     } else if(isHM){
-      const bits=seqToBits(pat.type==='generator'?[0,0,1,0,1]:pat.seq, pat.type==='generator'?11:(pat.thumbN||11));
+      SIZE=THUMB_SIZE;
+      const bits=seqToBits(pat.type==='generator'?[0,0,1,0,1]:pat.seq, pat.type==='generator'?TN:(pat.thumbN||TN));
       buildHMcore(bits,bits); TOTAL=HM_fronts.length; renderHM(TOTAL);
     } else {
+      N=TN; SIZE=THUMB_SIZE;
       PASSES=buildPasses(pat.passes,N); PASSES.forEach(p=>p.count=p.order.length);
       TOTAL=PASSES.reduce((a,p)=>a+p.count,0);
       drawFabric(); drawGuide(); PASSES.forEach(p=>frontAll(p));
@@ -242,8 +256,9 @@ function renderThumb(canvas,pat){
   ctx=origCtx;
   curPat=sCP; PASSES=sP; TOTAL=sT; step=sSt; playing=sPl;
   isHM=sHM; isPL=sPL; isEXP=sEX;
+  N=sN; SIZE=sSZ; G=sG;
   HM_N=sHMN; HM_CELL=sHMC; HM_path=sHMPth; HM_fronts=sHMFr; HM_phase_order=sHMPO;
-  PL_path=sPLp; PL_fronts=sPLf; PL_passes=sPLps; PL_N=sPLN; PL_HU=sPLHU; PL_shCount=sPLSh;
+  PL_path=sPLp; PL_fronts=sPLf; PL_passes=sPLps; PL_N=sPLN; PL_HU=sPLHU; PL_shCount=sPLSh; PL_NHU=sPLNHU;
   EXP_path=sEXpath; EXP_g2s=sEXg2s; EXP_canvasH=sEXh;
 }
 

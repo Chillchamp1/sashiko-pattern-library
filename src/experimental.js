@@ -488,7 +488,7 @@ function computeExpLayout(pat){
   const corners=[s2g(0,0),s2g(SIZE,0),s2g(SIZE,canvasH),s2g(0,canvasH)];
   let minU=Infinity,maxU=-Infinity,minV=Infinity,maxV=-Infinity;
   corners.forEach(c=>{minU=Math.min(minU,c[0]);maxU=Math.max(maxU,c[0]);minV=Math.min(minV,c[1]);maxV=Math.max(maxV,c[1]);});
-  return{sz,ox,oy,canvasH,g2s,s2g,ptc,iso,corners,planes:convexPlanes(corners),uRange:[minU,maxU],vRange:[minV,maxV]};
+  return{sz,ox,oy,canvasH,g2s,s2g,ptc,iso,dU,dV,corners,planes:convexPlanes(corners),uRange:[minU,maxU],vRange:[minV,maxV]};
 }
 
 // ── Symmetry family detection ──────────────────────────────────────────────
