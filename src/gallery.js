@@ -43,7 +43,7 @@ function buildGallery(){
     card.appendChild(thumb);
     const editBtn=document.createElement('button');
     editBtn.className='exp-edit-btn';editBtn.title='Edit (admin)';editBtn.textContent='✎';
-    editBtn.onclick=e=>{e.stopPropagation();editExpPattern(pat);};
+    editBtn.onclick=e=>{e.stopPropagation();_cadSource='gallery';editExpPattern(pat);};
     card.appendChild(editBtn);
     const delBtn2=document.createElement('button');
     delBtn2.className='exp-del-btn';delBtn2.title='Delete (admin)';delBtn2.textContent='✕';
