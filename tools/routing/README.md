@@ -51,9 +51,9 @@ across joins they shouldn't be (this is why Seigaiha looks wrong in `contour`).
 
 | value | name | best for | distinguishing trait |
 |---|---|---|---|
-| `default` | straight rows | line grids, discrete units (Seigaiha) | break strokes at turns > 90°; band-snake order |
-| `continuous` | zigzag / follow path | zigzag & wave meshes (Tsuzuki Yamagata) | follow any turn (180°); nearest-neighbour order |
-| `contour` | curves / waves | flowing curves & arcs (Shippō) | chain whole arcs into waves; break at cusps > 120° |
+| `default` | Straight rows | line grids, discrete units (Seigaiha) | break strokes at turns > 90°; band-snake order |
+| `continuous` | Zigzag | zigzag & wave meshes (Tsuzuki Yamagata) | follow any turn (180°); nearest-neighbour order |
+| `contour` | Waves | flowing curves & arcs (Shippō) | chain whole arcs into waves; break at cusps > 120° |
 
 See `../../ROUTING.md` for the full rules.
 

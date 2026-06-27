@@ -14,7 +14,7 @@
 //   node tools/routing/route.js --snapshot      # write golden metrics
 //   node tools/routing/route.js --check         # diff against golden, exit 1 on change
 //
-// Modes: default (straight rows) | continuous (zigzag) | contour (curves/arcs)
+// Modes: default (straight rows) | continuous (zigzag) | contour (waves)
 
 const fs = require('fs');
 const path = require('path');
