@@ -262,6 +262,13 @@ button.ctrl.primary:hover{background:#275784}
 .pcard.new-pattern-card{border:2px dashed #2a4a2a;background:#111a11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:100px}
 .pcard.new-pattern-card:hover{background:#162016;border-color:#3a6a3a}
 .pcard-new-icon{font-size:32px;line-height:1;color:#4a9a4a;font-weight:300}
+/* CAD thumbnail preview */
+.cad-thumb-preview{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px;padding:8px;background:#0a121c;border-radius:8px}
+.cad-thumb-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.cad-thumb-controls{display:flex;align-items:center;gap:6px}
+.cad-thumb-btn{width:22px;height:22px;padding:0;font-size:14px;line-height:1}
+.cad-thumb-zoom{font-size:12px;color:#e7eef6;min-width:32px;text-align:center}
+#cadThumbCanvas{border-radius:6px;background:#1a3a5c;display:block;width:100px;height:100px}
 /* Experimental gallery cards */
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
@@ -511,6 +518,15 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
+        <div class="cad-thumb-preview">
+          <div class="cad-thumb-label">Thumbnail Preview</div>
+          <div class="cad-thumb-controls">
+            <button class="cad-tool cad-thumb-btn" onclick="cadThumbZoomStep(-1)">−</button>
+            <span class="cad-thumb-zoom" id="cadThumbZoomVal">1.0</span>
+            <button class="cad-tool cad-thumb-btn" onclick="cadThumbZoomStep(1)">+</button>
+          </div>
+          <canvas id="cadThumbCanvas" width="120" height="120"></canvas>
+        </div>
         <div class="cad-move-panel">
           <span class="cad-move-label"></span>
         </div>
@@ -5771,13 +5787,20 @@ function renderThumb(canvas,pat){
   let expLay=null;
   if(isExpPat){
     expLay=computeExpLayout(pat);
-    const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
-    if(cells>3){
-      const s=3/cells;
-      ctxSX=TDPR/s; ctxSY=TDPR/s;
-      expTranslateX=-SIZE*(1-s)/2; expTranslateY=-SIZE*(1-s)/2;
+    const tz=pat.thumbZoom||0;
+    if(tz>0){
+      const baseScale=THUMB_SIZE/SIZE, s=baseScale*tz;
+      ctxSX=TDPR*s; ctxSY=TDPR*s;
+      expTranslateX=(THUMB_SIZE-SIZE*s)/2; expTranslateY=(THUMB_SIZE-SIZE*s)/2;
     }else{
-      ctxSX=TDPR*(THUMB_SIZE/SIZE); ctxSY=TDPR*(THUMB_SIZE/SIZE);
+      const cells=Math.round(expLay.ptc/Math.max(expLay.dU,expLay.dV,1));
+      if(cells>3){
+        const s=3/cells;
+        ctxSX=TDPR/s; ctxSY=TDPR/s;
+        expTranslateX=-SIZE*(1-s)/2; expTranslateY=-SIZE*(1-s)/2;
+      }else{
+        ctxSX=TDPR*(THUMB_SIZE/SIZE); ctxSY=TDPR*(THUMB_SIZE/SIZE);
+      }
     }
   }
 
@@ -7004,6 +7027,7 @@ window.editExpPattern=function(idOrPat){
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
   cadRoutingMode=pat.routingMode||'default';
+  cadThumbZoom=pat.thumbZoom||1;
   // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
   if(cadRoutingMode==='smooth'||cadRoutingMode==='fewer-jumps')cadRoutingMode='default';
   document.getElementById('cadRoutingMode').value=cadRoutingMode;
@@ -7868,7 +7892,7 @@ window.showCAD=function(){
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
-  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';cadThumbZoom=1;
   document.getElementById('cadRoutingMode').value='default';
   cadInited=false;
   cadInit();
@@ -7889,6 +7913,7 @@ let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=2,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
+let cadThumbZoom=1;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -8962,6 +8987,7 @@ function cadUpdateAll(){
   cadAutoAssign();
   cadDrawWorkspace();cadDrawPattern();
   cadBuildFamBar();
+  cadUpdateThumbPreview();
   const el=document.getElementById('cadArcHint');
   if(el){
     const red=cadFindRedundant();
@@ -8969,6 +8995,46 @@ function cadUpdateAll(){
     else if(cadTool!=='arc')el.textContent='';
   }
 }
+function cadUpdateThumbPreview(){
+  const c=document.getElementById('cadThumbCanvas'); if(!c)return;
+  const zl=document.getElementById('cadThumbZoomVal'); if(zl)zl.textContent=cadThumbZoom.toFixed(1);
+  const TDPR=Math.min(window.devicePixelRatio||1,2);
+  const w=120,pw=w*TDPR; c.width=pw;c.height=pw;
+  c.style.width=w+'px';c.style.height=w+'px';
+  const tc=c.getContext('2d'); tc.scale(TDPR,TDPR);
+  tc.fillStyle='#1a3a5c'; tc.fillRect(0,0,w,w);
+  if(!cadLines.length)return;
+  const bbox=cadBBox(); if(!bbox)return;
+  const ts=w/SIZE*cadThumbZoom;
+  const off=(w-SIZE*ts)/2;
+  tc.translate(off,off); tc.scale(ts,ts);
+  const redSet=new Set(cadFindRedundant());
+  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
+  if(!cleanLines.length)return;
+  const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
+  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
+  const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbZoom:cadThumbZoom};
+  const origCtx=ctx;
+  const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
+  const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH;
+  ctx=tc; curPat=previewPat; playing=false;
+  isEXP=true;isPL=false;isHM=false;
+  try{
+    const lay=computeExpLayout(previewPat);
+    EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
+    EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode);
+    TOTAL=EXP_path.length;
+    renderExp(TOTAL);
+  }catch(e){console.warn('cadThumbPreview',e);}
+  ctx=origCtx;
+  curPat=sCP;PASSES=sP;TOTAL=sT;step=sSt;playing=sPl;
+  isHM=sHM;isPL=sPL;isEXP=sEX;
+  EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;
+}
+window.cadThumbZoomStep=function(dir){
+  cadThumbZoom=Math.max(0.5,Math.min(3,Math.round((cadThumbZoom+dir*0.25)*10)/10));
+  cadUpdateThumbPreview();
+};
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
   const pb=document.getElementById('cadPublishBtn');
@@ -9147,7 +9213,7 @@ window.cadSaveToLibrary=function(){
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbZoom:cadThumbZoom};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -9190,7 +9256,7 @@ window.cadPublishToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbZoom:cadThumbZoom};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
