@@ -9048,7 +9048,7 @@ function cadUpdateThumbPreview(){
   const nCells=Math.round(lay.ptc/Math.max(lay.dU,lay.dV,1));
   const cells=cadThumbCells>0?cadThumbCells:nCells;
   const ts=w/SIZE*nCells/cells;
-  const off=(w-SIZE*ts)/2;
+  const off=w/(2*ts)-SIZE/2;
   const zl=document.getElementById('cadThumbZoomVal');
   if(zl)zl.textContent=cadThumbCells>0?cells+'\u2009cells':(nCells+'\u2009cells (auto)');
   tc.translate(off,off); tc.scale(ts,ts);
