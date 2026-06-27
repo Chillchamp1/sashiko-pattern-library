@@ -1,11 +1,19 @@
 // ── Gallery ────────────────────────────────────────────────────────────────
 let activeFilters=new Set([0]);
 let _galleryCells=0;
+let _galleryDirty=false;
 window.galleryZoomStep=function(dir){
   _galleryCells=Math.max(0,_galleryCells+dir);
   const lbl=document.getElementById('galleryZoomVal');
   if(lbl)lbl.textContent=_galleryCells>0?_galleryCells+'\u2009cells':'auto';
-  buildGallery();
+  const av=document.getElementById('animView');
+  if(av.classList.contains('open')){
+    _zoom=_galleryCells>0?3/_galleryCells:1;
+    _setupCanvasSize(SIZE,SIZE); render(step);
+    _galleryDirty=true;
+  }else{
+    buildGallery();
+  }
 };
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
@@ -135,6 +143,7 @@ window.showGallery=function(){
     if(playing)pause();
     document.getElementById('animView').classList.remove('open');
     document.getElementById('galleryView').style.display='block';
+    if(_galleryDirty){_galleryDirty=false;buildGallery();}
   }
   history.replaceState(null,'',location.pathname);
 };

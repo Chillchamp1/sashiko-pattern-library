@@ -333,11 +333,6 @@ button.ctrl.primary:hover{background:#275784}
     Two shades per pass show which rows start offset.</p>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
-    <span class="gallery-zoom">
-      <button onclick="galleryZoomStep(-1)" title="Zoom out thumbnails">−</button>
-      <span id="galleryZoomVal">auto</span>
-      <button onclick="galleryZoomStep(1)" title="Zoom in thumbnails">+</button>
-    </span>
     <div class="filt-row">
       <button class="filt on" data-f="0" onclick="setFilter(this)">All</button>
       <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
@@ -393,6 +388,11 @@ button.ctrl.primary:hover{background:#275784}
     <button class="ctrl speed-btn" data-speed="slow">🐢 Slow</button>
     <button class="ctrl speed-btn sel" data-speed="medium">Medium</button>
     <button class="ctrl speed-btn" data-speed="fast">⚡ Fast</button>
+    <span class="anim-zoom">
+      <button class="ctrl" onclick="galleryZoomStep(-1)" title="Fewer cells">−</button>
+      <span id="galleryZoomVal">auto</span>
+      <button class="ctrl" onclick="galleryZoomStep(1)" title="More cells">+</button>
+    </span>
   </div>
 
   <!-- Info bar -->
@@ -5874,11 +5874,19 @@ function renderThumb(canvas,pat){
 // ── Gallery ────────────────────────────────────────────────────────────────
 let activeFilters=new Set([0]);
 let _galleryCells=0;
+let _galleryDirty=false;
 window.galleryZoomStep=function(dir){
   _galleryCells=Math.max(0,_galleryCells+dir);
   const lbl=document.getElementById('galleryZoomVal');
   if(lbl)lbl.textContent=_galleryCells>0?_galleryCells+'\u2009cells':'auto';
-  buildGallery();
+  const av=document.getElementById('animView');
+  if(av.classList.contains('open')){
+    _zoom=_galleryCells>0?3/_galleryCells:1;
+    _setupCanvasSize(SIZE,SIZE); render(step);
+    _galleryDirty=true;
+  }else{
+    buildGallery();
+  }
 };
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
@@ -6008,6 +6016,7 @@ window.showGallery=function(){
     if(playing)pause();
     document.getElementById('animView').classList.remove('open');
     document.getElementById('galleryView').style.display='block';
+    if(_galleryDirty){_galleryDirty=false;buildGallery();}
   }
   history.replaceState(null,'',location.pathname);
 };
