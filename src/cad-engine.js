@@ -395,159 +395,6 @@ function cadGenArc(center,start,end){
   };
 }
 
-// Split a single arc at the given angles (sorted along the sweep). Returns sub-arcs.
-function _splitArc(arc, cutAngles){
-  if(!cutAngles.length)return [{...arc}];
-  const a1=arc.a1, a2=arc.a2;
-  const sweepDir=a2>=a1?1:-1;
-  const totalSweep=Math.abs(a2-a1);
-  const toParam=a=>{let d=sweepDir>0?a-a1:a1-a;if(d<0)d+=2*Math.PI;return d/totalSweep;};
-  const params=cutAngles.map(a=>toParam(a)).sort((x,y)=>x-y);
-  // Filter cuts too close to ends
-  const clean=[];
-  for(const t of params){if(t>0.005&&t<0.995)clean.push(t);}
-  if(!clean.length)return [{...arc}];
-  // Build sub-arcs
-  const result=[];
-  let t0=0;
-  for(const t of clean){
-    const ang0=a1+sweepDir*t0*totalSweep, ang1=a1+sweepDir*t*totalSweep;
-    const p0=[arc.center[0]+arc.r*Math.cos(ang0),arc.center[1]+arc.r*Math.sin(ang0)];
-    const p1=[arc.center[0]+arc.r*Math.cos(ang1),arc.center[1]+arc.r*Math.sin(ang1)];
-    if(Math.hypot(p1[0]-p0[0],p1[1]-p0[1])>0.005){
-      result.push({arc:true,center:[...arc.center],r:arc.r,a1:ang0,a2:ang1,start:p0,end:p1});
-    }
-    t0=t;
-  }
-  // Last segment
-  const ang0=a1+sweepDir*t0*totalSweep;
-  const p0=[arc.center[0]+arc.r*Math.cos(ang0),arc.center[1]+arc.r*Math.sin(ang0)];
-  if(Math.hypot(arc.end[0]-p0[0],arc.end[1]-p0[1])>0.005){
-    result.push({arc:true,center:[...arc.center],r:arc.r,a1:ang0,a2:arc.a2,start:p0,end:[...arc.end]});
-  }
-  return result;
-}
-
-// Manually split segments at intersection point [u,v]. Used by the Split tool.
-function cadSplitAt(u,v){
-  const EPS=0.01;
-  const out=[];
-  let didSplit=false;
-  for(let i=0;i<cadLines.length;i++){
-    const l=cadLines[i];
-    let splitMe=false;
-    if(l.arc){
-      // Check if arc passes through (u,v) not at its endpoints
-      const dS=Math.hypot(l.start[0]-u,l.start[1]-v);
-      const dE=Math.hypot(l.end[0]-u,l.end[1]-v);
-      if(dS<EPS||dE<EPS){out.push(l);continue;} // point is at endpoint, don't split
-      const r=cadDistToArc([u,v],l);
-      if(r.dist<EPS){
-        _splitArc(l,[r.angle]).forEach(s=>{out.push(s);didSplit=true;});
-        continue;
-      }
-      out.push(l);
-    }else{
-      // Check if line passes through (u,v) not at its endpoints
-      const dS=Math.hypot(l.start[0]-u,l.start[1]-v);
-      const dE=Math.hypot(l.end[0]-u,l.end[1]-v);
-      if(dS<EPS||dE<EPS){out.push(l);continue;}
-      const d=cadDistToSeg([u,v],l.start,l.end);
-      if(d.dist<EPS&&d.t>EPS&&d.t<1-EPS){
-        out.push({start:[l.start[0],l.start[1]],end:[u,v]});
-        out.push({start:[u,v],end:[l.end[0],l.end[1]]});
-        didSplit=true;
-        continue;
-      }
-      out.push(l);
-    }
-  }
-  if(didSplit)cadLines=out;
-  return didSplit;
-}
-
-// Split the last-added entry against all others at off-grid intersections.
-// Only splits involving the new entry — doesn't re-split previously processed geometry.
-function cadSplitOffGrid(newIdx){
-  const EPS=1e-5;
-  const isOnGrid=p=>Math.abs(p[0]-Math.round(p[0]))<0.01&&Math.abs(p[1]-Math.round(p[1]))<0.01;
-  const out=[...cadLines];
-  const l=out[newIdx]; if(!l)return;
-  const mods=[]; // {idx: oldIndex, replace: [...]}
-
-  if(l.arc){
-    const cutAngles=[];
-    for(let j=0;j<out.length;j++){
-      if(j===newIdx)continue;
-      const m=out[j];
-      let ixList=[];
-      if(m.arc) ixList=cadArcArcIntersections(l,m);
-      else ixList=cadLineArcIntersections(m.start,m.end,l);
-      if(!ixList.length)continue;
-      const ix=ixList[0]; // first intersection
-      if(isOnGrid(ix.p))continue;
-      const dS=Math.hypot(ix.p[0]-l.start[0],ix.p[1]-l.start[1]);
-      const dE=Math.hypot(ix.p[0]-l.end[0],ix.p[1]-l.end[1]);
-      if(dS>EPS&&dE>EPS)cutAngles.push(ix.angleA!==undefined?ix.angleA:ix.angle);
-      // Split the other entry at this intersection
-      const dSm=Math.hypot(ix.p[0]-m.start[0],ix.p[1]-m.start[1]);
-      const dEm=Math.hypot(ix.p[0]-m.end[0],ix.p[1]-m.end[1]);
-      if(dSm<=EPS&&dEm<=EPS)continue;
-      if(m.arc){
-        const ang=ix.angleB!==undefined?ix.angleB:ix.angle;
-        mods.push({idx:j, replace:_splitArc(m,[ang])});
-      }else{
-        const t=ix.t;
-        if(t>EPS&&t<1-EPS)mods.push({idx:j, replace:[
-          {start:[m.start[0],m.start[1]],end:[ix.p[0],ix.p[1]]},
-          {start:[ix.p[0],ix.p[1]],end:[m.end[0],m.end[1]]}]});
-      }
-    }
-    if(cutAngles.length)mods.push({idx:newIdx, replace:_splitArc(l,cutAngles)});
-  }else{
-    const a=l.start, b=l.end;
-    let hasCuts=false;
-    for(let j=0;j<out.length;j++){
-      if(j===newIdx)continue;
-      const m=out[j];
-      if(!m.arc)continue;
-      const ixList=cadLineArcIntersections(a,b,m);
-      if(!ixList.length)continue;
-      const ix=ixList[0];
-      if(isOnGrid(ix.p))continue;
-      const dSm=Math.hypot(ix.p[0]-m.start[0],ix.p[1]-m.start[1]);
-      const dEm=Math.hypot(ix.p[0]-m.end[0],ix.p[1]-m.end[1]);
-      if(dSm>EPS&&dEm>EPS)mods.push({idx:j, replace:_splitArc(m,[ix.angle])});
-      if(ix.t>EPS&&ix.t<1-EPS)hasCuts=true;
-    }
-    if(hasCuts){
-      // Collect all cut t values along this line from its arc intersections
-      const cuts=[];
-      for(let j=0;j<out.length;j++){
-        if(j===newIdx)continue;
-        const m=out[j];
-        if(!m.arc)continue;
-        cadLineArcIntersections(a,b,m).forEach(ix=>{
-          if(isOnGrid(ix.p))return;
-          if(ix.t>EPS&&ix.t<1-EPS)cuts.push({t:ix.t,p:ix.p});
-        });
-      }
-      cuts.sort((x,y)=>x.t-y.t);
-      const pts=[a]; let lastT=0;
-      for(const c of cuts)if(c.t-lastT>EPS){pts.push(c.p);lastT=c.t;}
-      pts.push(b);
-      const subs=[];
-      for(let k=0;k<pts.length-1;k++)subs.push({start:[pts[k][0],pts[k][1]],end:[pts[k+1][0],pts[k+1][1]]});
-      mods.push({idx:newIdx, replace:subs});
-    }
-  }
-
-  // Apply modifications in descending index order
-  mods.sort((a,b)=>b.idx-a.idx);
-  for(const{idx,replace}of mods)out.splice(idx,1,...replace);
-  cadLines=out;
-}
-
 // Flatten all arcs in cadLines to segments (for downstream processing).
 // Returns an array of segment objects {start, end, arc:true, ...}.
 function cadAllSegments(lines){
@@ -566,151 +413,6 @@ function cadArcLabel(){
   const labels=['Click to place center','Click to set radius','Click to set sweep (click center-start for full circle)'];
   const el=document.getElementById('cadArcHint');
   if(el)el.textContent=cadArcState<3?labels[cadArcState]:'';
-}
-
-// Check if any splittable intersection passes through point (crossing, not at endpoints)
-function cadIsSplitPoint(u,v){
-  const EPS=0.01;
-  for(let i=0;i<cadLines.length;i++){
-    const l=cadLines[i];
-    const dS=Math.hypot(l.start[0]-u,l.start[1]-v);
-    const dE=Math.hypot(l.end[0]-u,l.end[1]-v);
-    if(dS<EPS||dE<EPS)continue; // skip endpoints
-    const d=l.arc?cadDistToArc([u,v],l):cadDistToSeg([u,v],l.start,l.end);
-    if(d.dist<EPS)return true;
-  }
-  return false;
-}
-
-// Check if any mergeable pair exists at point (without modifying anything)
-function cadIsMergePoint(u,v){
-  const EPS=0.01; const matches=[];
-  for(let i=0;i<cadLines.length;i++){
-    const l=cadLines[i];
-    if(Math.hypot(l.start[0]-u,l.start[1]-v)<EPS||Math.hypot(l.end[0]-u,l.end[1]-v)<EPS)
-      matches.push(i);
-  }
-  for(let mi=0;mi<matches.length;mi++){
-    for(let mj=mi+1;mj<matches.length;mj++){
-      const a=cadLines[matches[mi]], b=cadLines[matches[mj]];
-      if(a.arc&&b.arc&&a.center[0]===b.center[0]&&a.center[1]===b.center[1]&&Math.abs(a.r-b.r)<0.001)return true;
-      if(!a.arc&&!b.arc){
-        const cross=(a.end[0]-a.start[0])*(b.end[1]-b.start[1])-(a.end[1]-a.start[1])*(b.end[0]-b.start[0]);
-        if(Math.abs(cross)<0.001)return true;
-      }
-    }
-  }
-  return false;
-}
-
-// Merge all mergeable segments at point [u,v], recursively healing the entire break.
-// Returns true if any merge happened.
-function cadMergeAllAt(u,v, depth=0){
-  if(depth>20)return false; // safety limit
-  const EPS=0.01;
-  const affectedEndpoints=[]; // collect endpoints of merged arcs for recursive check
-
-  function mergeGroup(indices){
-    if(indices.length<2)return null;
-    const sample=cadLines[indices[0]];
-    if(sample.arc){
-      // Merge all arc sub-segments into one arc
-      const cx=sample.center[0], cy=sample.center[1], r=sample.r;
-      // Collect all unique endpoints (not the shared point) with their angles
-      const uniq=[];
-      for(const idx of indices){
-        const l=cadLines[idx];
-        for(const pt of [{p:l.start, a:l.a1}, {p:l.end, a:l.a2}]){
-          const d=Math.hypot(pt.p[0]-u,pt.p[1]-v);
-          if(d>EPS)uniq.push(pt); // keep only points NOT at the merge point
-        }
-      }
-      if(uniq.length<2)return null;
-      // Determine sweep direction from first arc
-      const sweep0=cadLines[indices[0]].a2-cadLines[indices[0]].a1;
-      const isCW=sweep0<0;
-      // Sort unique endpoints along the sweep
-      uniq.sort((a,b)=>{
-        let da=isCW?-a.a:a.a, db=isCW?-b.a:b.a;
-        return da-db;
-      });
-      // First and last in sorted order are the arc extremes
-      const first=uniq[0], last=uniq[uniq.length-1];
-      let newA1=first.a, newA2=last.a;
-      if(isCW&&newA2>newA1)newA2-=2*Math.PI;
-      if(!isCW&&newA2<newA1)newA2+=2*Math.PI;
-      affectedEndpoints.push([first.p[0],first.p[1]],[last.p[0],last.p[1]]);
-      return{arc:true,center:[cx,cy],r,a1:newA1,a2:newA2,start:[first.p[0],first.p[1]],end:[last.p[0],last.p[1]]};
-    }else{
-      // Merge all collinear line segments into one
-      const pts=[];
-      for(const idx of indices){
-        const l=cadLines[idx];
-        for(const p of [l.start,l.end]){
-          if(Math.hypot(p[0]-u,p[1]-v)>EPS)pts.push(p);
-        }
-      }
-      if(pts.length<2)return null;
-      let maxD=0, p0,p1;
-      for(let i=0;i<pts.length;i++){
-        for(let j=i+1;j<pts.length;j++){
-          const d=Math.hypot(pts[i][0]-pts[j][0],pts[i][1]-pts[j][1]);
-          if(d>maxD){maxD=d; p0=pts[i]; p1=pts[j];}
-        }
-      }
-      affectedEndpoints.push([p0[0],p0[1]],[p1[0],p1[1]]);
-      return{start:[p0[0],p0[1]],end:[p1[0],p1[1]]};
-    }
-  }
-
-  // Find all segments with an endpoint at (u,v)
-  const matches=[];
-  for(let i=0;i<cadLines.length;i++){
-    const l=cadLines[i];
-    if(Math.hypot(l.start[0]-u,l.start[1]-v)<EPS||Math.hypot(l.end[0]-u,l.end[1]-v)<EPS)
-      matches.push(i);
-  }
-  if(matches.length<2)return false;
-
-  // Group mergeable segments
-  const groups=[]; // [{indices:[], type:'arc'|'line'}]
-  const used=new Set();
-  for(let mi=0;mi<matches.length;mi++){
-    if(used.has(mi))continue;
-    const a=cadLines[matches[mi]];
-    const group=[matches[mi]];
-    used.add(mi);
-    for(let mj=mi+1;mj<matches.length;mj++){
-      if(used.has(mj))continue;
-      const b=cadLines[matches[mj]];
-      const mergeable= a.arc&&b.arc&&a.center[0]===b.center[0]&&a.center[1]===b.center[1]&&Math.abs(a.r-b.r)<0.001
-        || (!a.arc&&!b.arc&&Math.abs((a.end[0]-a.start[0])*(b.end[1]-b.start[1])-(a.end[1]-a.start[1])*(b.end[0]-b.start[0]))<0.001);
-      if(mergeable){group.push(matches[mj]);used.add(mj);}
-    }
-    if(group.length>=2)groups.push(group);
-  }
-
-  if(!groups.length)return false;
-
-  // Merge groups from highest index to lowest (to preserve indices during splice)
-  let didMerge=false;
-  for(const grp of groups){
-    const merged=mergeGroup(grp);
-    if(!merged)continue;
-    // Remove original segments (highest first)
-    const sorted=[...grp].sort((a,b)=>b-a);
-    for(const idx of sorted)cadLines.splice(idx,1);
-    cadLines.push(merged);
-    didMerge=true;
-  }
-
-  // Recursively check affected endpoints
-  if(didMerge){
-    for(const ep of affectedEndpoints){
-      cadMergeAllAt(ep[0],ep[1], depth+1);
-    }
-  }
-  return didMerge;
 }
 
 // Auto-extend grid if any geometry extends beyond the current grid boundary
@@ -952,27 +654,6 @@ function cadDrawWorkspace(){
       x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
     }
   }
-  // Show mergeable (green) and splittable (orange) intersection points for Split tool
-  if(cadTool==='split'){
-    const seen=new Set();
-    for(let i=0;i<cadLines.length;i++){
-      for(const p of [cadLines[i].start,cadLines[i].end]){
-        const key=Math.round(p[0]*100)+','+Math.round(p[1]*100);
-        if(seen.has(key))continue;
-        seen.add(key);
-        if(cadIsMergePoint(p[0],p[1])){
-          const s=g2s(p[0],p[1]);
-          x.fillStyle='rgba(100,255,180,0.8)';x.beginPath();x.arc(s.x,s.y,5,0,Math.PI*2);x.fill();
-          x.strokeStyle='rgba(100,255,180,0.5)';x.lineWidth=1;x.beginPath();x.arc(s.x,s.y,8,0,Math.PI*2);x.stroke();
-        }
-        if(cadIsSplitPoint(p[0],p[1])){
-          const s=g2s(p[0],p[1]);
-          x.fillStyle='rgba(255,180,100,0.8)';x.beginPath();x.arc(s.x,s.y,5,0,Math.PI*2);x.fill();
-          x.strokeStyle='rgba(255,180,100,0.5)';x.lineWidth=1;x.beginPath();x.arc(s.x,s.y,8,0,Math.PI*2);x.stroke();
-        }
-      }
-    }
-  }
   // Recolor tool preview — blue glow on hovered line
   if(cadTool==='recolor'&&cadHover&&cadFamSel>=0){
     const col=FAM_PALETTE[cadFamOrder[cadFamSel]%FAM_PALETTE.length];
@@ -1191,7 +872,6 @@ window.cadSetTool=function(t){
   document.getElementById('cadBtnArc').classList.toggle('on',t==='arc');
   document.getElementById('cadBtnErase').classList.toggle('on',t==='erase');
   document.getElementById('cadBtnRecolor').classList.toggle('on',t==='recolor');
-  document.getElementById('cadBtnSplit').classList.toggle('on',t==='split');
   cadDrawing=false;cadStart=null;cadHover=null;
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   cadRecolorOn=false;
@@ -1492,20 +1172,6 @@ function cadInit(){
       }
       cadUpdateAll();return;
     }
-    else if(cadTool==='split'){
-      // Click break point → merge (remove split). Click crossing → split (add break).
-      const didMerge=cadMergeAllAt(g.u,g.v)||cadMergeAllAt(cadCur[0],cadCur[1]);
-      if(didMerge){
-        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
-        cadFamsLocked=false;cadFamSel=-1;
-        cadUpdateAll();return;
-      }
-      if(cadSplitAt(cadCur[0],cadCur[1])){
-        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
-        cadFamsLocked=false;cadFamSel=-1;
-      }
-      cadUpdateAll();return;
-    }
     else if(cadTool==='arc'){
       if(cadArcState===0){cadArcCenter=[...cadCur];cadArcState=1;}
       else if(cadArcState===1){cadArcStart=[...cadCur];cadArcState=2;}
@@ -1515,7 +1181,6 @@ function cadInit(){
         if(newArc)cadLines.push(newArc);
         cadFamsLocked=false;cadFamSel=-1;
         cadArcState=0;cadArcCenter=null;cadArcStart=null;
-        cadSplitOffGrid(cadLines.length-1);
         cadAutoExtendGrid();
       }
       cadArcLabel();
@@ -1563,14 +1228,13 @@ function cadInit(){
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     if(cadTool==='draw'||cadTool==='arc')cadCur=cadSnapPoint(g.u,g.v);
     else if(cadTool==='recolor'){cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
-    else if(cadTool==='split'){cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor='crosshair';}
     else{cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     cadUpdateAll();
   });
   cv.addEventListener('pointerup',e=>{
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;cadSplitOffGrid(cadLines.length-1);cadAutoExtendGrid();}
+      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;cadAutoExtendGrid();}
     }
     cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
   });
