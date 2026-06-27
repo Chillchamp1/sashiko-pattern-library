@@ -283,18 +283,7 @@ button.ctrl.primary:hover{background:#275784}
 .mypats-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
 .mypats-header h2{margin:0;font-size:17px;font-weight:600;flex:1}
 .mypats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}
-/* Trash */
-.trash-btn{background:none;border:1px solid #553030;color:#cc7777;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font:inherit}
-.trash-btn:hover{background:#2a1515;border-color:#883030}
-.trash-section{margin-top:24px;padding-top:16px;border-top:1px solid #2a2040}
-.trash-section h3{font-size:12px;color:#886666;margin:0 0 12px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-.trash-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#1a1520;border:1px solid #302040;border-radius:8px;margin-bottom:6px}
-.trash-item .trash-name{flex:1;font-size:12px;color:#ccaa88}
-.trash-item .trash-meta{font-size:10px;color:#775555;white-space:nowrap}
-.trash-restore-btn{background:#2a3a20;border:1px solid #3a5a30;color:#88bb88;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:10px;font:inherit}
-.trash-restore-btn:hover{background:#3a4a30;border-color:#4a6a40}
-.trash-perm-del-btn{background:none;border:1px solid #402020;color:#996666;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:10px;font:inherit}
-.trash-perm-del-btn:hover{background:#2a1515;border-color:#603030;color:#cc7777}
+
 /* ── Like / Remix bar ── */
 .like-row{display:flex;align-items:center;gap:4px;margin-left:auto;white-space:nowrap}
 .like-btn{background:none;border:1px solid transparent;border-radius:6px;padding:2px 6px;font-size:11px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}

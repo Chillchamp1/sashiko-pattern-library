@@ -155,7 +155,7 @@ function _getDeleted(){try{return JSON.parse(localStorage.getItem('sashiko_delet
 window.deletePattern=function(id){
   const pw=prompt('Admin password:');
   if(pw!=='111'){alert('Wrong password');return;}
-  if(!confirm('Delete "'+id+'"?'))return;
+  if(!confirm('Permanently delete "'+id+'"? This cannot be undone.'))return;
   const pat=PATTERNS.find(p=>p.id===id);
   if(pat){
     const del=_getDeleted();if(!del.includes(id))del.push(id);
