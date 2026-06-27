@@ -1,10 +1,19 @@
 {
   "name": "My Kakuyose (Layered Squares)",
+  "gridType": "square",
   "patMacro": 2,
+  "creatorId": "uyqa6wy657m",
+  "published": true,
+  "bboxRotated": false,
   "zigzagRouting": false,
   "type": "exp",
-  "gridType": "square",
+  "id": "exp_1782379813625",
   "createdAt": 1782379813625,
+  "famOrder": [
+    0,
+    1
+  ],
+  "spacing": 0,
   "lines": [
     {
       "start": [
@@ -37,13 +46,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        5
-      ],
       "end": [
         6,
         5
+      ],
+      "start": [
+        4,
+        5
       ]
     },
     {
@@ -67,12 +76,12 @@
       ]
     },
     {
-      "start": [
-        3,
-        5
-      ],
       "end": [
         1,
+        5
+      ],
+      "start": [
+        3,
         5
       ]
     },
@@ -87,53 +96,53 @@
       ]
     },
     {
-      "start": [
-        1,
-        2
-      ],
       "end": [
         6,
         2
-      ]
-    },
-    {
-      "start": [
-        6,
-        2
       ],
-      "end": [
-        6,
-        7
-      ]
-    },
-    {
       "start": [
-        6,
-        7
-      ],
-      "end": [
-        1,
-        7
-      ]
-    },
-    {
-      "start": [
-        1,
-        7
-      ],
-      "end": [
         1,
         2
       ]
     },
     {
-      "start": [
-        7,
-        1
+      "end": [
+        6,
+        7
       ],
+      "start": [
+        6,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        7
+      ],
+      "start": [
+        6,
+        7
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        1,
+        7
+      ]
+    },
+    {
       "end": [
         7,
         8
+      ],
+      "start": [
+        7,
+        1
       ]
     },
     {
@@ -187,33 +196,33 @@
       ]
     },
     {
-      "start": [
-        3,
-        2
-      ],
       "end": [
         3,
         1
-      ]
-    },
-    {
-      "start": [
-        4,
-        1
       ],
-      "end": [
-        4,
+      "start": [
+        3,
         2
       ]
     },
     {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        7,
+        4
+      ],
       "start": [
         6,
         4
-      ],
-      "end": [
-        7,
-        4
       ]
     },
     {
@@ -237,32 +246,32 @@
       ]
     },
     {
+      "end": [
+        5,
+        6
+      ],
       "start": [
         5,
         8
-      ],
-      "end": [
-        5,
-        6
       ]
     },
     {
-      "start": [
-        5,
-        6
-      ],
       "end": [
         7,
         6
+      ],
+      "start": [
+        5,
+        6
       ]
     },
     {
-      "start": [
-        6,
+      "end": [
+        7,
         5
       ],
-      "end": [
-        7,
+      "start": [
+        6,
         5
       ]
     },
@@ -287,32 +296,32 @@
       ]
     },
     {
-      "start": [
-        1,
-        5
-      ],
       "end": [
         0,
+        5
+      ],
+      "start": [
+        1,
         5
       ]
     },
     {
-      "start": [
-        1,
-        4
-      ],
       "end": [
         0,
+        4
+      ],
+      "start": [
+        1,
         4
       ]
     },
     {
-      "start": [
-        0,
-        6
-      ],
       "end": [
         2,
+        6
+      ],
+      "start": [
+        0,
         6
       ]
     },
@@ -357,66 +366,56 @@
       ]
     },
     {
-      "start": [
-        5,
-        1
-      ],
       "end": [
         5,
         0
+      ],
+      "start": [
+        5,
+        1
       ]
     },
     {
-      "start": [
-        7,
-        3
-      ],
       "end": [
         8,
         3
+      ],
+      "start": [
+        7,
+        3
       ]
     },
     {
-      "start": [
-        7,
-        4
-      ],
       "end": [
         8,
         4
+      ],
+      "start": [
+        7,
+        4
       ]
     },
     {
-      "start": [
-        7,
-        5
-      ],
       "end": [
         8,
         5
+      ],
+      "start": [
+        7,
+        5
       ]
     },
     {
-      "start": [
-        7,
+      "end": [
+        8,
         6
       ],
-      "end": [
-        8,
+      "start": [
+        7,
         6
       ]
     }
   ],
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxU": 8,
-    "maxV": 8
-  },
-  "id": "exp_1782379813625",
-  "published": true,
-  "bboxRotated": false,
-  "creatorId": "uyqa6wy657m",
   "families": [
     1,
     1,
@@ -459,10 +458,11 @@
     0,
     0
   ],
-  "spacing": 0,
-  "famOrder": [
-    0,
-    1
-  ],
-  "traditional": true
+  "traditional": true,
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 8,
+    "maxV": 8
+  }
 }

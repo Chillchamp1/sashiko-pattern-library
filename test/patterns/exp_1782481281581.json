@@ -1,184 +1,14 @@
 {
-  "routingMode": "default",
-  "name": "Seigaiha (Ocean Waves)",
-  "patMacro": 3,
+  "id": "exp_1782481281581",
   "type": "exp",
-  "gridType": "square",
-  "createdAt": 1782481281581,
-  "lines": [
-    {
-      "a2": 6.283185,
-      "start": [
-        2,
-        8
-      ],
-      "arc": true,
-      "a1": 3.141593,
-      "r": 2,
-      "center": [
-        4,
-        8
-      ],
-      "end": [
-        6,
-        8
-      ]
-    },
-    {
-      "a2": 6.283185,
-      "start": [
-        1,
-        8
-      ],
-      "arc": true,
-      "a1": 3.141593,
-      "r": 3,
-      "center": [
-        4,
-        8
-      ],
-      "end": [
-        7,
-        8
-      ]
-    },
-    {
-      "a2": 4.712389,
-      "start": [
-        4,
-        4
-      ],
-      "arc": true,
-      "a1": 3.141593,
-      "r": 4,
-      "center": [
-        8,
-        4
-      ],
-      "end": [
-        8,
-        0
-      ]
-    },
-    {
-      "r": 4,
-      "end": [
-        0,
-        0
-      ],
-      "center": [
-        0,
-        4
-      ],
-      "start": [
-        4,
-        4
-      ],
-      "a2": -1.570796,
-      "arc": true,
-      "a1": 0
-    },
-    {
-      "r": 3,
-      "end": [
-        0,
-        1
-      ],
-      "center": [
-        0,
-        4
-      ],
-      "start": [
-        3,
-        4
-      ],
-      "a2": -1.570796,
-      "a1": 0,
-      "arc": true
-    },
-    {
-      "center": [
-        0,
-        4
-      ],
-      "end": [
-        0,
-        2
-      ],
-      "r": 2,
-      "arc": true,
-      "a1": 0,
-      "a2": -1.570796,
-      "start": [
-        2,
-        4
-      ]
-    },
-    {
-      "r": 3,
-      "end": [
-        8,
-        1
-      ],
-      "center": [
-        8,
-        4
-      ],
-      "start": [
-        5,
-        4
-      ],
-      "a2": 4.712389,
-      "arc": true,
-      "a1": 3.141593
-    },
-    {
-      "arc": true,
-      "a1": 3.141593,
-      "start": [
-        6,
-        4
-      ],
-      "a2": 4.712389,
-      "end": [
-        8,
-        2
-      ],
-      "center": [
-        8,
-        4
-      ],
-      "r": 2
-    },
-    {
-      "r": 4,
-      "end": [
-        8,
-        8
-      ],
-      "center": [
-        4,
-        8
-      ],
-      "start": [
-        0,
-        8
-      ],
-      "a2": 6.283185,
-      "a1": 3.141593,
-      "arc": true
-    }
-  ],
+  "bboxRotated": false,
   "bbox": {
-    "minU": 0,
     "minV": 0,
+    "minU": 0,
     "maxU": 8.000000078461241,
     "maxV": 8
   },
-  "id": "exp_1782481281581",
-  "bboxRotated": false,
-  "published": true,
-  "creatorId": "un4bcd6du2x",
+  "traditional": false,
   "families": [
     2,
     0,
@@ -190,11 +20,181 @@
     2,
     1
   ],
-  "traditional": false,
+  "lines": [
+    {
+      "r": 2,
+      "arc": true,
+      "a2": 6.283185,
+      "center": [
+        4,
+        8
+      ],
+      "start": [
+        2,
+        8
+      ],
+      "end": [
+        6,
+        8
+      ],
+      "a1": 3.141593
+    },
+    {
+      "end": [
+        7,
+        8
+      ],
+      "a1": 3.141593,
+      "center": [
+        4,
+        8
+      ],
+      "start": [
+        1,
+        8
+      ],
+      "a2": 6.283185,
+      "arc": true,
+      "r": 3
+    },
+    {
+      "a2": 4.712389,
+      "end": [
+        8,
+        0
+      ],
+      "a1": 3.141593,
+      "center": [
+        8,
+        4
+      ],
+      "start": [
+        4,
+        4
+      ],
+      "r": 4,
+      "arc": true
+    },
+    {
+      "a2": -1.570796,
+      "a1": 0,
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        4,
+        4
+      ],
+      "center": [
+        0,
+        4
+      ],
+      "r": 4,
+      "arc": true
+    },
+    {
+      "a2": -1.570796,
+      "a1": 0,
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        3,
+        4
+      ],
+      "center": [
+        0,
+        4
+      ],
+      "r": 3,
+      "arc": true
+    },
+    {
+      "r": 2,
+      "arc": true,
+      "a2": -1.570796,
+      "end": [
+        0,
+        2
+      ],
+      "a1": 0,
+      "center": [
+        0,
+        4
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "arc": true,
+      "r": 3,
+      "center": [
+        8,
+        4
+      ],
+      "start": [
+        5,
+        4
+      ],
+      "a1": 3.141593,
+      "end": [
+        8,
+        1
+      ],
+      "a2": 4.712389
+    },
+    {
+      "a2": 4.712389,
+      "start": [
+        6,
+        4
+      ],
+      "center": [
+        8,
+        4
+      ],
+      "a1": 3.141593,
+      "end": [
+        8,
+        2
+      ],
+      "r": 2,
+      "arc": true
+    },
+    {
+      "r": 4,
+      "arc": true,
+      "a2": 6.283185,
+      "end": [
+        8,
+        8
+      ],
+      "a1": 3.141593,
+      "center": [
+        4,
+        8
+      ],
+      "start": [
+        0,
+        8
+      ]
+    }
+  ],
+  "spacing": 0,
+  "createdAt": 1782481281581,
   "famOrder": [
     1,
     0,
     2
   ],
-  "spacing": 0
+  "patMacro": 3,
+  "gridType": "square",
+  "routingMode": "default",
+  "name": "Seigaiha (Ocean Waves)",
+  "published": true,
+  "creatorId": "un4bcd6du2x"
 }

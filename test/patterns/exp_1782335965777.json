@@ -1,20 +1,30 @@
 {
-  "createdAt": 1782335965777,
+  "gridType": "square",
+  "name": "Jūji-zashi· Cross Stitch",
+  "patMacro": 5,
+  "published": true,
+  "creatorId": "uy09jle01o7",
+  "id": "exp_1782335965777",
+  "bboxRotated": false,
+  "type": "exp",
+  "traditional": false,
   "bbox": {
     "maxU": 4,
     "maxV": 4,
-    "minU": 0,
-    "minV": 0
+    "minV": 0,
+    "minU": 0
   },
+  "createdAt": 1782335965777,
+  "spacing": 4,
   "lines": [
     {
-      "end": [
-        2,
-        4
-      ],
       "start": [
         2,
         0
+      ],
+      "end": [
+        2,
+        4
       ]
     },
     {
@@ -28,22 +38,12 @@
       ]
     }
   ],
-  "id": "exp_1782335965777",
-  "creatorId": "uy09jle01o7",
-  "published": true,
-  "bboxRotated": false,
-  "families": [
-    1,
-    0
-  ],
   "famOrder": [
     0,
     1
   ],
-  "traditional": false,
-  "spacing": 4,
-  "name": "Jūji-zashi· Cross Stitch",
-  "patMacro": 5,
-  "type": "exp",
-  "gridType": "square"
+  "families": [
+    1,
+    0
+  ]
 }

@@ -1,49 +1,33 @@
 {
-  "gridType": "square",
-  "families": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1
-  ],
-  "type": "exp",
-  "creatorId": "u78tgmm0drm",
-  "patMacro": 5,
-  "id": "exp_1782252110987",
   "lines": [
     {
+      "end": [
+        8,
+        6
+      ],
       "start": [
         9,
         7
-      ],
-      "end": [
-        8,
-        6
-      ]
-    },
-    {
-      "end": [
-        7,
-        5
-      ],
-      "start": [
-        8,
-        6
       ]
     },
     {
       "start": [
+        8,
+        6
+      ],
+      "end": [
         7,
         5
-      ],
+      ]
+    },
+    {
       "end": [
         6,
         4
+      ],
+      "start": [
+        7,
+        5
       ]
     },
     {
@@ -57,23 +41,23 @@
       ]
     },
     {
-      "end": [
-        8,
-        8
-      ],
       "start": [
         4,
         4
+      ],
+      "end": [
+        8,
+        8
       ]
     },
     {
-      "end": [
-        3,
-        5
-      ],
       "start": [
         7,
         9
+      ],
+      "end": [
+        3,
+        5
       ]
     },
     {
@@ -87,32 +71,48 @@
       ]
     },
     {
-      "end": [
-        1,
-        5
-      ],
       "start": [
         5,
         1
+      ],
+      "end": [
+        1,
+        5
       ]
     },
     {
-      "start": [
-        0,
-        4
-      ],
       "end": [
         4,
         0
+      ],
+      "start": [
+        0,
+        4
       ]
     }
   ],
+  "createdAt": 1782252110987,
+  "creatorId": "u78tgmm0drm",
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1
+  ],
   "bbox": {
-    "minU": 0,
-    "minV": 0,
+    "maxV": 9,
     "maxU": 9,
-    "maxV": 9
+    "minU": 0,
+    "minV": 0
   },
+  "gridType": "square",
   "name": "Ajiro (Wickerwork)",
-  "createdAt": 1782252110987
+  "patMacro": 5,
+  "type": "exp",
+  "id": "exp_1782252110987"
 }

@@ -1,5 +1,9 @@
 {
-  "creatorId": "u78tgmm0drm",
+  "patMacro": 5,
+  "type": "exp",
+  "name": "Lightning bolt 1",
+  "gridType": "square",
+  "id": "exp_1782068642158",
   "families": [
     2,
     0,
@@ -9,38 +13,35 @@
     2,
     1
   ],
-  "type": "exp",
-  "gridType": "square",
-  "createdAt": 1782068642173,
-  "name": "Lightning bolt 1",
+  "creatorId": "u78tgmm0drm",
   "lines": [
     {
+      "end": [
+        10,
+        0
+      ],
       "start": [
         1,
         0
-      ],
-      "end": [
-        10,
-        0
-      ]
-    },
-    {
-      "end": [
-        8,
-        4
-      ],
-      "start": [
-        10,
-        0
       ]
     },
     {
       "start": [
+        10,
+        0
+      ],
+      "end": [
         8,
         4
-      ],
+      ]
+    },
+    {
       "end": [
         12,
+        4
+      ],
+      "start": [
+        8,
         4
       ]
     },
@@ -55,13 +56,13 @@
       ]
     },
     {
-      "start": [
-        1,
-        0
-      ],
       "end": [
         0,
         7
+      ],
+      "start": [
+        1,
+        0
       ]
     },
     {
@@ -85,12 +86,11 @@
       ]
     }
   ],
+  "createdAt": 1782068642173,
   "bbox": {
-    "maxV": 18,
-    "maxU": 12,
+    "minU": 0,
     "minV": 0,
-    "minU": 0
-  },
-  "patMacro": 5,
-  "id": "exp_1782068642158"
+    "maxV": 18,
+    "maxU": 12
+  }
 }
