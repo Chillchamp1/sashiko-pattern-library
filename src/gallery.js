@@ -1,6 +1,5 @@
 // ── Gallery ────────────────────────────────────────────────────────────────
 let activeFilters=new Set([0]);
-let _galleryZoom=1;
 let _galleryCells=0;
 window.galleryZoomStep=function(dir){
   _galleryCells=Math.max(0,_galleryCells+dir);
