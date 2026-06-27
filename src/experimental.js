@@ -1017,7 +1017,7 @@ window.editExpPattern=function(idOrPat){
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
-  document.getElementById('cadPatSize').value=2;  // standard Live-Tiling tile count
+  document.getElementById('cadPatSize').value=pat.patMacro||3;
   document.getElementById('cadPatName').value=pat.name||'Custom Pattern';
   cadEditId=pat.id;
   cadIsPublished=pat.published||false;
@@ -1821,7 +1821,7 @@ window.remixPattern=function(id){
   const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
   const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
   document.getElementById('cadGridSize').value=macroVal;
-  document.getElementById('cadPatSize').value=2;  // standard Live-Tiling tile count
+  document.getElementById('cadPatSize').value=pat.patMacro||3;
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
