@@ -210,7 +210,6 @@ function loadPattern(pat){
   showGenUI(false);
 
   if(isEXP){
-    setupExpCanvas(pat);
     let effPat=pat;
     const gc=window._galleryCells||0;
     if(gc>0){
@@ -218,6 +217,7 @@ function loadPattern(pat){
       const dU=Math.round(b.maxU-b.minU)||10;
       effPat={...pat, patMacro:Math.max(1,Math.round(gc*dU/10))};
     }
+    setupExpCanvas(effPat);
     const expLay=computeExpLayout(effPat);
     EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
@@ -240,8 +240,8 @@ function loadPattern(pat){
     updateProfileBadge();
     */
     _famToggles={};
-    step=0;if(playing)pause();
-    buildJumpBar();render(0);
+    step=TOTAL;if(playing)pause();
+    buildJumpBar();render(step);
     return;
   }
 
