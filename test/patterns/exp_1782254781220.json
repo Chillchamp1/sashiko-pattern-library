@@ -1,14 +1,15 @@
 {
-  "createdAt": 1782254781220,
+  "patMacro": 5,
+  "id": "exp_1782254781220",
   "lines": [
     {
-      "end": [
-        3,
-        3
-      ],
       "start": [
         0,
         0
+      ],
+      "end": [
+        3,
+        3
       ]
     },
     {
@@ -32,23 +33,33 @@
       ]
     },
     {
+      "start": [
+        6,
+        6
+      ],
       "end": [
         6,
         12
-      ],
-      "start": [
-        6,
-        6
       ]
     },
     {
-      "start": [
-        6,
-        6
-      ],
       "end": [
         12,
         6
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "end": [
+        9,
+        9
+      ],
+      "start": [
+        6,
+        6
       ]
     },
     {
@@ -56,38 +67,28 @@
         6,
         6
       ],
-      "end": [
-        9,
-        9
-      ]
-    },
-    {
       "end": [
         6,
         3
-      ],
-      "start": [
-        6,
-        6
       ]
     },
     {
-      "start": [
-        6,
-        6
-      ],
       "end": [
         3,
         6
+      ],
+      "start": [
+        6,
+        6
       ]
     },
     {
-      "start": [
-        9,
-        9
-      ],
       "end": [
         12,
+        9
+      ],
+      "start": [
+        9,
         9
       ]
     },
@@ -112,32 +113,32 @@
       ]
     },
     {
-      "start": [
-        3,
-        6
-      ],
       "end": [
         3,
         9
+      ],
+      "start": [
+        3,
+        6
       ]
     },
     {
+      "start": [
+        6,
+        3
+      ],
       "end": [
         3,
         0
-      ],
-      "start": [
-        6,
-        3
       ]
     },
     {
-      "end": [
-        9,
-        3
-      ],
       "start": [
         6,
+        3
+      ],
+      "end": [
+        9,
         3
       ]
     },
@@ -172,37 +173,46 @@
       ]
     },
     {
-      "start": [
-        12,
-        9
-      ],
       "end": [
         12,
         6
+      ],
+      "start": [
+        12,
+        9
       ]
     },
     {
-      "end": [
-        0,
-        0
-      ],
       "start": [
         0,
         3
+      ],
+      "end": [
+        0,
+        0
       ]
     },
     {
-      "end": [
-        3,
-        0
-      ],
       "start": [
         0,
+        0
+      ],
+      "end": [
+        3,
         0
       ]
     }
   ],
-  "creatorId": "u78tgmm0drm",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 12,
+    "maxU": 12
+  },
+  "name": "My Pattern",
+  "createdAt": 1782254781220,
+  "gridType": "isometric",
+  "type": "exp",
   "families": [
     1,
     1,
@@ -225,15 +235,5 @@
     2,
     0
   ],
-  "bbox": {
-    "minU": 0,
-    "maxU": 12,
-    "maxV": 12,
-    "minV": 0
-  },
-  "gridType": "isometric",
-  "patMacro": 5,
-  "id": "exp_1782254781220",
-  "type": "exp",
-  "name": "My Pattern"
+  "creatorId": "u78tgmm0drm"
 }
