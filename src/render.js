@@ -201,6 +201,8 @@ function loadPattern(pat){
   */
   cv.style.cursor='';
   if(isGen){
+    const gc=window._galleryCells||0;
+    if(gc>0&&gc+1>=6&&gc+1<=20){GEN_n=gc+1;GEN_snowGrid=Math.max(8,Math.min(32,gc+1));}
     showGenUI(true);
     refreshGen(true);
     return;
@@ -209,8 +211,15 @@ function loadPattern(pat){
 
   if(isEXP){
     setupExpCanvas(pat);
-    const expLay=computeExpLayout(pat);
-    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode),expLay);
+    let effPat=pat;
+    const gc=window._galleryCells||0;
+    if(gc>0){
+      const b=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
+      const dU=Math.round(b.maxU-b.minU)||10;
+      effPat={...pat, patMacro:Math.max(1,Math.round(gc*dU/10))};
+    }
+    const expLay=computeExpLayout(effPat);
+    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';

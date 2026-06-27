@@ -8,8 +8,7 @@ window.galleryZoomStep=function(dir){
   if(lbl)lbl.textContent=_galleryCells>0?_galleryCells+'\u2009cells':'auto';
   const av=document.getElementById('animView');
   if(av.classList.contains('open')){
-    _zoom=_galleryCells>0?3/_galleryCells:1;
-    _setupCanvasSize(SIZE,SIZE); render(step);
+    loadPattern(curPat);
     _galleryDirty=true;
   }else{
     buildGallery();
