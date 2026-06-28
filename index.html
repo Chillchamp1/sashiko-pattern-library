@@ -122,13 +122,10 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .stage{position:relative;border-radius:16px;overflow:hidden;
   box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04)}
 canvas#cv{display:block}
-/* Scrubber — YouTube-style full-width seek bar */
-.scrubber-wrap{width:100%;padding:0 0 4px;box-sizing:border-box}
-.scrubber-wrap input[type=range]{width:100%;accent-color:#6aabff;cursor:pointer;height:18px;display:block;margin:0}
-/* Zoom slider in ctrls */
-.anim-zoom{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
-.anim-zoom-lbl{font-size:11px;color:var(--muted)}
-.anim-zoom input[type=range]{accent-color:#6aabff;cursor:pointer;width:80px}
+/* Scrubber — full-width seek bar inside .ctrls, spans the whole row */
+.anim-scrubber{flex-basis:100%;accent-color:#6aabff;cursor:pointer;height:18px;display:block;margin:0 0 2px}
+/* Cell-count picker */
+.anim-zoom{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
 /* Keep .pill/.dot for jumpbar use */
 .pill{padding:3px 11px;border-radius:14px;font-size:12px;font-weight:600;
   display:inline-flex;align-items:center;gap:5px}
@@ -405,12 +402,8 @@ button.ctrl.primary:hover{background:#275784}
     </label>
   </div>
 
-  <!-- Scrubber — full-width seek bar, YouTube-style -->
-  <div class="scrubber-wrap">
-    <input type="range" id="scrubber" min="0" max="1000" value="0" oninput="seekScrubber(this.value)">
-  </div>
-
   <div class="ctrls">
+    <input type="range" id="scrubber" class="anim-scrubber" min="0" max="1000" value="0" oninput="seekScrubber(this.value)">
     <button class="ctrl" id="bReset" title="Reset">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
     </button>
@@ -422,10 +415,10 @@ button.ctrl.primary:hover{background:#275784}
       <input type="range" id="animSpeed" min="0" max="100" step="1" value="82">
       <span aria-hidden="true">⚡</span>
     </span>
-    <span class="anim-zoom" title="Zoom">
-      <span class="anim-zoom-lbl">Zoom</span>
-      <input type="range" id="zoomSlider" min="10" max="80" step="5" value="10" oninput="setAnimZoom(this.value)">
-      <span class="cad-stitch-val" id="animZoomVal">1.0×</span>
+    <span class="anim-zoom" id="tileCellsCtrl" title="Pattern cells visible" style="display:none">
+      <button class="ctrl" onclick="stepTileCells(-1)" title="Fewer cells">−</button>
+      <span id="tileCellsVal" style="min-width:2.6em;text-align:center;font-size:12px;color:var(--muted)">3×3</span>
+      <button class="ctrl" onclick="stepTileCells(1)" title="More cells">+</button>
     </span>
   </div>
 
@@ -5430,7 +5423,7 @@ function drawNeedle(i,j,dir){
 }
 function locate(st){let s=st,p=0;while(p<PASSES.length&&s>PASSES[p].count){s-=PASSES[p].count;p++;}return{p,local:s};}
 
-// ── Scrubber & Zoom ────────────────────────────────────────────────────────
+// ── Scrubber & Tile-cells control ─────────────────────────────────────────
 function _updateScrubber(st){
   const el=document.getElementById('scrubber');
   if(el&&TOTAL>0)el.value=Math.round(st*1000/TOTAL);
@@ -5441,15 +5434,24 @@ window.seekScrubber=function(v){
   step=Math.max(0,Math.min(TOTAL,Math.round(parseInt(v)*TOTAL/1000)));
   render(step);
 };
-window.setAnimZoom=function(v){
-  _zoom=parseFloat(v)/10;
-  _panX=0;_panY=0;
-  const ch=EXP_canvasH||SIZE;
-  _setupCanvasSize(SIZE,ch);
-  _clampPan();_setupCanvasSize(SIZE,ch);
-  render(step);
-  const lbl=document.getElementById('animZoomVal');
-  if(lbl)lbl.textContent=_zoom.toFixed(1)+'×';
+let _tileCells=3;
+function _reloadExpWithTiles(){
+  if(!curPat||!isEXP)return;
+  const effPat={...curPat,patMacro:_tileCells};
+  setupExpCanvas(effPat);
+  const expLay=computeExpLayout(effPat);
+  EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
+  TOTAL=EXP_path.length;
+  _galStitchCache=null;
+  step=TOTAL;
+  buildJumpBar();render(step);
+  const sc=document.getElementById('scrubber');if(sc)sc.value=1000;
+}
+window.stepTileCells=function(dir){
+  _tileCells=Math.max(1,Math.min(8,_tileCells+dir));
+  const lbl=document.getElementById('tileCellsVal');
+  if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
+  _reloadExpWithTiles();
 };
 
 // ── Render dispatcher ──────────────────────────────────────────────────────
@@ -5524,10 +5526,7 @@ function buildJumpBar(){
 // ── Load pattern ───────────────────────────────────────────────────────────
 function loadPattern(pat){
   _resetZoom();
-  // Reset scrubber and zoom slider
   {const sc=document.getElementById('scrubber');if(sc)sc.value=0;}
-  {const zs=document.getElementById('zoomSlider');if(zs)zs.value=10;}
-  {const zl=document.getElementById('animZoomVal');if(zl)zl.textContent='1.0×';}
   // Restore default square canvas if a previous exp iso pattern changed the height.
   if(Math.round(cv.height/DPR)!==SIZE){
     _setupCanvasSize(SIZE,SIZE);
@@ -5549,6 +5548,7 @@ function loadPattern(pat){
   if(!isEXP){
     const lr2=document.getElementById('likeRow');if(lr2)lr2.style.display='none';
     document.getElementById('remixesSection').style.display='none';
+    const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='none';
   }
   /* Stitching Order Settings — commented out for later reuse, DO NOT DELETE
   if(!isEXP){
@@ -5567,10 +5567,13 @@ function loadPattern(pat){
   showGenUI(false);
 
   if(isEXP){
-    setupExpCanvas(pat);
-    const expLay=computeExpLayout(pat);
-    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode),expLay);
+    const effPat={...pat,patMacro:_tileCells};
+    setupExpCanvas(effPat);
+    const expLay=computeExpLayout(effPat);
+    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
+    const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='';
+    const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
     // Like/remix bar
@@ -7834,7 +7837,9 @@ function renderExp(step){
     if(!EXP_path.length)return;
     const sc=_galStitchScene(),N=sc.stitches.length;
     const shown=step>=TOTAL?N:Math.round(N*step/Math.max(1,TOTAL));
+    if(galStitchGrid)ctx.globalAlpha=0.3;
     for(let i=0;i<shown;i++){const s=sc.stitches[i];if(_famToggles[s.fam]===false)continue;_cadDrawStitch(ctx,s,sc.w,galThreadColors[s.fam]);}
+    if(galStitchGrid)ctx.globalAlpha=1;
     return;
   }
   // Fabric background
@@ -9513,16 +9518,24 @@ function _cadStitchScene(){
   const tf={g2s:lay.g2s,ox,oy,sc};
   return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes),tf,ur:lay.uRange,vr:lay.vRange});
 }
-// Faint fabric grid (main lines every CAD_MICRO), mapped through the stitch-scene transform.
+// Fabric grid overlay (main lines every CAD_MICRO + dot sub-grid), mapped through the stitch-scene transform.
 function _cadDrawStitchGrid(x,scene){
   if(!scene||!scene.tf)return;
   const tf=scene.tf,M=CAD_MICRO;
   const[mnU,mxU]=scene.ur,[mnV,mxV]=scene.vr;
   const S=(u,v)=>{const a=tf.g2s([u,v]);return[tf.ox+a.x*tf.sc,tf.oy+a.y*tf.sc];};
   const u0=Math.floor(mnU/M)*M,u1=Math.ceil(mxU/M)*M,v0=Math.floor(mnV/M)*M,v1=Math.ceil(mxV/M)*M;
-  x.strokeStyle='rgba(220,235,255,0.16)';x.lineWidth=1;
+  x.strokeStyle='rgba(220,235,255,0.22)';x.lineWidth=1;
   for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
   for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+  // Dot sub-grid: mid-points at M/2 (smaller dot), intersections at M (larger dot)
+  const sub=M/2;
+  for(let u=u0;u<=u1;u+=sub){for(let v=v0;v<=v1;v+=sub){
+    const onMain=(u%M===0)&&(v%M===0);
+    const p=S(u,v);
+    x.fillStyle=onMain?'rgba(200,220,255,0.35)':'rgba(180,205,255,0.18)';
+    x.beginPath();x.arc(p[0],p[1],onMain?2.2:1.1,0,Math.PI*2);x.fill();
+  }}
 }
 // Draw one sashiko stitch with a little depth (shadow + sheen). `color` overrides
 // the default off-white yarn (used for the gallery thread-colour preview).
