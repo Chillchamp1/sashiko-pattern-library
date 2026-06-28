@@ -1696,7 +1696,9 @@ function renderExp(step){
     if(!EXP_path.length)return;
     const sc=_galStitchScene(),N=sc.stitches.length;
     const shown=step>=TOTAL?N:Math.round(N*step/Math.max(1,TOTAL));
+    if(galStitchGrid)ctx.globalAlpha=0.3;
     for(let i=0;i<shown;i++){const s=sc.stitches[i];if(_famToggles[s.fam]===false)continue;_cadDrawStitch(ctx,s,sc.w,galThreadColors[s.fam]);}
+    if(galStitchGrid)ctx.globalAlpha=1;
     return;
   }
   // Fabric background

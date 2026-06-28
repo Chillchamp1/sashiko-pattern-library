@@ -1442,16 +1442,24 @@ function _cadStitchScene(){
   const tf={g2s:lay.g2s,ox,oy,sc};
   return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes),tf,ur:lay.uRange,vr:lay.vRange});
 }
-// Faint fabric grid (main lines every CAD_MICRO), mapped through the stitch-scene transform.
+// Fabric grid overlay (main lines every CAD_MICRO + dot sub-grid), mapped through the stitch-scene transform.
 function _cadDrawStitchGrid(x,scene){
   if(!scene||!scene.tf)return;
   const tf=scene.tf,M=CAD_MICRO;
   const[mnU,mxU]=scene.ur,[mnV,mxV]=scene.vr;
   const S=(u,v)=>{const a=tf.g2s([u,v]);return[tf.ox+a.x*tf.sc,tf.oy+a.y*tf.sc];};
   const u0=Math.floor(mnU/M)*M,u1=Math.ceil(mxU/M)*M,v0=Math.floor(mnV/M)*M,v1=Math.ceil(mxV/M)*M;
-  x.strokeStyle='rgba(220,235,255,0.16)';x.lineWidth=1;
+  x.strokeStyle='rgba(220,235,255,0.22)';x.lineWidth=1;
   for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
   for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+  // Dot sub-grid: mid-points at M/2 (smaller dot), intersections at M (larger dot)
+  const sub=M/2;
+  for(let u=u0;u<=u1;u+=sub){for(let v=v0;v<=v1;v+=sub){
+    const onMain=(u%M===0)&&(v%M===0);
+    const p=S(u,v);
+    x.fillStyle=onMain?'rgba(200,220,255,0.35)':'rgba(180,205,255,0.18)';
+    x.beginPath();x.arc(p[0],p[1],onMain?2.2:1.1,0,Math.PI*2);x.fill();
+  }}
 }
 // Draw one sashiko stitch with a little depth (shadow + sheen). `color` overrides
 // the default off-white yarn (used for the gallery thread-colour preview).

@@ -65,7 +65,7 @@ function drawNeedle(i,j,dir){
 }
 function locate(st){let s=st,p=0;while(p<PASSES.length&&s>PASSES[p].count){s-=PASSES[p].count;p++;}return{p,local:s};}
 
-// ── Scrubber & Zoom ────────────────────────────────────────────────────────
+// ── Scrubber & Tile-cells control ─────────────────────────────────────────
 function _updateScrubber(st){
   const el=document.getElementById('scrubber');
   if(el&&TOTAL>0)el.value=Math.round(st*1000/TOTAL);
@@ -76,15 +76,24 @@ window.seekScrubber=function(v){
   step=Math.max(0,Math.min(TOTAL,Math.round(parseInt(v)*TOTAL/1000)));
   render(step);
 };
-window.setAnimZoom=function(v){
-  _zoom=parseFloat(v)/10;
-  _panX=0;_panY=0;
-  const ch=EXP_canvasH||SIZE;
-  _setupCanvasSize(SIZE,ch);
-  _clampPan();_setupCanvasSize(SIZE,ch);
-  render(step);
-  const lbl=document.getElementById('animZoomVal');
-  if(lbl)lbl.textContent=_zoom.toFixed(1)+'×';
+let _tileCells=3;
+function _reloadExpWithTiles(){
+  if(!curPat||!isEXP)return;
+  const effPat={...curPat,patMacro:_tileCells};
+  setupExpCanvas(effPat);
+  const expLay=computeExpLayout(effPat);
+  EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
+  TOTAL=EXP_path.length;
+  _galStitchCache=null;
+  step=TOTAL;
+  buildJumpBar();render(step);
+  const sc=document.getElementById('scrubber');if(sc)sc.value=1000;
+}
+window.stepTileCells=function(dir){
+  _tileCells=Math.max(1,Math.min(8,_tileCells+dir));
+  const lbl=document.getElementById('tileCellsVal');
+  if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
+  _reloadExpWithTiles();
 };
 
 // ── Render dispatcher ──────────────────────────────────────────────────────
@@ -159,10 +168,7 @@ function buildJumpBar(){
 // ── Load pattern ───────────────────────────────────────────────────────────
 function loadPattern(pat){
   _resetZoom();
-  // Reset scrubber and zoom slider
   {const sc=document.getElementById('scrubber');if(sc)sc.value=0;}
-  {const zs=document.getElementById('zoomSlider');if(zs)zs.value=10;}
-  {const zl=document.getElementById('animZoomVal');if(zl)zl.textContent='1.0×';}
   // Restore default square canvas if a previous exp iso pattern changed the height.
   if(Math.round(cv.height/DPR)!==SIZE){
     _setupCanvasSize(SIZE,SIZE);
@@ -184,6 +190,7 @@ function loadPattern(pat){
   if(!isEXP){
     const lr2=document.getElementById('likeRow');if(lr2)lr2.style.display='none';
     document.getElementById('remixesSection').style.display='none';
+    const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='none';
   }
   /* Stitching Order Settings — commented out for later reuse, DO NOT DELETE
   if(!isEXP){
@@ -202,10 +209,13 @@ function loadPattern(pat){
   showGenUI(false);
 
   if(isEXP){
-    setupExpCanvas(pat);
-    const expLay=computeExpLayout(pat);
-    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode),expLay);
+    const effPat={...pat,patMacro:_tileCells};
+    setupExpCanvas(effPat);
+    const expLay=computeExpLayout(effPat);
+    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
+    const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='';
+    const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
     // Like/remix bar

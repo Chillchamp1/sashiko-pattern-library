@@ -115,13 +115,10 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .stage{position:relative;border-radius:16px;overflow:hidden;
   box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04)}
 canvas#cv{display:block}
-/* Scrubber — YouTube-style full-width seek bar */
-.scrubber-wrap{width:100%;padding:0 0 4px;box-sizing:border-box}
-.scrubber-wrap input[type=range]{width:100%;accent-color:#6aabff;cursor:pointer;height:18px;display:block;margin:0}
-/* Zoom slider in ctrls */
-.anim-zoom{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
-.anim-zoom-lbl{font-size:11px;color:var(--muted)}
-.anim-zoom input[type=range]{accent-color:#6aabff;cursor:pointer;width:80px}
+/* Scrubber — full-width seek bar inside .ctrls, spans the whole row */
+.anim-scrubber{flex-basis:100%;accent-color:#6aabff;cursor:pointer;height:18px;display:block;margin:0 0 2px}
+/* Cell-count picker */
+.anim-zoom{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
 /* Keep .pill/.dot for jumpbar use */
 .pill{padding:3px 11px;border-radius:14px;font-size:12px;font-weight:600;
   display:inline-flex;align-items:center;gap:5px}
