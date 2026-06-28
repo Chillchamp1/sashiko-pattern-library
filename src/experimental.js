@@ -1813,17 +1813,13 @@ window.showGalleryFromMyPats=function(){
 // ── Likes & Remix ────────────────────────────────────────────────────────────
 function _getLikes(){try{return JSON.parse(localStorage.getItem('sashiko_likes')||'{}');}catch(e){return{};}}
 function _saveLikes(l){localStorage.setItem('sashiko_likes',JSON.stringify(l));}
-window.likePattern=function(id,delta){
+window.likePattern=function(id){
   if(!id)return;
   const likes=_getLikes();if(!likes[id])likes[id]={up:0,down:0};
   const uid=_getUserId();const prev=likes[id][uid];
-  if(prev===delta){delete likes[id][uid];if(delta===1)likes[id].up--;if(delta===-1)likes[id].down--;_saveLikes(likes);_updatePatternLikes(id);renderLikeButtons(id);return;}
-  if(prev===1)likes[id].up--;if(prev===-1)likes[id].down--;
-  if(delta===1)likes[id].up++;if(delta===-1)likes[id].down++;
-  likes[id][uid]=delta;
-  _saveLikes(likes);
-  _updatePatternLikes(id);
-  renderLikeButtons(id);
+  if(prev===1){delete likes[id][uid];likes[id].up--;}
+  else{if(prev===-1)likes[id].down--;likes[id].up++;likes[id][uid]=1;}
+  _saveLikes(likes);_updatePatternLikes(id);renderLikeButtons(id);
 };
 function _updatePatternLikes(id){
   const likes=_getLikes();const l=likes[id]||{up:0,down:0};
@@ -1833,14 +1829,18 @@ function _updatePatternLikes(id){
 function renderLikeButtons(id){
   const likes=_getLikes();const l=likes[id]||{up:0,down:0};
   const uid=_getUserId();const myVote=likes[id]?.[uid];
-  const score=l.up-l.down;
-  const btns=document.querySelectorAll(`.like-row[data-id="${id}"]`);
-  btns.forEach(el=>{
-    el.innerHTML=
-      `<button class="like-btn${myVote===1?' liked':''}" onclick="event.stopPropagation();likePattern('${id}',1)" title="Like">▲ ${l.up}</button>`+
-      `<span class="like-score" style="color:${score>0?'#88c4a4':score<0?'#e09090':'var(--muted)'}">${score>0?'+':''}${score}</span>`+
-      `<button class="like-btn${myVote===-1?' disliked':''}" onclick="event.stopPropagation();likePattern('${id}',-1)" title="Dislike">▼ ${l.down}</button>`+
-      `<button class="like-btn remix" onclick="event.stopPropagation();remixPattern('${id}')" title="Remix">↗ Remix</button>`;
+  const hearts=l.up;
+  document.querySelectorAll(`.like-row[data-id="${id}"]`).forEach(el=>{
+    const isDetail=el.id==='likeRow';
+    if(isDetail){
+      // Detail view: clickable heart + remix button
+      el.innerHTML=
+        `<button class="like-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`+
+        `<button class="like-btn remix" onclick="remixPattern('${id}')" title="Remix">↗ Remix</button>`;
+    }else{
+      // Gallery card: read-only heart count
+      el.innerHTML=hearts>0?`<span class="like-heart-count">♥ ${hearts}</span>`:'';
+    }
   });
 }
 window.remixPattern=function(id){
