@@ -366,7 +366,7 @@ button.ctrl.primary:hover{background:#275784}
       <button class="filt on" data-f="0" onclick="setFilter(this)">All</button>
       <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
-      <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
+      <!-- Hitomezashi filter hidden while the generator card is hidden — re-enable together -->
       <button class="filt" data-f="trad" onclick="setFilter(this)">Traditional</button>
     </div>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
@@ -457,6 +457,11 @@ button.ctrl.primary:hover{background:#275784}
       <label class="cad-routing-toggle" title="Show the fabric grid">
         <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
       </label>
+      <span class="cad-panel-stepper">
+        <span class="cad-panel-stepper-label">Hub</span>
+        <input type="range" id="galHubScale" min="0" max="200" step="5" value="100" oninput="galSetHubScale(this.value)">
+        <span class="cad-stitch-val" id="galHubScaleVal">1.00×</span>
+      </span>
     </div>
   </div>
 
@@ -617,6 +622,11 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <label class="cad-routing-toggle" title="Show the fabric grid">
             <input type="checkbox" id="cadStitchGrid" onchange="cadToggleStitchGrid()"> Grid
           </label>
+          <span class="cad-panel-stepper">
+            <span class="cad-panel-stepper-label">Hub</span>
+            <input type="range" id="cadHubScale" min="0" max="200" step="5" value="100" oninput="cadSetHubScale(this.value)">
+            <span class="cad-stitch-val" id="cadHubScaleVal">1.00×</span>
+          </span>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
         <div class="cad-thumb-preview">
@@ -5986,6 +5996,9 @@ function buildGallery(){
   const deleted=_getDeleted();
   PATTERNS.forEach(pat=>{
     if(deleted.includes(pat.id))return;
+    // Hitomezashi Generator hidden for now — NOT removed; the generator engine + preset
+    // UI are kept intact and may be re-enabled in a future version (just drop this guard).
+    if(pat.id==='generator')return;
     const card=document.createElement('button');
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
     card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
@@ -7816,6 +7829,14 @@ window.galToggleAdv=function(){
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
 window.galToggleStitchGrid=function(){galStitchGrid=document.getElementById('galStitchGrid').checked;render(step);};
+window.galSetHubScale=function(v){
+  _starHubScale=parseFloat(v)/100;
+  const lbl=s=>s&&(s.textContent=_starHubScale.toFixed(2)+'×');
+  lbl(document.getElementById('galHubScaleVal'));
+  lbl(document.getElementById('cadHubScaleVal'));
+  const cs=document.getElementById('cadHubScale');if(cs)cs.value=v;
+  _galStitchCache=null;_cadStitchCache=null;render(step);
+};
 
 function renderExp(step){
   const ch=EXP_canvasH||SIZE;
@@ -8085,6 +8106,7 @@ let cadStitchLen=8;             // visible stitch length in patCanvas px
 let cadStitchRatio='standard';  // key into CAD_STITCH_RATIOS (stitch : pause)
 let _cadSpeedV=82;              // tile-play speed (shares _speedTotal with the gallery)
 let _cadStitchCache=null;       // {sig, stitches} — recomputed only when sig changes
+let _starHubScale=1.0;          // multiplier for star-hub keepout radius (tunable via slider)
 let _cadDenimBuf=null;          // baked denim background (500×500)
 // Stitch : pause (gap) ratios. Traditional sashiko keeps the gap ≈ 1/3 the stitch
 // length ("Standard" 3:1); other common looks offered below.
@@ -9309,8 +9331,9 @@ function _segNear(p,q,cx,cy,r){
 //    the vertex ("down-point", crisp "I"); per-segment fitting lands a boundary there.
 //  • 3–4 rays = CROSSING (X) / T-junction → a clear gap of ≈ ½–1 stitch length straddles
 //    the point so perpendicular threads never touch.
-//  • ≥5 rays = STAR hub (e.g. Asanoha) → a larger RADIAL clearance; every stitch stops
-//    short of a safety circle, leaving an empty fabric polygon at the centre.
+//  • ≥5 rays = STAR hub → radial clearance = L/(2·tan(π/R)), the inscribed-circle radius
+//    of a regular N-gon with N=R equally-spaced arms. Grows with arm count so a 6-armed
+//    Asanoha hub gets ≈0.87·L while a 12-armed Kamon hub gets ≈1.87·L.  Cap: 2.5·L.
 // Crossings are found inclusive of grid vertices (`_segCross`); round caps are compensated
 // by insetting drawn endpoints by the cap radius.
 function _layStitches(strokes,L,ratioKey,w){
@@ -9389,7 +9412,10 @@ function _layStitches(strokes,L,ratioKey,w){
   });
   nodes.forEach(nd=>{
     const R=nd.bk.size;
-    nd.clr = R<=2?0 : R<=4?cCross : Math.min(1.3*L, cCross*(1+0.4*(R-4)));
+    // Star hubs: (0.36−0.06·ln R) calibrates the inscribed-circle formula to look right
+    // across real patterns — factor 0.25 at R=6 (6-arm Asanoha), 0.20 at R=14 (Kamon).
+    // _starHubScale (slider, default 1.0) is a final fine-tune multiplier.
+    nd.clr = R<=2?0 : R<=4?cCross : Math.min(2.5*L, Math.max(cCross, _starHubScale*(0.36-0.06*Math.log(R))*L/(2*Math.tan(Math.PI/R))));
     // corner = exactly 2 rays at an angle (NOT collinear/straight, which is a smooth pass)
     nd.corner=false;
     if(R===2){const b=[...nd.bk];let diff=Math.abs(b[0]-b[1]);diff=Math.min(diff,24-diff);if(diff!==12)nd.corner=true;}
@@ -9414,9 +9440,13 @@ function _layStitches(strokes,L,ratioKey,w){
     });
   });
   crossings.forEach(c=>{
-    const clr=clrAt(c.x,c.y);
-    if(c.aInt)anchors[c.aSi].push({d:c.aD,clrL:clr,clrR:clr});
-    if(c.bInt)anchors[c.bSi].push({d:c.bD,clrL:clr,clrR:clr});
+    const nd=findNode(c.x,c.y), clr=nd?nd.clr:0;
+    if(clr<=0)return;   // R≤2 corner/straight → handled by the corner/endpoint logic
+    // Cut BOTH strokes at the junction regardless of whether the hit is interior or on a
+    // vertex — this catches a line that runs straight THROUGH a star hub with a vertex at
+    // the centre (otherwise it kept stitching across the keepout circle).
+    anchors[c.aSi].push({d:c.aD,clrL:clr,clrR:clr});
+    anchors[c.bSi].push({d:c.bD,clrL:clr,clrR:clr});
   });
   // Corner formed by two separate strokes meeting at a node: only ONE arm reaches the
   // corner (prefer the one that ENDS there); the rest get a normal gap. So exactly one
@@ -9537,6 +9567,14 @@ window.cadSetStitchLen=function(v){
 window.cadSetStitchRatio=function(v){
   cadStitchRatio=v;_cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
+};
+window.cadSetHubScale=function(v){
+  _starHubScale=parseFloat(v)/100;
+  const lbl=s=>s&&(s.textContent=_starHubScale.toFixed(2)+'×');
+  lbl(document.getElementById('cadHubScaleVal'));
+  lbl(document.getElementById('galHubScaleVal'));
+  const gs=document.getElementById('galHubScale');if(gs)gs.value=v;
+  _cadStitchCache=null;if(!_tpOn)cadDrawPattern();
 };
 window.cadToggleStitchGrid=function(){
   cadStitchGrid=document.getElementById('cadStitchGrid').checked;
