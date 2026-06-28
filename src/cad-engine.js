@@ -1008,7 +1008,7 @@ window.cadSaveToLibrary=function(){
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbCells:cadThumbCells};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbCells:cadThumbCells,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1051,7 +1051,7 @@ window.cadPublishToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbCells:cadThumbCells};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbCells:cadThumbCells,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -1196,16 +1196,18 @@ function _cadBakeDenim(){
   v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,0.22)');
   d.fillStyle=v;d.fillRect(0,0,500,500);
 }
-function _cadDrawDenim(x){if(!_cadDenimBuf)_cadBakeDenim();x.drawImage(_cadDenimBuf,0,0);}
+function _cadDrawDenim(x,w,h){if(!_cadDenimBuf)_cadBakeDenim();x.drawImage(_cadDenimBuf,0,0,w||500,h||500);}
 
-// Proper interior intersection of segments a→b and c→d. Returns {t,u} or null.
-function _segInt(a,b,c,d){
+// Intersection of segments a→b and c→d, INCLUDING shared endpoints/vertices (so a
+// crossing that lands on a grid vertex still counts). Parallel/collinear → null.
+function _segCross(a,b,c,d){
   const r0=b[0]-a[0],r1=b[1]-a[1],s0=d[0]-c[0],s1=d[1]-c[1];
   const den=r0*s1-r1*s0;
   if(Math.abs(den)<1e-9)return null;
   const t=((c[0]-a[0])*s1-(c[1]-a[1])*s0)/den;
   const u=((c[0]-a[0])*r1-(c[1]-a[1])*r0)/den;
-  if(t>1e-4&&t<1-1e-4&&u>1e-4&&u<1-1e-4)return{t,u};
+  const E=1e-6;
+  if(t>=-E&&t<=1+E&&u>=-E&&u<=1+E)return{t:Math.max(0,Math.min(1,t)),u:Math.max(0,Math.min(1,u))};
   return null;
 }
 // Point at arc-length `dist` along a stroke (pts + cumulative cum).
@@ -1216,24 +1218,47 @@ function _ptAlong(d,dist){
   const seg=cum[hi]-cum[lo]||1, f=(dist-cum[lo])/seg;
   return[pts[lo][0]+(pts[hi][0]-pts[lo][0])*f, pts[lo][1]+(pts[hi][1]-pts[lo][1])*f];
 }
-// Lay running stitches along each stroke. Gaps land on every corner and crossing
-// (the sashiko rule: stitches meet at the gaps, never over an intersection).
-function _cadLayStitches(strokes){
-  const ratio=CAD_STITCH_RATIOS[cadStitchRatio]||CAD_STITCH_RATIOS.standard;
-  const L=Math.max(4,cadStitchLen), G=L*ratio.g/ratio.s, U=L+G;
+// Thread width (px) for a given stitch length.
+function _stitchW(len){return Math.max(2,Math.min(6,len*0.28));}
+function _cadStitchW(){return _stitchW(cadStitchLen);}
+// Group a routed path (segments with `jump` flags) into continuous screen-space
+// strokes. T maps a grid point [u,v] → [x,y] screen.
+function _buildStrokesFromPath(path,T){
+  const strokes=[];let cur=null;
+  path.forEach(s=>{
+    const a=T(s.start),b=T(s.end);
+    if(s.jump||!cur){cur={fam:s.fam||0,pts:[a,b]};strokes.push(cur);return;}
+    const last=cur.pts[cur.pts.length-1];
+    if(Math.hypot(last[0]-a[0],last[1]-a[1])<0.5)cur.pts.push(b);
+    else{cur={fam:s.fam||0,pts:[a,b]};strokes.push(cur);}
+  });
+  return strokes;
+}
+// Lay running stitches along each stroke (screen coords). Sashiko rules:
+//  • a clear denim GAP straddles every crossing and corner — stitches never sit over
+//    an intersection; the clearance is ≥ thread half-width so perpendicular threads
+//    can't overlap at the crossing (the rule the original half-gap version broke).
+//  • crossings are found inclusive of grid vertices (`_segCross`).
+//  • round line-caps are compensated by insetting the drawn endpoints by the cap radius.
+function _layStitches(strokes,L,ratioKey,w){
+  const ratio=CAD_STITCH_RATIOS[ratioKey]||CAD_STITCH_RATIOS.standard;
+  L=Math.max(3,L);
+  const G=L*ratio.g/ratio.s, U=L+G;
+  const cap=w/2;                              // round-cap radius
+  const cClear=Math.max(G/2, w/2+0.75);       // clearance at corners/crossings
   const data=strokes.map(st=>{
     const pts=st.pts,cum=[0];
     for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
     return{pts,cum,fam:st.fam,total:cum[cum.length-1]};
   });
-  const anchors=data.map(d=>[0,d.total]);
+  const anchors=data.map(d=>[{d:0,t:'end'},{d:d.total,t:'end'}]);
   // Corners (sharp direction changes within a stroke)
   data.forEach((d,si)=>{
     for(let i=1;i<d.pts.length-1;i++){
       const a=d.pts[i-1],b=d.pts[i],c=d.pts[i+1];
       let dd=Math.abs(Math.atan2(b[1]-a[1],b[0]-a[0])-Math.atan2(c[1]-b[1],c[0]-b[0]));
       if(dd>Math.PI)dd=2*Math.PI-dd;
-      if(dd>CAD_STITCH_CORNER)anchors[si].push(d.cum[i]);
+      if(dd>CAD_STITCH_CORNER)anchors[si].push({d:d.cum[i],t:'corner'});
     }
   });
   // Crossings between strokes (and non-adjacent self-crossings)
@@ -1245,35 +1270,41 @@ function _cadLayStitches(strokes){
   }});
   for(let i=0;i<SEG.length;i++){const A=SEG[i];
     for(let j=i+1;j<SEG.length;j++){const B=SEG[j];
-      if(A.x1<B.x0||B.x1<A.x0||A.y1<B.y0||B.y1<A.y0)continue;        // bbox reject
-      if(A.si===B.si&&Math.abs(A.idx-B.idx)<=1)continue;             // skip adjacent
-      const X=_segInt(A.p,A.q,B.p,B.q);if(!X)continue;
-      anchors[A.si].push(A.s0+X.t*A.len);
-      anchors[B.si].push(B.s0+X.u*B.len);
+      if(A.x1<B.x0-0.5||B.x1<A.x0-0.5||A.y1<B.y0-0.5||B.y1<A.y0-0.5)continue; // bbox reject
+      if(A.si===B.si&&Math.abs(A.idx-B.idx)<=1)continue;                      // skip adjacent
+      const X=_segCross(A.p,A.q,B.p,B.q);if(!X)continue;
+      anchors[A.si].push({d:A.s0+X.t*A.len,t:'cross'});
+      anchors[B.si].push({d:B.s0+X.u*B.len,t:'cross'});
     }
   }
-  // Round line-caps extend a stitch by half its width past each endpoint; inset the
-  // drawn endpoints by exactly that much so the *visible* thread spans `st` and the
-  // denim gaps match the chosen ratio (otherwise every gap reads shorter than it is).
-  const cap=_cadStitchW()/2;
+  const prio={end:0,corner:1,cross:2};
   const out=[];
   data.forEach((d,si)=>{
-    let an=anchors[si].filter(v=>v>=-1e-6&&v<=d.total+1e-6).sort((a,b)=>a-b);
-    const m=[an[0]];for(let k=1;k<an.length;k++)if(an[k]-m[m.length-1]>1e-3)m.push(an[k]);
+    const an=anchors[si].filter(o=>o.d>=-1e-6&&o.d<=d.total+1e-6).sort((a,b)=>a.d-b.d);
+    const m=[];
+    for(const o of an){
+      if(m.length&&o.d-m[m.length-1].d<=1e-3){if(prio[o.t]>prio[m[m.length-1].t])m[m.length-1].t=o.t;}
+      else m.push({d:o.d,t:o.t});
+    }
     for(let k=0;k<m.length-1;k++){
-      const a=m[k],b=m[k+1],D=b-a;if(D<1e-3)continue;
-      const n=Math.max(1,Math.round(D/U)),unit=D/n,gap=unit*ratio.g/(ratio.s+ratio.g),st=unit-gap;
+      const A=m[k],B=m[k+1];
+      const cA=A.t==='end'?0:cClear, cB=B.t==='end'?0:cClear;
+      const S=(B.d-A.d)-cA-cB;                  // span available for stitches+interior gaps
+      if(S<=0.6)continue;                        // consumed by clearance → all denim
+      const n=Math.max(1,Math.round((S+G)/U));
+      const k2=S/(n*ratio.s+(n-1)*ratio.g), st=ratio.s*k2, gap=ratio.g*k2;
       for(let s=0;s<n;s++){
-        const ds=a+s*unit+gap/2, de=ds+st;
+        const ds=A.d+cA+s*(st+gap), de=ds+st;
         let P=_ptAlong(d,ds),Q=_ptAlong(d,de);
         const dx=Q[0]-P[0],dy=Q[1]-P[1],len=Math.hypot(dx,dy);
-        if(len>2*cap+0.5){const ix=dx/len*cap,iy=dy/len*cap;P=[P[0]+ix,P[1]+iy];Q=[Q[0]-ix,Q[1]-iy];}
+        if(len>2*cap+0.4){const ix=dx/len*cap,iy=dy/len*cap;P=[P[0]+ix,P[1]+iy];Q=[Q[0]-ix,Q[1]-iy];}
         out.push({x1:P[0],y1:P[1],x2:Q[0],y2:Q[1],fam:d.fam});
       }
     }
   });
   return out;
 }
+function _cadLayStitches(strokes){return _layStitches(strokes,cadStitchLen,cadStitchRatio,_cadStitchW());}
 // Build (and cache) the off-white stitch list for the current geometry, fitted to the 500px canvas.
 function _cadStitchScene(){
   const sig=_cadStitchSig();
@@ -1305,15 +1336,7 @@ function _cadStitchScene(){
   const pw=Mx-mx||1,ph=My-my||1,pad=16,sc=Math.min((500-2*pad)/pw,(500-2*pad)/ph);
   const ox=(500-pw*sc)/2-mx*sc,oy=(500-ph*sc)/2-my*sc;
   const T=p=>{const a=lay.g2s(p);return[ox+a.x*sc,oy+a.y*sc];};
-  // Group routed segments into continuous strokes via the `jump` flag
-  const strokes=[];let cur=null;
-  path.forEach(s=>{
-    const a=T(s.start),b=T(s.end);
-    if(s.jump||!cur){cur={fam:s.fam||0,pts:[a,b]};strokes.push(cur);return;}
-    const last=cur.pts[cur.pts.length-1];
-    if(Math.hypot(last[0]-a[0],last[1]-a[1])<0.5)cur.pts.push(b);
-    else{cur={fam:s.fam||0,pts:[a,b]};strokes.push(cur);}
-  });
+  const strokes=_buildStrokesFromPath(path,T);
   const tf={g2s:lay.g2s,ox,oy,sc};
   return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes),tf,ur:lay.uRange,vr:lay.vRange});
 }

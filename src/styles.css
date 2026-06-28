@@ -264,6 +264,11 @@ button.ctrl.primary:hover{background:#275784}
 /* Speed slider (gallery animation + CAD play) */
 .speed-slider{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:1}
 .speed-slider input[type=range]{accent-color:#6aabff;cursor:pointer;width:100px;vertical-align:middle}
+/* Gallery stitch-view bar + advanced dropdown */
+.stitch-view-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin:8px 0 2px}
+.gal-adv-btn{font-size:11px;padding:5px 10px}
+.gal-adv{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;padding:7px 9px;background:var(--panel);border:1px solid var(--line);border-radius:10px;width:100%}
+.gal-adv input[type=range]{accent-color:#efe7d0;cursor:pointer;width:96px;vertical-align:middle}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}

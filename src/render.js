@@ -191,6 +191,8 @@ function loadPattern(pat){
   if(bb)bb.textContent='← '+(_animSource==='sandbox'?'Sandbox':'Gallery');
 
   const ss=document.getElementById('stitchSettings');if(ss)ss.style.display='none'; // commented out for later reuse
+  const svb=document.getElementById('stitchViewBar');if(svb)svb.style.display=isEXP?'flex':'none';
+  if(!isEXP)galStitch=false;
   if(!isEXP){
     const lr2=document.getElementById('likeRow');if(lr2)lr2.style.display='none';
     document.getElementById('remixesSection').style.display='none';
@@ -244,6 +246,13 @@ function loadPattern(pat){
     updateProfileBadge();
     */
     _famToggles={};
+    // Gallery stitch view — defaults from the creator's saved CAD settings
+    galStitch=!!pat.stitchView;
+    galStitchLen=pat.stitchLen||8;
+    galStitchRatio=pat.stitchRatio||'standard';
+    galStitchGrid=!!pat.stitchGrid;
+    _galStitchCache=null;
+    syncGalStitchUI();
     step=TOTAL;if(playing)pause();
     buildJumpBar();render(step);
     return;
