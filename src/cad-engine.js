@@ -1234,69 +1234,131 @@ function _buildStrokesFromPath(path,T){
   });
   return strokes;
 }
-// Lay running stitches along each stroke (screen coords). Sashiko rules:
-//  • a clear denim GAP straddles every crossing and corner — stitches never sit over
-//    an intersection; the clearance is ≥ thread half-width so perpendicular threads
-//    can't overlap at the crossing (the rule the original half-gap version broke).
-//  • crossings are found inclusive of grid vertices (`_segCross`).
-//  • round line-caps are compensated by insetting the drawn endpoints by the cap radius.
+// Distance² from point (cx,cy) to segment p→q vs r² (cheap "is this point near the segment").
+function _segNear(p,q,cx,cy,r){
+  const vx=q[0]-p[0],vy=q[1]-p[1],wx=cx-p[0],wy=cy-p[1];
+  const len2=vx*vx+vy*vy||1; let t=(wx*vx+wy*vy)/len2; t=t<0?0:t>1?1:t;
+  const dx=p[0]+t*vx-cx, dy=p[1]+t*vy-cy;
+  return dx*dx+dy*dy < r*r;
+}
+// Lay running stitches along each stroke (screen coords). Each junction is classified by
+// its NUMBER OF RAYS (distinct incident directions), which decides the clearance:
+//  • 2 rays  = CORNER or straight pass → clearance 0: the visible stitch ENDS exactly on
+//    the vertex ("down-point", crisp "I"); per-segment fitting lands a boundary there.
+//  • 3–4 rays = CROSSING (X) / T-junction → a clear gap of ≈ ½–1 stitch length straddles
+//    the point so perpendicular threads never touch.
+//  • ≥5 rays = STAR hub (e.g. Asanoha) → a larger RADIAL clearance; every stitch stops
+//    short of a safety circle, leaving an empty fabric polygon at the centre.
+// Crossings are found inclusive of grid vertices (`_segCross`); round caps are compensated
+// by insetting drawn endpoints by the cap radius.
 function _layStitches(strokes,L,ratioKey,w){
   const ratio=CAD_STITCH_RATIOS[ratioKey]||CAD_STITCH_RATIOS.standard;
   L=Math.max(3,L);
   const G=L*ratio.g/ratio.s, U=L+G;
   const cap=w/2;                              // round-cap radius
-  const cCorner=Math.max(G/2, w/2+0.75);      // clearance reserved at a corner
-  const cCross=2*cCorner;                     // crossings get TWICE the clear (no-yarn) zone
-  const clearOf=t=>t==='cross'?cCross:t==='corner'?cCorner:0;
+  const cCross=Math.max(0.35*L, w*0.9);       // X / T half-clearance → gap ≈ 0.7·L, ≥ thread width
   const data=strokes.map(st=>{
     const pts=st.pts,cum=[0];
     for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
     return{pts,cum,fam:st.fam,total:cum[cum.length-1]};
   });
-  const anchors=data.map(d=>[{d:0,t:'end'},{d:d.total,t:'end'}]);
-  // Corners (sharp direction changes within a stroke)
-  data.forEach((d,si)=>{
-    for(let i=1;i<d.pts.length-1;i++){
-      const a=d.pts[i-1],b=d.pts[i],c=d.pts[i+1];
-      let dd=Math.abs(Math.atan2(b[1]-a[1],b[0]-a[0])-Math.atan2(c[1]-b[1],c[0]-b[0]));
-      if(dd>Math.PI)dd=2*Math.PI-dd;
-      if(dd>CAD_STITCH_CORNER)anchors[si].push({d:d.cum[i],t:'corner'});
-    }
-  });
-  // Crossings between strokes (and non-adjacent self-crossings)
+  const lastPt=d=>d.pts[d.pts.length-1];
+  // Segments (for crossing detection + ray counting)
   const SEG=[];
   data.forEach((d,si)=>{for(let i=0;i<d.pts.length-1;i++){
     const p=d.pts[i],q=d.pts[i+1];
     SEG.push({si,idx:i,p,q,s0:d.cum[i],len:d.cum[i+1]-d.cum[i],
       x0:Math.min(p[0],q[0]),x1:Math.max(p[0],q[0]),y0:Math.min(p[1],q[1]),y1:Math.max(p[1],q[1])});
   }});
+  // Crossings (inclusive of shared vertices). `aInt`/`bInt` = the point lies INSIDE that
+  // stroke's segment (→ a pass-through anchor); endpoint hits are covered by the end/corner anchors.
+  const crossings=[];
   for(let i=0;i<SEG.length;i++){const A=SEG[i];
     for(let j=i+1;j<SEG.length;j++){const B=SEG[j];
-      if(A.x1<B.x0-0.5||B.x1<A.x0-0.5||A.y1<B.y0-0.5||B.y1<A.y0-0.5)continue; // bbox reject
-      if(A.si===B.si&&Math.abs(A.idx-B.idx)<=1)continue;                      // skip adjacent
+      if(A.x1<B.x0-0.5||B.x1<A.x0-0.5||A.y1<B.y0-0.5||B.y1<A.y0-0.5)continue;
+      if(A.si===B.si&&Math.abs(A.idx-B.idx)<=1)continue;
       const X=_segCross(A.p,A.q,B.p,B.q);if(!X)continue;
-      anchors[A.si].push({d:A.s0+X.t*A.len,t:'cross'});
-      anchors[B.si].push({d:B.s0+X.u*B.len,t:'cross'});
+      crossings.push({x:A.p[0]+X.t*(A.q[0]-A.p[0]), y:A.p[1]+X.t*(A.q[1]-A.p[1]),
+        aSi:A.si,aD:A.s0+X.t*A.len,aInt:X.t>1e-3&&X.t<1-1e-3,
+        bSi:B.si,bD:B.s0+X.u*B.len,bInt:X.u>1e-3&&X.u<1-1e-3});
     }
   }
-  const prio={end:0,corner:1,cross:2};
+  // Sharp corners (per stroke, vertex indices)
+  const corners=data.map(d=>{
+    const cs=[];
+    for(let i=1;i<d.pts.length-1;i++){
+      const a=d.pts[i-1],b=d.pts[i],c=d.pts[i+1];
+      let dd=Math.abs(Math.atan2(b[1]-a[1],b[0]-a[0])-Math.atan2(c[1]-b[1],c[0]-b[0]));
+      if(dd>Math.PI)dd=2*Math.PI-dd;
+      if(dd>CAD_STITCH_CORNER)cs.push(i);
+    }
+    return cs;
+  });
+  // ── Nodes: cluster the junction points (endpoints + sharp corners + crossings) on a grid.
+  // Gentle curve vertices are NOT nodes, so curves keep long stitches. ──
+  const mergeR=Math.max(0.5*L,5), CELL=mergeR, nodes=[], grid=new Map();
+  const gk=(gx,gy)=>gx+','+gy;
+  function findNode(x,y){
+    const gx=Math.floor(x/CELL),gy=Math.floor(y/CELL);
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const arr=grid.get(gk(gx+a,gy+b));if(arr)for(const nd of arr)if(Math.hypot(nd.x-x,nd.y-y)<mergeR)return nd;}
+    return null;
+  }
+  function addNode(x,y){
+    let nd=findNode(x,y); if(nd)return nd;
+    nd={x,y,bk:new Set(),clr:0}; nodes.push(nd);
+    const k=gk(Math.floor(x/CELL),Math.floor(y/CELL)); if(!grid.has(k))grid.set(k,[]); grid.get(k).push(nd);
+    return nd;
+  }
+  data.forEach((d,si)=>{addNode(d.pts[0][0],d.pts[0][1]);addNode(lastPt(d)[0],lastPt(d)[1]);corners[si].forEach(i=>addNode(d.pts[i][0],d.pts[i][1]));});
+  crossings.forEach(c=>addNode(c.x,c.y));
+  // ── Ray count: for every segment, add its direction(s) to the nodes it touches ──
+  const BK=a=>{let x=((a%(2*Math.PI))+2*Math.PI)%(2*Math.PI);return Math.round(x/(Math.PI/12))%24;};
+  SEG.forEach(sg=>{
+    const ad=Math.atan2(sg.q[1]-sg.p[1],sg.q[0]-sg.p[0]), fwd=BK(ad), rev=BK(ad+Math.PI);
+    const gx0=Math.floor((sg.x0-CELL)/CELL),gx1=Math.floor((sg.x1+CELL)/CELL);
+    const gy0=Math.floor((sg.y0-CELL)/CELL),gy1=Math.floor((sg.y1+CELL)/CELL);
+    const seen=new Set();
+    for(let gx=gx0;gx<=gx1;gx++)for(let gy=gy0;gy<=gy1;gy++){const arr=grid.get(gk(gx,gy));if(!arr)continue;
+      for(const nd of arr){ if(seen.has(nd))continue; seen.add(nd);
+        if(!_segNear(sg.p,sg.q,nd.x,nd.y,mergeR))continue;
+        const dS=Math.hypot(sg.p[0]-nd.x,sg.p[1]-nd.y), dE=Math.hypot(sg.q[0]-nd.x,sg.q[1]-nd.y);
+        if(dS<mergeR)nd.bk.add(fwd); else if(dE<mergeR)nd.bk.add(rev); else{nd.bk.add(fwd);nd.bk.add(rev);}
+      }}
+  });
+  nodes.forEach(nd=>{
+    const R=nd.bk.size;
+    nd.clr = R<=2?0 : R<=4?cCross : Math.min(1.3*L, cCross*(1+0.4*(R-4)));
+  });
+  const clrAt=(x,y)=>{const nd=findNode(x,y);return nd?nd.clr:0;};
+  // ── Anchors: endpoints + sharp corners + interior crossings, each tagged with node clearance ──
+  const anchors=data.map(()=>[]);
+  data.forEach((d,si)=>{
+    anchors[si].push({d:0,clr:clrAt(d.pts[0][0],d.pts[0][1])});
+    anchors[si].push({d:d.total,clr:clrAt(lastPt(d)[0],lastPt(d)[1])});
+    corners[si].forEach(i=>anchors[si].push({d:d.cum[i],clr:clrAt(d.pts[i][0],d.pts[i][1])}));
+  });
+  crossings.forEach(c=>{
+    const clr=clrAt(c.x,c.y);
+    if(c.aInt)anchors[c.aSi].push({d:c.aD,clr});
+    if(c.bInt)anchors[c.bSi].push({d:c.bD,clr});
+  });
+  // ── Lay stitches between consecutive anchors ──
   const out=[];
   data.forEach((d,si)=>{
     const an=anchors[si].filter(o=>o.d>=-1e-6&&o.d<=d.total+1e-6).sort((a,b)=>a.d-b.d);
     const m=[];
     for(const o of an){
-      if(m.length&&o.d-m[m.length-1].d<=1e-3){if(prio[o.t]>prio[m[m.length-1].t])m[m.length-1].t=o.t;}
-      else m.push({d:o.d,t:o.t});
+      if(m.length&&o.d-m[m.length-1].d<=1e-3)m[m.length-1].clr=Math.max(m[m.length-1].clr,o.clr);
+      else m.push({d:o.d,clr:o.clr});
     }
     for(let k=0;k<m.length-1;k++){
       const A=m[k],B=m[k+1];
-      const cA=clearOf(A.t), cB=clearOf(B.t);
-      const S=(B.d-A.d)-cA-cB;                  // span available for stitches+interior gaps
+      const S=(B.d-A.d)-A.clr-B.clr;            // span available for stitches+interior gaps
       if(S<=0.6)continue;                        // consumed by clearance → all denim
       const n=Math.max(1,Math.round((S+G)/U));
       const k2=S/(n*ratio.s+(n-1)*ratio.g), st=ratio.s*k2, gap=ratio.g*k2;
       for(let s=0;s<n;s++){
-        const ds=A.d+cA+s*(st+gap), de=ds+st;
+        const ds=A.d+A.clr+s*(st+gap), de=ds+st;
         let P=_ptAlong(d,ds),Q=_ptAlong(d,de);
         const dx=Q[0]-P[0],dy=Q[1]-P[1],len=Math.hypot(dx,dy);
         if(len>2*cap+0.4){const ix=dx/len*cap,iy=dy/len*cap;P=[P[0]+ix,P[1]+iy];Q=[Q[0]-ix,Q[1]-iy];}
