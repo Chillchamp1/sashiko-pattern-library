@@ -115,15 +115,14 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .stage{position:relative;border-radius:16px;overflow:hidden;
   box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04)}
 canvas#cv{display:block}
-/* Info bar — clickable when idle */
-.info{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
-  background:var(--panel);border:1px solid var(--line);border-radius:30px;
-  padding:8px 18px;font-size:13px;min-height:30px;min-width:280px;text-align:center;
-  cursor:default}
-.info.idle{cursor:pointer;transition:background .12s}
-.info.idle:hover{background:#1d3850}
-.info-play{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
-.info-play span{color:#8aa3bd}
+/* Scrubber — YouTube-style full-width seek bar */
+.scrubber-wrap{width:100%;padding:0 0 4px;box-sizing:border-box}
+.scrubber-wrap input[type=range]{width:100%;accent-color:#6aabff;cursor:pointer;height:18px;display:block;margin:0}
+/* Zoom slider in ctrls */
+.anim-zoom{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.anim-zoom-lbl{font-size:11px;color:var(--muted)}
+.anim-zoom input[type=range]{accent-color:#6aabff;cursor:pointer;width:80px}
+/* Keep .pill/.dot for jumpbar use */
 .pill{padding:3px 11px;border-radius:14px;font-size:12px;font-weight:600;
   display:inline-flex;align-items:center;gap:5px}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;vertical-align:middle}

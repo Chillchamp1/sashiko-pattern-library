@@ -65,20 +65,33 @@ function drawNeedle(i,j,dir){
 }
 function locate(st){let s=st,p=0;while(p<PASSES.length&&s>PASSES[p].count){s-=PASSES[p].count;p++;}return{p,local:s};}
 
-// ── Idle info bar (clickable → starts Play) ────────────────────────────────
-function setIdleInfo(){
-  const el=document.getElementById('info');
-  el.classList.remove('idle');
-  el.innerHTML='';
-  el.style.display='none';   // hide the bar entirely when idle (no "press to begin" prompt)
+// ── Scrubber & Zoom ────────────────────────────────────────────────────────
+function _updateScrubber(st){
+  const el=document.getElementById('scrubber');
+  if(el&&TOTAL>0)el.value=Math.round(st*1000/TOTAL);
+  else if(el)el.value=0;
 }
-window.onInfoClick=function(){if(!playing&&step===0)play();};
+window.seekScrubber=function(v){
+  if(playing)pause();
+  step=Math.max(0,Math.min(TOTAL,Math.round(parseInt(v)*TOTAL/1000)));
+  render(step);
+};
+window.setAnimZoom=function(v){
+  _zoom=parseFloat(v)/10;
+  _panX=0;_panY=0;
+  const ch=EXP_canvasH||SIZE;
+  _setupCanvasSize(SIZE,ch);
+  _clampPan();_setupCanvasSize(SIZE,ch);
+  render(step);
+  const lbl=document.getElementById('animZoomVal');
+  if(lbl)lbl.textContent=_zoom.toFixed(1)+'×';
+};
 
 // ── Render dispatcher ──────────────────────────────────────────────────────
 function render(st){
-  if(isHM){renderHM(st);return;}
-  if(isPL){renderPolyline(st);return;}
-  if(isEXP){renderExp(st);updateInfo(st,0,0);return;}
+  if(isHM){renderHM(st);_updateScrubber(st);return;}
+  if(isPL){renderPolyline(st);_updateScrubber(st);return;}
+  if(isEXP){renderExp(st);_updateExpJump(st);_updateScrubber(st);return;}
   drawFabric(); drawGuide();
   const{p,local}=locate(st);
   for(let k=0;k<p;k++)frontAll(PASSES[k]);
@@ -87,35 +100,20 @@ function render(st){
     for(let k=0;k<local;k++){const[i,j]=cur.order[k];drawStitch(i,j,cur.dir,k===local-1,PHASE_COLORS[cur.dir][getPhase(i,j,cur.dir)]);}
     if(local>0){const[i,j]=cur.order[local-1];drawNeedle(i,j,cur.dir);}
   }
-  updateInfo(st,p,local);
+  markJump(st===0?-1:(st>=TOTAL?PASSES.length-1:p));
+  _updateScrubber(st);
 }
-function updateInfo(st,p,local){
-  const el=document.getElementById('info');
-  if(st===0){setIdleInfo();markJump(-1);return;}
-  el.classList.remove('idle');el.onclick=null;el.style.display='';
-  if(isEXP){
-    let famHtml='',famIdx=-1;
-    if(st<=TOTAL&&st>0&&EXP_path.length){
-      const s=EXP_path[Math.min(st-1,EXP_path.length-1)];
-      if(s.fam!==undefined){
-        const col=famColor(s.fam);
-        const lbl=famLabel(s.fam);
-        famHtml='&nbsp;<span class="pill" style="background:'+hexA(col,.16)+';color:'+col+'"><span class="dot" style="background:'+col+'"></span>'+lbl+'</span>';
-        const fams=[...new Set(EXP_path.map(p=>p.fam))].sort((a,b)=>a-b);
-        famIdx=fams.indexOf(s.fam);
-      }
+function _updateExpJump(st){
+  if(!isEXP)return;
+  let famIdx=-1;
+  if(st>0&&st<=TOTAL&&EXP_path.length){
+    const s=EXP_path[Math.min(st-1,EXP_path.length-1)];
+    if(s.fam!==undefined){
+      const fams=[...new Set(EXP_path.map(p=>p.fam))].sort((a,b)=>a-b);
+      famIdx=fams.indexOf(s.fam);
     }
-    el.innerHTML=st>=TOTAL?'<span class="muted">complete &#10003;</span>'+famHtml:'stitch <b>'+st+'</b><span class="muted">/'+TOTAL+'</span>'+famHtml;
-    markJump(famIdx);return;
   }
-  const idx=(st>=TOTAL)?PASSES.length-1:p;
-  const d=DIRS[PASSES[idx].dir],col=getCss(d.col);
-  const pill=`<span class="pill" style="background:${hexA(col,.16)};color:${col}"><span class="dot" style="background:${col}"></span>pass ${idx+1}/${PASSES.length} · ${d.label} ${d.glyph}</span>`;
-  let phase='';
-  if(st<TOTAL&&local>0){const[ci,cj]=PASSES[p].order[local-1];const ph=getPhase(ci,cj,PASSES[p].dir);const pc=PHASE_COLORS[PASSES[p].dir][ph];phase=`&nbsp;<span style="font-size:11px;display:inline-flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;border-radius:1px;background:${pc}"></span><span style="color:${pc}">${ph===0?'even':'offset'}</span></span>`;}
-  const cnt=st>=TOTAL?`<span class="muted">complete ✓</span>`:`stitch <b>${st}</b><span class="muted">/${TOTAL}</span>`;
-  el.innerHTML=`${cnt} &nbsp;${pill}${phase}`;
-  markJump(idx);
+  markJump(famIdx);
 }
 function markJump(idx){[...document.getElementById('jumpbar').children].forEach((b,i)=>b.classList.toggle('on',i===idx));}
 
@@ -161,6 +159,10 @@ function buildJumpBar(){
 // ── Load pattern ───────────────────────────────────────────────────────────
 function loadPattern(pat){
   _resetZoom();
+  // Reset scrubber and zoom slider
+  {const sc=document.getElementById('scrubber');if(sc)sc.value=0;}
+  {const zs=document.getElementById('zoomSlider');if(zs)zs.value=10;}
+  {const zl=document.getElementById('animZoomVal');if(zl)zl.textContent='1.0×';}
   // Restore default square canvas if a previous exp iso pattern changed the height.
   if(Math.round(cv.height/DPR)!==SIZE){
     _setupCanvasSize(SIZE,SIZE);
@@ -193,8 +195,6 @@ function loadPattern(pat){
   */
   cv.style.cursor='';
   if(isGen){
-    const gc=window._galleryCells||0;
-    if(gc>0&&gc+1>=6&&gc+1<=20){GEN_n=gc+1;GEN_snowGrid=Math.max(8,Math.min(32,gc+1));}
     showGenUI(true);
     refreshGen(true);
     return;
@@ -202,16 +202,9 @@ function loadPattern(pat){
   showGenUI(false);
 
   if(isEXP){
-    let effPat=pat;
-    const gc=window._galleryCells||0;
-    if(gc>0){
-      const b=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
-      const dU=Math.round(b.maxU-b.minU)||10;
-      effPat={...pat, patMacro:Math.max(1,Math.round(gc*dU/10))};
-    }
-    setupExpCanvas(effPat);
-    const expLay=computeExpLayout(effPat);
-    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
+    setupExpCanvas(pat);
+    const expLay=computeExpLayout(pat);
+    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';

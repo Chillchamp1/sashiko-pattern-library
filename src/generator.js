@@ -183,8 +183,9 @@ function tick(t){
 }
 bPlay.onclick=()=>playing?pause():play();
 document.getElementById('bReset').onclick=()=>{pause();step=0;render(step);};
-document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);render(step);};
-document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
+{const bb=document.getElementById('bBack');if(bb)bb.onclick=()=>{pause();step=Math.max(0,step-1);render(step);};}
+{const bf=document.getElementById('bFwd');if(bf)bf.onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};}
+
 {const sl=document.getElementById('animSpeed');
  if(sl){sl.value=_animSpeedV;sl.oninput=()=>{_animSpeedV=parseInt(sl.value);updateSpeed();};}}
 window.addEventListener('keydown',e=>{
