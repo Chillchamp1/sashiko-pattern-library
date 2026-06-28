@@ -270,6 +270,9 @@ All thumbnails use the real animation pipeline (`ctx` redirected to thumb canvas
 ```javascript
 function renderThumb(canvas, pat) {
   // exp:       computeExpLayout + buildExpPath(genTiledSegs) + renderExp(TOTAL)
+  //            — rendered in STITCH VIEW (denim + off-white, no grid) using the
+  //              pattern's saved stitchLen/stitchRatio; renderThumb saves/restores
+  //              galStitch* + EXP_uRange/vRange so the viewer's state isn't disturbed.
   // polyline:  buildTsuzukiYamagata/buildAsanoha -> renderPolyline(TOTAL)
   // hitomezashi/generator: seqToBits -> buildHMcore -> renderHM(TOTAL)
   // star-arm:  buildPasses -> drawFabric + drawGuide + frontAll
