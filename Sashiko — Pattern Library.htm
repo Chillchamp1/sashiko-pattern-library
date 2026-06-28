@@ -280,11 +280,27 @@ button.ctrl.primary:hover{background:#275784}
 /* Speed slider (gallery animation + CAD play) */
 .speed-slider{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:1}
 .speed-slider input[type=range]{accent-color:#6aabff;cursor:pointer;width:100px;vertical-align:middle}
-/* Gallery stitch-view bar + advanced dropdown */
+/* Gallery stitch-view bar + popovers (thread colours, advanced) */
 .stitch-view-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin:8px 0 2px}
-.gal-adv-btn{font-size:11px;padding:5px 10px}
-.gal-adv{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;padding:7px 9px;background:var(--panel);border:1px solid var(--line);border-radius:10px;width:100%}
+.gal-pop-btn{font-size:11px;padding:5px 10px}
+.gal-pop{flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:9px 10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;width:100%}
+.gal-adv{display:flex}
 .gal-adv input[type=range]{accent-color:#efe7d0;cursor:pointer;width:96px;vertical-align:middle}
+/* Thread-colour panel */
+.gal-colours{display:block}
+.gal-pal-tabs{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:8px}
+.gal-pal-tab{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit}
+.gal-pal-tab.on{background:#214a72;border-color:#3a6ea3;color:#e7eef6}
+.gal-pal-reset{margin-left:6px;background:transparent;border:1px solid var(--line);border-radius:7px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer;font:inherit}
+.gal-pal-reset:hover{color:#e7eef6;background:#1d3850}
+.gal-fam-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;margin-bottom:8px}
+.gal-fam-chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:12px;color:#cfe0f2;cursor:pointer;font:inherit}
+.gal-fam-chip.sel{border-color:#6aabff;box-shadow:0 0 0 1px #6aabff inset}
+.gal-fam-dot{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.3)}
+.gal-swatches{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;max-width:340px;margin:0 auto}
+.gal-sw{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.18);cursor:pointer;padding:0}
+.gal-sw:hover{transform:scale(1.12)}
+.gal-sw.cur{border-color:#fff;box-shadow:0 0 0 2px #6aabff}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
@@ -410,15 +426,21 @@ button.ctrl.primary:hover{background:#275784}
     </span>
   </div>
 
-  <!-- Realistic stitch view (custom patterns only) -->
+  <!-- Stitch-view options (custom patterns render in stitch view by default) -->
   <div class="stitch-view-bar" id="stitchViewBar" style="display:none">
-    <label class="cad-switch" title="Realistic denim + off-white thread view">
-      <input type="checkbox" id="galStitchToggle" onchange="galToggleStitch()">
-      <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
-      <span class="cad-switch-text">🪡 Stitch view</span>
-    </label>
-    <button class="ctrl gal-adv-btn" id="galAdvBtn" onclick="galToggleAdv()" style="display:none">Advanced ▾</button>
-    <div class="gal-adv" id="galAdv" style="display:none">
+    <button class="ctrl gal-pop-btn" id="galColBtn" onclick="galToggleColours()">🎨 Thread colours ▾</button>
+    <button class="ctrl gal-pop-btn" id="galAdvBtn" onclick="galToggleAdv()">⚙ Advanced ▾</button>
+    <!-- Thread-colour preview: keep stitches off-white, or paint each family -->
+    <div class="gal-pop gal-colours" id="galColours" style="display:none">
+      <div class="gal-pal-tabs">
+        <button class="gal-pal-tab on" id="galPalPastel" onclick="galSetPalette('pastel')">Pastel</button>
+        <button class="gal-pal-tab" id="galPalSashiko" onclick="galSetPalette('sashiko')">Sashiko</button>
+        <button class="gal-pal-reset" onclick="galResetColours()" title="Reset all to off-white">↺ All white</button>
+      </div>
+      <div class="gal-fam-chips" id="galFamChips"></div>
+      <div class="gal-swatches" id="galSwatches"></div>
+    </div>
+    <div class="gal-pop gal-adv" id="galAdv" style="display:none">
       <span class="cad-panel-stepper">
         <span class="cad-panel-stepper-label">Stitch</span>
         <input type="range" id="galStitchLen" min="3" max="40" step="1" value="8" oninput="galSetStitchLen(this.value)">
@@ -5445,26 +5467,8 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
   if(isEXP){
-    const fams=[...new Set(EXP_path.map(s=>s.fam))].sort((a,b)=>a-b);
-    if(fams.length){
-      const lab=document.createElement('span');
-      lab.className='coltog-label';lab.textContent='Show colours:';
-      jb.appendChild(lab);
-    }
-    fams.forEach(fam=>{
-      const col=famColor(fam);
-      const on=_famToggles[fam]!==false;
-      const b=document.createElement('button');
-      b.className='coltog'+(on?' on':' off');
-      b.style.borderColor=col;
-      b.style.background=on?col+'2e':'transparent';
-      b.title=(on?'Hide':'Show')+' colour '+(fam+1);
-      b.innerHTML=`<span class="coltog-sw" style="background:${on?col:'transparent'};border-color:${col}"></span>`+
-                  `<span class="coltog-name">Colour ${fam+1}</span>`+
-                  `<span class="coltog-state">${on?'on':'off'}</span>`;
-      b.onclick=()=>{_famToggles[fam]=!_famToggles[fam];step=TOTAL;if(playing)pause();render(step);buildJumpBar();};
-      jb.appendChild(b);
-    });
+    // Custom patterns render in stitch view; thread colours live in their own
+    // panel (#galColours), so the jump bar stays empty here.
     return;
   }
   if(isPL){
@@ -5572,11 +5576,12 @@ function loadPattern(pat){
     updateProfileBadge();
     */
     _famToggles={};
-    // Gallery stitch view — defaults from the creator's saved CAD settings
-    galStitch=!!pat.stitchView;
+    // Stitch view is the standard (and only) view for custom patterns now.
+    galStitch=true;
     galStitchLen=pat.stitchLen||8;
     galStitchRatio=pat.stitchRatio||'standard';
     galStitchGrid=!!pat.stitchGrid;
+    galThreadColors={}; galActiveFam=0;   // thread-colour preview resets per pattern
     _galStitchCache=null;
     syncGalStitchUI();
     step=TOTAL;if(playing)pause();
@@ -5909,7 +5914,7 @@ function renderThumb(canvas,pat){
   const sHMN=HM_N,sHMC=HM_CELL,sHMPth=HM_path,sHMFr=HM_fronts,sHMPO=HM_phase_order;
   const sPLp=PL_path,sPLf=PL_fronts,sPLps=PL_passes,sPLN=PL_N,sPLHU=PL_HU,sPLSh=PL_shCount,sPLNHU=PL_NHU;
   const sEXpath=EXP_path,sEXg2s=EXP_g2s,sEXh=EXP_canvasH,sEXur=EXP_uRange,sEXvr=EXP_vRange;
-  const sGS=galStitch,sGSl=galStitchLen,sGSr=galStitchRatio,sGSg=galStitchGrid,sGSc=_galStitchCache;
+  const sGS=galStitch,sGSl=galStitchLen,sGSr=galStitchRatio,sGSg=galStitchGrid,sGSc=_galStitchCache,sGTC=galThreadColors;
 
   ctx=canvas.getContext('2d'); ctx.scale(ctxSX,ctxSY);
   if(expTranslateX||expTranslateY) ctx.translate(expTranslateX,expTranslateY);
@@ -5925,7 +5930,7 @@ function renderThumb(canvas,pat){
       TOTAL=EXP_path.length;
       // Thumbnails render in the realistic stitch view (denim + off-white yarn),
       // using the pattern's saved stitch settings; grid is omitted (too fine to read).
-      galStitch=true; galStitchLen=pat.stitchLen||8; galStitchRatio=pat.stitchRatio||'standard'; galStitchGrid=false; _galStitchCache=null;
+      galStitch=true; galStitchLen=pat.stitchLen||8; galStitchRatio=pat.stitchRatio||'standard'; galStitchGrid=false; galThreadColors={}; _galStitchCache=null;
       renderExp(TOTAL);
     } else if(isPL){
       SIZE=THUMB_SIZE;
@@ -5954,7 +5959,7 @@ function renderThumb(canvas,pat){
   HM_N=sHMN; HM_CELL=sHMC; HM_path=sHMPth; HM_fronts=sHMFr; HM_phase_order=sHMPO;
   PL_path=sPLp; PL_fronts=sPLf; PL_passes=sPLps; PL_N=sPLN; PL_HU=sPLHU; PL_shCount=sPLSh; PL_NHU=sPLNHU;
   EXP_path=sEXpath; EXP_g2s=sEXg2s; EXP_canvasH=sEXh; EXP_uRange=sEXur; EXP_vRange=sEXvr;
-  galStitch=sGS; galStitchLen=sGSl; galStitchRatio=sGSr; galStitchGrid=sGSg; _galStitchCache=sGSc;
+  galStitch=sGS; galStitchLen=sGSl; galStitchRatio=sGSr; galStitchGrid=sGSg; _galStitchCache=sGSc; galThreadColors=sGTC;
 }
 
 
@@ -6152,9 +6157,17 @@ let EXP_path=[];       // [{start:[u,v], end:[u,v], jump:bool}]
 let EXP_g2s=null;      // grid→screen fn (set by setupExpCanvas)
 let EXP_canvasH=SIZE;  // canvas height in CSS px (SIZE for square, SIZE/√3 for iso)
 let EXP_uRange=[0,0], EXP_vRange=[0,0];  // visible grid range (for stitch-view grid overlay)
-// ── Gallery realistic stitch view (defaults come from the saved pattern) ─────
-let galStitch=false, galStitchLen=8, galStitchRatio='standard', galStitchGrid=false;
+// ── Gallery realistic stitch view (always on for custom patterns) ────────────
+let galStitch=true, galStitchLen=8, galStitchRatio='standard', galStitchGrid=false;
 let _galStitchCache=null;
+// Optional thread-colour preview: family index → hex (absent = off-white yarn).
+let galThreadColors={}, galPalette='pastel', galActiveFam=0;
+// Soft pastel thread palette.
+const GAL_PASTEL=['#efe7d0','#f3c9d3','#f8d9b8','#f4e7a9','#c2e6cf','#c3dcef','#cfd0ef','#e3cdec','#cfe6df','#d8d2c4'];
+// Authentic sashiko thread colours (curated, à la Olympus/Daruma thread cards) —
+// a fixed swatch set is the right picker here, not a free colour wheel.
+const GAL_SASHIKO=['#ece3c8','#f6f3ea','#c0392b','#d4572b','#d9a52b','#c8902a','#5a9e57','#3a6b4a','#2f7f86','#5b91c4','#27406e','#5a4f93','#8a4f86','#c76b8e','#855a3a','#2b2b2b','#98a2ad'];
+function _galPaletteArr(){return galPalette==='sashiko'?GAL_SASHIKO:GAL_PASTEL;}
 
 // ── Firebase bootstrap ───────────────────────────────────────────────────────
 function _initFirebase(){
@@ -7731,26 +7744,74 @@ function _galStitchScene(){
   const strokes=_buildStrokesFromPath(EXP_path,p=>{const a=EXP_g2s(p);return[a.x,a.y];});
   return(_galStitchCache={ref:EXP_path,len:galStitchLen,ratio:galStitchRatio,w,stitches:_layStitches(strokes,galStitchLen,galStitchRatio,w)});
 }
+// ── Stitch-view options + thread-colour preview (gallery animation view) ─────
 function syncGalStitchUI(){
-  const t=document.getElementById('galStitchToggle');if(t)t.checked=galStitch;
   const l=document.getElementById('galStitchLen');if(l)l.value=galStitchLen;
   const lv=document.getElementById('galStitchLenVal');if(lv)lv.textContent=galStitchLen;
   const r=document.getElementById('galStitchRatio');if(r)r.value=galStitchRatio;
   const g=document.getElementById('galStitchGrid');if(g)g.checked=galStitchGrid;
-  const ab=document.getElementById('galAdvBtn');if(ab)ab.style.display=galStitch?'inline-flex':'none';
-  const ad=document.getElementById('galAdv');if(ad){ad.style.display='none';}
+  const c=document.getElementById('galColours');if(c)c.style.display='none';
+  const a=document.getElementById('galAdv');if(a)a.style.display='none';
+  const cb=document.getElementById('galColBtn');if(cb)cb.textContent='🎨 Thread colours ▾';
+  const ab=document.getElementById('galAdvBtn');if(ab)ab.textContent='⚙ Advanced ▾';
+  document.getElementById('galPalPastel')&&document.getElementById('galPalPastel').classList.toggle('on',galPalette==='pastel');
+  document.getElementById('galPalSashiko')&&document.getElementById('galPalSashiko').classList.toggle('on',galPalette==='sashiko');
+  galBuildColourUI();
 }
-window.galToggleStitch=function(){
-  galStitch=document.getElementById('galStitchToggle').checked;
-  const ab=document.getElementById('galAdvBtn');if(ab)ab.style.display=galStitch?'inline-flex':'none';
-  if(!galStitch){const ad=document.getElementById('galAdv');if(ad)ad.style.display='none';}
-  render(step);
+function galBuildColourUI(){
+  const chips=document.getElementById('galFamChips');if(!chips)return;
+  const fams=[...new Set(EXP_path.map(s=>s.fam))].sort((a,b)=>a-b);
+  if(!fams.includes(galActiveFam))galActiveFam=fams.length?fams[0]:0;
+  chips.innerHTML='';
+  fams.forEach(f=>{
+    const b=document.createElement('button');
+    b.className='gal-fam-chip'+(f===galActiveFam?' sel':'');
+    b.innerHTML=`<span class="gal-fam-dot" style="background:${galThreadColors[f]||CAD_YARN}"></span>Colour ${f+1}`;
+    b.onclick=()=>{galActiveFam=f;galBuildColourUI();};
+    chips.appendChild(b);
+  });
+  galBuildSwatches();
+}
+function galBuildSwatches(){
+  const sw=document.getElementById('galSwatches');if(!sw)return;
+  sw.innerHTML='';
+  const cur=galThreadColors[galActiveFam];
+  const mk=(hex,isWhite)=>{
+    const b=document.createElement('button');
+    b.className='gal-sw'+((isWhite?!cur:cur===hex)?' cur':'');
+    b.style.background=hex;
+    b.title=isWhite?'Off-white (default)':hex;
+    b.onclick=()=>window.galApplyColour(isWhite?null:hex);
+    return b;
+  };
+  sw.appendChild(mk(CAD_YARN,true));
+  _galPaletteArr().forEach(h=>sw.appendChild(mk(h,false)));
+}
+window.galApplyColour=function(hex){
+  if(hex)galThreadColors[galActiveFam]=hex; else delete galThreadColors[galActiveFam];
+  galBuildColourUI(); render(step);
+};
+window.galResetColours=function(){galThreadColors={}; galBuildColourUI(); render(step);};
+window.galSetPalette=function(p){
+  galPalette=p;
+  document.getElementById('galPalPastel').classList.toggle('on',p==='pastel');
+  document.getElementById('galPalSashiko').classList.toggle('on',p==='sashiko');
+  galBuildSwatches();
+};
+window.galToggleColours=function(){
+  const c=document.getElementById('galColours'),a=document.getElementById('galAdv');
+  const open=c.style.display!=='none';
+  c.style.display=open?'none':'block'; a.style.display='none';
+  document.getElementById('galAdvBtn').textContent='⚙ Advanced ▾';
+  document.getElementById('galColBtn').textContent=open?'🎨 Thread colours ▾':'🎨 Thread colours ▴';
+  if(!open)galBuildColourUI();
 };
 window.galToggleAdv=function(){
-  const a=document.getElementById('galAdv'),b=document.getElementById('galAdvBtn');
+  const a=document.getElementById('galAdv'),c=document.getElementById('galColours');
   const open=a.style.display!=='none';
-  a.style.display=open?'none':'flex';
-  if(b)b.textContent=open?'Advanced ▾':'Advanced ▴';
+  a.style.display=open?'none':'flex'; c.style.display='none';
+  document.getElementById('galColBtn').textContent='🎨 Thread colours ▾';
+  document.getElementById('galAdvBtn').textContent=open?'⚙ Advanced ▾':'⚙ Advanced ▴';
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
@@ -7764,7 +7825,7 @@ function renderExp(step){
     if(!EXP_path.length)return;
     const sc=_galStitchScene(),N=sc.stitches.length;
     const shown=step>=TOTAL?N:Math.round(N*step/Math.max(1,TOTAL));
-    for(let i=0;i<shown;i++){const s=sc.stitches[i];if(_famToggles[s.fam]===false)continue;_cadDrawStitch(ctx,s,sc.w);}
+    for(let i=0;i<shown;i++){const s=sc.stitches[i];if(_famToggles[s.fam]===false)continue;_cadDrawStitch(ctx,s,sc.w,galThreadColors[s.fam]);}
     return;
   }
   // Fabric background
@@ -9246,7 +9307,9 @@ function _layStitches(strokes,L,ratioKey,w){
   L=Math.max(3,L);
   const G=L*ratio.g/ratio.s, U=L+G;
   const cap=w/2;                              // round-cap radius
-  const cClear=Math.max(G/2, w/2+0.75);       // clearance at corners/crossings
+  const cCorner=Math.max(G/2, w/2+0.75);      // clearance reserved at a corner
+  const cCross=2*cCorner;                     // crossings get TWICE the clear (no-yarn) zone
+  const clearOf=t=>t==='cross'?cCross:t==='corner'?cCorner:0;
   const data=strokes.map(st=>{
     const pts=st.pts,cum=[0];
     for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
@@ -9289,7 +9352,7 @@ function _layStitches(strokes,L,ratioKey,w){
     }
     for(let k=0;k<m.length-1;k++){
       const A=m[k],B=m[k+1];
-      const cA=A.t==='end'?0:cClear, cB=B.t==='end'?0:cClear;
+      const cA=clearOf(A.t), cB=clearOf(B.t);
       const S=(B.d-A.d)-cA-cB;                  // span available for stitches+interior gaps
       if(S<=0.6)continue;                        // consumed by clearance → all denim
       const n=Math.max(1,Math.round((S+G)/U));
@@ -9352,12 +9415,13 @@ function _cadDrawStitchGrid(x,scene){
   for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
   for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
 }
-// Draw one off-white sashiko stitch with a little depth (shadow + sheen).
-function _cadDrawStitch(x,s,w){
+// Draw one sashiko stitch with a little depth (shadow + sheen). `color` overrides
+// the default off-white yarn (used for the gallery thread-colour preview).
+function _cadDrawStitch(x,s,w,color){
   x.lineCap='round';
   x.strokeStyle='rgba(8,16,34,0.40)';x.lineWidth=w+1.5;
   x.beginPath();x.moveTo(s.x1+0.6,s.y1+1.3);x.lineTo(s.x2+0.6,s.y2+1.3);x.stroke();
-  x.strokeStyle=CAD_YARN;x.lineWidth=w;
+  x.strokeStyle=color||CAD_YARN;x.lineWidth=w;
   x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
   x.strokeStyle='rgba(255,255,255,0.30)';x.lineWidth=Math.max(0.8,w*0.34);
   x.beginPath();x.moveTo(s.x1-0.4,s.y1-0.7);x.lineTo(s.x2-0.4,s.y2-0.7);x.stroke();

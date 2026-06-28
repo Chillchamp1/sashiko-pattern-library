@@ -1245,7 +1245,9 @@ function _layStitches(strokes,L,ratioKey,w){
   L=Math.max(3,L);
   const G=L*ratio.g/ratio.s, U=L+G;
   const cap=w/2;                              // round-cap radius
-  const cClear=Math.max(G/2, w/2+0.75);       // clearance at corners/crossings
+  const cCorner=Math.max(G/2, w/2+0.75);      // clearance reserved at a corner
+  const cCross=2*cCorner;                     // crossings get TWICE the clear (no-yarn) zone
+  const clearOf=t=>t==='cross'?cCross:t==='corner'?cCorner:0;
   const data=strokes.map(st=>{
     const pts=st.pts,cum=[0];
     for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
@@ -1288,7 +1290,7 @@ function _layStitches(strokes,L,ratioKey,w){
     }
     for(let k=0;k<m.length-1;k++){
       const A=m[k],B=m[k+1];
-      const cA=A.t==='end'?0:cClear, cB=B.t==='end'?0:cClear;
+      const cA=clearOf(A.t), cB=clearOf(B.t);
       const S=(B.d-A.d)-cA-cB;                  // span available for stitches+interior gaps
       if(S<=0.6)continue;                        // consumed by clearance → all denim
       const n=Math.max(1,Math.round((S+G)/U));
@@ -1351,12 +1353,13 @@ function _cadDrawStitchGrid(x,scene){
   for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
   for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
 }
-// Draw one off-white sashiko stitch with a little depth (shadow + sheen).
-function _cadDrawStitch(x,s,w){
+// Draw one sashiko stitch with a little depth (shadow + sheen). `color` overrides
+// the default off-white yarn (used for the gallery thread-colour preview).
+function _cadDrawStitch(x,s,w,color){
   x.lineCap='round';
   x.strokeStyle='rgba(8,16,34,0.40)';x.lineWidth=w+1.5;
   x.beginPath();x.moveTo(s.x1+0.6,s.y1+1.3);x.lineTo(s.x2+0.6,s.y2+1.3);x.stroke();
-  x.strokeStyle=CAD_YARN;x.lineWidth=w;
+  x.strokeStyle=color||CAD_YARN;x.lineWidth=w;
   x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
   x.strokeStyle='rgba(255,255,255,0.30)';x.lineWidth=Math.max(0.8,w*0.34);
   x.beginPath();x.moveTo(s.x1-0.4,s.y1-0.7);x.lineTo(s.x2-0.4,s.y2-0.7);x.stroke();
