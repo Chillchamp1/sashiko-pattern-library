@@ -273,11 +273,27 @@ button.ctrl.primary:hover{background:#275784}
 /* Speed slider (gallery animation + CAD play) */
 .speed-slider{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:1}
 .speed-slider input[type=range]{accent-color:#6aabff;cursor:pointer;width:100px;vertical-align:middle}
-/* Gallery stitch-view bar + advanced dropdown */
+/* Gallery stitch-view bar + popovers (thread colours, advanced) */
 .stitch-view-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin:8px 0 2px}
-.gal-adv-btn{font-size:11px;padding:5px 10px}
-.gal-adv{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;padding:7px 9px;background:var(--panel);border:1px solid var(--line);border-radius:10px;width:100%}
+.gal-pop-btn{font-size:11px;padding:5px 10px}
+.gal-pop{flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:9px 10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;width:100%}
+.gal-adv{display:flex}
 .gal-adv input[type=range]{accent-color:#efe7d0;cursor:pointer;width:96px;vertical-align:middle}
+/* Thread-colour panel */
+.gal-colours{display:block}
+.gal-pal-tabs{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:8px}
+.gal-pal-tab{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:4px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit}
+.gal-pal-tab.on{background:#214a72;border-color:#3a6ea3;color:#e7eef6}
+.gal-pal-reset{margin-left:6px;background:transparent;border:1px solid var(--line);border-radius:7px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer;font:inherit}
+.gal-pal-reset:hover{color:#e7eef6;background:#1d3850}
+.gal-fam-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;margin-bottom:8px}
+.gal-fam-chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:12px;color:#cfe0f2;cursor:pointer;font:inherit}
+.gal-fam-chip.sel{border-color:#6aabff;box-shadow:0 0 0 1px #6aabff inset}
+.gal-fam-dot{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.3)}
+.gal-swatches{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;max-width:340px;margin:0 auto}
+.gal-sw{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.18);cursor:pointer;padding:0}
+.gal-sw:hover{transform:scale(1.12)}
+.gal-sw.cur{border-color:#fff;box-shadow:0 0 0 2px #6aabff}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}

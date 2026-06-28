@@ -83,15 +83,21 @@
     </span>
   </div>
 
-  <!-- Realistic stitch view (custom patterns only) -->
+  <!-- Stitch-view options (custom patterns render in stitch view by default) -->
   <div class="stitch-view-bar" id="stitchViewBar" style="display:none">
-    <label class="cad-switch" title="Realistic denim + off-white thread view">
-      <input type="checkbox" id="galStitchToggle" onchange="galToggleStitch()">
-      <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
-      <span class="cad-switch-text">🪡 Stitch view</span>
-    </label>
-    <button class="ctrl gal-adv-btn" id="galAdvBtn" onclick="galToggleAdv()" style="display:none">Advanced ▾</button>
-    <div class="gal-adv" id="galAdv" style="display:none">
+    <button class="ctrl gal-pop-btn" id="galColBtn" onclick="galToggleColours()">🎨 Thread colours ▾</button>
+    <button class="ctrl gal-pop-btn" id="galAdvBtn" onclick="galToggleAdv()">⚙ Advanced ▾</button>
+    <!-- Thread-colour preview: keep stitches off-white, or paint each family -->
+    <div class="gal-pop gal-colours" id="galColours" style="display:none">
+      <div class="gal-pal-tabs">
+        <button class="gal-pal-tab on" id="galPalPastel" onclick="galSetPalette('pastel')">Pastel</button>
+        <button class="gal-pal-tab" id="galPalSashiko" onclick="galSetPalette('sashiko')">Sashiko</button>
+        <button class="gal-pal-reset" onclick="galResetColours()" title="Reset all to off-white">↺ All white</button>
+      </div>
+      <div class="gal-fam-chips" id="galFamChips"></div>
+      <div class="gal-swatches" id="galSwatches"></div>
+    </div>
+    <div class="gal-pop gal-adv" id="galAdv" style="display:none">
       <span class="cad-panel-stepper">
         <span class="cad-panel-stepper-label">Stitch</span>
         <input type="range" id="galStitchLen" min="3" max="40" step="1" value="8" oninput="galSetStitchLen(this.value)">

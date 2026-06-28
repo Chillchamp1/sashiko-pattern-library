@@ -20,9 +20,17 @@ let EXP_path=[];       // [{start:[u,v], end:[u,v], jump:bool}]
 let EXP_g2s=null;      // grid→screen fn (set by setupExpCanvas)
 let EXP_canvasH=SIZE;  // canvas height in CSS px (SIZE for square, SIZE/√3 for iso)
 let EXP_uRange=[0,0], EXP_vRange=[0,0];  // visible grid range (for stitch-view grid overlay)
-// ── Gallery realistic stitch view (defaults come from the saved pattern) ─────
-let galStitch=false, galStitchLen=8, galStitchRatio='standard', galStitchGrid=false;
+// ── Gallery realistic stitch view (always on for custom patterns) ────────────
+let galStitch=true, galStitchLen=8, galStitchRatio='standard', galStitchGrid=false;
 let _galStitchCache=null;
+// Optional thread-colour preview: family index → hex (absent = off-white yarn).
+let galThreadColors={}, galPalette='pastel', galActiveFam=0;
+// Soft pastel thread palette.
+const GAL_PASTEL=['#efe7d0','#f3c9d3','#f8d9b8','#f4e7a9','#c2e6cf','#c3dcef','#cfd0ef','#e3cdec','#cfe6df','#d8d2c4'];
+// Authentic sashiko thread colours (curated, à la Olympus/Daruma thread cards) —
+// a fixed swatch set is the right picker here, not a free colour wheel.
+const GAL_SASHIKO=['#ece3c8','#f6f3ea','#c0392b','#d4572b','#d9a52b','#c8902a','#5a9e57','#3a6b4a','#2f7f86','#5b91c4','#27406e','#5a4f93','#8a4f86','#c76b8e','#855a3a','#2b2b2b','#98a2ad'];
+function _galPaletteArr(){return galPalette==='sashiko'?GAL_SASHIKO:GAL_PASTEL;}
 
 // ── Firebase bootstrap ───────────────────────────────────────────────────────
 function _initFirebase(){
@@ -1599,26 +1607,74 @@ function _galStitchScene(){
   const strokes=_buildStrokesFromPath(EXP_path,p=>{const a=EXP_g2s(p);return[a.x,a.y];});
   return(_galStitchCache={ref:EXP_path,len:galStitchLen,ratio:galStitchRatio,w,stitches:_layStitches(strokes,galStitchLen,galStitchRatio,w)});
 }
+// ── Stitch-view options + thread-colour preview (gallery animation view) ─────
 function syncGalStitchUI(){
-  const t=document.getElementById('galStitchToggle');if(t)t.checked=galStitch;
   const l=document.getElementById('galStitchLen');if(l)l.value=galStitchLen;
   const lv=document.getElementById('galStitchLenVal');if(lv)lv.textContent=galStitchLen;
   const r=document.getElementById('galStitchRatio');if(r)r.value=galStitchRatio;
   const g=document.getElementById('galStitchGrid');if(g)g.checked=galStitchGrid;
-  const ab=document.getElementById('galAdvBtn');if(ab)ab.style.display=galStitch?'inline-flex':'none';
-  const ad=document.getElementById('galAdv');if(ad){ad.style.display='none';}
+  const c=document.getElementById('galColours');if(c)c.style.display='none';
+  const a=document.getElementById('galAdv');if(a)a.style.display='none';
+  const cb=document.getElementById('galColBtn');if(cb)cb.textContent='🎨 Thread colours ▾';
+  const ab=document.getElementById('galAdvBtn');if(ab)ab.textContent='⚙ Advanced ▾';
+  document.getElementById('galPalPastel')&&document.getElementById('galPalPastel').classList.toggle('on',galPalette==='pastel');
+  document.getElementById('galPalSashiko')&&document.getElementById('galPalSashiko').classList.toggle('on',galPalette==='sashiko');
+  galBuildColourUI();
 }
-window.galToggleStitch=function(){
-  galStitch=document.getElementById('galStitchToggle').checked;
-  const ab=document.getElementById('galAdvBtn');if(ab)ab.style.display=galStitch?'inline-flex':'none';
-  if(!galStitch){const ad=document.getElementById('galAdv');if(ad)ad.style.display='none';}
-  render(step);
+function galBuildColourUI(){
+  const chips=document.getElementById('galFamChips');if(!chips)return;
+  const fams=[...new Set(EXP_path.map(s=>s.fam))].sort((a,b)=>a-b);
+  if(!fams.includes(galActiveFam))galActiveFam=fams.length?fams[0]:0;
+  chips.innerHTML='';
+  fams.forEach(f=>{
+    const b=document.createElement('button');
+    b.className='gal-fam-chip'+(f===galActiveFam?' sel':'');
+    b.innerHTML=`<span class="gal-fam-dot" style="background:${galThreadColors[f]||CAD_YARN}"></span>Colour ${f+1}`;
+    b.onclick=()=>{galActiveFam=f;galBuildColourUI();};
+    chips.appendChild(b);
+  });
+  galBuildSwatches();
+}
+function galBuildSwatches(){
+  const sw=document.getElementById('galSwatches');if(!sw)return;
+  sw.innerHTML='';
+  const cur=galThreadColors[galActiveFam];
+  const mk=(hex,isWhite)=>{
+    const b=document.createElement('button');
+    b.className='gal-sw'+((isWhite?!cur:cur===hex)?' cur':'');
+    b.style.background=hex;
+    b.title=isWhite?'Off-white (default)':hex;
+    b.onclick=()=>window.galApplyColour(isWhite?null:hex);
+    return b;
+  };
+  sw.appendChild(mk(CAD_YARN,true));
+  _galPaletteArr().forEach(h=>sw.appendChild(mk(h,false)));
+}
+window.galApplyColour=function(hex){
+  if(hex)galThreadColors[galActiveFam]=hex; else delete galThreadColors[galActiveFam];
+  galBuildColourUI(); render(step);
+};
+window.galResetColours=function(){galThreadColors={}; galBuildColourUI(); render(step);};
+window.galSetPalette=function(p){
+  galPalette=p;
+  document.getElementById('galPalPastel').classList.toggle('on',p==='pastel');
+  document.getElementById('galPalSashiko').classList.toggle('on',p==='sashiko');
+  galBuildSwatches();
+};
+window.galToggleColours=function(){
+  const c=document.getElementById('galColours'),a=document.getElementById('galAdv');
+  const open=c.style.display!=='none';
+  c.style.display=open?'none':'block'; a.style.display='none';
+  document.getElementById('galAdvBtn').textContent='⚙ Advanced ▾';
+  document.getElementById('galColBtn').textContent=open?'🎨 Thread colours ▾':'🎨 Thread colours ▴';
+  if(!open)galBuildColourUI();
 };
 window.galToggleAdv=function(){
-  const a=document.getElementById('galAdv'),b=document.getElementById('galAdvBtn');
+  const a=document.getElementById('galAdv'),c=document.getElementById('galColours');
   const open=a.style.display!=='none';
-  a.style.display=open?'none':'flex';
-  if(b)b.textContent=open?'Advanced ▾':'Advanced ▴';
+  a.style.display=open?'none':'flex'; c.style.display='none';
+  document.getElementById('galColBtn').textContent='🎨 Thread colours ▾';
+  document.getElementById('galAdvBtn').textContent=open?'⚙ Advanced ▾':'⚙ Advanced ▴';
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
@@ -1632,7 +1688,7 @@ function renderExp(step){
     if(!EXP_path.length)return;
     const sc=_galStitchScene(),N=sc.stitches.length;
     const shown=step>=TOTAL?N:Math.round(N*step/Math.max(1,TOTAL));
-    for(let i=0;i<shown;i++){const s=sc.stitches[i];if(_famToggles[s.fam]===false)continue;_cadDrawStitch(ctx,s,sc.w);}
+    for(let i=0;i<shown;i++){const s=sc.stitches[i];if(_famToggles[s.fam]===false)continue;_cadDrawStitch(ctx,s,sc.w,galThreadColors[s.fam]);}
     return;
   }
   // Fabric background

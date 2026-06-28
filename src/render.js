@@ -123,26 +123,8 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
   if(isEXP){
-    const fams=[...new Set(EXP_path.map(s=>s.fam))].sort((a,b)=>a-b);
-    if(fams.length){
-      const lab=document.createElement('span');
-      lab.className='coltog-label';lab.textContent='Show colours:';
-      jb.appendChild(lab);
-    }
-    fams.forEach(fam=>{
-      const col=famColor(fam);
-      const on=_famToggles[fam]!==false;
-      const b=document.createElement('button');
-      b.className='coltog'+(on?' on':' off');
-      b.style.borderColor=col;
-      b.style.background=on?col+'2e':'transparent';
-      b.title=(on?'Hide':'Show')+' colour '+(fam+1);
-      b.innerHTML=`<span class="coltog-sw" style="background:${on?col:'transparent'};border-color:${col}"></span>`+
-                  `<span class="coltog-name">Colour ${fam+1}</span>`+
-                  `<span class="coltog-state">${on?'on':'off'}</span>`;
-      b.onclick=()=>{_famToggles[fam]=!_famToggles[fam];step=TOTAL;if(playing)pause();render(step);buildJumpBar();};
-      jb.appendChild(b);
-    });
+    // Custom patterns render in stitch view; thread colours live in their own
+    // panel (#galColours), so the jump bar stays empty here.
     return;
   }
   if(isPL){
@@ -250,11 +232,12 @@ function loadPattern(pat){
     updateProfileBadge();
     */
     _famToggles={};
-    // Gallery stitch view — defaults from the creator's saved CAD settings
-    galStitch=!!pat.stitchView;
+    // Stitch view is the standard (and only) view for custom patterns now.
+    galStitch=true;
     galStitchLen=pat.stitchLen||8;
     galStitchRatio=pat.stitchRatio||'standard';
     galStitchGrid=!!pat.stitchGrid;
+    galThreadColors={}; galActiveFam=0;   // thread-colour preview resets per pattern
     _galStitchCache=null;
     syncGalStitchUI();
     step=TOTAL;if(playing)pause();
