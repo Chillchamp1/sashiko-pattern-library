@@ -85,6 +85,34 @@
     </span>
   </div>
 
+  <!-- Realistic stitch view (custom patterns only) -->
+  <div class="stitch-view-bar" id="stitchViewBar" style="display:none">
+    <label class="cad-switch" title="Realistic denim + off-white thread view">
+      <input type="checkbox" id="galStitchToggle" onchange="galToggleStitch()">
+      <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
+      <span class="cad-switch-text">🪡 Stitch view</span>
+    </label>
+    <button class="ctrl gal-adv-btn" id="galAdvBtn" onclick="galToggleAdv()" style="display:none">Advanced ▾</button>
+    <div class="gal-adv" id="galAdv" style="display:none">
+      <span class="cad-panel-stepper">
+        <span class="cad-panel-stepper-label">Stitch</span>
+        <input type="range" id="galStitchLen" min="3" max="40" step="1" value="8" oninput="galSetStitchLen(this.value)">
+        <span class="cad-stitch-val" id="galStitchLenVal">8</span>
+      </span>
+      <label class="cad-routing-toggle">Ratio
+        <select id="galStitchRatio" onchange="galSetStitchRatio(this.value)">
+          <option value="standard">Standard · 3 : 1</option>
+          <option value="relaxed">Relaxed · 2 : 1</option>
+          <option value="long">Long · 3 : 2</option>
+          <option value="even">Even · 1 : 1</option>
+        </select>
+      </label>
+      <label class="cad-routing-toggle" title="Show the fabric grid">
+        <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
+      </label>
+    </div>
+  </div>
+
   <!-- Info bar -->
   <div class="info" id="info" onclick="onInfoClick()"><span class="muted">complete ✓</span> &nbsp;<span class="pill" style="background:rgba(205,224,244,0.18);color:#cde0f4"><span class="dot" style="background:#cde0f4"></span>pass 2/2 · vertical ↑</span></div>
 

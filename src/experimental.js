@@ -19,6 +19,10 @@ let _firebaseReady=false;
 let EXP_path=[];       // [{start:[u,v], end:[u,v], jump:bool}]
 let EXP_g2s=null;      // grid→screen fn (set by setupExpCanvas)
 let EXP_canvasH=SIZE;  // canvas height in CSS px (SIZE for square, SIZE/√3 for iso)
+let EXP_uRange=[0,0], EXP_vRange=[0,0];  // visible grid range (for stitch-view grid overlay)
+// ── Gallery realistic stitch view (defaults come from the saved pattern) ─────
+let galStitch=false, galStitchLen=8, galStitchRatio='standard', galStitchGrid=false;
+let _galStitchCache=null;
 
 // ── Firebase bootstrap ───────────────────────────────────────────────────────
 function _initFirebase(){
@@ -580,6 +584,7 @@ function genTiledSegs(pat){
 function setupExpCanvas(pat){
   const lay=computeExpLayout(pat);
   EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
+  EXP_uRange=lay.uRange; EXP_vRange=lay.vRange;
   _setupCanvasSize(SIZE,EXP_canvasH);
 }
 
@@ -1586,8 +1591,50 @@ function drawExpGuide(){
   }
 }
 
+// Build (and cache) the gallery stitch list from the current EXP_path (anim-canvas coords).
+function _galStitchScene(){
+  if(_galStitchCache&&_galStitchCache.ref===EXP_path&&_galStitchCache.len===galStitchLen&&_galStitchCache.ratio===galStitchRatio)
+    return _galStitchCache;
+  const w=_stitchW(galStitchLen);
+  const strokes=_buildStrokesFromPath(EXP_path,p=>{const a=EXP_g2s(p);return[a.x,a.y];});
+  return(_galStitchCache={ref:EXP_path,len:galStitchLen,ratio:galStitchRatio,w,stitches:_layStitches(strokes,galStitchLen,galStitchRatio,w)});
+}
+function syncGalStitchUI(){
+  const t=document.getElementById('galStitchToggle');if(t)t.checked=galStitch;
+  const l=document.getElementById('galStitchLen');if(l)l.value=galStitchLen;
+  const lv=document.getElementById('galStitchLenVal');if(lv)lv.textContent=galStitchLen;
+  const r=document.getElementById('galStitchRatio');if(r)r.value=galStitchRatio;
+  const g=document.getElementById('galStitchGrid');if(g)g.checked=galStitchGrid;
+  const ab=document.getElementById('galAdvBtn');if(ab)ab.style.display=galStitch?'inline-flex':'none';
+  const ad=document.getElementById('galAdv');if(ad){ad.style.display='none';}
+}
+window.galToggleStitch=function(){
+  galStitch=document.getElementById('galStitchToggle').checked;
+  const ab=document.getElementById('galAdvBtn');if(ab)ab.style.display=galStitch?'inline-flex':'none';
+  if(!galStitch){const ad=document.getElementById('galAdv');if(ad)ad.style.display='none';}
+  render(step);
+};
+window.galToggleAdv=function(){
+  const a=document.getElementById('galAdv'),b=document.getElementById('galAdvBtn');
+  const open=a.style.display!=='none';
+  a.style.display=open?'none':'flex';
+  if(b)b.textContent=open?'Advanced ▾':'Advanced ▴';
+};
+window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
+window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
+window.galToggleStitchGrid=function(){galStitchGrid=document.getElementById('galStitchGrid').checked;render(step);};
+
 function renderExp(step){
   const ch=EXP_canvasH||SIZE;
+  if(galStitch){
+    _cadDrawDenim(ctx,SIZE,ch);
+    if(galStitchGrid)_cadDrawStitchGrid(ctx,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange});
+    if(!EXP_path.length)return;
+    const sc=_galStitchScene(),N=sc.stitches.length;
+    const shown=step>=TOTAL?N:Math.round(N*step/Math.max(1,TOTAL));
+    for(let i=0;i<shown;i++){const s=sc.stitches[i];if(_famToggles[s.fam]===false)continue;_cadDrawStitch(ctx,s,sc.w);}
+    return;
+  }
   // Fabric background
   ctx.fillStyle='#1a3a5c'; ctx.fillRect(0,0,SIZE,ch);
   drawExpGuide();
