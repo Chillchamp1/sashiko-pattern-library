@@ -126,6 +126,11 @@ window.setFilter=function(btn){
   });
   filterGallery();
 };
+window.setFilterSelect=function(v){
+  const fv=v==='hm'?'hm':(v==='trad'?'trad':(v==='0'?0:parseInt(v)));
+  activeFilters=fv===0?new Set([0]):new Set([fv]);
+  filterGallery();
+};
 
 // ── View switching ─────────────────────────────────────────────────────────
 function openPattern(pat){

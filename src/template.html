@@ -19,15 +19,14 @@
   </div>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
-    <div class="filt-row">
-      <button class="filt on" data-f="0" onclick="setFilter(this)">All</button>
-      <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
-      <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
-      <!-- Hitomezashi filter hidden while the generator card is hidden — re-enable together -->
-      <button class="filt" data-f="trad" onclick="setFilter(this)">Traditional</button>
-    </div>
+    <select class="filt-select" id="filtSelect" onchange="setFilterSelect(this.value)">
+      <option value="0">All patterns</option>
+      <option value="2">2 passes</option>
+      <option value="4">4 passes</option>
+      <!-- hm option hidden while generator is hidden — re-enable together -->
+      <option value="trad">Traditional</option>
+    </select>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
-    <button class="filt" onclick="exportAllPatterns()" style="margin-left:auto" title="Download all patterns as backup JSON">⬇ Backup</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
 </div><!-- /galleryView -->
@@ -317,6 +316,17 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     <div class="mypats-grid" id="myPatsGrid"></div>
   </div>
 </div>
+
+<!-- Ko-fi floating donate button -->
+<script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+<script>
+  kofiWidgetOverlay.draw('chillchamp', {
+    'type': 'floating-chat',
+    'floating-chat.donateButton.text': 'Donate',
+    'floating-chat.donateButton.background-color': '#323842',
+    'floating-chat.donateButton.text-color': '#fff'
+  });
+</script>
 
 <!-- Firebase SDK (loaded async; app initialises lazily in experimental.js) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
