@@ -23,7 +23,7 @@
       <button class="filt on" data-f="0" onclick="setFilter(this)">All</button>
       <button class="filt" data-f="2" onclick="setFilter(this)">2 passes</button>
       <button class="filt" data-f="4" onclick="setFilter(this)">4 passes</button>
-      <button class="filt hm" data-f="hm" onclick="setFilter(this)">Hitomezashi</button>
+      <!-- Hitomezashi filter hidden while the generator card is hidden — re-enable together -->
       <button class="filt" data-f="trad" onclick="setFilter(this)">Traditional</button>
     </div>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
@@ -114,6 +114,11 @@
       <label class="cad-routing-toggle" title="Show the fabric grid">
         <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
       </label>
+      <span class="cad-panel-stepper">
+        <span class="cad-panel-stepper-label">Hub</span>
+        <input type="range" id="galHubScale" min="0" max="200" step="5" value="100" oninput="galSetHubScale(this.value)">
+        <span class="cad-stitch-val" id="galHubScaleVal">1.00×</span>
+      </span>
     </div>
   </div>
 
@@ -274,6 +279,11 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <label class="cad-routing-toggle" title="Show the fabric grid">
             <input type="checkbox" id="cadStitchGrid" onchange="cadToggleStitchGrid()"> Grid
           </label>
+          <span class="cad-panel-stepper">
+            <span class="cad-panel-stepper-label">Hub</span>
+            <input type="range" id="cadHubScale" min="0" max="200" step="5" value="100" oninput="cadSetHubScale(this.value)">
+            <span class="cad-stitch-val" id="cadHubScaleVal">1.00×</span>
+          </span>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
         <div class="cad-thumb-preview">

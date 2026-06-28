@@ -1679,6 +1679,14 @@ window.galToggleAdv=function(){
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
 window.galToggleStitchGrid=function(){galStitchGrid=document.getElementById('galStitchGrid').checked;render(step);};
+window.galSetHubScale=function(v){
+  _starHubScale=parseFloat(v)/100;
+  const lbl=s=>s&&(s.textContent=_starHubScale.toFixed(2)+'×');
+  lbl(document.getElementById('galHubScaleVal'));
+  lbl(document.getElementById('cadHubScaleVal'));
+  const cs=document.getElementById('cadHubScale');if(cs)cs.value=v;
+  _galStitchCache=null;_cadStitchCache=null;render(step);
+};
 
 function renderExp(step){
   const ch=EXP_canvasH||SIZE;
