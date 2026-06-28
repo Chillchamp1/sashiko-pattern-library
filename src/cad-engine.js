@@ -1328,19 +1328,43 @@ function _layStitches(strokes,L,ratioKey,w){
   nodes.forEach(nd=>{
     const R=nd.bk.size;
     nd.clr = R<=2?0 : R<=4?cCross : Math.min(1.3*L, cCross*(1+0.4*(R-4)));
+    // corner = exactly 2 rays at an angle (NOT collinear/straight, which is a smooth pass)
+    nd.corner=false;
+    if(R===2){const b=[...nd.bk];let diff=Math.abs(b[0]-b[1]);diff=Math.min(diff,24-diff);if(diff!==12)nd.corner=true;}
   });
   const clrAt=(x,y)=>{const nd=findNode(x,y);return nd?nd.clr:0;};
-  // ── Anchors: endpoints + sharp corners + interior crossings, each tagged with node clearance ──
+  // ── Anchors carry two side-clearances: clrL applies to the sub-run that STARTS here (gap
+  // before its first stitch); clrR to the sub-run that ENDS here (gap after its last stitch).
+  // A pure CORNER is asymmetric: the incoming stitch reaches it (clrR 0 — the thread dips
+  // down exactly on the corner), then a normal standard gap before the next stitch (clrL = G);
+  // only one stitch touches the corner. Junctions (crossing/star) and free ends are symmetric.
   const anchors=data.map(()=>[]);
+  const endAnch=[];   // endpoint anchors tagged with node + side, for the corner pass below
   data.forEach((d,si)=>{
-    anchors[si].push({d:0,clr:clrAt(d.pts[0][0],d.pts[0][1])});
-    anchors[si].push({d:d.total,clr:clrAt(lastPt(d)[0],lastPt(d)[1])});
-    corners[si].forEach(i=>anchors[si].push({d:d.cum[i],clr:clrAt(d.pts[i][0],d.pts[i][1])}));
+    const nd0=findNode(d.pts[0][0],d.pts[0][1]), a0={d:0,clrL:nd0?nd0.clr:0,clrR:nd0?nd0.clr:0};
+    anchors[si].push(a0); endAnch.push({a:a0,nd:nd0,side:'start'});
+    const ndT=findNode(lastPt(d)[0],lastPt(d)[1]), aT={d:d.total,clrL:ndT?ndT.clr:0,clrR:ndT?ndT.clr:0};
+    anchors[si].push(aT); endAnch.push({a:aT,nd:ndT,side:'end'});
+    corners[si].forEach(i=>{
+      const nc=clrAt(d.pts[i][0],d.pts[i][1]);
+      if(nc>0)anchors[si].push({d:d.cum[i],clrL:nc,clrR:nc});   // corner that is also a junction
+      else anchors[si].push({d:d.cum[i],clrL:G,clrR:0});        // in-stroke corner: reach, then normal gap
+    });
   });
   crossings.forEach(c=>{
     const clr=clrAt(c.x,c.y);
-    if(c.aInt)anchors[c.aSi].push({d:c.aD,clr});
-    if(c.bInt)anchors[c.bSi].push({d:c.bD,clr});
+    if(c.aInt)anchors[c.aSi].push({d:c.aD,clrL:clr,clrR:clr});
+    if(c.bInt)anchors[c.bSi].push({d:c.bD,clrL:clr,clrR:clr});
+  });
+  // Corner formed by two separate strokes meeting at a node: only ONE arm reaches the
+  // corner (prefer the one that ENDS there); the rest get a normal gap. So exactly one
+  // stitch touches the corner, then a standard gap — same look as an in-stroke corner.
+  const byNode=new Map();
+  endAnch.forEach(e=>{if(e.nd&&e.nd.corner){if(!byNode.has(e.nd))byNode.set(e.nd,[]);byNode.get(e.nd).push(e);}});
+  byNode.forEach(arr=>{
+    if(arr.length<2)return;
+    let reach=arr.findIndex(e=>e.side==='end'); if(reach<0)reach=0;
+    arr.forEach((e,i)=>{if(i===reach)return; if(e.side==='start')e.a.clrL=G; else e.a.clrR=G;});
   });
   // ── Lay stitches between consecutive anchors ──
   const out=[];
@@ -1348,17 +1372,17 @@ function _layStitches(strokes,L,ratioKey,w){
     const an=anchors[si].filter(o=>o.d>=-1e-6&&o.d<=d.total+1e-6).sort((a,b)=>a.d-b.d);
     const m=[];
     for(const o of an){
-      if(m.length&&o.d-m[m.length-1].d<=1e-3)m[m.length-1].clr=Math.max(m[m.length-1].clr,o.clr);
-      else m.push({d:o.d,clr:o.clr});
+      if(m.length&&o.d-m[m.length-1].d<=1e-3){const p=m[m.length-1];p.clrL=Math.max(p.clrL,o.clrL);p.clrR=Math.max(p.clrR,o.clrR);}
+      else m.push({d:o.d,clrL:o.clrL,clrR:o.clrR});
     }
     for(let k=0;k<m.length-1;k++){
       const A=m[k],B=m[k+1];
-      const S=(B.d-A.d)-A.clr-B.clr;            // span available for stitches+interior gaps
+      const S=(B.d-A.d)-A.clrL-B.clrR;          // span available for stitches+interior gaps
       if(S<=0.6)continue;                        // consumed by clearance → all denim
       const n=Math.max(1,Math.round((S+G)/U));
       const k2=S/(n*ratio.s+(n-1)*ratio.g), st=ratio.s*k2, gap=ratio.g*k2;
       for(let s=0;s<n;s++){
-        const ds=A.d+A.clr+s*(st+gap), de=ds+st;
+        const ds=A.d+A.clrL+s*(st+gap), de=ds+st;
         let P=_ptAlong(d,ds),Q=_ptAlong(d,de);
         const dx=Q[0]-P[0],dy=Q[1]-P[1],len=Math.hypot(dx,dy);
         if(len>2*cap+0.4){const ix=dx/len*cap,iy=dy/len*cap;P=[P[0]+ix,P[1]+iy];Q=[Q[0]-ix,Q[1]-iy];}
