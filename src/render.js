@@ -209,6 +209,8 @@ function loadPattern(pat){
   showGenUI(false);
 
   if(isEXP){
+    _tileCells=pat.patMacro||3;
+    const lbl=document.getElementById('tileCellsVal');if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
     const effPat={...pat,patMacro:_tileCells};
     setupExpCanvas(effPat);
     const expLay=computeExpLayout(effPat);

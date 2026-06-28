@@ -1692,7 +1692,7 @@ function renderExp(step){
   const ch=EXP_canvasH||SIZE;
   if(galStitch){
     _cadDrawDenim(ctx,SIZE,ch);
-    if(galStitchGrid)_cadDrawStitchGrid(ctx,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange});
+    if(galStitchGrid)_cadDrawStitchGrid(ctx,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true);
     if(!EXP_path.length)return;
     const sc=_galStitchScene(),N=sc.stitches.length;
     const shown=step>=TOTAL?N:Math.round(N*step/Math.max(1,TOTAL));

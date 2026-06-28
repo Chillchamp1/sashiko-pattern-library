@@ -454,15 +454,25 @@ function cadAutoExtendGrid(){
         return{...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]};
       });
     }
-    if(cadMacro>=6)break;
+    if(cadMacro>=12)break;
     cadMacro++;
-    document.getElementById('cadGridSize').value=cadMacro;
+    const gs=document.getElementById('cadGridSize');if(gs){gs.value=cadMacro;gs.max=Math.max(6,cadMacro+1);}
     changed=true;
     const nb=cadBBox();if(!nb)break;
     const ntc=cadMacro*CAD_MICRO;
     if(nb.maxU<ntc&&nb.maxV<ntc&&nb.minU>=-CAD_MICRO&&nb.minV>=-CAD_MICRO)break;
   }
   if(changed){cadZoom=oldZoom;cadPanX=oldPanX;cadPanY=oldPanY;cadUpdateSettings();}
+}
+// Auto-shrink grid when lines are removed (undo/clear/cut)
+function cadAutoShrinkGrid(){
+  const bbox=cadBBox();
+  const needed=bbox?Math.max(2,Math.ceil(Math.max(bbox.maxU,bbox.maxV)/CAD_MICRO)):2;
+  if(needed>=cadMacro)return;
+  cadMacro=needed;
+  const gs=document.getElementById('cadGridSize');
+  if(gs){gs.value=cadMacro;gs.max=Math.max(6,cadMacro);}
+  cadUpdateSettings();
 }
 
 function cadBakeLeft(){
@@ -908,9 +918,9 @@ window.cadUndo=function(){
   const state=cadHistory.pop();
   if(state&&typeof state==='object'&&'l' in state){cadLines=state.l;cadFamilies=state.f||[];if(state.o)cadFamOrder=state.o;}
   else{cadLines=state;cadFamilies=new Array(cadLines.length).fill(-1);}
-  cadFamsLocked=true;cadUpdateAll();
+  cadFamsLocked=true;cadAutoShrinkGrid();cadUpdateAll();
 };
-window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;cadUpdateAll();}};
+window.cadClear=function(){if(cadLines.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines=[];cadFamilies=[];cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;cadAutoShrinkGrid();cadUpdateAll();}};
 window.cadResetView=function(){cadZoom=1;cadPanX=0;cadPanY=0;cadApplyView();cadBakeLeft();cadUpdateAll();};
 window.cadToggleBBoxRotate=function(){
   cadBBoxRotated=!cadBBoxRotated;
@@ -1443,22 +1453,25 @@ function _cadStitchScene(){
   return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes),tf,ur:lay.uRange,vr:lay.vRange});
 }
 // Fabric grid overlay (main lines every CAD_MICRO + dot sub-grid), mapped through the stitch-scene transform.
-function _cadDrawStitchGrid(x,scene){
+// dotsOnly=true skips main lines, shows only dot grid (gallery stitch view uses this).
+function _cadDrawStitchGrid(x,scene,dotsOnly){
   if(!scene||!scene.tf)return;
   const tf=scene.tf,M=CAD_MICRO;
   const[mnU,mxU]=scene.ur,[mnV,mxV]=scene.vr;
   const S=(u,v)=>{const a=tf.g2s([u,v]);return[tf.ox+a.x*tf.sc,tf.oy+a.y*tf.sc];};
   const u0=Math.floor(mnU/M)*M,u1=Math.ceil(mxU/M)*M,v0=Math.floor(mnV/M)*M,v1=Math.ceil(mxV/M)*M;
-  x.strokeStyle='rgba(220,235,255,0.22)';x.lineWidth=1;
-  for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
-  for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+  if(!dotsOnly){
+    x.strokeStyle='rgba(220,235,255,0.22)';x.lineWidth=1;
+    for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+    for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+  }
   // Dot sub-grid: mid-points at M/2 (smaller dot), intersections at M (larger dot)
   const sub=M/2;
   for(let u=u0;u<=u1;u+=sub){for(let v=v0;v<=v1;v+=sub){
     const onMain=(u%M===0)&&(v%M===0);
     const p=S(u,v);
-    x.fillStyle=onMain?'rgba(200,220,255,0.35)':'rgba(180,205,255,0.18)';
-    x.beginPath();x.arc(p[0],p[1],onMain?2.2:1.1,0,Math.PI*2);x.fill();
+    x.fillStyle=onMain?'rgba(200,220,255,0.40)':'rgba(180,205,255,0.20)';
+    x.beginPath();x.arc(p[0],p[1],onMain?2.5:1.2,0,Math.PI*2);x.fill();
   }}
 }
 // Draw one sashiko stitch with a little depth (shadow + sheen). `color` overrides
@@ -1598,7 +1611,7 @@ function cadInit(){
         cadLines.splice(cadHover.li,1);
         for(let i=0;i<cadHover.all.length-1;i++)if(i!==cadHover.ci)cadLines.push({start:[cadHover.all[i].u,cadHover.all[i].v],end:[cadHover.all[i+1].u,cadHover.all[i+1].v]});
       }
-      cadHover=null;cadFamsLocked=false;cadFamSel=-1;
+      cadHover=null;cadFamsLocked=false;cadFamSel=-1;cadAutoShrinkGrid();
     }
     cadUpdateAll();
   });
