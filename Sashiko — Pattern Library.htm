@@ -122,15 +122,14 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .stage{position:relative;border-radius:16px;overflow:hidden;
   box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04)}
 canvas#cv{display:block}
-/* Info bar — clickable when idle */
-.info{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
-  background:var(--panel);border:1px solid var(--line);border-radius:30px;
-  padding:8px 18px;font-size:13px;min-height:30px;min-width:280px;text-align:center;
-  cursor:default}
-.info.idle{cursor:pointer;transition:background .12s}
-.info.idle:hover{background:#1d3850}
-.info-play{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
-.info-play span{color:#8aa3bd}
+/* Scrubber — YouTube-style full-width seek bar */
+.scrubber-wrap{width:100%;padding:0 0 4px;box-sizing:border-box}
+.scrubber-wrap input[type=range]{width:100%;accent-color:#6aabff;cursor:pointer;height:18px;display:block;margin:0}
+/* Zoom slider in ctrls */
+.anim-zoom{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.anim-zoom-lbl{font-size:11px;color:var(--muted)}
+.anim-zoom input[type=range]{accent-color:#6aabff;cursor:pointer;width:80px}
+/* Keep .pill/.dot for jumpbar use */
 .pill{padding:3px 11px;border-radius:14px;font-size:12px;font-weight:600;
   display:inline-flex;align-items:center;gap:5px}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;vertical-align:middle}
@@ -406,34 +405,36 @@ button.ctrl.primary:hover{background:#275784}
     </label>
   </div>
 
+  <!-- Scrubber — full-width seek bar, YouTube-style -->
+  <div class="scrubber-wrap">
+    <input type="range" id="scrubber" min="0" max="1000" value="0" oninput="seekScrubber(this.value)">
+  </div>
+
   <div class="ctrls">
     <button class="ctrl" id="bReset" title="Reset">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
     </button>
-    <button class="ctrl" id="bBack" title="Step back">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20 9 12l10-8z"></path><path d="M5 19V5"></path></svg>
-    </button>
     <button class="ctrl primary" id="bPlay">
       <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
-    </button>
-    <button class="ctrl" id="bFwd" title="Step forward">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
     </button>
     <span class="speed-slider" title="Animation speed">
       <span aria-hidden="true">🐢</span>
       <input type="range" id="animSpeed" min="0" max="100" step="1" value="82">
       <span aria-hidden="true">⚡</span>
     </span>
-    <span class="anim-zoom">
-      <button class="ctrl" onclick="galleryZoomStep(-1)" title="Fewer cells">−</button>
-      <span id="galleryZoomVal">auto</span>
-      <button class="ctrl" onclick="galleryZoomStep(1)" title="More cells">+</button>
+    <span class="anim-zoom" title="Zoom">
+      <span class="anim-zoom-lbl">Zoom</span>
+      <input type="range" id="zoomSlider" min="10" max="80" step="5" value="10" oninput="setAnimZoom(this.value)">
+      <span class="cad-stitch-val" id="animZoomVal">1.0×</span>
     </span>
   </div>
 
   <!-- Stitch-view options (custom patterns render in stitch view by default) -->
   <div class="stitch-view-bar" id="stitchViewBar" style="display:none">
     <button class="ctrl gal-pop-btn" id="galColBtn" onclick="galToggleColours()">🎨 Thread colours ▾</button>
+    <label class="cad-routing-toggle" title="Show the fabric grid" style="margin-left:4px">
+      <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
+    </label>
     <button class="ctrl gal-pop-btn" id="galAdvBtn" onclick="galToggleAdv()">⚙ Advanced ▾</button>
     <!-- Thread-colour preview: keep stitches off-white, or paint each family -->
     <div class="gal-pop gal-colours" id="galColours" style="display:none">
@@ -459,9 +460,6 @@ button.ctrl.primary:hover{background:#275784}
           <option value="even">Even · 1 : 1</option>
         </select>
       </label>
-      <label class="cad-routing-toggle" title="Show the fabric grid">
-        <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
-      </label>
       <span class="cad-panel-stepper">
         <span class="cad-panel-stepper-label">Hub</span>
         <input type="range" id="galHubScale" min="0" max="200" step="5" value="100" oninput="galSetHubScale(this.value)">
@@ -469,9 +467,6 @@ button.ctrl.primary:hover{background:#275784}
       </span>
     </div>
   </div>
-
-  <!-- Info bar -->
-  <div class="info" id="info" onclick="onInfoClick()"><span class="muted">complete ✓</span> &nbsp;<span class="pill" style="background:rgba(205,224,244,0.18);color:#cde0f4"><span class="dot" style="background:#cde0f4"></span>pass 2/2 · vertical ↑</span></div>
 
   <div class="jumpbar" id="jumpbar"><button title="All horizontal rows" class="">1 · →</button><button title="All vertical columns" class="on">2 · ↑</button></div>
 
@@ -5435,20 +5430,33 @@ function drawNeedle(i,j,dir){
 }
 function locate(st){let s=st,p=0;while(p<PASSES.length&&s>PASSES[p].count){s-=PASSES[p].count;p++;}return{p,local:s};}
 
-// ── Idle info bar (clickable → starts Play) ────────────────────────────────
-function setIdleInfo(){
-  const el=document.getElementById('info');
-  el.classList.remove('idle');
-  el.innerHTML='';
-  el.style.display='none';   // hide the bar entirely when idle (no "press to begin" prompt)
+// ── Scrubber & Zoom ────────────────────────────────────────────────────────
+function _updateScrubber(st){
+  const el=document.getElementById('scrubber');
+  if(el&&TOTAL>0)el.value=Math.round(st*1000/TOTAL);
+  else if(el)el.value=0;
 }
-window.onInfoClick=function(){if(!playing&&step===0)play();};
+window.seekScrubber=function(v){
+  if(playing)pause();
+  step=Math.max(0,Math.min(TOTAL,Math.round(parseInt(v)*TOTAL/1000)));
+  render(step);
+};
+window.setAnimZoom=function(v){
+  _zoom=parseFloat(v)/10;
+  _panX=0;_panY=0;
+  const ch=EXP_canvasH||SIZE;
+  _setupCanvasSize(SIZE,ch);
+  _clampPan();_setupCanvasSize(SIZE,ch);
+  render(step);
+  const lbl=document.getElementById('animZoomVal');
+  if(lbl)lbl.textContent=_zoom.toFixed(1)+'×';
+};
 
 // ── Render dispatcher ──────────────────────────────────────────────────────
 function render(st){
-  if(isHM){renderHM(st);return;}
-  if(isPL){renderPolyline(st);return;}
-  if(isEXP){renderExp(st);updateInfo(st,0,0);return;}
+  if(isHM){renderHM(st);_updateScrubber(st);return;}
+  if(isPL){renderPolyline(st);_updateScrubber(st);return;}
+  if(isEXP){renderExp(st);_updateExpJump(st);_updateScrubber(st);return;}
   drawFabric(); drawGuide();
   const{p,local}=locate(st);
   for(let k=0;k<p;k++)frontAll(PASSES[k]);
@@ -5457,35 +5465,20 @@ function render(st){
     for(let k=0;k<local;k++){const[i,j]=cur.order[k];drawStitch(i,j,cur.dir,k===local-1,PHASE_COLORS[cur.dir][getPhase(i,j,cur.dir)]);}
     if(local>0){const[i,j]=cur.order[local-1];drawNeedle(i,j,cur.dir);}
   }
-  updateInfo(st,p,local);
+  markJump(st===0?-1:(st>=TOTAL?PASSES.length-1:p));
+  _updateScrubber(st);
 }
-function updateInfo(st,p,local){
-  const el=document.getElementById('info');
-  if(st===0){setIdleInfo();markJump(-1);return;}
-  el.classList.remove('idle');el.onclick=null;el.style.display='';
-  if(isEXP){
-    let famHtml='',famIdx=-1;
-    if(st<=TOTAL&&st>0&&EXP_path.length){
-      const s=EXP_path[Math.min(st-1,EXP_path.length-1)];
-      if(s.fam!==undefined){
-        const col=famColor(s.fam);
-        const lbl=famLabel(s.fam);
-        famHtml='&nbsp;<span class="pill" style="background:'+hexA(col,.16)+';color:'+col+'"><span class="dot" style="background:'+col+'"></span>'+lbl+'</span>';
-        const fams=[...new Set(EXP_path.map(p=>p.fam))].sort((a,b)=>a-b);
-        famIdx=fams.indexOf(s.fam);
-      }
+function _updateExpJump(st){
+  if(!isEXP)return;
+  let famIdx=-1;
+  if(st>0&&st<=TOTAL&&EXP_path.length){
+    const s=EXP_path[Math.min(st-1,EXP_path.length-1)];
+    if(s.fam!==undefined){
+      const fams=[...new Set(EXP_path.map(p=>p.fam))].sort((a,b)=>a-b);
+      famIdx=fams.indexOf(s.fam);
     }
-    el.innerHTML=st>=TOTAL?'<span class="muted">complete &#10003;</span>'+famHtml:'stitch <b>'+st+'</b><span class="muted">/'+TOTAL+'</span>'+famHtml;
-    markJump(famIdx);return;
   }
-  const idx=(st>=TOTAL)?PASSES.length-1:p;
-  const d=DIRS[PASSES[idx].dir],col=getCss(d.col);
-  const pill=`<span class="pill" style="background:${hexA(col,.16)};color:${col}"><span class="dot" style="background:${col}"></span>pass ${idx+1}/${PASSES.length} · ${d.label} ${d.glyph}</span>`;
-  let phase='';
-  if(st<TOTAL&&local>0){const[ci,cj]=PASSES[p].order[local-1];const ph=getPhase(ci,cj,PASSES[p].dir);const pc=PHASE_COLORS[PASSES[p].dir][ph];phase=`&nbsp;<span style="font-size:11px;display:inline-flex;align-items:center;gap:4px"><span style="display:inline-block;width:10px;height:3px;border-radius:1px;background:${pc}"></span><span style="color:${pc}">${ph===0?'even':'offset'}</span></span>`;}
-  const cnt=st>=TOTAL?`<span class="muted">complete ✓</span>`:`stitch <b>${st}</b><span class="muted">/${TOTAL}</span>`;
-  el.innerHTML=`${cnt} &nbsp;${pill}${phase}`;
-  markJump(idx);
+  markJump(famIdx);
 }
 function markJump(idx){[...document.getElementById('jumpbar').children].forEach((b,i)=>b.classList.toggle('on',i===idx));}
 
@@ -5531,6 +5524,10 @@ function buildJumpBar(){
 // ── Load pattern ───────────────────────────────────────────────────────────
 function loadPattern(pat){
   _resetZoom();
+  // Reset scrubber and zoom slider
+  {const sc=document.getElementById('scrubber');if(sc)sc.value=0;}
+  {const zs=document.getElementById('zoomSlider');if(zs)zs.value=10;}
+  {const zl=document.getElementById('animZoomVal');if(zl)zl.textContent='1.0×';}
   // Restore default square canvas if a previous exp iso pattern changed the height.
   if(Math.round(cv.height/DPR)!==SIZE){
     _setupCanvasSize(SIZE,SIZE);
@@ -5563,8 +5560,6 @@ function loadPattern(pat){
   */
   cv.style.cursor='';
   if(isGen){
-    const gc=window._galleryCells||0;
-    if(gc>0&&gc+1>=6&&gc+1<=20){GEN_n=gc+1;GEN_snowGrid=Math.max(8,Math.min(32,gc+1));}
     showGenUI(true);
     refreshGen(true);
     return;
@@ -5572,16 +5567,9 @@ function loadPattern(pat){
   showGenUI(false);
 
   if(isEXP){
-    let effPat=pat;
-    const gc=window._galleryCells||0;
-    if(gc>0){
-      const b=pat.bbox||{minU:0,maxU:10,minV:0,maxV:10};
-      const dU=Math.round(b.maxU-b.minU)||10;
-      effPat={...pat, patMacro:Math.max(1,Math.round(gc*dU/10))};
-    }
-    setupExpCanvas(effPat);
-    const expLay=computeExpLayout(effPat);
-    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
+    setupExpCanvas(pat);
+    const expLay=computeExpLayout(pat);
+    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     document.getElementById('animTitle').innerHTML=(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
@@ -5887,8 +5875,9 @@ function tick(t){
 }
 bPlay.onclick=()=>playing?pause():play();
 document.getElementById('bReset').onclick=()=>{pause();step=0;render(step);};
-document.getElementById('bBack').onclick=()=>{pause();step=Math.max(0,step-1);render(step);};
-document.getElementById('bFwd').onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};
+{const bb=document.getElementById('bBack');if(bb)bb.onclick=()=>{pause();step=Math.max(0,step-1);render(step);};}
+{const bf=document.getElementById('bFwd');if(bf)bf.onclick=()=>{pause();step=Math.min(TOTAL,step+1);render(step);};}
+
 {const sl=document.getElementById('animSpeed');
  if(sl){sl.value=_animSpeedV;sl.oninput=()=>{_animSpeedV=parseInt(sl.value);updateSpeed();};}}
 window.addEventListener('keydown',e=>{
@@ -5993,20 +5982,7 @@ function renderThumb(canvas,pat){
 // ── gallery.js ──────────────────────────────
 // ── Gallery ────────────────────────────────────────────────────────────────
 let activeFilters=new Set([0]);
-let _galleryCells=0;
 let _galleryDirty=false;
-window.galleryZoomStep=function(dir){
-  _galleryCells=Math.max(0,_galleryCells+dir);
-  const lbl=document.getElementById('galleryZoomVal');
-  if(lbl)lbl.textContent=_galleryCells>0?_galleryCells+'\u2009cells':'auto';
-  const av=document.getElementById('animView');
-  if(av.classList.contains('open')){
-    loadPattern(curPat);
-    _galleryDirty=true;
-  }else{
-    buildGallery();
-  }
-};
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
   const deleted=_getDeleted();
@@ -6023,11 +5999,7 @@ function buildGallery(){
     card.appendChild(thumb);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
     const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
-    const badge=document.createElement('div');
-    if(pat.type==='generator'){badge.className='pcard-badge gen';badge.textContent='Kōshi · Kaki no Hana · Snowflake';}
-    else if(pat.type==='polyline'){badge.className='pcard-badge';badge.textContent='Continuous';}
-    else{badge.className='pcard-badge';badge.textContent=pat.passes.length+' passes';}
-    card.append(name,jp,badge);
+    card.append(name,jp);
     // Delete button for all cards
     const delBtn=document.createElement('button');
     delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
@@ -6054,12 +6026,7 @@ function buildGallery(){
     delBtn2.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
     card.appendChild(delBtn2);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
-    const badge=document.createElement('div');badge.className='pcard-badge';
-    const usedFams=new Set((pat.families||[]).filter(f=>f>=0));
-    const nPasses=usedFams.size||1;
-    const tLabel=pat.traditional?'Traditional · ':'';
-    badge.textContent=tLabel+(pat.gridType==='isometric'?'Isometric':'Square')+' · '+nPasses+' pass'+(nPasses!==1?'es':'');
-    card.append(name,badge);
+    card.append(name);
     // Like row for exp cards
     const likeRow=document.createElement('div');
     likeRow.className='like-row';likeRow.dataset.id=pat.id;
@@ -8592,16 +8559,20 @@ function cadBakeRight(){
   cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
   const rx=cadRightBuf.getContext('2d');
   rx.fillStyle='#1a3a5c';rx.fillRect(0,0,500,500);
-  const ptc=cadPatMacro*CAD_MICRO;
+  // ptc now matches cadUpdateSettings: cadPatMacro × cadMacro × CAD_MICRO total units
+  const ptc=cadPatMacro*cadMacro*CAD_MICRO;
+  const tileStep=cadMacro*CAD_MICRO; // units per tile = same as left-canvas grid cell
   rx.fillStyle='rgba(160,160,184,0.25)';
-  for(let u=0;u<=ptc;u++)for(let v=0;v<=ptc;v++){
-    const onMain=(u%CAD_MICRO===0)&&(v%CAD_MICRO===0);
+  // Dots at every CAD_MICRO interval (matches left-canvas sub-grid density)
+  for(let u=0;u<=ptc;u+=CAD_MICRO)for(let v=0;v<=ptc;v+=CAD_MICRO){
+    const onTile=(u%tileStep===0)&&(v%tileStep===0);
     const p=cadG2S(u,v,cadPOX,cadPOY,cadPTile);
-    rx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
+    rx.fillRect(p.x-(onTile?2:1),p.y-(onTile?2:1),onTile?4:2,onTile?4:2);
   }
   rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.15)';
+  // Grid lines at tile boundaries (every tileStep units = every cadMacro macros)
   for(let i=0;i<=cadPatMacro;i++){
-    const val=i*CAD_MICRO;
+    const val=i*tileStep;
     rx.beginPath();const p1=cadG2S(val,0,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,ptc,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
     rx.beginPath();const p3=cadG2S(0,val,cadPOX,cadPOY,cadPTile),p4=cadG2S(ptc,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
   }
@@ -8825,7 +8796,7 @@ function cadDrawPattern(){
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
   const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
-  const ptc=cadPatMacro*CAD_MICRO,ov=ptc;
+  const ptc=cadPatMacro*cadMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
   const g2s=(u,v)=>cadG2S(u,v,cadPOX,cadPOY,cadPTile);
   // Check if a segment/arc is visible on the pattern canvas
@@ -8981,7 +8952,8 @@ window.cadUpdateSettings=function(){
   cadSpacing=parseInt(document.getElementById('cadSpacing').value);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   cadZoom=1;cadPanX=0;cadPanY=0;
-  const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*CAD_MICRO;
+  // ptc = total grid units across the tiling canvas: cadPatMacro tiles × cadMacro macros × CAD_MICRO units
+  const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*cadMacro*CAD_MICRO;
   if(cadGridType==='isometric'){
     cadBase=460/(2*tc*CAD_COS30);
     cadPTile=500/(2*ptc*CAD_COS30);cadPOX=250;cadPOY=(500-(ptc*2*cadPTile*CAD_SIN30))/2;

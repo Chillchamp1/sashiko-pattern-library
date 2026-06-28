@@ -1,19 +1,6 @@
 // ── Gallery ────────────────────────────────────────────────────────────────
 let activeFilters=new Set([0]);
-let _galleryCells=0;
 let _galleryDirty=false;
-window.galleryZoomStep=function(dir){
-  _galleryCells=Math.max(0,_galleryCells+dir);
-  const lbl=document.getElementById('galleryZoomVal');
-  if(lbl)lbl.textContent=_galleryCells>0?_galleryCells+'\u2009cells':'auto';
-  const av=document.getElementById('animView');
-  if(av.classList.contains('open')){
-    loadPattern(curPat);
-    _galleryDirty=true;
-  }else{
-    buildGallery();
-  }
-};
 function buildGallery(){
   const grid=document.getElementById('pgrid');grid.innerHTML='';
   const deleted=_getDeleted();
@@ -30,11 +17,7 @@ function buildGallery(){
     card.appendChild(thumb);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
     const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
-    const badge=document.createElement('div');
-    if(pat.type==='generator'){badge.className='pcard-badge gen';badge.textContent='Kōshi · Kaki no Hana · Snowflake';}
-    else if(pat.type==='polyline'){badge.className='pcard-badge';badge.textContent='Continuous';}
-    else{badge.className='pcard-badge';badge.textContent=pat.passes.length+' passes';}
-    card.append(name,jp,badge);
+    card.append(name,jp);
     // Delete button for all cards
     const delBtn=document.createElement('button');
     delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
@@ -61,12 +44,7 @@ function buildGallery(){
     delBtn2.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
     card.appendChild(delBtn2);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
-    const badge=document.createElement('div');badge.className='pcard-badge';
-    const usedFams=new Set((pat.families||[]).filter(f=>f>=0));
-    const nPasses=usedFams.size||1;
-    const tLabel=pat.traditional?'Traditional · ':'';
-    badge.textContent=tLabel+(pat.gridType==='isometric'?'Isometric':'Square')+' · '+nPasses+' pass'+(nPasses!==1?'es':'');
-    card.append(name,badge);
+    card.append(name);
     // Like row for exp cards
     const likeRow=document.createElement('div');
     likeRow.className='like-row';likeRow.dataset.id=pat.id;

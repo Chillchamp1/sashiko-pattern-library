@@ -57,34 +57,36 @@
     </label>
   </div>
 
+  <!-- Scrubber — full-width seek bar, YouTube-style -->
+  <div class="scrubber-wrap">
+    <input type="range" id="scrubber" min="0" max="1000" value="0" oninput="seekScrubber(this.value)">
+  </div>
+
   <div class="ctrls">
     <button class="ctrl" id="bReset" title="Reset">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
     </button>
-    <button class="ctrl" id="bBack" title="Step back">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20 9 12l10-8z"></path><path d="M5 19V5"></path></svg>
-    </button>
     <button class="ctrl primary" id="bPlay">
       <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
-    </button>
-    <button class="ctrl" id="bFwd" title="Step forward">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 4 10 8L5 20z"></path><path d="M19 5v14"></path></svg>
     </button>
     <span class="speed-slider" title="Animation speed">
       <span aria-hidden="true">🐢</span>
       <input type="range" id="animSpeed" min="0" max="100" step="1" value="82">
       <span aria-hidden="true">⚡</span>
     </span>
-    <span class="anim-zoom">
-      <button class="ctrl" onclick="galleryZoomStep(-1)" title="Fewer cells">−</button>
-      <span id="galleryZoomVal">auto</span>
-      <button class="ctrl" onclick="galleryZoomStep(1)" title="More cells">+</button>
+    <span class="anim-zoom" title="Zoom">
+      <span class="anim-zoom-lbl">Zoom</span>
+      <input type="range" id="zoomSlider" min="10" max="80" step="5" value="10" oninput="setAnimZoom(this.value)">
+      <span class="cad-stitch-val" id="animZoomVal">1.0×</span>
     </span>
   </div>
 
   <!-- Stitch-view options (custom patterns render in stitch view by default) -->
   <div class="stitch-view-bar" id="stitchViewBar" style="display:none">
     <button class="ctrl gal-pop-btn" id="galColBtn" onclick="galToggleColours()">🎨 Thread colours ▾</button>
+    <label class="cad-routing-toggle" title="Show the fabric grid" style="margin-left:4px">
+      <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
+    </label>
     <button class="ctrl gal-pop-btn" id="galAdvBtn" onclick="galToggleAdv()">⚙ Advanced ▾</button>
     <!-- Thread-colour preview: keep stitches off-white, or paint each family -->
     <div class="gal-pop gal-colours" id="galColours" style="display:none">
@@ -110,9 +112,6 @@
           <option value="even">Even · 1 : 1</option>
         </select>
       </label>
-      <label class="cad-routing-toggle" title="Show the fabric grid">
-        <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
-      </label>
       <span class="cad-panel-stepper">
         <span class="cad-panel-stepper-label">Hub</span>
         <input type="range" id="galHubScale" min="0" max="200" step="5" value="100" oninput="galSetHubScale(this.value)">
@@ -120,9 +119,6 @@
       </span>
     </div>
   </div>
-
-  <!-- Info bar -->
-  <div class="info" id="info" onclick="onInfoClick()"><span class="muted">complete ✓</span> &nbsp;<span class="pill" style="background:rgba(205,224,244,0.18);color:#cde0f4"><span class="dot" style="background:#cde0f4"></span>pass 2/2 · vertical ↑</span></div>
 
   <div class="jumpbar" id="jumpbar"><button title="All horizontal rows" class="">1 · →</button><button title="All vertical columns" class="on">2 · ↑</button></div>
 

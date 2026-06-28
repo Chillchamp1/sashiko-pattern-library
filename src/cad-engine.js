@@ -488,16 +488,20 @@ function cadBakeRight(){
   cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
   const rx=cadRightBuf.getContext('2d');
   rx.fillStyle='#1a3a5c';rx.fillRect(0,0,500,500);
-  const ptc=cadPatMacro*CAD_MICRO;
+  // ptc now matches cadUpdateSettings: cadPatMacro × cadMacro × CAD_MICRO total units
+  const ptc=cadPatMacro*cadMacro*CAD_MICRO;
+  const tileStep=cadMacro*CAD_MICRO; // units per tile = same as left-canvas grid cell
   rx.fillStyle='rgba(160,160,184,0.25)';
-  for(let u=0;u<=ptc;u++)for(let v=0;v<=ptc;v++){
-    const onMain=(u%CAD_MICRO===0)&&(v%CAD_MICRO===0);
+  // Dots at every CAD_MICRO interval (matches left-canvas sub-grid density)
+  for(let u=0;u<=ptc;u+=CAD_MICRO)for(let v=0;v<=ptc;v+=CAD_MICRO){
+    const onTile=(u%tileStep===0)&&(v%tileStep===0);
     const p=cadG2S(u,v,cadPOX,cadPOY,cadPTile);
-    rx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
+    rx.fillRect(p.x-(onTile?2:1),p.y-(onTile?2:1),onTile?4:2,onTile?4:2);
   }
   rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.15)';
+  // Grid lines at tile boundaries (every tileStep units = every cadMacro macros)
   for(let i=0;i<=cadPatMacro;i++){
-    const val=i*CAD_MICRO;
+    const val=i*tileStep;
     rx.beginPath();const p1=cadG2S(val,0,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,ptc,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
     rx.beginPath();const p3=cadG2S(0,val,cadPOX,cadPOY,cadPTile),p4=cadG2S(ptc,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
   }
@@ -721,7 +725,7 @@ function cadDrawPattern(){
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
   const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
-  const ptc=cadPatMacro*CAD_MICRO,ov=ptc;
+  const ptc=cadPatMacro*cadMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
   const g2s=(u,v)=>cadG2S(u,v,cadPOX,cadPOY,cadPTile);
   // Check if a segment/arc is visible on the pattern canvas
@@ -877,7 +881,8 @@ window.cadUpdateSettings=function(){
   cadSpacing=parseInt(document.getElementById('cadSpacing').value);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   cadZoom=1;cadPanX=0;cadPanY=0;
-  const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*CAD_MICRO;
+  // ptc = total grid units across the tiling canvas: cadPatMacro tiles × cadMacro macros × CAD_MICRO units
+  const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*cadMacro*CAD_MICRO;
   if(cadGridType==='isometric'){
     cadBase=460/(2*tc*CAD_COS30);
     cadPTile=500/(2*ptc*CAD_COS30);cadPOX=250;cadPOY=(500-(ptc*2*cadPTile*CAD_SIN30))/2;
