@@ -23,6 +23,7 @@ let cadStitchLen=8;             // visible stitch length in patCanvas px
 let cadStitchRatio='standard';  // key into CAD_STITCH_RATIOS (stitch : pause)
 let _cadSpeedV=82;              // tile-play speed (shares _speedTotal with the gallery)
 let _cadStitchCache=null;       // {sig, stitches} — recomputed only when sig changes
+let _starHubScale=1.0;          // multiplier for star-hub keepout radius (tunable via slider)
 let _cadDenimBuf=null;          // baked denim background (500×500)
 // Stitch : pause (gap) ratios. Traditional sashiko keeps the gap ≈ 1/3 the stitch
 // length ("Standard" 3:1); other common looks offered below.
@@ -1247,8 +1248,9 @@ function _segNear(p,q,cx,cy,r){
 //    the vertex ("down-point", crisp "I"); per-segment fitting lands a boundary there.
 //  • 3–4 rays = CROSSING (X) / T-junction → a clear gap of ≈ ½–1 stitch length straddles
 //    the point so perpendicular threads never touch.
-//  • ≥5 rays = STAR hub (e.g. Asanoha) → a larger RADIAL clearance; every stitch stops
-//    short of a safety circle, leaving an empty fabric polygon at the centre.
+//  • ≥5 rays = STAR hub → radial clearance = L/(2·tan(π/R)), the inscribed-circle radius
+//    of a regular N-gon with N=R equally-spaced arms. Grows with arm count so a 6-armed
+//    Asanoha hub gets ≈0.87·L while a 12-armed Kamon hub gets ≈1.87·L.  Cap: 2.5·L.
 // Crossings are found inclusive of grid vertices (`_segCross`); round caps are compensated
 // by insetting drawn endpoints by the cap radius.
 function _layStitches(strokes,L,ratioKey,w){
@@ -1327,7 +1329,10 @@ function _layStitches(strokes,L,ratioKey,w){
   });
   nodes.forEach(nd=>{
     const R=nd.bk.size;
-    nd.clr = R<=2?0 : R<=4?cCross : Math.min(1.3*L, cCross*(1+0.4*(R-4)));
+    // Star hubs: (0.36−0.06·ln R) calibrates the inscribed-circle formula to look right
+    // across real patterns — factor 0.25 at R=6 (6-arm Asanoha), 0.20 at R=14 (Kamon).
+    // _starHubScale (slider, default 1.0) is a final fine-tune multiplier.
+    nd.clr = R<=2?0 : R<=4?cCross : Math.min(2.5*L, Math.max(cCross, _starHubScale*(0.36-0.06*Math.log(R))*L/(2*Math.tan(Math.PI/R))));
     // corner = exactly 2 rays at an angle (NOT collinear/straight, which is a smooth pass)
     nd.corner=false;
     if(R===2){const b=[...nd.bk];let diff=Math.abs(b[0]-b[1]);diff=Math.min(diff,24-diff);if(diff!==12)nd.corner=true;}
@@ -1352,9 +1357,13 @@ function _layStitches(strokes,L,ratioKey,w){
     });
   });
   crossings.forEach(c=>{
-    const clr=clrAt(c.x,c.y);
-    if(c.aInt)anchors[c.aSi].push({d:c.aD,clrL:clr,clrR:clr});
-    if(c.bInt)anchors[c.bSi].push({d:c.bD,clrL:clr,clrR:clr});
+    const nd=findNode(c.x,c.y), clr=nd?nd.clr:0;
+    if(clr<=0)return;   // R≤2 corner/straight → handled by the corner/endpoint logic
+    // Cut BOTH strokes at the junction regardless of whether the hit is interior or on a
+    // vertex — this catches a line that runs straight THROUGH a star hub with a vertex at
+    // the centre (otherwise it kept stitching across the keepout circle).
+    anchors[c.aSi].push({d:c.aD,clrL:clr,clrR:clr});
+    anchors[c.bSi].push({d:c.bD,clrL:clr,clrR:clr});
   });
   // Corner formed by two separate strokes meeting at a node: only ONE arm reaches the
   // corner (prefer the one that ENDS there); the rest get a normal gap. So exactly one
@@ -1475,6 +1484,14 @@ window.cadSetStitchLen=function(v){
 window.cadSetStitchRatio=function(v){
   cadStitchRatio=v;_cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
+};
+window.cadSetHubScale=function(v){
+  _starHubScale=parseFloat(v)/100;
+  const lbl=s=>s&&(s.textContent=_starHubScale.toFixed(2)+'×');
+  lbl(document.getElementById('cadHubScaleVal'));
+  lbl(document.getElementById('galHubScaleVal'));
+  const gs=document.getElementById('galHubScale');if(gs)gs.value=v;
+  _cadStitchCache=null;if(!_tpOn)cadDrawPattern();
 };
 window.cadToggleStitchGrid=function(){
   cadStitchGrid=document.getElementById('cadStitchGrid').checked;

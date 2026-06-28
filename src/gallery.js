@@ -19,6 +19,9 @@ function buildGallery(){
   const deleted=_getDeleted();
   PATTERNS.forEach(pat=>{
     if(deleted.includes(pat.id))return;
+    // Hitomezashi Generator hidden for now — NOT removed; the generator engine + preset
+    // UI are kept intact and may be re-enabled in a future version (just drop this guard).
+    if(pat.id==='generator')return;
     const card=document.createElement('button');
     card.className='pcard'+(pat.type==='generator'?' gen-card':'');
     card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
