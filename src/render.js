@@ -68,8 +68,9 @@ function locate(st){let s=st,p=0;while(p<PASSES.length&&s>PASSES[p].count){s-=PA
 // ── Idle info bar (clickable → starts Play) ────────────────────────────────
 function setIdleInfo(){
   const el=document.getElementById('info');
-  el.classList.add('idle');
-  el.innerHTML='<span class="info-play">▶&nbsp;<span>Press to begin</span></span>';
+  el.classList.remove('idle');
+  el.innerHTML='';
+  el.style.display='none';   // hide the bar entirely when idle (no "press to begin" prompt)
 }
 window.onInfoClick=function(){if(!playing&&step===0)play();};
 
@@ -91,7 +92,7 @@ function render(st){
 function updateInfo(st,p,local){
   const el=document.getElementById('info');
   if(st===0){setIdleInfo();markJump(-1);return;}
-  el.classList.remove('idle');el.onclick=null;
+  el.classList.remove('idle');el.onclick=null;el.style.display='';
   if(isEXP){
     let famHtml='',famIdx=-1;
     if(st<=TOTAL&&st>0&&EXP_path.length){
@@ -122,22 +123,25 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
   if(isEXP){
-    let lastFam=-1;
-    EXP_path.forEach((s,i)=>{
-      if(s.fam!==lastFam){
-        lastFam=s.fam;
-        const b=document.createElement('button');
-        const col=famColor(s.fam);
-        const on=_famToggles[s.fam]!==false;
-        b.className=on?'':'off';
-        b.style.background=on?col+'33':'';
-        b.style.borderColor=on?col:'';
-        b.style.color=on?'#e7eef6':'';
-        b.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>Line ${s.fam+1}`;
-        b.title='Toggle family '+(s.fam+1);
-        b.onclick=()=>{_famToggles[s.fam]=!_famToggles[s.fam];step=TOTAL;if(playing)pause();render(step);buildJumpBar();};
-        jb.appendChild(b);
-      }
+    const fams=[...new Set(EXP_path.map(s=>s.fam))].sort((a,b)=>a-b);
+    if(fams.length){
+      const lab=document.createElement('span');
+      lab.className='coltog-label';lab.textContent='Show colours:';
+      jb.appendChild(lab);
+    }
+    fams.forEach(fam=>{
+      const col=famColor(fam);
+      const on=_famToggles[fam]!==false;
+      const b=document.createElement('button');
+      b.className='coltog'+(on?' on':' off');
+      b.style.borderColor=col;
+      b.style.background=on?col+'2e':'transparent';
+      b.title=(on?'Hide':'Show')+' colour '+(fam+1);
+      b.innerHTML=`<span class="coltog-sw" style="background:${on?col:'transparent'};border-color:${col}"></span>`+
+                  `<span class="coltog-name">Colour ${fam+1}</span>`+
+                  `<span class="coltog-state">${on?'on':'off'}</span>`;
+      b.onclick=()=>{_famToggles[fam]=!_famToggles[fam];step=TOTAL;if(playing)pause();render(step);buildJumpBar();};
+      jb.appendChild(b);
     });
     return;
   }

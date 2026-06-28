@@ -21,7 +21,6 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .g-head{margin:0 0 6px}
 .g-title{font-size:20px;font-weight:600;margin:0;display:inline}
 .g-sub{font-size:14px;font-weight:400;color:var(--muted);margin-left:8px}
-.g-intro{font-size:13px;color:var(--muted);margin:4px 0 20px;line-height:1.6;max-width:600px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 .search{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:8px 14px;color:#e7eef6;font-size:13px;outline:none}
@@ -37,7 +36,7 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .gallery-zoom button{width:20px;height:20px;padding:0;font-size:12px;line-height:1;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:4px;cursor:pointer;font:inherit}
 .gallery-zoom button:hover{color:#e7eef6;border-color:#3a6ea3}
 .gallery-zoom span{font-size:11px;color:#e7eef6;min-width:22px;text-align:center}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
 .pcard{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:10px 8px 9px;cursor:pointer;display:flex;flex-direction:column;
   align-items:center;gap:5px;transition:.15s;text-align:center}
@@ -142,6 +141,16 @@ canvas#cv{display:block}
 .jumpbar button:hover{background:#1d3850}
 .jumpbar button.on{background:#214a72;border-color:#3a6ea3}
 .jumpbar button.off{opacity:0.35;text-decoration:line-through}
+/* Colour show/hide toggles (custom-pattern animation view) */
+.coltog-label{font-size:12px;color:var(--muted);align-self:center;margin-right:2px}
+.jumpbar button.coltog{display:inline-flex;align-items:center;gap:6px;border-width:1.5px;text-decoration:none}
+.coltog .coltog-sw{width:13px;height:13px;border-radius:50%;border:2px solid;flex:none}
+.coltog .coltog-name{font-size:12px}
+.coltog .coltog-state{font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:1px 5px;border-radius:4px}
+.coltog.on .coltog-state{background:rgba(120,230,150,.22);color:#7fe39a}
+.coltog.off{opacity:.55;text-decoration:none}
+.coltog.off .coltog-name{text-decoration:line-through}
+.coltog.off .coltog-state{background:rgba(255,255,255,.08);color:#8aa3bd}
 .ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 button.ctrl{background:var(--panel);color:#e7eef6;border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;
@@ -335,8 +344,6 @@ button.ctrl.primary:hover{background:#275784}
     <h1 class="g-title">Sashiko</h1>
     <span class="g-sub">Pattern Library</span>
   </div>
-  <p class="g-intro">Select a pattern to animate the full stitch path with phase colouring.
-    Two shades per pass show which rows start offset.</p>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
     <div class="filt-row">
@@ -5041,7 +5048,7 @@ function renderHM(st){
 function updateInfoHM(st){
   const el=document.getElementById('info');
   if(st===0){setIdleInfo();markJump(-1);return;}
-  el.classList.remove('idle'); el.onclick=null;
+  el.classList.remove('idle'); el.onclick=null; el.style.display='';
   const total=HM_fronts.length, si=Math.min(st,total)-1;
   const s=HM_path[HM_fronts[si]];
   const isFirst=s.phase===HM_phase_order[0];
@@ -5283,7 +5290,7 @@ function renderPolyline(st){
 function updateInfoPL(st){
   const el=document.getElementById('info');
   if(st===0){setIdleInfo();markJump(-1);return;}
-  el.classList.remove('idle');el.onclick=null;
+  el.classList.remove('idle');el.onclick=null;el.style.display='';
   const total=PL_fronts.length, np=PL_passes.length;
   if(st>=total){el.innerHTML='<span class="muted">complete ✓</span>';markJump(np-1);return;}
   let pi=0; for(let k=0;k<np;k++) if((st-1)>=PL_passes[k].start) pi=k;
@@ -5383,8 +5390,9 @@ function locate(st){let s=st,p=0;while(p<PASSES.length&&s>PASSES[p].count){s-=PA
 // ── Idle info bar (clickable → starts Play) ────────────────────────────────
 function setIdleInfo(){
   const el=document.getElementById('info');
-  el.classList.add('idle');
-  el.innerHTML='<span class="info-play">▶&nbsp;<span>Press to begin</span></span>';
+  el.classList.remove('idle');
+  el.innerHTML='';
+  el.style.display='none';   // hide the bar entirely when idle (no "press to begin" prompt)
 }
 window.onInfoClick=function(){if(!playing&&step===0)play();};
 
@@ -5406,7 +5414,7 @@ function render(st){
 function updateInfo(st,p,local){
   const el=document.getElementById('info');
   if(st===0){setIdleInfo();markJump(-1);return;}
-  el.classList.remove('idle');el.onclick=null;
+  el.classList.remove('idle');el.onclick=null;el.style.display='';
   if(isEXP){
     let famHtml='',famIdx=-1;
     if(st<=TOTAL&&st>0&&EXP_path.length){
@@ -5437,22 +5445,25 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
   if(isEXP){
-    let lastFam=-1;
-    EXP_path.forEach((s,i)=>{
-      if(s.fam!==lastFam){
-        lastFam=s.fam;
-        const b=document.createElement('button');
-        const col=famColor(s.fam);
-        const on=_famToggles[s.fam]!==false;
-        b.className=on?'':'off';
-        b.style.background=on?col+'33':'';
-        b.style.borderColor=on?col:'';
-        b.style.color=on?'#e7eef6':'';
-        b.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>Line ${s.fam+1}`;
-        b.title='Toggle family '+(s.fam+1);
-        b.onclick=()=>{_famToggles[s.fam]=!_famToggles[s.fam];step=TOTAL;if(playing)pause();render(step);buildJumpBar();};
-        jb.appendChild(b);
-      }
+    const fams=[...new Set(EXP_path.map(s=>s.fam))].sort((a,b)=>a-b);
+    if(fams.length){
+      const lab=document.createElement('span');
+      lab.className='coltog-label';lab.textContent='Show colours:';
+      jb.appendChild(lab);
+    }
+    fams.forEach(fam=>{
+      const col=famColor(fam);
+      const on=_famToggles[fam]!==false;
+      const b=document.createElement('button');
+      b.className='coltog'+(on?' on':' off');
+      b.style.borderColor=col;
+      b.style.background=on?col+'2e':'transparent';
+      b.title=(on?'Hide':'Show')+' colour '+(fam+1);
+      b.innerHTML=`<span class="coltog-sw" style="background:${on?col:'transparent'};border-color:${col}"></span>`+
+                  `<span class="coltog-name">Colour ${fam+1}</span>`+
+                  `<span class="coltog-state">${on?'on':'off'}</span>`;
+      b.onclick=()=>{_famToggles[fam]=!_famToggles[fam];step=TOTAL;if(playing)pause();render(step);buildJumpBar();};
+      jb.appendChild(b);
     });
     return;
   }

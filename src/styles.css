@@ -14,7 +14,6 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .g-head{margin:0 0 6px}
 .g-title{font-size:20px;font-weight:600;margin:0;display:inline}
 .g-sub{font-size:14px;font-weight:400;color:var(--muted);margin-left:8px}
-.g-intro{font-size:13px;color:var(--muted);margin:4px 0 20px;line-height:1.6;max-width:600px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 .search{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:8px 14px;color:#e7eef6;font-size:13px;outline:none}
@@ -30,7 +29,7 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 .gallery-zoom button{width:20px;height:20px;padding:0;font-size:12px;line-height:1;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:4px;cursor:pointer;font:inherit}
 .gallery-zoom button:hover{color:#e7eef6;border-color:#3a6ea3}
 .gallery-zoom span{font-size:11px;color:#e7eef6;min-width:22px;text-align:center}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
 .pcard{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:10px 8px 9px;cursor:pointer;display:flex;flex-direction:column;
   align-items:center;gap:5px;transition:.15s;text-align:center}
@@ -135,6 +134,16 @@ canvas#cv{display:block}
 .jumpbar button:hover{background:#1d3850}
 .jumpbar button.on{background:#214a72;border-color:#3a6ea3}
 .jumpbar button.off{opacity:0.35;text-decoration:line-through}
+/* Colour show/hide toggles (custom-pattern animation view) */
+.coltog-label{font-size:12px;color:var(--muted);align-self:center;margin-right:2px}
+.jumpbar button.coltog{display:inline-flex;align-items:center;gap:6px;border-width:1.5px;text-decoration:none}
+.coltog .coltog-sw{width:13px;height:13px;border-radius:50%;border:2px solid;flex:none}
+.coltog .coltog-name{font-size:12px}
+.coltog .coltog-state{font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:1px 5px;border-radius:4px}
+.coltog.on .coltog-state{background:rgba(120,230,150,.22);color:#7fe39a}
+.coltog.off{opacity:.55;text-decoration:none}
+.coltog.off .coltog-name{text-decoration:line-through}
+.coltog.off .coltog-state{background:rgba(255,255,255,.08);color:#8aa3bd}
 .ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 button.ctrl{background:var(--panel);color:#e7eef6;border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;
