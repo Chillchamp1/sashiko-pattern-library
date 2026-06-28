@@ -219,7 +219,7 @@ let raf = null;
 
 **Keyboard:** Space = Play/Pause, ArrowLeft/Right = one stitch forward/back.
 
-**Idle info-bar:** `onInfoClick()` checks `classList.contains('idle')` — onclick stays set always, `setIdleInfo()` restores the `idle` class (prevents onclick from breaking after Reset).
+**Idle info-bar:** at `step===0` the info bar is hidden entirely (`setIdleInfo()` sets `display:none`, no "press to begin" prompt); each `updateInfo` restores `display:''` for `step>0`. `onInfoClick` remains wired but is inert while hidden.
 
 ### Zoom & Pan
 

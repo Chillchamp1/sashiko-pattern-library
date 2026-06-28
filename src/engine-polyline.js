@@ -206,7 +206,7 @@ function renderPolyline(st){
 function updateInfoPL(st){
   const el=document.getElementById('info');
   if(st===0){setIdleInfo();markJump(-1);return;}
-  el.classList.remove('idle');el.onclick=null;
+  el.classList.remove('idle');el.onclick=null;el.style.display='';
   const total=PL_fronts.length, np=PL_passes.length;
   if(st>=total){el.innerHTML='<span class="muted">complete ✓</span>';markJump(np-1);return;}
   let pi=0; for(let k=0;k<np;k++) if((st-1)>=PL_passes[k].start) pi=k;

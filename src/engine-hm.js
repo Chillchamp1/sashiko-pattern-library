@@ -119,7 +119,7 @@ function renderHM(st){
 function updateInfoHM(st){
   const el=document.getElementById('info');
   if(st===0){setIdleInfo();markJump(-1);return;}
-  el.classList.remove('idle'); el.onclick=null;
+  el.classList.remove('idle'); el.onclick=null; el.style.display='';
   const total=HM_fronts.length, si=Math.min(st,total)-1;
   const s=HM_path[HM_fronts[si]];
   const isFirst=s.phase===HM_phase_order[0];
