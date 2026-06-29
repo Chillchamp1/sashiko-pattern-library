@@ -335,6 +335,12 @@ When saving a new pattern from the CAD editor, lines are automatically grouped i
 ### CAD Editor Family Colors
 Lines are colored by family in real-time as you draw. Both the Draw canvas and Live Tiling panel show family colors. The color assignment is stored in `cadFamilies[]` and recomputed via `cadAutoAssign()` on every change (called from `cadUpdateAll()`).
 
+### CAD Editor Layout / UX
+- **Header:** name input (`#cadPatName`, placeholder **"Unnamed pattern"**, starts empty) + **Traditional** checkbox (`#cadTraditional`, moved here from the settings bar) + Save / Publish. Save & Publish **require a name** — empty → `alert('Please name your pattern…')` and the field is focused; no silent "Custom Pattern" default.
+- **Left-panel toolbar** is grouped with `.cad-tool-sep` dividers: **draw tools** (Draw/Arc/Cut/Color) · **move + transform** (the Move ↑↓←→ arrows — now inline in the toolbar via `.cad-move-inline`, not a panel below the canvas — plus ↻ 45° rotate and ◇ 45° tiling) · **actions** (Undo/Clear/Reset). Undo sits in this toolbar directly above the Draw canvas.
+- **Leaving the editor** (`showGalleryFromCAD`, used by both gallery and sandbox back) calls `_stopTilePlay()` first, so any running tile-play animation is stopped + reset.
+- **Thumbnail preview** (`cadUpdateThumbPreview`) **always renders in stitch view** (forces `galStitch`/len/ratio from cad state, `EXP_sz=EXP_szRef`, then restores) — independent of the Live-Tiling Stitch-view toggle, so it matches the gallery cards. The −/+ control sets a **concrete cell count** (`cadThumbCells`, min 1, shown as "N cells" — no "auto"); it lazy-initialises to the natural fit count. Saved as `thumbCells`.
+
 ### Edit Pattern (Admin)
 - ✎ button on custom pattern cards (gallery + My Patterns) — requires admin password `'111'`
 - Loads pattern lines into CAD editor; grid/macro sizes clamped to valid select options

@@ -978,6 +978,8 @@ window.editExpPattern=function(idOrPat){
   cadFamsLocked=cadFamilies.some(f=>f>=0);
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
+  cadTraditional=!!pat.traditional;
+  document.getElementById('cadTraditional').checked=cadTraditional;
   cadRoutingMode=pat.routingMode||'default';
   cadThumbCells=pat.thumbCells||0;
   // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
@@ -987,7 +989,7 @@ window.editExpPattern=function(idOrPat){
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
   document.getElementById('cadPatSize').value=pat.patMacro||3;
-  document.getElementById('cadPatName').value=pat.name||'Custom Pattern';
+  document.getElementById('cadPatName').value=pat.name||'';
   cadEditId=pat.id;
   cadIsPublished=pat.published||false;
   cadInited=false;
@@ -2040,11 +2042,14 @@ window.showCAD=function(){
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
   cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';cadThumbCells=0;
   document.getElementById('cadRoutingMode').value='default';
+  document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
+  document.getElementById('cadTraditional').checked=false;
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
 };
 window.showGalleryFromCAD=function(){
+  if(_tpOn)_stopTilePlay();   // stop + reset the tile-play animation when leaving the editor
   cadEditId=null;
   document.getElementById('cadView').classList.remove('open');
   if(_cadSource==='gallery'){

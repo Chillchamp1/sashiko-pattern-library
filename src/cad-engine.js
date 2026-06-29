@@ -819,20 +819,27 @@ function cadUpdateThumbPreview(){
   const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbCells:cadThumbCells};
   const lay=computeExpLayout(previewPat);
   const nCells=Math.round(lay.ptc/Math.max(lay.dU,lay.dV,1));
-  const cells=cadThumbCells>0?cadThumbCells:nCells;
+  // Concrete cell count (no "auto"): initialise to the natural count, then the \u2212/+ buttons
+  // set it. Always shown as a plain number the user controls.
+  if(cadThumbCells<=0)cadThumbCells=Math.max(1,nCells);
+  const cells=cadThumbCells;
   const ts=w/SIZE*nCells/cells;
   const off=w/(2*ts)-SIZE/2;
   const zl=document.getElementById('cadThumbZoomVal');
-  if(zl)zl.textContent=cadThumbCells>0?cells+'\u2009cells':(nCells+'\u2009cells (auto)');
+  if(zl)zl.textContent=cells+'\u2009cells';
   tc.translate(off,off); tc.scale(ts,ts);
 
   const origCtx=ctx;
   const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
-  const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH;
+  const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH,sEXPsz=EXP_sz,sEXPszr=EXP_szRef;
+  // The thumbnail is always the realistic stitch view (it must match the gallery cards,
+  // regardless of the editor's Stitch-view toggle). Force galStitch + stitch params here.
+  const sGS=galStitch,sGSl=galStitchLen,sGSr=galStitchRatio,sGSg=galStitchGrid,sGSd=galDraft,sGSc=_galStitchCache;
   ctx=tc; curPat=previewPat; playing=false;
   isEXP=true;isPL=false;isHM=false;
+  galStitch=true; galStitchLen=cadStitchLen; galStitchRatio=cadStitchRatio; galStitchGrid=false; galDraft=false; _galStitchCache=null;
   try{
-    EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
+    EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH; EXP_sz=lay.sz; EXP_szRef=lay.sz;
     EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode);
     TOTAL=EXP_path.length;
     renderExp(TOTAL);
@@ -840,10 +847,11 @@ function cadUpdateThumbPreview(){
   ctx=origCtx;
   curPat=sCP;PASSES=sP;TOTAL=sT;step=sSt;playing=sPl;
   isHM=sHM;isPL=sPL;isEXP=sEX;
-  EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;
+  EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;EXP_sz=sEXPsz;EXP_szRef=sEXPszr;
+  galStitch=sGS;galStitchLen=sGSl;galStitchRatio=sGSr;galStitchGrid=sGSg;galDraft=sGSd;_galStitchCache=sGSc;
 }
 window.cadThumbZoomStep=function(dir){
-  cadThumbCells=Math.max(0,cadThumbCells+dir);
+  cadThumbCells=Math.max(1,cadThumbCells+dir);
   cadUpdateThumbPreview();
 };
 function cadBuildFamBar(){
@@ -1016,7 +1024,8 @@ function _cadLineFromSaved(l, minU, minV){
 window.cadSaveToLibrary=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
-  const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
+  const name=document.getElementById('cadPatName').value.trim();
+  if(!name){alert('Please name your pattern before saving.');document.getElementById('cadPatName').focus();return;}
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
@@ -1059,7 +1068,8 @@ window.cadPublishToLibrary=function(){
   if(pw!=='111'){alert('Wrong password');return;}
   if(!cadLines.length){alert('No lines to publish.');return;}
   const bbox=cadBBox();if(!bbox)return;
-  const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
+  const name=document.getElementById('cadPatName').value.trim();
+  if(!name){alert('Please name your pattern before publishing.');document.getElementById('cadPatName').focus();return;}
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;

@@ -260,6 +260,14 @@ button.ctrl.primary:hover{background:#275784}
 .cad-canvas-wrap{border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);background:#1a3a5c;aspect-ratio:1;width:100%}
 .cad-canvas-wrap canvas{display:block;width:100%;height:100%}
 .cad-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;min-height:38px}
+/* Grouped CAD tools: draw tools · move+transform · actions, divided by separators */
+.cad-tool-group{display:inline-flex;align-items:center;gap:6px}
+.cad-tool-sep{width:1px;align-self:stretch;background:var(--line);margin:2px 3px}
+.cad-move-inline .cad-move-label{margin-right:2px}
+.cad-arrow{padding:6px 9px;font-size:14px;line-height:1;min-width:0}
+.cad-name-trad{font-size:12px;color:var(--muted);display:flex;align-items:center}
+.cad-name-trad input{accent-color:#6aabff;cursor:pointer}
+.cad-name-input::placeholder{color:#6b7d92}
 .cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
 .cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
 /* Stitch-view toggle switch */
@@ -515,7 +523,8 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     <div class="cad-header">
       <button class="back-btn" onclick="showGalleryFromCAD()">← Patterns</button>
       <h2>CAD Pattern Editor</h2>
-      <input id="cadPatName" class="cad-name-input" placeholder="Pattern name…" value="My Pattern">
+      <input id="cadPatName" class="cad-name-input" placeholder="Unnamed pattern" value="">
+      <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
       <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88" id="cadPublishBtn">📌 Publish (admin)</button>
     </div>
@@ -526,7 +535,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <option value="square">Square (90°)</option>
         </select>
       </label>
-      <label style="gap:4px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
     </div>
     <div class="cad-fam-bar" id="cadFamBar">
       <span class="cad-fam-label">Stitch Order:</span>
@@ -544,30 +552,32 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <input type="number" id="cadGridSize" value="3" min="2" max="12" onchange="cadUpdateSettings()">
             <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
           </span>
-          <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling" style="font-size:11px;padding:3px 7px">◇ 45°</button>
-          <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
-          <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
-          <button class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
         </div>
         <div class="cad-toolbar">
-          <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
-          <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
-          <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
-          <button id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
-          <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
+          <span class="cad-tool-group">
+            <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
+            <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
+            <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
+            <button id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
+          </span>
+          <span class="cad-tool-sep"></span>
+          <span class="cad-tool-group cad-move-inline" title="Move whole pattern">
+            <span class="cad-move-label">Move</span>
+            <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
+            <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,1)" title="Move down">↓</button>
+            <button class="cad-tool cad-arrow" onclick="cadMovePattern(-1,0)" title="Move left">←</button>
+            <button class="cad-tool cad-arrow" onclick="cadMovePattern(1,0)" title="Move right">→</button>
+            <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
+            <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
+          </span>
+          <span class="cad-tool-sep"></span>
+          <span class="cad-tool-group">
+            <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
+            <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
+            <button class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
+          </span>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
-        <div class="cad-move-panel">
-          <span class="cad-move-label">Move</span>
-          <div class="cad-move-arrows">
-            <button class="cad-tool" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
-            <div>
-              <button class="cad-tool" onclick="cadMovePattern(-1,0)" title="Move left">←</button>
-              <button class="cad-tool" onclick="cadMovePattern(0,1)" title="Move down">↓</button>
-              <button class="cad-tool" onclick="cadMovePattern(1,0)" title="Move right">→</button>
-            </div>
-          </div>
-        </div>
       </div>
       <div class="cad-panel">
         <div class="cad-panel-top">
@@ -635,9 +645,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <button class="cad-tool cad-thumb-btn" onclick="cadThumbZoomStep(1)">+</button>
           </div>
           <canvas id="cadThumbCanvas" width="120" height="120"></canvas>
-        </div>
-        <div class="cad-move-panel">
-          <span class="cad-move-label"></span>
         </div>
   </div>
   <div class="remixes-section" id="remixesSection" style="display:none"></div>
@@ -7131,6 +7138,8 @@ window.editExpPattern=function(idOrPat){
   cadFamsLocked=cadFamilies.some(f=>f>=0);
   cadFamSel=-1;
   cadBBoxRotated=pat.bboxRotated||false;
+  cadTraditional=!!pat.traditional;
+  document.getElementById('cadTraditional').checked=cadTraditional;
   cadRoutingMode=pat.routingMode||'default';
   cadThumbCells=pat.thumbCells||0;
   // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
@@ -7140,7 +7149,7 @@ window.editExpPattern=function(idOrPat){
   document.getElementById('cadSpacing').value=cadSpacing;
   document.getElementById('cadGridSize').value=macroVal;
   document.getElementById('cadPatSize').value=pat.patMacro||3;
-  document.getElementById('cadPatName').value=pat.name||'Custom Pattern';
+  document.getElementById('cadPatName').value=pat.name||'';
   cadEditId=pat.id;
   cadIsPublished=pat.published||false;
   cadInited=false;
@@ -8193,11 +8202,14 @@ window.showCAD=function(){
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
   cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';cadThumbCells=0;
   document.getElementById('cadRoutingMode').value='default';
+  document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
+  document.getElementById('cadTraditional').checked=false;
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
 };
 window.showGalleryFromCAD=function(){
+  if(_tpOn)_stopTilePlay();   // stop + reset the tile-play animation when leaving the editor
   cadEditId=null;
   document.getElementById('cadView').classList.remove('open');
   if(_cadSource==='gallery'){
@@ -9032,20 +9044,27 @@ function cadUpdateThumbPreview(){
   const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbCells:cadThumbCells};
   const lay=computeExpLayout(previewPat);
   const nCells=Math.round(lay.ptc/Math.max(lay.dU,lay.dV,1));
-  const cells=cadThumbCells>0?cadThumbCells:nCells;
+  // Concrete cell count (no "auto"): initialise to the natural count, then the \u2212/+ buttons
+  // set it. Always shown as a plain number the user controls.
+  if(cadThumbCells<=0)cadThumbCells=Math.max(1,nCells);
+  const cells=cadThumbCells;
   const ts=w/SIZE*nCells/cells;
   const off=w/(2*ts)-SIZE/2;
   const zl=document.getElementById('cadThumbZoomVal');
-  if(zl)zl.textContent=cadThumbCells>0?cells+'\u2009cells':(nCells+'\u2009cells (auto)');
+  if(zl)zl.textContent=cells+'\u2009cells';
   tc.translate(off,off); tc.scale(ts,ts);
 
   const origCtx=ctx;
   const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
-  const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH;
+  const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH,sEXPsz=EXP_sz,sEXPszr=EXP_szRef;
+  // The thumbnail is always the realistic stitch view (it must match the gallery cards,
+  // regardless of the editor's Stitch-view toggle). Force galStitch + stitch params here.
+  const sGS=galStitch,sGSl=galStitchLen,sGSr=galStitchRatio,sGSg=galStitchGrid,sGSd=galDraft,sGSc=_galStitchCache;
   ctx=tc; curPat=previewPat; playing=false;
   isEXP=true;isPL=false;isHM=false;
+  galStitch=true; galStitchLen=cadStitchLen; galStitchRatio=cadStitchRatio; galStitchGrid=false; galDraft=false; _galStitchCache=null;
   try{
-    EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
+    EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH; EXP_sz=lay.sz; EXP_szRef=lay.sz;
     EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode);
     TOTAL=EXP_path.length;
     renderExp(TOTAL);
@@ -9053,10 +9072,11 @@ function cadUpdateThumbPreview(){
   ctx=origCtx;
   curPat=sCP;PASSES=sP;TOTAL=sT;step=sSt;playing=sPl;
   isHM=sHM;isPL=sPL;isEXP=sEX;
-  EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;
+  EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;EXP_sz=sEXPsz;EXP_szRef=sEXPszr;
+  galStitch=sGS;galStitchLen=sGSl;galStitchRatio=sGSr;galStitchGrid=sGSg;galDraft=sGSd;_galStitchCache=sGSc;
 }
 window.cadThumbZoomStep=function(dir){
-  cadThumbCells=Math.max(0,cadThumbCells+dir);
+  cadThumbCells=Math.max(1,cadThumbCells+dir);
   cadUpdateThumbPreview();
 };
 function cadBuildFamBar(){
@@ -9229,7 +9249,8 @@ function _cadLineFromSaved(l, minU, minV){
 window.cadSaveToLibrary=function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
-  const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
+  const name=document.getElementById('cadPatName').value.trim();
+  if(!name){alert('Please name your pattern before saving.');document.getElementById('cadPatName').focus();return;}
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
@@ -9272,7 +9293,8 @@ window.cadPublishToLibrary=function(){
   if(pw!=='111'){alert('Wrong password');return;}
   if(!cadLines.length){alert('No lines to publish.');return;}
   const bbox=cadBBox();if(!bbox)return;
-  const name=document.getElementById('cadPatName').value.trim()||'Custom Pattern';
+  const name=document.getElementById('cadPatName').value.trim();
+  if(!name){alert('Please name your pattern before publishing.');document.getElementById('cadPatName').focus();return;}
   const redSet=new Set(cadFindRedundant());
   const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
   if(!cleanLines.length)return;
