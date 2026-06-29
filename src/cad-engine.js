@@ -852,6 +852,21 @@ function cadUpdateThumbPreview(){
 }
 window.cadThumbZoomStep=function(dir){
   cadThumbCells=Math.max(1,cadThumbCells+dir);
+  // Auto-grow the live tiling (Tiles) so the thumbnail always has enough tiled cells to fill —
+  // the layout renders round(patMacro·CAD_MICRO/cellDim) cells, so bump patMacro until that ≥ the
+  // requested thumbnail cell count (clamped to the Tiles max of 12).
+  const bbox=cadBBox();
+  if(bbox&&dir>0){
+    const cellDim=Math.max(bbox.maxU-bbox.minU,bbox.maxV-bbox.minV,1);
+    let need=cadPatMacro;
+    while(Math.round(need*CAD_MICRO/cellDim)<cadThumbCells&&need<12)need++;
+    if(need>cadPatMacro){
+      cadPatMacro=need;
+      const inp=document.getElementById('cadPatSize');if(inp)inp.value=cadPatMacro;
+      cadUpdateSettings();   // re-tiles + redraws + refreshes the thumb preview
+      return;
+    }
+  }
   cadUpdateThumbPreview();
 };
 function cadBuildFamBar(){
@@ -1520,11 +1535,13 @@ window.cadToggleStitchView=function(){
   cadDrawPattern();
 };
 window.cadSetStitchLen=function(v){
-  cadStitchLen=parseInt(v)||16;
+  cadStitchLen=parseInt(v)||8;
   const el=document.getElementById('cadStitchLenVal');if(el)el.textContent=cadStitchLen;
   _cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
 };
+// +/− stepper (replaces the old slider); clamp 3–40, default 8.
+window.cadStepStitchLen=function(dir){window.cadSetStitchLen(Math.max(3,Math.min(40,cadStitchLen+dir)));};
 window.cadSetStitchRatio=function(v){
   cadStitchRatio=v;_cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
@@ -1655,6 +1672,18 @@ function cadInit(){
     if(e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
     if(e.key==='Escape'&&cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcLabel();cadUpdateAll();}
   });
+  if(!_cadResizeBound){_cadResizeBound=true;window.addEventListener('resize',()=>{if(document.getElementById('cadView').classList.contains('open'))cadAlignHeads();});}
+  cadAlignHeads();
+}
+// Make the Draw and Live-Tiling canvases line up: equalise the two pre-canvas heads to the
+// taller one (toolbar wrapping varies with viewport width, so measure rather than hard-code).
+let _cadResizeBound=false;
+function cadAlignHeads(){
+  const heads=[...document.querySelectorAll('#cadView .cad-panel-head')];
+  if(heads.length<2)return;
+  heads.forEach(h=>{h.style.minHeight='0px';});
+  const mx=Math.max(...heads.map(h=>h.getBoundingClientRect().height));
+  heads.forEach(h=>{h.style.minHeight=mx+'px';});
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────

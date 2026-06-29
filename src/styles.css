@@ -229,6 +229,11 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch:hover{border-color:#fff}
 .cad-fam-swatch.sel{border:3px solid #fff}
 /* ── Panel-top steppers (above canvases) ── */
+/* The pre-canvas controls of both panels live in .cad-panel-head with a shared min-height,
+   so the Draw and Live-Tiling canvases line up vertically (same start Y, same size). */
+.cad-panel-head{display:flex;flex-direction:column;gap:8px;min-height:118px}
+.cad-panel-head .cad-panel-top{margin-bottom:0}
+.cad-step-pm{display:inline-flex;align-items:center;gap:6px}
 .cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:32px;flex-wrap:wrap}
 .cad-panel-stepper{display:inline-flex;align-items:center;gap:4px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:3px 8px}
 .cad-panel-stepper-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
