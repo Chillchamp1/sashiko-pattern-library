@@ -1789,6 +1789,8 @@ window.galToggleAdv=function(){
   document.getElementById('galAdvBtn').textContent=open?'⚙ Advanced ▾':'⚙ Advanced ▴';
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
+// +/− stepper (replaces the old slider); clamp 3–40, default 8.
+window.galStepStitchLen=function(dir){window.galSetStitchLen(Math.max(3,Math.min(40,galStitchLen+dir)));};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
 // Grid and Draft are mutually exclusive: turning one on switches the other off.
 window.galToggleStitchGrid=function(){

@@ -236,6 +236,11 @@ button.ctrl.primary:hover{background:#275784}
 .cad-fam-swatch:hover{border-color:#fff}
 .cad-fam-swatch.sel{border:3px solid #fff}
 /* ── Panel-top steppers (above canvases) ── */
+/* The pre-canvas controls of both panels live in .cad-panel-head with a shared min-height,
+   so the Draw and Live-Tiling canvases line up vertically (same start Y, same size). */
+.cad-panel-head{display:flex;flex-direction:column;gap:8px;min-height:118px}
+.cad-panel-head .cad-panel-top{margin-bottom:0}
+.cad-step-pm{display:inline-flex;align-items:center;gap:6px}
 .cad-panel-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:32px;flex-wrap:wrap}
 .cad-panel-stepper{display:inline-flex;align-items:center;gap:4px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:3px 8px}
 .cad-panel-stepper-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
@@ -453,8 +458,7 @@ button.ctrl.primary:hover{background:#275784}
     <div class="gal-pop gal-adv" id="galAdv" style="display:none">
       <span class="cad-panel-stepper">
         <span class="cad-panel-stepper-label">Stitch</span>
-        <input type="range" id="galStitchLen" min="3" max="40" step="1" value="8" oninput="galSetStitchLen(this.value)">
-        <span class="cad-stitch-val" id="galStitchLenVal">8</span>
+        <span class="cad-step-pm"><button class="cad-tool cad-thumb-btn" onclick="galStepStitchLen(-1)">−</button><span class="cad-stitch-val" id="galStitchLenVal">8</span><button class="cad-tool cad-thumb-btn" onclick="galStepStitchLen(1)">+</button></span>
       </span>
       <label class="cad-routing-toggle">Ratio
         <select id="galStitchRatio" onchange="galSetStitchRatio(this.value)">
@@ -545,79 +549,88 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     </div>
     <div class="cad-workspace">
       <div class="cad-panel">
-        <div class="cad-panel-top">
-          <div class="cad-canvas-label">Draw</div>
-          <span class="cad-panel-stepper">
-            <span class="cad-panel-stepper-label">Grid</span>
-            <input type="number" id="cadGridSize" value="3" min="2" max="12" onchange="cadUpdateSettings()">
-            <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
-          </span>
-        </div>
-        <div class="cad-toolbar">
-          <span class="cad-tool-group">
-            <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
-            <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
-            <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
-            <button id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
-          </span>
-          <span class="cad-tool-sep"></span>
-          <span class="cad-tool-group cad-move-inline" title="Move whole pattern">
-            <span class="cad-move-label">Move</span>
-            <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
-            <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,1)" title="Move down">↓</button>
-            <button class="cad-tool cad-arrow" onclick="cadMovePattern(-1,0)" title="Move left">←</button>
-            <button class="cad-tool cad-arrow" onclick="cadMovePattern(1,0)" title="Move right">→</button>
-            <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
-            <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
-          </span>
-          <span class="cad-tool-sep"></span>
-          <span class="cad-tool-group">
-            <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
-            <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
-            <button class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
-          </span>
+        <div class="cad-panel-head">
+          <div class="cad-panel-top">
+            <div class="cad-canvas-label">Draw</div>
+            <span class="cad-panel-stepper">
+              <span class="cad-panel-stepper-label">Grid</span>
+              <input type="number" id="cadGridSize" value="3" min="2" max="12" onchange="cadUpdateSettings()">
+              <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
+            </span>
+          </div>
+          <div class="cad-toolbar">
+            <span class="cad-tool-group">
+              <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
+              <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
+              <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
+              <button id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
+            </span>
+            <span class="cad-tool-sep"></span>
+            <span class="cad-tool-group cad-move-inline" title="Move whole pattern">
+              <span class="cad-move-label">Move</span>
+              <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
+              <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,1)" title="Move down">↓</button>
+              <button class="cad-tool cad-arrow" onclick="cadMovePattern(-1,0)" title="Move left">←</button>
+              <button class="cad-tool cad-arrow" onclick="cadMovePattern(1,0)" title="Move right">→</button>
+              <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
+              <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
+            </span>
+            <span class="cad-tool-sep"></span>
+            <span class="cad-tool-group">
+              <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
+              <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
+              <button class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
+            </span>
+          </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
       </div>
       <div class="cad-panel">
-        <div class="cad-panel-top">
-          <div class="cad-canvas-label">Live Tiling</div>
-          <label class="cad-routing-toggle">Routing:
-            <select id="cadRoutingMode" onchange="cadUpdateSettings()">
-              <option value="default" selected>1 · Straight rows</option>
-              <option value="continuous">2 · Zigzag</option>
-              <option value="contour">3 · Waves</option>
-            </select>
-          </label>
-          <span class="cad-panel-stepper">
-            <span class="cad-panel-stepper-label">Tiles</span>
-            <input type="number" id="cadPatSize" value="3" min="2" max="12" onchange="cadUpdateSettings()">
-            <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>
-          </span>
-          <span class="cad-panel-stepper">
-            <span class="cad-panel-stepper-label">Spacing</span>
-            <input type="number" id="cadSpacing" value="0" min="0" max="12" onchange="cadUpdateSettings()">
-            <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
-          </span>
+        <div class="cad-panel-head">
+          <div class="cad-panel-top">
+            <div class="cad-canvas-label">Live Tiling</div>
+            <label class="cad-routing-toggle">Routing:
+              <select id="cadRoutingMode" onchange="cadUpdateSettings()">
+                <option value="default" selected>1 · Straight rows</option>
+                <option value="continuous">2 · Zigzag</option>
+                <option value="contour">3 · Waves</option>
+              </select>
+            </label>
+            <span class="cad-panel-stepper">
+              <span class="cad-panel-stepper-label">Tiles</span>
+              <input type="number" id="cadPatSize" value="3" min="2" max="12" onchange="cadUpdateSettings()">
+              <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>
+            </span>
+            <span class="cad-panel-stepper">
+              <span class="cad-panel-stepper-label">Spacing</span>
+              <input type="number" id="cadSpacing" value="0" min="0" max="12" onchange="cadUpdateSettings()">
+              <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
+            </span>
+          </div>
+          <div class="cad-toolbar">
+            <span class="cad-tool-group">
+              <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
+              <span class="speed-slider" title="Animation speed">
+                <span aria-hidden="true">🐢</span>
+                <input type="range" id="cadSpeed" min="0" max="100" step="1" value="82" oninput="cadSetSpeed(this.value)">
+                <span aria-hidden="true">⚡</span>
+              </span>
+            </span>
+            <span class="cad-tool-sep"></span>
+            <span class="cad-tool-group">
+              <label class="cad-switch" title="Switch between coloured and realistic denim + thread view">
+                <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
+                <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
+                <span class="cad-switch-text">🪡 Stitch view</span>
+              </label>
+            </span>
+          </div>
         </div>
-        <div class="cad-toolbar">
-          <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
-          <span class="speed-slider" title="Animation speed">
-            <span aria-hidden="true">🐢</span>
-            <input type="range" id="cadSpeed" min="0" max="100" step="1" value="82" oninput="cadSetSpeed(this.value)">
-            <span aria-hidden="true">⚡</span>
-          </span>
-          <label class="cad-switch" title="Switch between coloured and realistic denim + thread view">
-            <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
-            <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
-            <span class="cad-switch-text">🪡 Stitch view</span>
-          </label>
-        </div>
+        <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
         <div class="cad-stitch-controls" id="cadStitchControls" style="display:none">
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Stitch</span>
-            <input type="range" id="cadStitchLen" min="3" max="40" step="1" value="8" oninput="cadSetStitchLen(this.value)">
-            <span class="cad-stitch-val" id="cadStitchLenVal">8</span>
+            <span class="cad-step-pm"><button class="cad-tool cad-thumb-btn" onclick="cadStepStitchLen(-1)">−</button><span class="cad-stitch-val" id="cadStitchLenVal">8</span><button class="cad-tool cad-thumb-btn" onclick="cadStepStitchLen(1)">+</button></span>
           </span>
           <label class="cad-routing-toggle">Ratio
             <select id="cadStitchRatio" onchange="cadSetStitchRatio(this.value)">
@@ -630,13 +643,14 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <label class="cad-routing-toggle" title="Show the fabric grid">
             <input type="checkbox" id="cadStitchGrid" onchange="cadToggleStitchGrid()"> Grid
           </label>
+          <!-- Hub-size fine-tune — hidden from the UI but kept for later; cadSetHubScale still works.
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Hub</span>
             <input type="range" id="cadHubScale" min="0" max="200" step="5" value="100" oninput="cadSetHubScale(this.value)">
             <span class="cad-stitch-val" id="cadHubScaleVal">1.00×</span>
           </span>
+          -->
         </div>
-        <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
         <div class="cad-thumb-preview">
           <div class="cad-thumb-label">Thumbnail Preview</div>
           <div class="cad-thumb-controls">
@@ -7949,6 +7963,8 @@ window.galToggleAdv=function(){
   document.getElementById('galAdvBtn').textContent=open?'⚙ Advanced ▾':'⚙ Advanced ▴';
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
+// +/− stepper (replaces the old slider); clamp 3–40, default 8.
+window.galStepStitchLen=function(dir){window.galSetStitchLen(Math.max(3,Math.min(40,galStitchLen+dir)));};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
 // Grid and Draft are mutually exclusive: turning one on switches the other off.
 window.galToggleStitchGrid=function(){
@@ -9077,6 +9093,21 @@ function cadUpdateThumbPreview(){
 }
 window.cadThumbZoomStep=function(dir){
   cadThumbCells=Math.max(1,cadThumbCells+dir);
+  // Auto-grow the live tiling (Tiles) so the thumbnail always has enough tiled cells to fill —
+  // the layout renders round(patMacro·CAD_MICRO/cellDim) cells, so bump patMacro until that ≥ the
+  // requested thumbnail cell count (clamped to the Tiles max of 12).
+  const bbox=cadBBox();
+  if(bbox&&dir>0){
+    const cellDim=Math.max(bbox.maxU-bbox.minU,bbox.maxV-bbox.minV,1);
+    let need=cadPatMacro;
+    while(Math.round(need*CAD_MICRO/cellDim)<cadThumbCells&&need<12)need++;
+    if(need>cadPatMacro){
+      cadPatMacro=need;
+      const inp=document.getElementById('cadPatSize');if(inp)inp.value=cadPatMacro;
+      cadUpdateSettings();   // re-tiles + redraws + refreshes the thumb preview
+      return;
+    }
+  }
   cadUpdateThumbPreview();
 };
 function cadBuildFamBar(){
@@ -9745,11 +9776,13 @@ window.cadToggleStitchView=function(){
   cadDrawPattern();
 };
 window.cadSetStitchLen=function(v){
-  cadStitchLen=parseInt(v)||16;
+  cadStitchLen=parseInt(v)||8;
   const el=document.getElementById('cadStitchLenVal');if(el)el.textContent=cadStitchLen;
   _cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
 };
+// +/− stepper (replaces the old slider); clamp 3–40, default 8.
+window.cadStepStitchLen=function(dir){window.cadSetStitchLen(Math.max(3,Math.min(40,cadStitchLen+dir)));};
 window.cadSetStitchRatio=function(v){
   cadStitchRatio=v;_cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
@@ -9880,6 +9913,18 @@ function cadInit(){
     if(e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
     if(e.key==='Escape'&&cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcLabel();cadUpdateAll();}
   });
+  if(!_cadResizeBound){_cadResizeBound=true;window.addEventListener('resize',()=>{if(document.getElementById('cadView').classList.contains('open'))cadAlignHeads();});}
+  cadAlignHeads();
+}
+// Make the Draw and Live-Tiling canvases line up: equalise the two pre-canvas heads to the
+// taller one (toolbar wrapping varies with viewport width, so measure rather than hard-code).
+let _cadResizeBound=false;
+function cadAlignHeads(){
+  const heads=[...document.querySelectorAll('#cadView .cad-panel-head')];
+  if(heads.length<2)return;
+  heads.forEach(h=>{h.style.minHeight='0px';});
+  const mx=Math.max(...heads.map(h=>h.getBoundingClientRect().height));
+  heads.forEach(h=>{h.style.minHeight=mx+'px';});
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
