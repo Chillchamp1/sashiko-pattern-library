@@ -1,0 +1,67 @@
+{
+  "id": "exp_1781811099612",
+  "lines": [
+    {
+      "end": [
+        0,
+        10
+      ],
+      "start": [
+        10,
+        10
+      ]
+    },
+    {
+      "start": [
+        0,
+        10
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        10,
+        10
+      ]
+    },
+    {
+      "start": [
+        10,
+        10
+      ],
+      "end": [
+        10,
+        0
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        10,
+        0
+      ]
+    }
+  ],
+  "name": "My Pattern",
+  "creatorId": "u8rlr9s3s75",
+  "type": "exp",
+  "createdAt": 1781811099618,
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 10,
+    "maxU": 10
+  },
+  "gridType": "isometric",
+  "patMacro": 5
+}

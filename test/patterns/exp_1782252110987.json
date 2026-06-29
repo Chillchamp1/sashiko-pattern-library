@@ -1,13 +1,34 @@
 {
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxU": 9,
+    "maxV": 9
+  },
+  "gridType": "square",
+  "patMacro": 5,
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1
+  ],
+  "createdAt": 1782252110987,
+  "id": "exp_1782252110987",
   "lines": [
     {
-      "end": [
-        8,
-        6
-      ],
       "start": [
         9,
         7
+      ],
+      "end": [
+        8,
+        6
       ]
     },
     {
@@ -31,23 +52,23 @@
       ]
     },
     {
-      "end": [
-        5,
-        3
-      ],
       "start": [
         6,
         4
+      ],
+      "end": [
+        5,
+        3
       ]
     },
     {
-      "start": [
-        4,
-        4
-      ],
       "end": [
         8,
         8
+      ],
+      "start": [
+        4,
+        4
       ]
     },
     {
@@ -61,58 +82,37 @@
       ]
     },
     {
-      "end": [
-        6,
-        2
-      ],
       "start": [
         2,
         6
+      ],
+      "end": [
+        6,
+        2
       ]
     },
     {
-      "start": [
-        5,
-        1
-      ],
       "end": [
         1,
         5
+      ],
+      "start": [
+        5,
+        1
       ]
     },
     {
-      "end": [
-        4,
-        0
-      ],
       "start": [
         0,
         4
+      ],
+      "end": [
+        4,
+        0
       ]
     }
   ],
-  "createdAt": 1782252110987,
-  "creatorId": "u78tgmm0drm",
-  "families": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1
-  ],
-  "bbox": {
-    "maxV": 9,
-    "maxU": 9,
-    "minU": 0,
-    "minV": 0
-  },
-  "gridType": "square",
   "name": "Ajiro (Wickerwork)",
-  "patMacro": 5,
-  "type": "exp",
-  "id": "exp_1782252110987"
+  "creatorId": "uyqa6wy657m",
+  "type": "exp"
 }

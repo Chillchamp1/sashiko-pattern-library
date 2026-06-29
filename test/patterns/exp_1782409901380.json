@@ -1,14 +1,36 @@
 {
-  "id": "exp_1782409901380",
-  "bboxRotated": false,
-  "type": "exp",
-  "traditional": true,
+  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
+  "famOrder": [
+    0,
+    1
+  ],
+  "families": [
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1
+  ],
+  "createdAt": 1782409901380,
   "bbox": {
-    "minU": 0,
-    "minV": 0,
+    "maxU": 8,
     "maxV": 4,
-    "maxU": 8
+    "minU": 0,
+    "minV": 0
   },
+  "gridType": "square",
+  "patMacro": 3,
+  "spacing": 0,
+  "id": "exp_1782409901380",
+  "traditional": true,
+  "creatorId": "uyqa6wy657m",
   "lines": [
     {
       "start": [
@@ -21,53 +43,53 @@
       ]
     },
     {
-      "end": [
-        2,
-        4
-      ],
       "start": [
         0,
         3
+      ],
+      "end": [
+        2,
+        4
       ]
     },
     {
+      "end": [
+        4,
+        3
+      ],
       "start": [
         2,
         4
-      ],
-      "end": [
-        4,
-        3
       ]
     },
     {
-      "end": [
-        2,
-        2
-      ],
       "start": [
         4,
         3
+      ],
+      "end": [
+        2,
+        2
       ]
     },
     {
+      "end": [
+        4,
+        1
+      ],
       "start": [
         2,
         0
-      ],
-      "end": [
-        4,
-        1
       ]
     },
     {
-      "end": [
-        4,
-        1
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        4,
+        1
       ]
     },
     {
@@ -101,13 +123,13 @@
       ]
     },
     {
-      "start": [
-        6,
-        2
-      ],
       "end": [
         8,
         3
+      ],
+      "start": [
+        6,
+        2
       ]
     },
     {
@@ -131,29 +153,7 @@
       ]
     }
   ],
-  "spacing": 0,
-  "createdAt": 1782409901380,
-  "famOrder": [
-    0,
-    1
-  ],
-  "families": [
-    1,
-    0,
-    1,
-    0,
-    0,
-    1,
-    1,
-    0,
-    1,
-    0,
-    0,
-    1
-  ],
-  "gridType": "square",
   "routingMode": "default",
-  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
-  "patMacro": 3,
-  "creatorId": "uyqa6wy657m"
+  "type": "exp",
+  "bboxRotated": false
 }

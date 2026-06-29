@@ -1,12 +1,14 @@
 {
   "bbox": {
-    "maxU": 10,
     "maxV": 10,
+    "maxU": 10,
     "minV": 0,
     "minU": 0
   },
-  "published": true,
-  "creatorId": "u78tgmm0drm",
+  "patMacro": 3,
+  "gridType": "isometric",
+  "creatorId": "ugaijrmeecw",
+  "name": "Asanoha (Hemp Leaf)",
   "lines": [
     {
       "start": [
@@ -39,13 +41,13 @@
       ]
     },
     {
-      "end": [
-        3.333,
-        6.667
-      ],
       "start": [
         0,
         0
+      ],
+      "end": [
+        3.333,
+        6.667
       ]
     },
     {
@@ -59,19 +61,9 @@
       ]
     },
     {
-      "end": [
-        6.667,
-        3.333
-      ],
       "start": [
         10,
         10
-      ]
-    },
-    {
-      "start": [
-        0,
-        0
       ],
       "end": [
         6.667,
@@ -79,13 +71,23 @@
       ]
     },
     {
+      "end": [
+        6.667,
+        3.333
+      ],
       "start": [
         0,
-        10
-      ],
+        0
+      ]
+    },
+    {
       "end": [
         3.333,
         6.667
+      ],
+      "start": [
+        0,
+        10
       ]
     },
     {
@@ -99,7 +101,8 @@
       ]
     }
   ],
-  "createdAt": 1781819811462,
+  "id": "exp_1781819811459",
+  "type": "exp",
   "families": [
     0,
     0,
@@ -111,9 +114,6 @@
     0,
     0
   ],
-  "id": "exp_1781819811459",
-  "name": "Asanoha (Hemp Leaf)",
-  "gridType": "isometric",
-  "type": "exp",
-  "patMacro": 3
+  "createdAt": 1781819811462,
+  "published": true
 }

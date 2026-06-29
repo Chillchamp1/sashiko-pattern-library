@@ -1,16 +1,47 @@
 {
-  "published": true,
-  "creatorId": "uyqa6wy657m",
-  "gridType": "square",
+  "famOrder": [
+    0,
+    1
+  ],
+  "families": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1
+  ],
+  "createdAt": 1782393370706,
   "name": "Sankuzushimon (Sets of Three)",
-  "patMacro": 4,
-  "traditional": true,
   "bbox": {
-    "maxV": 12,
-    "maxU": 12,
     "minU": 0,
-    "minV": 0
+    "minV": 0,
+    "maxU": 12,
+    "maxV": 12
   },
+  "gridType": "square",
+  "patMacro": 4,
+  "bboxRotated": false,
+  "published": true,
+  "spacing": 0,
+  "id": "exp_1782393370706",
   "lines": [
     {
       "end": [
@@ -43,12 +74,12 @@
       ]
     },
     {
-      "end": [
-        2,
-        6
-      ],
       "start": [
         4,
+        6
+      ],
+      "end": [
+        2,
         6
       ]
     },
@@ -103,23 +134,23 @@
       ]
     },
     {
-      "start": [
-        0,
-        8
-      ],
       "end": [
         6,
+        8
+      ],
+      "start": [
+        0,
         8
       ]
     },
     {
-      "end": [
-        6,
-        6
-      ],
       "start": [
         6,
         8
+      ],
+      "end": [
+        6,
+        6
       ]
     },
     {
@@ -173,13 +204,13 @@
       ]
     },
     {
-      "end": [
-        8,
-        12
-      ],
       "start": [
         8,
         6
+      ],
+      "end": [
+        8,
+        12
       ]
     },
     {
@@ -203,13 +234,13 @@
       ]
     },
     {
-      "start": [
-        10,
-        12
-      ],
       "end": [
         10,
         6
+      ],
+      "start": [
+        10,
+        12
       ]
     },
     {
@@ -223,12 +254,12 @@
       ]
     },
     {
-      "end": [
-        12,
+      "start": [
+        6,
         2
       ],
-      "start": [
-        6,
+      "end": [
+        12,
         2
       ]
     },
@@ -243,39 +274,8 @@
       ]
     }
   ],
-  "spacing": 0,
-  "createdAt": 1782393370706,
-  "famOrder": [
-    0,
-    1
-  ],
-  "families": [
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    1,
-    0,
-    1,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0,
-    0,
-    1,
-    1,
-    1
-  ],
-  "id": "exp_1782393370706",
-  "zigzagRouting": false,
-  "bboxRotated": false,
-  "type": "exp"
+  "creatorId": "uyqa6wy657m",
+  "traditional": true,
+  "type": "exp",
+  "zigzagRouting": false
 }
