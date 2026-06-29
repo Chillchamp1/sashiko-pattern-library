@@ -84,7 +84,7 @@ function _reloadExpWithTiles(){
   const expLay=computeExpLayout(effPat);
   EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
   TOTAL=EXP_path.length;
-  _galStitchCache=null;
+  _galStitchCache=null;_galDraftCache=null;
   step=TOTAL;
   buildJumpBar();render(step);
   const sc=document.getElementById('scrubber');if(sc)sc.value=1000;
@@ -213,6 +213,9 @@ function loadPattern(pat){
     const lbl=document.getElementById('tileCellsVal');if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
     const effPat={...pat,patMacro:_tileCells};
     setupExpCanvas(effPat);
+    // Freeze the reference scale at the pattern's natural tile count, so the stitch count
+    // per line is invariant under the gallery tile-count picker (stepTileCells).
+    EXP_szRef=computeExpLayout({...pat,patMacro:pat.patMacro||3}).sz;
     const expLay=computeExpLayout(effPat);
     EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
     TOTAL=EXP_path.length; PASSES=[];
@@ -242,6 +245,7 @@ function loadPattern(pat){
     galStitchLen=pat.stitchLen||8;
     galStitchRatio=pat.stitchRatio||'standard';
     galStitchGrid=!!pat.stitchGrid;
+    galDraft=false;_galDraftCache=null;
     galThreadColors={}; galActiveFam=0;   // thread-colour preview resets per pattern
     _galStitchCache=null;
     syncGalStitchUI();

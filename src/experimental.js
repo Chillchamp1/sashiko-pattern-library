@@ -20,16 +20,40 @@ let EXP_path=[];       // [{start:[u,v], end:[u,v], jump:bool}]
 let EXP_g2s=null;      // grid→screen fn (set by setupExpCanvas)
 let EXP_canvasH=SIZE;  // canvas height in CSS px (SIZE for square, SIZE/√3 for iso)
 let EXP_uRange=[0,0], EXP_vRange=[0,0];  // visible grid range (for stitch-view grid overlay)
+// Layout scale (screen px per grid unit). EXP_sz tracks the current tile count; EXP_szRef
+// is frozen at the pattern's natural patMacro on load. Stitch length is expressed in grid
+// units relative to EXP_szRef, so changing the tile count rescales the whole scene uniformly
+// (constant number of stitches per line — the pattern stays static).
+let EXP_sz=1, EXP_szRef=1;
 // ── Gallery realistic stitch view (always on for custom patterns) ────────────
 let galStitch=true, galStitchLen=8, galStitchRatio='standard', galStitchGrid=false;
-let _galStitchCache=null;
+// Draft mode: drafting help lines (full pattern geometry + full circles for arcs), shown
+// together with the grid and the toned-down threads.
+let galDraft=false;
+let _galStitchCache=null, _galDraftCache=null;
 // Optional thread-colour preview: family index → hex (absent = off-white yarn).
-let galThreadColors={}, galPalette='pastel', galActiveFam=0;
+// Default palette is the Olympus sashiko set (the "Sashiko yarn" option).
+let galThreadColors={}, galPalette='sashiko', galActiveFam=0;
 // Soft pastel thread palette.
 const GAL_PASTEL=['#efe7d0','#f3c9d3','#f8d9b8','#f4e7a9','#c2e6cf','#c3dcef','#cfd0ef','#e3cdec','#cfe6df','#d8d2c4'];
-// Authentic sashiko thread colours (curated, à la Olympus/Daruma thread cards) —
-// a fixed swatch set is the right picker here, not a free colour wheel.
-const GAL_SASHIKO=['#ece3c8','#f6f3ea','#c0392b','#d4572b','#d9a52b','#c8902a','#5a9e57','#3a6b4a','#2f7f86','#5b91c4','#27406e','#5a4f93','#8a4f86','#c76b8e','#855a3a','#2b2b2b','#98a2ad'];
+// Olympus Sashiko Thread — full 40-colour lineup (Olympus #42 single colours),
+// extracted from the product photos. `brand:'olympus'` is internal-only metadata so the
+// set can be filtered later (not shown to the user). `code` = the Olympus skein number.
+const OLYMPUS_SASHIKO=[
+  {code:1, hex:'#ffffff'}, {code:2, hex:'#f0e9cd'}, {code:3, hex:'#8b5a3b'}, {code:4, hex:'#e2872c'},
+  {code:5, hex:'#c4a02f'}, {code:6, hex:'#a4c659'}, {code:7, hex:'#7f9a72'}, {code:8, hex:'#aad2ea'},
+  {code:9, hex:'#7fb3d9'}, {code:10,hex:'#5c84ab'}, {code:11,hex:'#49709f'}, {code:12,hex:'#1f2746'},
+  {code:13,hex:'#cf8fa0'}, {code:14,hex:'#f1b9cb'}, {code:15,hex:'#cf2230'}, {code:16,hex:'#f3c623'},
+  {code:17,hex:'#3fb2c2'}, {code:18,hex:'#3a5aa6'}, {code:19,hex:'#7a5ca6'}, {code:20,hex:'#1a1a1a'},
+  {code:21,hex:'#d52f8d'}, {code:22,hex:'#ec6a1d'}, {code:23,hex:'#3f4eae'}, {code:24,hex:'#c98fce'},
+  {code:25,hex:'#ef9f86'}, {code:26,hex:'#57a668'}, {code:27,hex:'#2f6fce'}, {code:28,hex:'#8fb6df'},
+  {code:29,hex:'#b9bdc5'}, {code:30,hex:'#c2286d'}, {code:31,hex:'#e7623a'}, {code:32,hex:'#d44a78'},
+  {code:33,hex:'#f0c63d'}, {code:34,hex:'#4a4a4a'}, {code:35,hex:'#af3a88'}, {code:36,hex:'#6a5fae'},
+  {code:37,hex:'#2e7a5e'}, {code:38,hex:'#e7e1cf'}, {code:39,hex:'#6a4a34'}, {code:40,hex:'#595e79'},
+].map(o=>({...o, brand:'olympus'}));
+const GAL_SASHIKO=OLYMPUS_SASHIKO.map(o=>o.hex);
+// Membership set for "is this an Olympus yarn colour?" filtering later.
+const OLYMPUS_HEXES=new Set(GAL_SASHIKO);
 function _galPaletteArr(){return galPalette==='sashiko'?GAL_SASHIKO:GAL_PASTEL;}
 
 // ── Firebase bootstrap ───────────────────────────────────────────────────────
@@ -593,6 +617,7 @@ function setupExpCanvas(pat){
   const lay=computeExpLayout(pat);
   EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH;
   EXP_uRange=lay.uRange; EXP_vRange=lay.vRange;
+  EXP_sz=lay.sz;
   _setupCanvasSize(SIZE,EXP_canvasH);
 }
 
@@ -1601,11 +1626,95 @@ function drawExpGuide(){
 
 // Build (and cache) the gallery stitch list from the current EXP_path (anim-canvas coords).
 function _galStitchScene(){
-  if(_galStitchCache&&_galStitchCache.ref===EXP_path&&_galStitchCache.len===galStitchLen&&_galStitchCache.ratio===galStitchRatio)
+  // Stitch length is anchored to the natural tile count (EXP_szRef): when the user changes
+  // the tile count the layout scale (EXP_sz) shrinks, so the effective px stitch length and
+  // width shrink with it — the number of stitches on any given line stays constant.
+  const r=(EXP_szRef>0?EXP_sz/EXP_szRef:1)||1;
+  const len=galStitchLen*r, w=_stitchW(len);
+  if(_galStitchCache&&_galStitchCache.ref===EXP_path&&_galStitchCache.len===len&&_galStitchCache.ratio===galStitchRatio)
     return _galStitchCache;
-  const w=_stitchW(galStitchLen);
   const strokes=_buildStrokesFromPath(EXP_path,p=>{const a=EXP_g2s(p);return[a.x,a.y];});
-  return(_galStitchCache={ref:EXP_path,len:galStitchLen,ratio:galStitchRatio,w,stitches:_layStitches(strokes,galStitchLen,galStitchRatio,w)});
+  return(_galStitchCache={ref:EXP_path,len,ratio:galStitchRatio,w,stitches:_layStitches(strokes,len,galStitchRatio,w)});
+}
+
+// ── Draft mode (drafting help lines) ────────────────────────────────────────
+// Circumcircle through 3 points (grid coords); null if (near-)collinear.
+function _circumcircle(A,B,C){
+  const ax=A[0],ay=A[1],bx=B[0],by=B[1],cx=C[0],cy=C[1];
+  const d=2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by));
+  if(Math.abs(d)<1e-9)return null;
+  const a2=ax*ax+ay*ay,b2=bx*bx+by*by,c2=cx*cx+cy*cy;
+  const ux=(a2*(by-cy)+b2*(cy-ay)+c2*(ay-by))/d;
+  const uy=(a2*(cx-bx)+b2*(ax-cx)+c2*(bx-ax))/d;
+  return{c:[ux,uy],r:Math.hypot(ax-ux,ay-uy)};
+}
+// Drafting shapes for the current view (tiled like the stitches): straight lines drawn as
+// guides, and arcs recovered as the FULL circle they belong to (so the maker drafts the
+// whole circle, then stitches only the arc). Cached by EXP_path so Play stays cheap.
+function _galDraftShapes(){
+  if(_galDraftCache&&_galDraftCache.ref===EXP_path)return _galDraftCache;
+  const out={ref:EXP_path,lines:[],circles:[]};
+  if(!curPat){return(_galDraftCache=out);}
+  const segs=genTiledSegs({...curPat,patMacro:_tileCells});
+  const byAid=new Map();
+  segs.forEach(s=>{
+    if(s.aid>=0){if(!byAid.has(s.aid))byAid.set(s.aid,[]);byAid.get(s.aid).push(s);}
+    else out.lines.push({a:s.start,b:s.end});
+  });
+  byAid.forEach(group=>{
+    const pts=[group[0].start];group.forEach(s=>pts.push(s.end));
+    if(pts.length<3)return;
+    const cc=_circumcircle(pts[0],pts[Math.floor(pts.length/3)],pts[Math.floor(2*pts.length/3)]);
+    if(cc&&isFinite(cc.r)&&cc.r>0)out.circles.push(cc);
+  });
+  return(_galDraftCache=out);
+}
+// Clip the infinite line through (px,py) with direction (dx,dy) to the rect [0,w]×[0,h]
+// (Liang–Barsky with t∈(−∞,∞)). Returns [[x,y],[x,y]] or null if it misses the rect.
+function _clipInfiniteLine(px,py,dx,dy,w,h){
+  let t0=-Infinity,t1=Infinity;
+  const p=[-dx,dx,-dy,dy], q=[px,w-px,py,h-py];
+  for(let i=0;i<4;i++){
+    if(Math.abs(p[i])<1e-9){if(q[i]<0)return null;}
+    else{const t=q[i]/p[i];
+      if(p[i]<0){if(t>t1)return null;if(t>t0)t0=t;}
+      else{if(t<t0)return null;if(t<t1)t1=t;}}
+  }
+  return[[px+t0*dx,py+t0*dy],[px+t1*dx,py+t1*dy]];
+}
+function _galDrawDraft(){
+  const {lines,circles}=_galDraftShapes();
+  const w=SIZE,h=EXP_canvasH||SIZE;
+  ctx.save();
+  ctx.strokeStyle='rgba(255,255,255,0.55)';
+  ctx.lineWidth=zlw(0.7);ctx.setLineDash([]);ctx.lineCap='round';
+  // Straight guides are drawn ruler-style: extend each line right across the frame, and
+  // de-dup collinear copies (every tiled segment on the same infinite line = one ruler line).
+  const seen=new Set();
+  lines.forEach(l=>{
+    const p0=EXP_g2s(l.a),p1=EXP_g2s(l.b);
+    let dx=p1.x-p0.x,dy=p1.y-p0.y;const len=Math.hypot(dx,dy);
+    if(len<1e-6)return;dx/=len;dy/=len;
+    // canonical normal (−dy,dx) + signed offset → key the infinite line
+    let nx=-dy,ny=dx;if(nx<-1e-9||(Math.abs(nx)<1e-9&&ny<0)){nx=-nx;ny=-ny;}
+    const c=nx*p0.x+ny*p0.y;
+    const key=Math.round(nx*100)/100+'|'+Math.round(ny*100)/100+'|'+Math.round(c);
+    if(seen.has(key))return;seen.add(key);
+    const seg=_clipInfiniteLine(p0.x,p0.y,dx,dy,w,h);
+    if(!seg)return;
+    ctx.beginPath();ctx.moveTo(seg[0][0],seg[0][1]);ctx.lineTo(seg[1][0],seg[1][1]);ctx.stroke();
+  });
+  const NS=72;
+  circles.forEach(cc=>{
+    ctx.beginPath();
+    for(let k=0;k<=NS;k++){
+      const a=k/NS*2*Math.PI;
+      const p=EXP_g2s([cc.c[0]+cc.r*Math.cos(a),cc.c[1]+cc.r*Math.sin(a)]);
+      if(k===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke();
+  });
+  ctx.restore();
 }
 // ── Stitch-view options + thread-colour preview (gallery animation view) ─────
 function syncGalStitchUI(){
@@ -1613,6 +1722,7 @@ function syncGalStitchUI(){
   const lv=document.getElementById('galStitchLenVal');if(lv)lv.textContent=galStitchLen;
   const r=document.getElementById('galStitchRatio');if(r)r.value=galStitchRatio;
   const g=document.getElementById('galStitchGrid');if(g)g.checked=galStitchGrid;
+  const dr=document.getElementById('galDraft');if(dr)dr.checked=galDraft;
   const c=document.getElementById('galColours');if(c)c.style.display='none';
   const a=document.getElementById('galAdv');if(a)a.style.display='none';
   const cb=document.getElementById('galColBtn');if(cb)cb.textContent='🎨 Thread colours ▾';
@@ -1678,7 +1788,17 @@ window.galToggleAdv=function(){
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
-window.galToggleStitchGrid=function(){galStitchGrid=document.getElementById('galStitchGrid').checked;render(step);};
+// Grid and Draft are mutually exclusive: turning one on switches the other off.
+window.galToggleStitchGrid=function(){
+  galStitchGrid=document.getElementById('galStitchGrid').checked;
+  if(galStitchGrid){galDraft=false;const d=document.getElementById('galDraft');if(d)d.checked=false;}
+  render(step);
+};
+window.galToggleDraft=function(){
+  galDraft=document.getElementById('galDraft').checked;
+  if(galDraft){galStitchGrid=false;const g=document.getElementById('galStitchGrid');if(g)g.checked=false;}
+  render(step);
+};
 window.galSetHubScale=function(v){
   _starHubScale=parseFloat(v)/100;
   const lbl=s=>s&&(s.textContent=_starHubScale.toFixed(2)+'×');
@@ -1692,13 +1812,18 @@ function renderExp(step){
   const ch=EXP_canvasH||SIZE;
   if(galStitch){
     _cadDrawDenim(ctx,SIZE,ch);
-    if(galStitchGrid)_cadDrawStitchGrid(ctx,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true);
+    // Draft mode brings the grid along (drafting needs both), so either toggle shows the dot grid.
+    const overlay=galStitchGrid||galDraft;
+    if(overlay)_cadDrawStitchGrid(ctx,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true);
     if(!EXP_path.length)return;
     const sc=_galStitchScene(),N=sc.stitches.length;
     const shown=step>=TOTAL?N:Math.round(N*step/Math.max(1,TOTAL));
-    if(galStitchGrid)ctx.globalAlpha=0.3;
+    // In grid mode the threads are toned down so the white dot grid reads as the foreground.
+    // In draft mode the stitches render normally (full opacity) under the drafting guides.
+    if(galStitchGrid)ctx.globalAlpha=0.4;
     for(let i=0;i<shown;i++){const s=sc.stitches[i];if(_famToggles[s.fam]===false)continue;_cadDrawStitch(ctx,s,sc.w,galThreadColors[s.fam]);}
     if(galStitchGrid)ctx.globalAlpha=1;
+    if(galDraft)_galDrawDraft();
     return;
   }
   // Fabric background

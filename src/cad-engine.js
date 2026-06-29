@@ -1465,13 +1465,21 @@ function _cadDrawStitchGrid(x,scene,dotsOnly){
     for(let u=u0;u<=u1;u+=M){const a=S(u,v0),b=S(u,v1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
     for(let v=v0;v<=v1;v+=M){const a=S(u0,v),b=S(u1,v);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
   }
-  // Dot sub-grid: mid-points at M/2 (smaller dot), intersections at M (larger dot)
-  const sub=M/2;
+  // Dot sub-grid. dotsOnly (gallery viewer) mirrors the CAD draw canvas exactly: a dot at
+  // every grid unit, larger dots at each CAD_MICRO cell point — i.e. CAD_MICRO sub-divisions
+  // per cell, the same grid the pattern was drawn on. The CAD stitch view keeps the coarser
+  // M/2 sub-grid (legibility on the fitted 500px canvas).
+  const sub=dotsOnly?1:M/2;
+  // Gallery grid (dotsOnly): plain white dots as the foreground (threads are toned down in
+  // grid/draft mode). Dots 50% smaller. CAD stitch-view keeps the original blue-ish dots.
+  const colMain=dotsOnly?'rgba(255,255,255,0.95)':'rgba(200,220,255,0.40)';
+  const colSub =dotsOnly?'rgba(255,255,255,0.6)':'rgba(180,205,255,0.20)';
+  const rMain=dotsOnly?1.25:2.5, rSub=dotsOnly?0.6:1.2;
   for(let u=u0;u<=u1;u+=sub){for(let v=v0;v<=v1;v+=sub){
     const onMain=(u%M===0)&&(v%M===0);
     const p=S(u,v);
-    x.fillStyle=onMain?'rgba(200,220,255,0.40)':'rgba(180,205,255,0.20)';
-    x.beginPath();x.arc(p[0],p[1],onMain?2.5:1.2,0,Math.PI*2);x.fill();
+    x.fillStyle=onMain?colMain:colSub;
+    x.beginPath();x.arc(p[0],p[1],onMain?rMain:rSub,0,Math.PI*2);x.fill();
   }}
 }
 // Draw one sashiko stitch with a little depth (shadow + sheen). `color` overrides

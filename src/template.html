@@ -83,13 +83,16 @@
     <label class="cad-routing-toggle" title="Show the fabric grid" style="margin-left:4px">
       <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
     </label>
+    <label class="cad-routing-toggle" title="Show drafting help lines: the grid, the full pattern geometry, and the full circles for any arcs" style="margin-left:4px">
+      <input type="checkbox" id="galDraft" onchange="galToggleDraft()"> Draft
+    </label>
     <button class="ctrl gal-pop-btn" id="galAdvBtn" onclick="galToggleAdv()">⚙ Advanced ▾</button>
     <!-- Thread-colour preview: keep stitches off-white, or paint each family -->
     <div class="gal-pop gal-colours" id="galColours" style="display:none">
       <div class="gal-pal-tabs">
-        <button class="gal-pal-tab on" id="galPalPastel" onclick="galSetPalette('pastel')">Pastel</button>
-        <button class="gal-pal-tab" id="galPalSashiko" onclick="galSetPalette('sashiko')">Sashiko</button>
         <button class="gal-pal-reset" onclick="galResetColours()" title="Reset all to off-white">↺ All white</button>
+        <button class="gal-pal-tab on" id="galPalSashiko" onclick="galSetPalette('sashiko')">Sashiko</button>
+        <button class="gal-pal-tab" id="galPalPastel" onclick="galSetPalette('pastel')">Pastel</button>
       </div>
       <div class="gal-fam-chips" id="galFamChips"></div>
       <div class="gal-swatches" id="galSwatches"></div>
@@ -108,11 +111,13 @@
           <option value="even">Even · 1 : 1</option>
         </select>
       </label>
+      <!-- Hub-size fine-tune — hidden from the UI but kept for later; galSetHubScale still works.
       <span class="cad-panel-stepper">
         <span class="cad-panel-stepper-label">Hub</span>
         <input type="range" id="galHubScale" min="0" max="200" step="5" value="100" oninput="galSetHubScale(this.value)">
         <span class="cad-stitch-val" id="galHubScaleVal">1.00×</span>
       </span>
+      -->
     </div>
   </div>
 
