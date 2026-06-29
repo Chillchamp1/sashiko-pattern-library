@@ -1181,9 +1181,13 @@ function _renderTileFrame(){
   x.clearRect(0,0,500,500);
   if(cadStitchView){
     _cadDrawDenim(x);
-    if(cadStitchGrid)_cadDrawStitchGrid(x,_cadStitchCache);
+    // Grid is always on in the Live Tiling stitch view and looks like the gallery object:
+    // plain-white dot grid behind, threads toned to 0.4 so the grid reads as the foreground.
+    _cadDrawStitchGrid(x,_cadStitchCache,true);
     const w=_cadStitchW();
+    x.globalAlpha=0.4;
     _tpSts.forEach((s,i)=>{if(i<_tpStep)_cadDrawStitch(x,s,w);});
+    x.globalAlpha=1;
     return;
   }
   if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
@@ -1525,8 +1529,12 @@ function _cadDrawStitchStatic(){
   const x=pv.getContext('2d');
   x.clearRect(0,0,500,500);_cadDrawDenim(x);
   const sc=_cadStitchScene(),w=_cadStitchW();
-  if(cadStitchGrid)_cadDrawStitchGrid(x,sc);
+  // Grid is always on in the Live Tiling stitch view and looks like the gallery object:
+  // plain-white dot grid behind, threads toned to 0.4 so the grid reads as the foreground.
+  _cadDrawStitchGrid(x,sc,true);
+  x.globalAlpha=0.4;
   sc.stitches.forEach(s=>_cadDrawStitch(x,s,w));
+  x.globalAlpha=1;
 }
 window.cadToggleStitchView=function(){
   if(_tpOn)_stopTilePlay();
