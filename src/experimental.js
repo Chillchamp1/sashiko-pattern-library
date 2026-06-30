@@ -132,14 +132,27 @@ function _updateAdminUI(){
 async function _ensureAdmin(){
   if(_isAdmin())return true;
   if(!_firebaseReady||!_auth){alert('Admin needs an internet connection.');return false;}
+  const provider=new firebase.auth.GoogleAuthProvider();
   try{
-    const provider=new firebase.auth.GoogleAuthProvider();
     const res=await _auth.signInWithPopup(provider);
     _adminUser=(res&&res.user&&!res.user.isAnonymous)?res.user:null;
     _updateAdminUI();
-    if(!_adminUser){alert('Sign-in did not complete.');return false;}
-    return true;
-  }catch(e){console.warn('Admin sign-in failed:',e);alert('Admin sign-in cancelled or failed.');return false;}
+    return _isAdmin();
+  }catch(e){
+    const code=(e&&e.code)||'';
+    console.warn('Admin sign-in failed:',code,e);
+    // User just closed the popup — not worth an alert.
+    if(code==='auth/popup-closed-by-user'||code==='auth/cancelled-popup-request')return false;
+    // Popups blocked → full-page redirect instead (onAuthStateChanged picks it up on return).
+    if(code==='auth/popup-blocked'){try{await _auth.signInWithRedirect(provider);}catch(e2){}return false;}
+    let msg='Admin sign-in failed: '+(code||e.message||e);
+    if(code==='auth/operation-not-allowed')
+      msg='Google sign-in is not enabled.\nFirebase Console → Authentication → Sign-in method → enable Google.';
+    else if(code==='auth/unauthorized-domain')
+      msg='This site is not an authorized domain.\nFirebase Console → Authentication → Settings → Authorized domains → add '+location.hostname+'.';
+    alert(msg);
+    return false;
+  }
 }
 window.adminLogin=function(){ if(_isAdmin())window.adminLogout(); else _ensureAdmin(); };
 window.adminLogout=function(){
@@ -2089,7 +2102,8 @@ function expCardHTML(pat){
       <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>
-     <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();_cadSource='sandbox';editExpPattern('${esc(pat.id)}')">✎</button>
+    <button class="exp-pub-btn" title="Publish to gallery (admin)" onclick="event.stopPropagation();publishExpPattern('${esc(pat.id)}')">📌</button>
+    <button class="exp-edit-btn" title="Edit" onclick="event.stopPropagation();_cadSource='sandbox';editExpPattern('${esc(pat.id)}')">✎</button>
     <button class="exp-del-btn" title="Delete" onclick="event.stopPropagation();removeExpPattern('${esc(pat.id)}')">✕</button>
   </div>`;
 }
@@ -2113,6 +2127,20 @@ function rebuildMyPatsView(){
 }
 
 function rebuildExpGallery(){rebuildMyPatsView();}
+
+// Admin: promote a sandbox pattern into the public gallery (published:true).
+window.publishExpPattern=async function(id){
+  if(!await _ensureAdmin())return;
+  const pat=EXP_PATTERNS.find(p=>p.id===id);
+  if(!pat)return;
+  if(!confirm('Publish "'+(pat.name||'Custom')+'" to the main gallery?'))return;
+  pat.published=true;
+  _saveLocal();
+  await _pushToFirestore(pat);
+  buildGallery();           // it now appears in the gallery…
+  rebuildMyPatsView();      // …and leaves the sandbox list
+  alert('Published to the gallery.');
+};
 
 window.removeExpPattern=async function removeExpPattern(id){
   if(!confirm('Permanently delete this pattern? This cannot be undone.'))return;
