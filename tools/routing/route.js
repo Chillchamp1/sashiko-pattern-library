@@ -14,7 +14,7 @@
 //   node tools/routing/route.js --snapshot      # write golden metrics
 //   node tools/routing/route.js --check         # diff against golden, exit 1 on change
 //
-// Modes: default (straight rows) | continuous (zigzag) | contour (waves)
+// Modes: default (straight rows) | continuous (zigzag) | contour (waves) | sequential (motif one-by-one)
 
 const fs = require('fs');
 const path = require('path');
@@ -22,7 +22,7 @@ const { loadRouting } = require('./load-routing');
 
 const PAT_DIR = path.join(__dirname, '..', '..', 'test', 'patterns');
 const SNAP = path.join(__dirname, '..', '..', 'test', 'routing-snapshots.json');
-const MODES = ['default', 'continuous', 'contour'];
+const MODES = ['default', 'continuous', 'contour', 'sequential'];
 const R = loadRouting();
 
 const Q = 1e-3;

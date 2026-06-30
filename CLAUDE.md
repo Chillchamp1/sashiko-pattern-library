@@ -58,7 +58,7 @@ node tools/routing/route.js --snapshot      # write golden test/routing-snapshot
 node tools/routing/route.js --check         # diff vs golden, exit 1 on any change
 ```
 
-Metrics: `strokes`, `jumps`, `jumpLen`, `maxTurn` (sharpest in-stroke turn), `midArc` (strokes that start mid-arc — **must be 0**). `load-routing.js` loads the live `src/` functions (no copy-paste, can't drift). Fixtures in `test/patterns/` and the snapshot are committed. When a routing change is intentional, re-run `--snapshot`.
+Metrics: `strokes`, `jumps`, `jumpLen`, `maxTurn` (sharpest in-stroke turn), `midArc` (strokes that start mid-arc — **must be 0**). `load-routing.js` loads the live `src/` functions (no copy-paste, can't drift). Fixtures in `test/patterns/` and the snapshot are committed. When a routing change is intentional, re-run `--snapshot`. The four routing modes are `default`, `continuous`, `contour`, `sequential` (see `ROUTING.md`); `route.js` tests all four (`MODES`).
 
 ---
 
