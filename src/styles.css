@@ -12,8 +12,19 @@ html,body{margin:0;background:var(--bg);color:#e7eef6;
 /* ── Gallery ── */
 #galleryView{display:block}
 .g-head{margin:0 0 6px}
-.g-title{font-size:20px;font-weight:600;margin:0;display:inline}
-.g-sub{font-size:14px;font-weight:400;color:var(--muted);margin-left:8px}
+.g-title{font-size:32px;font-weight:700;margin:0;display:inline;letter-spacing:-.5px}
+.g-sub{font-size:16px;font-weight:400;color:var(--muted);margin-left:10px}
+/* ── About this library (collapsible) — kept subtle / unobtrusive ── */
+.about-lib{margin:2px 0 14px}
+.about-toggle{background:none;border:none;padding:2px 0;font-size:11.5px;color:var(--muted);
+  cursor:pointer;font:inherit;display:inline-flex;align-items:center;gap:5px;opacity:.7;transition:.15s}
+.about-toggle:hover{opacity:1;color:#bfd0e2;background:none}
+.about-caret{display:inline-block;transition:transform .18s;font-size:9px}
+.about-toggle.on .about-caret{transform:rotate(180deg)}
+.about-body{margin-top:8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:12px 16px;max-width:560px;font-size:13px;color:#cfdcea;line-height:1.65}
+.about-body p{margin:0 0 8px}
+.about-body p:last-child{margin:0}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 .search{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:8px 14px;color:#e7eef6;font-size:13px;outline:none}
@@ -151,6 +162,19 @@ button.ctrl.primary:hover{background:#275784}
 .ico{width:16px;height:16px;display:inline-block;vertical-align:middle}
 .tip{font-size:12px;color:var(--muted);max-width:560px;text-align:center;
   line-height:1.7;border-top:1px solid var(--line);padding-top:14px;margin-top:2px}
+/* ── Download dropdown (pattern viewer) ── */
+.download-bar{position:relative;display:flex;justify-content:center;margin-top:6px}
+.dl-caret{display:inline-block;font-size:10px}
+.dl-menu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;
+  display:flex;flex-direction:column;gap:2px;min-width:230px;z-index:20;
+  box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.dl-item{background:none;border:none;border-radius:7px;padding:8px 12px;cursor:pointer;
+  font:inherit;color:#e7eef6;text-align:left;display:flex;flex-direction:column;gap:1px;transition:.12s}
+.dl-item:hover{background:#1d3850}
+.dl-item span{font-size:13px}
+.dl-item small{font-size:10.5px;color:var(--muted)}
+.dl-item.busy{opacity:.6;cursor:default}
 
 /* ── Generator UI ── */
 #genUI{flex-direction:column;align-items:center;gap:10px;width:100%;max-width:420px;
@@ -303,6 +327,8 @@ button.ctrl.primary:hover{background:#275784}
 .gal-sw{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.18);cursor:pointer;padding:0}
 .gal-sw:hover{transform:scale(1.12)}
 .gal-sw.cur{border-color:#fff;box-shadow:0 0 0 2px #6aabff}
+/* Live thread-name caption (hover/selected) — keeps the picker compact with 40 named colours */
+.gal-sw-name{margin-top:8px;text-align:center;font-size:12px;color:#cfdcea;min-height:16px;font-weight:600}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}

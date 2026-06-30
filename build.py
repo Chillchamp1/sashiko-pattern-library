@@ -23,6 +23,7 @@ JS_FILES = [
     "gallery.js",
     "experimental.js",
     "cad-engine.js",
+    "download.js",
 ]
 
 

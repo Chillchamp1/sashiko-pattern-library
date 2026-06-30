@@ -467,7 +467,7 @@ function cadAutoExtendGrid(){
 // Auto-shrink grid when lines are removed (undo/clear/cut)
 function cadAutoShrinkGrid(){
   const bbox=cadBBox();
-  const needed=bbox?Math.max(2,Math.ceil(Math.max(bbox.maxU,bbox.maxV)/CAD_MICRO)):2;
+  const needed=bbox?Math.max(1,Math.ceil(Math.max(bbox.maxU,bbox.maxV)/CAD_MICRO)):2;
   if(needed>=cadMacro)return;
   cadMacro=needed;
   const gs=document.getElementById('cadGridSize');
@@ -498,20 +498,26 @@ function cadBakeRight(){
   cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
   const rx=cadRightBuf.getContext('2d');
   rx.fillStyle='#1a3a5c';rx.fillRect(0,0,500,500);
-  // ptc now matches cadUpdateSettings: cadPatMacro × cadMacro × CAD_MICRO total units
+  // ptc = total grid units across the tiling canvas (cadPatMacro × cadMacro × CAD_MICRO).
   const ptc=cadPatMacro*cadMacro*CAD_MICRO;
-  const tileStep=cadMacro*CAD_MICRO; // units per tile = same as left-canvas grid cell
+  // The Live-Tiling grid must be the SAME grid as the Draw canvas (cadBakeLeft), just tiled:
+  // a sub-dot at every grid unit, a larger dot at every CAD_MICRO cell point, and a thin grid
+  // line at every cell boundary. (Previously it only showed coarse CAD_MICRO dots with lines at
+  // tile boundaries, so the two grids looked independent.)
   rx.fillStyle='rgba(160,160,184,0.25)';
-  // Dots at every CAD_MICRO interval (matches left-canvas sub-grid density)
-  for(let u=0;u<=ptc;u+=CAD_MICRO)for(let v=0;v<=ptc;v+=CAD_MICRO){
-    const onTile=(u%tileStep===0)&&(v%tileStep===0);
+  // Per-unit sub-dots only when they'd be legible / cheap to bake; otherwise just cell dots.
+  const stepDot=cadPTile>=3?1:CAD_MICRO;
+  for(let u=0;u<=ptc;u+=stepDot)for(let v=0;v<=ptc;v+=stepDot){
+    const onMain=(u%CAD_MICRO===0)&&(v%CAD_MICRO===0);
     const p=cadG2S(u,v,cadPOX,cadPOY,cadPTile);
-    rx.fillRect(p.x-(onTile?2:1),p.y-(onTile?2:1),onTile?4:2,onTile?4:2);
+    rx.fillRect(p.x-(onMain?2:1),p.y-(onMain?2:1),onMain?4:2,onMain?4:2);
   }
   rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.15)';
-  // Grid lines at tile boundaries (every tileStep units = every cadMacro macros)
-  for(let i=0;i<=cadPatMacro;i++){
-    const val=i*tileStep;
+  // Grid lines at every CAD_MICRO cell boundary (matches the Draw canvas, which draws one line
+  // per cell), across all tiles.
+  const cells=cadPatMacro*cadMacro;
+  for(let i=0;i<=cells;i++){
+    const val=i*CAD_MICRO;
     rx.beginPath();const p1=cadG2S(val,0,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,ptc,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
     rx.beginPath();const p3=cadG2S(0,val,cadPOX,cadPOY,cadPTile),p4=cadG2S(ptc,val,cadPOX,cadPOY,cadPTile);rx.moveTo(p3.x,p3.y);rx.lineTo(p4.x,p4.y);rx.stroke();
   }
@@ -961,13 +967,13 @@ window.cadStepSpacing=function(d){
 window.cadStepMacro=function(d){
   const el=document.getElementById('cadGridSize');
   let v=parseInt(el.value)||3;
-  v=Math.max(2,Math.min(6,v+d));
+  v=Math.max(1,Math.min(6,v+d));
   el.value=v;cadUpdateSettings();
 };
 window.cadStepPatMacro=function(d){
   const el=document.getElementById('cadPatSize');
   let v=parseInt(el.value)||5;
-  v=Math.max(2,Math.min(12,v+d));
+  v=Math.max(1,Math.min(12,v+d));
   el.value=v;cadUpdateSettings();
 };
 window.cadMovePattern=function(du,dv){
@@ -1212,7 +1218,7 @@ function _tpLoop(t){
 }
 // ── Realistic stitch scene ───────────────────────────────────────────────────
 function _cadStitchSig(){
-  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadPatMacro+'|'+cadSpacing+'|'+
+  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+cadSpacing+'|'+
     cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio;
 }
 // Bake the indigo-denim background once (base wash + twill diagonal + speckle).
@@ -1445,7 +1451,16 @@ function _layStitches(strokes,L,ratioKey,w){
   });
   return out;
 }
-function _cadLayStitches(strokes){return _layStitches(strokes,cadStitchLen,cadStitchRatio,_cadStitchW());}
+// Lay stitches at a length anchored to the GRID (not to absolute canvas px), so that changing
+// the Live-Tiling display size (Tiles count) does NOT change the number of stitches per line.
+// cadStitchLen is interpreted as px at the Draw-canvas scale (cadBase px / grid unit); it is
+// rescaled to the current stitch-scene scale so a given line always gets the same stitch count.
+function _cadLayStitches(strokes,sceneScale){
+  const r=(sceneScale&&cadBase)?sceneScale/cadBase:1;
+  const L=Math.max(3,cadStitchLen*r);
+  const w=Math.max(1.2,Math.min(6,L*0.22));
+  return _layStitches(strokes,L,cadStitchRatio,w);
+}
 // Build (and cache) the off-white stitch list for the current geometry, fitted to the 500px canvas.
 function _cadStitchScene(){
   const sig=_cadStitchSig();
@@ -1479,7 +1494,7 @@ function _cadStitchScene(){
   const T=p=>{const a=lay.g2s(p);return[ox+a.x*sc,oy+a.y*sc];};
   const strokes=_buildStrokesFromPath(path,T);
   const tf={g2s:lay.g2s,ox,oy,sc};
-  return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes),tf,ur:lay.uRange,vr:lay.vRange});
+  return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes,lay.sz*sc),tf,ur:lay.uRange,vr:lay.vRange});
 }
 // Fabric grid overlay (main lines every CAD_MICRO + dot sub-grid), mapped through the stitch-scene transform.
 // dotsOnly=true skips main lines, shows only dot grid (gallery stitch view uses this).

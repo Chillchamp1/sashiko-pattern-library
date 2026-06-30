@@ -34,27 +34,48 @@ let _galStitchCache=null, _galDraftCache=null;
 // Optional thread-colour preview: family index → hex (absent = off-white yarn).
 // Default palette is the Olympus sashiko set (the "Sashiko yarn" option).
 let galThreadColors={}, galPalette='sashiko', galActiveFam=0;
-// Soft pastel thread palette.
-const GAL_PASTEL=['#efe7d0','#f3c9d3','#f8d9b8','#f4e7a9','#c2e6cf','#c3dcef','#cfd0ef','#e3cdec','#cfe6df','#d8d2c4'];
-// Olympus Sashiko Thread — full 40-colour lineup (Olympus #42 single colours),
-// extracted from the product photos. `brand:'olympus'` is internal-only metadata so the
-// set can be filtered later (not shown to the user). `code` = the Olympus skein number.
+// Soft pastel thread palette — named, and a touch more saturated (less pale) than before.
+const GAL_PASTEL=[
+  {name:'Cream',      hex:'#e8dcb5'}, {name:'Rose',     hex:'#eaa9b8'},
+  {name:'Peach',      hex:'#f0c293'}, {name:'Butter',   hex:'#ecd680'},
+  {name:'Mint',       hex:'#9fd5b4'}, {name:'Sky',      hex:'#9cc4e2'},
+  {name:'Periwinkle', hex:'#b0b2e0'}, {name:'Lavender',  hex:'#cfa9dd'},
+  {name:'Seafoam',    hex:'#a7d2c6'}, {name:'Sand',     hex:'#c4bca7'},
+];
+// Olympus Sashiko Thread — full 40-colour official lineup (Olympus #42 single colours).
+// Names + hex codes are the official catalogue values (olympus-thread.com #42 sashiko).
+// `brand:'olympus'` is internal-only metadata so the set can be filtered later. `code` = skein number.
 const OLYMPUS_SASHIKO=[
-  {code:1, hex:'#ffffff'}, {code:2, hex:'#f0e9cd'}, {code:3, hex:'#8b5a3b'}, {code:4, hex:'#e2872c'},
-  {code:5, hex:'#c4a02f'}, {code:6, hex:'#a4c659'}, {code:7, hex:'#7f9a72'}, {code:8, hex:'#aad2ea'},
-  {code:9, hex:'#7fb3d9'}, {code:10,hex:'#5c84ab'}, {code:11,hex:'#49709f'}, {code:12,hex:'#1f2746'},
-  {code:13,hex:'#cf8fa0'}, {code:14,hex:'#f1b9cb'}, {code:15,hex:'#cf2230'}, {code:16,hex:'#f3c623'},
-  {code:17,hex:'#3fb2c2'}, {code:18,hex:'#3a5aa6'}, {code:19,hex:'#7a5ca6'}, {code:20,hex:'#1a1a1a'},
-  {code:21,hex:'#d52f8d'}, {code:22,hex:'#ec6a1d'}, {code:23,hex:'#3f4eae'}, {code:24,hex:'#c98fce'},
-  {code:25,hex:'#ef9f86'}, {code:26,hex:'#57a668'}, {code:27,hex:'#2f6fce'}, {code:28,hex:'#8fb6df'},
-  {code:29,hex:'#b9bdc5'}, {code:30,hex:'#c2286d'}, {code:31,hex:'#e7623a'}, {code:32,hex:'#d44a78'},
-  {code:33,hex:'#f0c63d'}, {code:34,hex:'#4a4a4a'}, {code:35,hex:'#af3a88'}, {code:36,hex:'#6a5fae'},
-  {code:37,hex:'#2e7a5e'}, {code:38,hex:'#e7e1cf'}, {code:39,hex:'#6a4a34'}, {code:40,hex:'#595e79'},
+  {code:1, name:'White',           hex:'#dcdde1'}, {code:2, name:'Off-White',        hex:'#e5dac3'},
+  {code:3, name:'Brown',           hex:'#71391c'}, {code:4, name:'Carrot Orange',    hex:'#d8761b'},
+  {code:5, name:'Gold',            hex:'#c09d33'}, {code:6, name:'Yellowish Green',  hex:'#88ac4f'},
+  {code:7, name:'Green',           hex:'#527d55'}, {code:8, name:'Aqua',             hex:'#8ac0d1'},
+  {code:9, name:'Sky Blue',        hex:'#467189'}, {code:10,name:'Cobalt Blue',      hex:'#204670'},
+  {code:11,name:'Navy',            hex:'#111527'}, {code:12,name:'Rose Red',         hex:'#9d1329'},
+  {code:13,name:'Rose Pink',       hex:'#db6f7f'}, {code:14,name:'Orchid Pink',      hex:'#eca1ab'},
+  {code:15,name:'Red',             hex:'#bc0307'}, {code:16,name:'Yellow',           hex:'#f3b004'},
+  {code:17,name:'Teal',            hex:'#0695ad'}, {code:18,name:'Royal Blue',       hex:'#071f57'},
+  {code:19,name:'Purple',          hex:'#62457f'}, {code:20,name:'Black',            hex:'#22211f'},
+  {code:21,name:'Hot Pink',        hex:'#da1162'}, {code:22,name:'Orange',           hex:'#f85305'},
+  {code:23,name:'Ultramarine Blue',hex:'#20338a'}, {code:24,name:'Orchid',           hex:'#cb70a5'},
+  {code:25,name:'Salmon',          hex:'#f3967b'}, {code:26,name:'Viridian Green',   hex:'#057e2c'},
+  {code:27,name:'Blue',            hex:'#0464b0'}, {code:28,name:'Grey',             hex:'#abaaa9'},
+  {code:29,name:'Lemon Yellow',    hex:'#f5da0e'}, {code:30,name:'Crimson Red',      hex:'#d30152'},
+  {code:31,name:'Bright Orange',   hex:'#e54802'}, {code:32,name:'Dusty Rose',       hex:'#dd5570'},
+  {code:33,name:'Mellow Yellow',   hex:'#f6ce6d'}, {code:34,name:'Emerald Teal',     hex:'#01a38b'},
+  {code:35,name:'Bright Purple',   hex:'#992a84'}, {code:36,name:'Petrol Blue',      hex:'#0a7091'},
+  {code:37,name:'Forest Green',    hex:'#096656'}, {code:38,name:'Stone Beige',      hex:'#b8af9f'},
+  {code:39,name:'Dark Brown',      hex:'#533b29'}, {code:40,name:'Charcoal',         hex:'#514f5e'},
 ].map(o=>({...o, brand:'olympus'}));
 const GAL_SASHIKO=OLYMPUS_SASHIKO.map(o=>o.hex);
 // Membership set for "is this an Olympus yarn colour?" filtering later.
 const OLYMPUS_HEXES=new Set(GAL_SASHIKO);
-function _galPaletteArr(){return galPalette==='sashiko'?GAL_SASHIKO:GAL_PASTEL;}
+// Palette entries as {hex,name} so swatches can show the thread name (Olympus skein # for sashiko).
+function _galPaletteArr(){
+  return galPalette==='sashiko'
+    ? OLYMPUS_SASHIKO.map(o=>({hex:o.hex,name:'#'+o.code+' '+o.name}))
+    : GAL_PASTEL.map(o=>({hex:o.hex,name:o.name}));
+}
 
 // ── Firebase bootstrap ───────────────────────────────────────────────────────
 function _initFirebase(){
@@ -1747,20 +1768,28 @@ function galBuildColourUI(){
   });
   galBuildSwatches();
 }
+function _galSetSwName(txt){const el=document.getElementById('galSwName');if(el)el.textContent=txt;}
 function galBuildSwatches(){
   const sw=document.getElementById('galSwatches');if(!sw)return;
   sw.innerHTML='';
   const cur=galThreadColors[galActiveFam];
-  const mk=(hex,isWhite)=>{
+  // Name of the colour currently assigned to the active family (shown as the resting caption).
+  let selName='Off-white (default)';
+  if(cur){const f=_galPaletteArr().find(o=>o.hex.toLowerCase()===cur.toLowerCase());selName=f?f.name:cur;}
+  const mk=(hex,name,isWhite)=>{
     const b=document.createElement('button');
     b.className='gal-sw'+((isWhite?!cur:cur===hex)?' cur':'');
     b.style.background=hex;
-    b.title=isWhite?'Off-white (default)':hex;
+    b.title=name;                                  // hover tooltip = readable name
+    b.onmouseenter=()=>_galSetSwName(name);
+    b.onmouseleave=()=>_galSetSwName(selName);
+    b.onfocus=()=>_galSetSwName(name);
     b.onclick=()=>window.galApplyColour(isWhite?null:hex);
     return b;
   };
-  sw.appendChild(mk(CAD_YARN,true));
-  _galPaletteArr().forEach(h=>sw.appendChild(mk(h,false)));
+  sw.appendChild(mk(CAD_YARN,'Off-white (default)',true));
+  _galPaletteArr().forEach(o=>sw.appendChild(mk(o.hex,o.name,false)));
+  _galSetSwName(selName);
 }
 window.galApplyColour=function(hex){
   if(hex)galThreadColors[galActiveFam]=hex; else delete galThreadColors[galActiveFam];
