@@ -47,8 +47,8 @@ window.downloadGIF=function(){
 };
 
 function _buildGIF(){
-  const F=48;                                  // number of frames sampled across the animation
-  const FRAME_MS=110;                          // ~5.3s loop
+  const F=144;                                 // frames sampled across the animation (3× smoother)
+  const FRAME_MS=55;                            // ~8s loop — plays ~50% slower than the old 48-frame export
   // Clean, un-zoomed render for the capture; restore the live view afterwards.
   const sZoom=_zoom,sPanX=_panX,sPanY=_panY,sStep=step,wasPlaying=playing;
   if(playing)pause();
