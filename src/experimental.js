@@ -10,15 +10,26 @@ const FIREBASE_CONFIG = {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Admin Google account(s) — used to gate the admin UI on the client. Set this to the
-// SAME address(es) as isAdmin() in firestore.rules. While left as the placeholder it
-// is "not configured" → any Google sign-in shows the admin UI (the rules still enforce
-// real power), so admin isn't accidentally locked out before you set it.
-const ADMIN_EMAILS=['PASTE_YOUR_GOOGLE_EMAIL'];
-function _emailAllowed(email){
-  const list=ADMIN_EMAILS.filter(e=>e&&!/^PASTE_/.test(e)).map(e=>e.toLowerCase());
-  if(!list.length)return true;                       // not configured yet — don't lock out
-  return !!email&&list.includes(String(email).toLowerCase());
+// Admin gate (client UI only) — by SHA-256 HASH of the Google email, so the e-mail itself
+// is never exposed in the public client. The real power boundary is the Firestore rules
+// (isAdmin() there checks the plaintext e-mail, which lives only in the private, server-side
+// rules — never in the repo). To set yours: deploy, click "Admin login", then run
+// sashikoAdminHash() in the console and paste the printed hash below.
+// While left as the placeholder it's "not configured" → any Google sign-in shows the admin
+// UI (rules still enforce real power), so you can't lock yourself out before setting it.
+const ADMIN_EMAIL_HASHES=['PASTE_SHA256_OF_YOUR_EMAIL'];
+let _adminVerified=false;
+async function _sha256hex(s){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(s).trim().toLowerCase()));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function _adminConfigured(){return ADMIN_EMAIL_HASHES.some(h=>h&&!/^PASTE_/.test(h));}
+async function _verifyAdmin(user){
+  if(!user||user.isAnonymous){_adminVerified=false;return false;}
+  if(!_adminConfigured()){_adminVerified=true;return true;}   // unconfigured → don't lock out
+  try{_adminVerified=ADMIN_EMAIL_HASHES.includes(await _sha256hex(user.email||''));}
+  catch(e){_adminVerified=false;}
+  return _adminVerified;
 }
 
 let EXP_PATTERNS=[];
@@ -105,11 +116,12 @@ function _initFirebase(){
       _auth=firebase.auth();
       _authReady=new Promise(res=>{
         let done=false;
-        _auth.onAuthStateChanged(u=>{
+        _auth.onAuthStateChanged(async u=>{
           _authUid=u?u.uid:null;
-          // A non-anonymous session (Google) = admin candidate; the Firestore rules
-          // enforce the actual admin email allow-list.
+          // A non-anonymous session (Google) = admin candidate; verify by e-mail hash
+          // (and the Firestore rules enforce the real power boundary).
           _adminUser=(u&&!u.isAnonymous)?u:null;
+          await _verifyAdmin(u);
           if(u&&!done){done=true;res(u.uid);}   // resolve once we actually hold a session
           _updateAdminUI();
           // Keep everyone signed in: if there's no session, fall back to anonymous so
@@ -123,6 +135,14 @@ function _initFirebase(){
 // Run in the browser console on the live site to get the uid to add to the
 // Firestore-rules admin allowlist (isAdmin()).
 window.sashikoMyUid=function(){const id=_authUid||null;console.log('Your Firebase admin uid:',id||'(signing in… try again in a second)');return id;};
+// Sign in with Google (Admin login) first, then run this to get the hash to paste into
+// ADMIN_EMAIL_HASHES. Your e-mail never appears in the code — only its hash.
+window.sashikoAdminHash=async function(){
+  if(!_adminUser||!_adminUser.email){console.log('Sign in with Google first (Admin login), then run sashikoAdminHash().');return;}
+  const h=await _sha256hex(_adminUser.email);
+  console.log('Add this to ADMIN_EMAIL_HASHES in src/experimental.js:\n  "'+h+'"');
+  return h;
+};
 // Wait (briefly) for the anonymous session so writes carry a valid auth.uid.
 async function _awaitAuth(){ if(_authReady){try{await Promise.race([_authReady,new Promise(r=>setTimeout(r,4000))]);}catch(e){}} }
 
@@ -130,7 +150,7 @@ async function _awaitAuth(){ if(_authReady){try{await Promise.race([_authReady,n
 // Admin = signed in with a real Google account whose email is allow-listed in the
 // Firestore rules (isAdmin()). The client only knows "signed in with Google"; the
 // rules are the real boundary (publish + any gallery edit/delete).
-function _isAdmin(){return !!_adminUser && _emailAllowed(_adminUser.email);}
+function _isAdmin(){return !!_adminUser && _adminVerified;}
 function _updateAdminUI(){
   const on=_isAdmin();
   if(document.body)document.body.classList.toggle('is-admin',on);
@@ -138,6 +158,9 @@ function _updateAdminUI(){
     b.textContent=on?('✓ Admin — sign out'):'Admin login';
     b.classList.toggle('on',on);
   });
+  // CAD "Publish" button visibility tracks admin too (it sets its own inline display).
+  const pb=document.getElementById('cadPublishBtn');
+  if(pb)pb.style.display=(on&&!cadIsPublished)?'inline-block':'none';
 }
 // Ensure an admin session, prompting Google sign-in if needed. Returns true if admin.
 async function _ensureAdmin(){
@@ -147,10 +170,11 @@ async function _ensureAdmin(){
   try{
     const res=await _auth.signInWithPopup(provider);
     _adminUser=(res&&res.user&&!res.user.isAnonymous)?res.user:null;
-    if(_adminUser&&!_emailAllowed(_adminUser.email)){
+    await _verifyAdmin(_adminUser);
+    if(_adminUser&&_adminConfigured()&&!_adminVerified){
       // Signed in, but not an authorized admin account — drop back to anonymous.
-      alert('This Google account ('+(_adminUser.email||'?')+') is not an authorized admin.');
-      _adminUser=null;_updateAdminUI();
+      alert('This Google account is not an authorized admin.');
+      _adminUser=null;_adminVerified=false;_updateAdminUI();
       try{await _auth.signInAnonymously();}catch(e){}
       return false;
     }
@@ -175,8 +199,22 @@ async function _ensureAdmin(){
 window.adminLogin=function(){ if(_isAdmin())window.adminLogout(); else _ensureAdmin(); };
 window.adminLogout=function(){
   if(!_auth)return;
-  _auth.signOut().then(()=>{ _adminUser=null; _updateAdminUI(); }).catch(()=>{});
+  _auth.signOut().then(()=>{ _adminUser=null;_adminVerified=false; _updateAdminUI(); }).catch(()=>{});
   // onAuthStateChanged then signs back in anonymously so the sandbox stays writable.
+};
+// One-time admin migration: rewrite every stored pattern name to the "Japanese / English"
+// format and push to Firestore (so the slash format is persisted, not just displayed).
+// Run sashikoMigrateNames() in the console while signed in as admin.
+window.sashikoMigrateNames=async function(){
+  if(!await _ensureAdmin()){console.warn('Admin sign-in required.');return;}
+  let n=0;
+  for(const pat of EXP_PATTERNS){
+    const nn=_displayName(pat.name||'');
+    if(nn&&nn!==pat.name){pat.name=nn;await _pushToFirestore(pat);n++;}
+  }
+  _saveLocal();buildGallery();rebuildMyPatsView();
+  console.log('Renamed '+n+' pattern(s).');
+  alert('Renamed '+n+' pattern(s) to the "Japanese / English" format.');
 };
 
 // ── Cat name generator ─────────────────────────────────────────────────
