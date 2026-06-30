@@ -1,6 +1,6 @@
 # Sashiko — Pattern Library
 
-Interactive Sashiko (刺し子) pattern library with animated stitch-by-stitch preview, built as a single self-contained HTML file — no build step, no server, no dependencies.
+Interactive Sashiko (刺し子) pattern library with animated stitch-by-stitch preview, built as a single self-contained HTML file
 
 **Live demo:** https://chillchamp1.github.io/sashiko-pattern-library/
 
