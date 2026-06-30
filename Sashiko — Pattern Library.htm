@@ -745,6 +745,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
 <!-- Firebase SDK (loaded async; app initialises lazily in experimental.js) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>const SEED_PATTERNS={
   "exported": "2026-06-24T22:33:41.897Z",
   "patterns": [
@@ -6244,6 +6245,7 @@ let EXP_PATTERNS=[];
 let _cadSource='sandbox';
 let _db=null;   // Firestore instance, set after SDK loads
 let _firebaseReady=false;
+let _auth=null, _authUid=null, _authReady=null;   // anonymous-auth session (for Firestore rules)
 
 // ── EXP animation state ──────────────────────────────────────────────────────
 let EXP_path=[];       // [{start:[u,v], end:[u,v], jump:bool}]
@@ -6314,8 +6316,25 @@ function _initFirebase(){
     firebase.initializeApp(FIREBASE_CONFIG);
     _db=firebase.firestore();
     _firebaseReady=true;
+    // Anonymous sign-in: gives every visitor a stable Firebase uid so the Firestore
+    // rules can require auth and tie each pattern to its creator (creatorId == uid).
+    // Reads stay public; only writes need this. Requires "Anonymous" enabled in
+    // Firebase Console → Authentication → Sign-in method.
+    if(firebase.auth){
+      _auth=firebase.auth();
+      _authReady=new Promise(res=>{
+        let done=false;
+        _auth.onAuthStateChanged(u=>{ if(u){_authUid=u.uid;} if(!done){done=true;res(u?u.uid:null);} });
+      });
+      _auth.signInAnonymously().catch(e=>console.warn('Anonymous auth failed — enable it in Firebase Console → Authentication → Anonymous:',e));
+    }
   }catch(e){console.warn('Firebase init failed:',e);}
 }
+// Run in the browser console on the live site to get the uid to add to the
+// Firestore-rules admin allowlist (isAdmin()).
+window.sashikoMyUid=function(){const id=_authUid||null;console.log('Your Firebase admin uid:',id||'(signing in… try again in a second)');return id;};
+// Wait (briefly) for the anonymous session so writes carry a valid auth.uid.
+async function _awaitAuth(){ if(_authReady){try{await Promise.race([_authReady,new Promise(r=>setTimeout(r,4000))]);}catch(e){}} }
 
 // ── Cat name generator ─────────────────────────────────────────────────
 const CAT_FIRST=['Sir','Lady','Captain','Prof','Dr','Mr','Miss','Prince','Princess','Duke','Duchess','Lord','Baron','Count','Madame','Chef','DJ','King','Queen','Emperor'];
@@ -6513,8 +6532,12 @@ async function _voteProfile(patternId, profileId, delta){
 // Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit)
 async function _pushToFirestore(pat){
   if(!_db)return;
-  if(!pat.creatorId)pat.creatorId=_getUserId();
+  await _awaitAuth();
   const doc={...pat};delete doc.thumbnail;
+  // creatorId MUST equal the signed-in uid so the Firestore create/update rule passes
+  // (the rule ties each pattern to its creator). Fall back to the local id only if
+  // anonymous auth isn't available (offline / auth disabled).
+  doc.creatorId=_authUid||doc.creatorId||_getUserId();
   // Firestore rejects undefined values — strip them
   Object.keys(doc).forEach(k=>{if(doc[k]===undefined)delete doc[k];});
   try{
@@ -6540,6 +6563,7 @@ async function _syncLocalToFirestore(){
 // device learns the pattern is gone and no device ever re-creates it.
 async function _deleteFromFirestore(id){
   if(!_db)return;
+  await _awaitAuth();
   try{await _db.collection('patterns').doc(id).set({id,deleted:true,deletedAt:Date.now()},{merge:true});}
   catch(e){console.warn('Firestore tombstone failed:',e);}
 }
