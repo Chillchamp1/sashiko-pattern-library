@@ -251,12 +251,16 @@ Jumps directly to pass boundaries. HM patterns: pass 1 (horizontal) vs. pass 2 (
 
 ## Filter System
 
-```
-data-f="0"  -> All
-data-f="2"  -> 2 passes
-data-f="4"  -> 4 passes
-data-f="hm" -> Hitomezashi (Generator card only)
-```
+Dropdown (`#filtSelect` → `setFilterSelect`): **All (0) · 1 · 2 · 3 · 4 · 5+ (value 5) · Traditional (trad)**.
+`filterGallery` matches a card's `data-p` (pass/family count): exact for 1–4, `>=5` for the "5+" bucket;
+`trad` matches `pat.traditional`. (Legacy `data-f` button values map the same way via `setFilter`.)
+
+**Pass count is automatic.** Each card's `data-p` = number of stitch families ("passes"):
+- Built-in: `pat.passes.length`.
+- Custom (exp): `expFamilyCount(pat)` (in `experimental.js`, exposed on `window`) — counts the pattern's
+  saved `families` (flat `famIdx`/line or grouped `[lines]` form), or derives them via
+  `detectSymmetryFamilies(pat)` when none are saved. Same families `genTiledSegs`/`buildExpPath`
+  colour by, so the filter always reflects what's actually stitched — no manual tagging.
 
 Search matches: name, jp, en, id, plus generator keywords (`koshi kaki persimmon lattice snowflake hitomezashi`) and polyline keywords (`yamagata mountain continuous asanoha hemp leaf star`).
 
@@ -359,7 +363,8 @@ Lines are colored by family in real-time as you draw. Both the Draw canvas and L
 
 ### Deletion (permanent)
 - Deleting a pattern (gallery ✕ or My Patterns ✕) removes it permanently after one confirm dialog — no trash/recovery
-- `removeExpPattern` (in `experimental.js`) deletes from `EXP_PATTERNS`, records the id in `sashiko_deleted` (so Firestore sync won't resurrect it), and calls `_deleteFromFirestore`
+- `removeExpPattern` (in `experimental.js`) removes from `EXP_PATTERNS`, records the id in `sashiko_deleted`, and calls `_deleteFromFirestore`
+- **Delete = shared tombstone, NOT a hard delete.** `_deleteFromFirestore` writes `{deleted:true,deletedAt}` (merge) instead of `.delete()`. Why: a hard delete only removes the cloud doc; any *other* device still holding a stale local copy sees it "missing from remote" on its next `_fetchFromFirestore` and **re-uploads it** (the local→remote "new pattern" push), resurrecting it for everyone — and `sashiko_deleted` is per-device localStorage, so the old tombstone never travelled. Fix: the tombstone lives in Firestore, so `_fetchFromFirestore` (a) folds remote tombstone ids into local `sashiko_deleted`, (b) marks **every** remote id `seen` (even tombstoned) so the local→remote push can't re-create it, (c) never re-pushes an id in the deleted set, and (d) drops tombstoned patterns from `EXP_PATTERNS`. `_seedLocalFromBackup` also skips `deleted`/tombstoned ids. NB: patterns hard-deleted before this fix and since resurrected just need deleting once more (now creates a tombstone).
 - The old trash system (1-week retention, Restore, `sashiko_trash`) was removed
 
 ### Deep Links

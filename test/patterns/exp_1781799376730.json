@@ -1,15 +1,6 @@
 {
-  "bbox": {
-    "minV": 0,
-    "minU": 0,
-    "maxV": 10,
-    "maxU": 10
-  },
-  "patMacro": 5,
-  "gridType": "isometric",
   "createdAt": 1781799376740,
-  "name": "My Pattern",
-  "creatorId": "ud5nn2wgvk7",
+  "type": "exp",
   "lines": [
     {
       "start": [
@@ -22,13 +13,13 @@
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         3.333,
         6.667
+      ],
+      "start": [
+        0,
+        0
       ]
     },
     {
@@ -52,23 +43,23 @@
       ]
     },
     {
-      "start": [
-        0,
-        10
-      ],
       "end": [
         3.333,
         6.667
+      ],
+      "start": [
+        0,
+        10
       ]
     },
     {
+      "end": [
+        10,
+        0
+      ],
       "start": [
         6.667,
         3.333
-      ],
-      "end": [
-        10,
-        0
       ]
     },
     {
@@ -82,33 +73,33 @@
       ]
     },
     {
+      "end": [
+        0,
+        10
+      ],
       "start": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "end": [
+        10,
+        10
+      ],
+      "start": [
         0,
         10
       ]
     },
     {
-      "start": [
-        0,
-        10
-      ],
-      "end": [
-        10,
-        10
-      ]
-    },
-    {
-      "start": [
-        10,
-        10
-      ],
       "end": [
         10,
         0
+      ],
+      "start": [
+        10,
+        10
       ]
     },
     {
@@ -122,6 +113,15 @@
       ]
     }
   ],
+  "creatorId": "ud5nn2wgvk7",
+  "name": "My Pattern",
   "id": "exp_1781799376730",
-  "type": "exp"
+  "bbox": {
+    "maxU": 10,
+    "maxV": 10,
+    "minV": 0,
+    "minU": 0
+  },
+  "gridType": "isometric",
+  "patMacro": 5
 }

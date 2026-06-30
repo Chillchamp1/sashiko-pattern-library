@@ -1,6 +1,9 @@
 {
-  "spacing": 0,
-  "id": "exp_1782328735477",
+  "published": true,
+  "bboxRotated": false,
+  "patMacro": 3,
+  "traditional": false,
+  "type": "exp",
   "lines": [
     {
       "end": [
@@ -13,23 +16,23 @@
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         10,
+        0
+      ],
+      "start": [
+        0,
         0
       ]
     },
     {
-      "end": [
-        0,
-        0
-      ],
       "start": [
         10,
         10
+      ],
+      "end": [
+        0,
+        0
       ]
     },
     {
@@ -50,6 +53,16 @@
       "start": [
         10,
         10
+      ]
+    },
+    {
+      "start": [
+        10,
+        10
+      ],
+      "end": [
+        6.667,
+        3.333
       ]
     },
     {
@@ -58,28 +71,18 @@
         3.333
       ],
       "start": [
-        10,
-        10
-      ]
-    },
-    {
-      "end": [
-        6.667,
-        3.333
-      ],
-      "start": [
         0,
         0
       ]
     },
     {
-      "end": [
-        3.333,
-        6.667
-      ],
       "start": [
         0,
         10
+      ],
+      "end": [
+        3.333,
+        6.667
       ]
     },
     {
@@ -93,16 +96,7 @@
       ]
     }
   ],
-  "creatorId": "un4bcd6du2x",
-  "stitchView": true,
-  "traditional": false,
-  "routingMode": "default",
-  "type": "exp",
-  "bboxRotated": false,
-  "stitchLen": 10,
-  "published": true,
-  "name": "Asanoha (Hemp Leaf) Zig Zag",
-  "stitchGrid": false,
+  "name": "Asanoha (Hemp Leaf) Remix",
   "famOrder": [
     3,
     0,
@@ -111,8 +105,13 @@
     2,
     4
   ],
-  "thumbCells": 0,
-  "createdAt": 1782328735477,
+  "gridType": "isometric",
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 10,
+    "maxU": 10
+  },
   "families": [
     5,
     1,
@@ -124,13 +123,7 @@
     0,
     0
   ],
-  "stitchRatio": "standard",
-  "bbox": {
-    "maxV": 10,
-    "maxU": 10,
-    "minV": 0,
-    "minU": 0
-  },
-  "gridType": "isometric",
-  "patMacro": 2
+  "creatorId": "uy09jle01o7",
+  "createdAt": 1782328735477,
+  "id": "exp_1782328735477"
 }

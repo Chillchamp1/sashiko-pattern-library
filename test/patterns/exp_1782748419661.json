@@ -1,47 +1,54 @@
 {
-  "gridType": "square",
-  "patMacro": 3,
-  "bbox": {
-    "maxU": 8,
-    "maxV": 12,
-    "minU": 0,
-    "minV": 0
-  },
+  "stitchGrid": false,
+  "stitchView": false,
+  "spacing": 0,
   "stitchRatio": "standard",
-  "famOrder": [
-    1,
-    0,
-    2
-  ],
-  "thumbCells": 3,
-  "createdAt": 1782748419661,
+  "id": "exp_1782748419661",
+  "stitchLen": 8,
   "families": [
     2,
-    0,
+    3,
     1,
     2,
+    3,
+    1,
+    3,
+    2,
+    2,
+    3,
+    1,
+    3,
+    2,
+    3,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
     0,
     1,
     0,
-    2,
-    2,
     0,
-    1,
     0,
-    2,
     0,
-    1,
-    1
+    0
   ],
-  "stitchGrid": false,
-  "name": "Musubi Kikkō (Knotted Tortoise Shell)",
-  "stitchLen": 9,
-  "published": true,
+  "creatorId": "un4bcd6du2x",
+  "createdAt": 1782748419661,
+  "patMacro": 3,
+  "thumbCells": 3,
+  "traditional": true,
   "bboxRotated": false,
   "routingMode": "default",
-  "type": "exp",
-  "spacing": 0,
-  "id": "exp_1782748419661",
+  "published": true,
+  "gridType": "square",
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxU": 8,
+    "maxV": 12
+  },
   "lines": [
     {
       "end": [
@@ -84,29 +91,9 @@
       ]
     },
     {
-      "start": [
-        2,
-        6
-      ],
       "end": [
         0,
         5
-      ]
-    },
-    {
-      "start": [
-        8,
-        3
-      ],
-      "end": [
-        8,
-        9
-      ]
-    },
-    {
-      "end": [
-        8,
-        9
       ],
       "start": [
         2,
@@ -116,17 +103,107 @@
     {
       "end": [
         8,
-        3
+        9
       ],
+      "start": [
+        8,
+        3
+      ]
+    },
+    {
+      "start": [
+        2,
+        6
+      ],
+      "end": [
+        8,
+        9
+      ]
+    },
+    {
       "start": [
         4,
         5
+      ],
+      "end": [
+        8,
+        3
+      ]
+    },
+    {
+      "start": [
+        0,
+        11
+      ],
+      "end": [
+        6,
+        8
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        0,
+        1
+      ]
+    },
+    {
+      "start": [
+        4,
+        9
+      ],
+      "end": [
+        4,
+        11
+      ]
+    },
+    {
+      "start": [
+        4,
+        11
+      ],
+      "end": [
+        6,
+        12
+      ]
+    },
+    {
+      "start": [
+        6,
+        12
+      ],
+      "end": [
+        8,
+        11
+      ]
+    },
+    {
+      "start": [
+        6,
+        0
+      ],
+      "end": [
+        8,
+        1
+      ]
+    },
+    {
+      "start": [
+        4,
+        3
+      ],
+      "end": [
+        4,
+        0
       ]
     },
     {
       "end": [
-        6,
-        8
+        0,
+        9
       ],
       "start": [
         0,
@@ -135,76 +212,121 @@
     },
     {
       "end": [
-        0,
+        6,
+        2
+      ],
+      "start": [
+        6,
+        4
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        6,
+        4
+      ]
+    },
+    {
+      "start": [
+        6,
+        2
+      ],
+      "end": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        8,
         1
       ],
       "start": [
-        2,
+        6,
         2
       ]
     },
     {
       "end": [
         4,
-        11
+        7
       ],
       "start": [
-        4,
-        9
+        6,
+        6
       ]
     },
     {
       "start": [
-        4,
-        11
+        2,
+        8
       ],
       "end": [
-        6,
+        2,
         12
       ]
     },
     {
       "end": [
-        8,
-        11
+        4,
+        7
       ],
       "start": [
-        6,
-        12
+        2,
+        8
+      ]
+    },
+    {
+      "start": [
+        2,
+        8
+      ],
+      "end": [
+        0,
+        7
       ]
     },
     {
       "end": [
-        8,
+        4,
         1
       ],
       "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        0,
+        1
+      ]
+    },
+    {
+      "start": [
         6,
-        0
-      ]
-    },
-    {
-      "end": [
-        4,
-        0
-      ],
-      "start": [
-        4,
-        3
-      ]
-    },
-    {
-      "start": [
-        0,
-        11
+        6
       ],
       "end": [
-        0,
-        9
+        8,
+        7
       ]
     }
   ],
-  "creatorId": "uy09jle01o7",
-  "stitchView": true,
-  "traditional": false
+  "name": "Musubi Kasane Kikkō (Knotted and Overlapping Tortoise Shell)",
+  "type": "exp",
+  "famOrder": [
+    1,
+    0,
+    2,
+    3
+  ]
 }

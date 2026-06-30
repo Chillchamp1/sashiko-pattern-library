@@ -1,16 +1,152 @@
 {
+  "bboxRotated": false,
+  "published": true,
+  "routingMode": "default",
+  "patMacro": 3,
+  "traditional": true,
+  "type": "exp",
+  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
+  "lines": [
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        0,
+        3
+      ]
+    },
+    {
+      "start": [
+        0,
+        3
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        4
+      ],
+      "end": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        4,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        2,
+        0
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        0,
+        1
+      ]
+    },
+    {
+      "start": [
+        4,
+        3
+      ],
+      "end": [
+        6,
+        2
+      ]
+    },
+    {
+      "end": [
+        8,
+        3
+      ],
+      "start": [
+        6,
+        2
+      ]
+    },
+    {
+      "start": [
+        4,
+        3
+      ],
+      "end": [
+        6,
+        4
+      ]
+    },
+    {
+      "end": [
+        8,
+        3
+      ],
+      "start": [
+        6,
+        4
+      ]
+    }
+  ],
   "famOrder": [
     0,
     1
   ],
-  "thumbCells": 0,
+  "bbox": {
+    "maxU": 8,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "gridType": "square",
+  "creatorId": "uyqa6wy657m",
   "families": [
     1,
     0,
     1,
     0,
-    1,
     0,
+    1,
     1,
     0,
     1,
@@ -19,147 +155,6 @@
     1
   ],
   "createdAt": 1782409906383,
-  "stitchRatio": "standard",
-  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
-  "stitchGrid": false,
-  "bbox": {
-    "maxV": 4,
-    "maxU": 8,
-    "minV": 0,
-    "minU": 0
-  },
-  "gridType": "square",
-  "patMacro": 3,
-  "bboxRotated": false,
-  "stitchLen": 8,
-  "published": true,
   "spacing": 0,
-  "id": "exp_1782409906383",
-  "lines": [
-    {
-      "end": [
-        2,
-        2
-      ],
-      "start": [
-        4,
-        1
-      ]
-    },
-    {
-      "end": [
-        4,
-        3
-      ],
-      "start": [
-        2,
-        2
-      ]
-    },
-    {
-      "end": [
-        6,
-        2
-      ],
-      "start": [
-        4,
-        3
-      ]
-    },
-    {
-      "start": [
-        6,
-        2
-      ],
-      "end": [
-        4,
-        1
-      ]
-    },
-    {
-      "end": [
-        6,
-        0
-      ],
-      "start": [
-        4,
-        1
-      ]
-    },
-    {
-      "end": [
-        2,
-        0
-      ],
-      "start": [
-        4,
-        1
-      ]
-    },
-    {
-      "end": [
-        8,
-        1
-      ],
-      "start": [
-        6,
-        2
-      ]
-    },
-    {
-      "end": [
-        8,
-        3
-      ],
-      "start": [
-        6,
-        2
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
-      ],
-      "end": [
-        0,
-        3
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
-      ],
-      "end": [
-        0,
-        1
-      ]
-    },
-    {
-      "end": [
-        6,
-        4
-      ],
-      "start": [
-        4,
-        3
-      ]
-    },
-    {
-      "start": [
-        4,
-        3
-      ],
-      "end": [
-        2,
-        4
-      ]
-    }
-  ],
-  "creatorId": "uumxr3t6o2s",
-  "traditional": false,
-  "stitchView": false,
-  "routingMode": "default",
-  "type": "exp"
+  "id": "exp_1782409906383"
 }

@@ -1,24 +1,32 @@
 {
-  "creatorId": "ugaijrmeecw",
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 10,
+    "maxU": 10
+  },
+  "gridType": "isometric",
+  "id": "exp_1782081897964",
+  "createdAt": 1782081897964,
   "lines": [
     {
-      "end": [
-        3.333,
-        6.667
-      ],
       "start": [
         0,
         0
-      ]
-    },
-    {
-      "start": [
-        10,
-        10
       ],
       "end": [
         3.333,
         6.667
+      ]
+    },
+    {
+      "end": [
+        3.333,
+        6.667
+      ],
+      "start": [
+        10,
+        10
       ]
     },
     {
@@ -32,13 +40,13 @@
       ]
     },
     {
+      "start": [
+        0,
+        0
+      ],
       "end": [
         6.667,
         3.333
-      ],
-      "start": [
-        0,
-        0
       ]
     },
     {
@@ -52,21 +60,11 @@
       ]
     },
     {
-      "end": [
-        0,
-        10
-      ],
       "start": [
         10,
         10
-      ]
-    },
-    {
-      "end": [
-        0,
-        0
       ],
-      "start": [
+      "end": [
         0,
         10
       ]
@@ -74,48 +72,54 @@
     {
       "start": [
         0,
-        0
+        10
       ],
       "end": [
-        10,
+        0,
         0
       ]
     },
     {
-      "start": [
+      "end": [
         10,
         0
       ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
       "end": [
         10,
         10
+      ],
+      "start": [
+        10,
+        0
       ]
     },
     {
+      "end": [
+        0,
+        10
+      ],
       "start": [
         3.333,
         6.667
-      ],
-      "end": [
-        0,
-        10
       ]
     },
     {
-      "start": [
-        6.667,
-        3.333
-      ],
       "end": [
         10,
         0
+      ],
+      "start": [
+        6.667,
+        3.333
       ]
     }
   ],
-  "name": "Asanoha (Hemp Leaf) 2",
-  "id": "exp_1782081897964",
-  "type": "exp",
-  "createdAt": 1782081897964,
   "families": [
     3,
     1,
@@ -129,12 +133,8 @@
     5,
     5
   ],
-  "bbox": {
-    "maxV": 10,
-    "maxU": 10,
-    "minV": 0,
-    "minU": 0
-  },
-  "patMacro": 5,
-  "gridType": "isometric"
+  "creatorId": "uait1j283so",
+  "name": "Asanoha (Hemp Leaf) 2",
+  "type": "exp",
+  "patMacro": 5
 }

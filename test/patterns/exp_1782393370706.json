@@ -3,64 +3,26 @@
     0,
     1
   ],
-  "families": [
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    1,
-    0,
-    1,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0,
-    0,
-    1,
-    1,
-    1
-  ],
-  "createdAt": 1782393370706,
-  "name": "Sankuzushimon (Sets of Three)",
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxU": 12,
-    "maxV": 12
-  },
-  "gridType": "square",
-  "patMacro": 4,
-  "bboxRotated": false,
-  "published": true,
-  "spacing": 0,
-  "id": "exp_1782393370706",
+  "type": "exp",
   "lines": [
     {
-      "end": [
-        0,
-        4
-      ],
       "start": [
         0,
         0
+      ],
+      "end": [
+        0,
+        4
       ]
     },
     {
-      "start": [
-        2,
-        4
-      ],
       "end": [
         2,
         0
+      ],
+      "start": [
+        2,
+        4
       ]
     },
     {
@@ -84,13 +46,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        6
-      ],
       "end": [
         2,
         4
+      ],
+      "start": [
+        2,
+        6
       ]
     },
     {
@@ -104,12 +66,12 @@
       ]
     },
     {
-      "end": [
-        2,
-        6
-      ],
       "start": [
         0,
+        6
+      ],
+      "end": [
+        2,
         6
       ]
     },
@@ -124,22 +86,22 @@
       ]
     },
     {
-      "end": [
-        4,
-        6
-      ],
       "start": [
         6,
+        6
+      ],
+      "end": [
+        4,
         6
       ]
     },
     {
-      "end": [
-        6,
+      "start": [
+        0,
         8
       ],
-      "start": [
-        0,
+      "end": [
+        6,
         8
       ]
     },
@@ -164,33 +126,33 @@
       ]
     },
     {
-      "start": [
-        6,
-        10
-      ],
       "end": [
         6,
         8
+      ],
+      "start": [
+        6,
+        10
       ]
     },
     {
-      "end": [
-        6,
-        12
-      ],
       "start": [
         0,
         12
+      ],
+      "end": [
+        6,
+        12
       ]
     },
     {
-      "end": [
-        6,
-        10
-      ],
       "start": [
         6,
         12
+      ],
+      "end": [
+        6,
+        10
       ]
     },
     {
@@ -204,19 +166,9 @@
       ]
     },
     {
-      "start": [
-        8,
-        6
-      ],
       "end": [
         8,
         12
-      ]
-    },
-    {
-      "end": [
-        12,
-        6
       ],
       "start": [
         8,
@@ -226,11 +178,21 @@
     {
       "end": [
         12,
-        12
+        6
       ],
+      "start": [
+        8,
+        6
+      ]
+    },
+    {
       "start": [
         12,
         6
+      ],
+      "end": [
+        12,
+        12
       ]
     },
     {
@@ -274,8 +236,46 @@
       ]
     }
   ],
-  "creatorId": "uyqa6wy657m",
+  "name": "Sankuzushimon (Sets of Three)",
+  "gridType": "square",
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 12,
+    "maxU": 12
+  },
+  "bboxRotated": false,
+  "published": true,
   "traditional": true,
-  "type": "exp",
+  "patMacro": 4,
+  "createdAt": 1782393370706,
+  "families": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1
+  ],
+  "creatorId": "uyqa6wy657m",
+  "id": "exp_1782393370706",
+  "spacing": 0,
   "zigzagRouting": false
 }

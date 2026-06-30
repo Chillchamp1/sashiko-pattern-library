@@ -1,12 +1,14 @@
 {
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxU": 9,
-    "maxV": 9
-  },
+  "id": "exp_1782252110987",
   "gridType": "square",
-  "patMacro": 5,
+  "bbox": {
+    "maxU": 9,
+    "maxV": 9,
+    "minU": 0,
+    "minV": 0
+  },
+  "createdAt": 1782252110987,
+  "type": "exp",
   "families": [
     0,
     0,
@@ -18,27 +20,25 @@
     1,
     1
   ],
-  "createdAt": 1782252110987,
-  "id": "exp_1782252110987",
   "lines": [
     {
+      "end": [
+        8,
+        6
+      ],
       "start": [
         9,
         7
-      ],
-      "end": [
-        8,
-        6
       ]
     },
     {
-      "start": [
-        8,
-        6
-      ],
       "end": [
         7,
         5
+      ],
+      "start": [
+        8,
+        6
       ]
     },
     {
@@ -114,5 +114,5 @@
   ],
   "name": "Ajiro (Wickerwork)",
   "creatorId": "uyqa6wy657m",
-  "type": "exp"
+  "patMacro": 5
 }
