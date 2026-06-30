@@ -878,7 +878,8 @@ window.cadThumbZoomStep=function(dir){
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
   const pb=document.getElementById('cadPublishBtn');
-  if(pb)pb.style.display=cadIsPublished?'none':'inline-block';
+  // Publish is admin-only and only for not-yet-published patterns.
+  if(pb)pb.style.display=(_isAdmin()&&!cadIsPublished)?'inline-block':'none';
   const unique=[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
   if(!unique.length){c.innerHTML='';return;}
   const used=[...new Set(cadFamilies.filter(f=>f>=0))];
@@ -1187,13 +1188,10 @@ function _renderTileFrame(){
   x.clearRect(0,0,500,500);
   if(cadStitchView){
     _cadDrawDenim(x);
-    // Grid is always on in the Live Tiling stitch view and looks like the gallery object:
-    // plain-white dot grid behind, threads toned to 0.4 so the grid reads as the foreground.
-    _cadDrawStitchGrid(x,_cadStitchCache,true);
+    // Grid always on (whole canvas); stitches at FULL contrast (no gallery-style subduing).
+    _cadEditorGrid(x,_cadStitchCache);
     const w=_cadStitchW();
-    x.globalAlpha=0.4;
     _tpSts.forEach((s,i)=>{if(i<_tpStep)_cadDrawStitch(x,s,w);});
-    x.globalAlpha=1;
     return;
   }
   if(cadRightBuf)x.drawImage(cadRightBuf,0,0);
@@ -1493,7 +1491,7 @@ function _cadStitchScene(){
   const ox=(500-pw*sc)/2-mx*sc,oy=(500-ph*sc)/2-my*sc;
   const T=p=>{const a=lay.g2s(p);return[ox+a.x*sc,oy+a.y*sc];};
   const strokes=_buildStrokesFromPath(path,T);
-  const tf={g2s:lay.g2s,ox,oy,sc};
+  const tf={g2s:lay.g2s,s2g:lay.s2g,ox,oy,sc};
   return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes,lay.sz*sc),tf,ur:lay.uRange,vr:lay.vRange});
 }
 // Fabric grid overlay (main lines every CAD_MICRO + dot sub-grid), mapped through the stitch-scene transform.
@@ -1526,6 +1524,31 @@ function _cadDrawStitchGrid(x,scene,dotsOnly){
     x.beginPath();x.arc(p[0],p[1],onMain?rMain:rSub,0,Math.PI*2);x.fill();
   }}
 }
+// CAD-editor grid (SEPARATE from the gallery's _cadDrawStitchGrid so the two views can be
+// tuned independently). Two differences the editor wants: (1) it covers the WHOLE 500px
+// canvas — the grid range is found by inverse-mapping the canvas corners, not the pattern's
+// own extent (which left margins); (2) the caller draws the stitches at FULL contrast (the
+// gallery subdues them under the grid; the editor does not). White dot grid, dot at every
+// grid unit, larger dot at each CAD_MICRO cell point.
+function _cadEditorGrid(x,scene){
+  if(!scene||!scene.tf||!scene.tf.s2g)return;
+  const tf=scene.tf,M=CAD_MICRO;
+  const inv=(sx,sy)=>tf.s2g((sx-tf.ox)/tf.sc,(sy-tf.oy)/tf.sc);   // screen → grid
+  const cs=[inv(0,0),inv(500,0),inv(500,500),inv(0,500)];
+  let mnU=Infinity,mxU=-Infinity,mnV=Infinity,mxV=-Infinity;
+  cs.forEach(c=>{mnU=Math.min(mnU,c[0]);mxU=Math.max(mxU,c[0]);mnV=Math.min(mnV,c[1]);mxV=Math.max(mxV,c[1]);});
+  if(!isFinite(mnU))return;
+  const S=(u,v)=>{const a=tf.g2s([u,v]);return[tf.ox+a.x*tf.sc,tf.oy+a.y*tf.sc];};
+  const u0=Math.floor(mnU/M)*M,u1=Math.ceil(mxU/M)*M,v0=Math.floor(mnV/M)*M,v1=Math.ceil(mxV/M)*M;
+  if((u1-u0)/1>4000||(v1-v0)/1>4000)return;   // sanity guard
+  for(let u=u0;u<=u1;u++)for(let v=v0;v<=v1;v++){
+    const p=S(u,v);
+    if(p[0]<-4||p[0]>504||p[1]<-4||p[1]>504)continue;
+    const onMain=(u%M===0)&&(v%M===0);
+    x.fillStyle=onMain?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.6)';
+    x.beginPath();x.arc(p[0],p[1],onMain?1.25:0.6,0,Math.PI*2);x.fill();
+  }
+}
 // Draw one sashiko stitch with a little depth (shadow + sheen). `color` overrides
 // the default off-white yarn (used for the gallery thread-colour preview).
 function _cadDrawStitch(x,s,w,color){
@@ -1544,12 +1567,10 @@ function _cadDrawStitchStatic(){
   const x=pv.getContext('2d');
   x.clearRect(0,0,500,500);_cadDrawDenim(x);
   const sc=_cadStitchScene(),w=_cadStitchW();
-  // Grid is always on in the Live Tiling stitch view and looks like the gallery object:
-  // plain-white dot grid behind, threads toned to 0.4 so the grid reads as the foreground.
-  _cadDrawStitchGrid(x,sc,true);
-  x.globalAlpha=0.4;
+  // Grid is always on in the CAD Live Tiling, covering the whole canvas; stitches stay at
+  // FULL contrast (subduing-under-grid is a gallery-only feature).
+  _cadEditorGrid(x,sc);
   sc.stitches.forEach(s=>_cadDrawStitch(x,s,w));
-  x.globalAlpha=1;
 }
 window.cadToggleStitchView=function(){
   if(_tpOn)_stopTilePlay();
