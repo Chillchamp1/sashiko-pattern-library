@@ -17,7 +17,7 @@ const FIREBASE_CONFIG = {
 // sashikoAdminHash() in the console and paste the printed hash below.
 // While left as the placeholder it's "not configured" → any Google sign-in shows the admin
 // UI (rules still enforce real power), so you can't lock yourself out before setting it.
-const ADMIN_EMAIL_HASHES=['PASTE_SHA256_OF_YOUR_EMAIL'];
+const ADMIN_EMAIL_HASHES=['10f67e4ab1ba318f34f1f133726ad885cb3e5edc9ce86731468156774ad39620'];
 let _adminVerified=false;
 async function _sha256hex(s){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(s).trim().toLowerCase()));
