@@ -1,4 +1,16 @@
 // ── Gallery ────────────────────────────────────────────────────────────────
+// Display a pattern name as "Japanese / English": "Romaji (English)" and
+// "Romaji · English" both become "Romaji / English". Names without a Japanese/English
+// pairing (e.g. "Cat", "Wave 1") are left untouched. Display-only — the stored name is unchanged.
+function _displayName(n){
+  if(!n)return n;
+  let s=String(n).trim();
+  s=s.replace(/\s*\(([^)]+)\)/,' / $1');        // "Romaji (English)" -> "Romaji / English"
+  s=s.replace(/\s*[·•]\s*/g,' / ');             // middle-dot separators -> slash
+  s=s.replace(/\s{2,}/g,' ').trim();            // tidy whitespace
+  return s;
+}
+window._displayName=_displayName;
 let activeFilters=new Set([0]);
 let _galleryDirty=false;
 function buildGallery(){
@@ -44,7 +56,7 @@ function buildGallery(){
     delBtn2.className='exp-del-btn';delBtn2.title='Delete (admin)';delBtn2.textContent='✕';
     delBtn2.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
     card.appendChild(delBtn2);
-    const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name||'Custom';
+    const name=document.createElement('div');name.className='pcard-name';name.textContent=_displayName(pat.name||'Custom');
     card.append(name);
     // Like row for exp cards
     const likeRow=document.createElement('div');
