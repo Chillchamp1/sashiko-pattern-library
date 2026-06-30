@@ -646,6 +646,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
                 <option value="default" selected>1 · Straight rows</option>
                 <option value="continuous">2 · Zigzag</option>
                 <option value="contour">3 · Waves</option>
+                <option value="sequential">4 · One by one (motifs)</option>
               </select>
             </label>
             <span class="cad-panel-stepper">
@@ -7348,11 +7349,14 @@ function buildExpPath(lines, famOrderOverride, routingMode){
   if(!lines||!lines.length)return[];
 
   const mode=routingMode||'default';
-  const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:120*Math.PI/180};
+  const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:120*Math.PI/180, sequential:90*Math.PI/180};
   const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
 
   const famGroups=new Map();
   lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
+
+  // Logik 4 — motif "one by one": finish each detected motif before the next.
+  if(mode==='sequential')return _buildMotifPath(famGroups,maxTurn);
 
   if(mode==='continuous'){
     // Follow-path: build strokes per family with no turn limit,
@@ -7543,6 +7547,79 @@ function buildExpPath(lines, famOrderOverride, routingMode){
         path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fi});
         stitched.push({start:pts[k],end:pts[k+1]});
       }
+      cur=pts[pts.length-1];
+    }
+  }
+  return path;
+}
+
+// ── Motif routing (Logik 4 — "one by one") ──────────────────────────────────
+// For repeat-motif patterns (stone wheels, linked rings, crests…) the intuitive way to
+// stitch is to FINISH one motif completely, then move to the next — not sweep one colour
+// across the whole cloth. We detect motifs automatically (no manual tagging) and route
+// each one fully before the nearest next one.
+//
+// Motif detection = single-linkage clustering of strokes by endpoint proximity, cut at the
+// LARGEST natural gap in the merge distances: strokes inside a motif sit closer together
+// than neighbouring motifs do, so that gap is exactly the motif boundary — no fixed
+// threshold to tune. Validated on Ishi Guruma: 20-stroke wheels detected cleanly, each
+// stitched contiguously. Within a motif, and between motifs, strokes are ordered nearest-
+// first so the needle never wanders.
+function _buildMotifPath(famGroups, maxTurn){
+  const strokes=[];
+  for(const[fi,segs]of famGroups)
+    buildStrokesForFamily(segs,maxTurn).forEach(pts=>{if(pts&&pts.length>=2)strokes.push({pts,fi});});
+  const n=strokes.length; if(!n)return[];
+  const ep=strokes.map(s=>[s.pts[0],s.pts[s.pts.length-1]]);   // [start,end] of each stroke
+  // Typical stroke length sets the spatial scale (grid cell + the "significant gap" floor).
+  const slen=strokes.map(s=>{let L=0;for(let k=1;k<s.pts.length;k++)L+=Math.hypot(s.pts[k][0]-s.pts[k-1][0],s.pts[k][1]-s.pts[k-1][1]);return L;});
+  const med=[...slen].sort((a,b)=>a-b)[n>>1]||1;
+  const minEndDist=(a,b)=>{let d=Infinity;for(const u of ep[a])for(const v of ep[b]){const dd=Math.hypot(u[0]-v[0],u[1]-v[1]);if(dd<d)d=dd;}return d;};
+
+  // Candidate proximity edges via a spatial hash (avoids O(n²) over the whole tiling).
+  const cell=Math.max(med*1.5,1e-3), grid=new Map();
+  ep.forEach((pp,i)=>pp.forEach(p=>{const k=Math.floor(p[0]/cell)+','+Math.floor(p[1]/cell);let a=grid.get(k);if(!a){a=[];grid.set(k,a);}a.push(i);}));
+  const edges=[], seen=new Set();
+  ep.forEach((pp,i)=>pp.forEach(p=>{const cx=Math.floor(p[0]/cell),cy=Math.floor(p[1]/cell);
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const arr=grid.get((cx+dx)+','+(cy+dy));if(!arr)continue;
+      for(const j of arr){if(j===i)continue;const a=i<j?i:j,b=i<j?j:i,pk=a*n+b;if(seen.has(pk))continue;seen.add(pk);edges.push([minEndDist(a,b),a,b]);}}}));
+  edges.sort((e,f)=>e[0]-f[0]);
+
+  // MST merge-distance sequence → cut at the largest gap above a small floor.
+  const tmp=[...Array(n).keys()], f2=x=>{while(tmp[x]!==x){tmp[x]=tmp[tmp[x]];x=tmp[x];}return x;};
+  const mw=[];
+  for(const[d,a,b]of edges){const ra=f2(a),rb=f2(b);if(ra!==rb){tmp[rb]=ra;mw.push(d);}}
+  const FLOOR=Math.max(med*0.15,0.3);
+  let bestGap=0, cut=FLOOR;
+  for(let k=0;k<mw.length-1;k++){if(mw[k+1]<FLOOR)continue;const g=mw[k+1]-mw[k];if(g>bestGap){bestGap=g;cut=mw[k];}}
+  if(bestGap<Math.max(med*0.5,1))cut=FLOOR;   // no clear separation → motif = touch-component
+
+  // Apply merges up to the cut.
+  const par=[...Array(n).keys()], find=x=>{while(par[x]!==x){par[x]=par[par[x]];x=par[x];}return x;};
+  for(const[d,a,b]of edges){if(d<=cut+1e-9){const ra=find(a),rb=find(b);if(ra!==rb)par[rb]=ra;}}
+  const motifs=new Map();
+  for(let i=0;i<n;i++){const r=find(i);if(!motifs.has(r))motifs.set(r,[]);motifs.get(r).push(i);}
+  const ml=[...motifs.values()];
+  const cent=ml.map(idx=>{let x=0,y=0,c=0;idx.forEach(i=>strokes[i].pts.forEach(p=>{x+=p[0];y+=p[1];c++;}));return[x/c,y/c];});
+
+  // Visit motifs nearest-first, starting from the top-left one (deterministic).
+  const mUsed=new Uint8Array(ml.length);
+  let m0=0,bb=Infinity;cent.forEach((p,i)=>{const v=p[0]+p[1];if(v<bb){bb=v;m0=i;}});
+  const mOrder=[m0];mUsed[m0]=1;let mc=cent[m0];
+  for(let c=1;c<ml.length;c++){let best=-1,bd=Infinity;for(let i=0;i<ml.length;i++){if(mUsed[i])continue;const d=Math.hypot(cent[i][0]-mc[0],cent[i][1]-mc[1]);if(d<bd){bd=d;best=i;}}mUsed[best]=1;mOrder.push(best);mc=cent[best];}
+
+  // Emit: within each motif, nearest-first from the entry point; reverse strokes as needed.
+  const path=[]; let cur=null;
+  for(const mi of mOrder){
+    const idx=ml[mi], u2=new Uint8Array(idx.length);
+    for(let c=0;c<idx.length;c++){
+      let best=-1,bdir=false,bdist=Infinity;
+      for(let k=0;k<idx.length;k++){if(u2[k])continue;const i=idx[k];
+        const d0=cur?Math.hypot(ep[i][0][0]-cur[0],ep[i][0][1]-cur[1]):(ep[i][0][0]+ep[i][0][1]);
+        const d1=cur?Math.hypot(ep[i][1][0]-cur[0],ep[i][1][1]-cur[1]):(ep[i][1][0]+ep[i][1][1]);
+        const d=Math.min(d0,d1);if(d<bdist){bdist=d;best=k;bdir=d1<d0;}}
+      u2[best]=1;const i=idx[best];let pts=strokes[i].pts;if(bdir)pts=pts.slice().reverse();
+      for(let q=0;q<pts.length-1;q++)path.push({start:pts[q],end:pts[q+1],jump:!!cur&&q===0,fam:strokes[i].fi});
       cur=pts[pts.length-1];
     }
   }

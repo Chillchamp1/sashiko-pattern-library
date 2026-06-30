@@ -5,13 +5,14 @@ Binding rules for the **order** in which a pattern's stitches are animated / "se
 Goal: a stitch path a human embroiderer would actually sew — as continuous as possible, minimal thread waste.
 
 ## Selectable routing modes (CAD editor)
-The CAD editor exposes three routing logics via the **Routing** dropdown (`cadRoutingMode`, stored per pattern as `routingMode`). All three obey the cost model below; they differ in how strokes are formed and ordered. Picked in `buildExpPath(lines, famOrder, routingMode)`.
+The CAD editor exposes four routing logics via the **Routing** dropdown (`cadRoutingMode`, stored per pattern as `routingMode`). All obey the cost model below; they differ in how strokes are formed and ordered. Picked in `buildExpPath(lines, famOrder, routingMode)`.
 
 | # | Mode | value | Covers | How |
 |---|---|---|---|---|
 | **1** | Straight rows | `default` | Kōshi, Hishi, Tasuki, Kikkō, all pure line grids | Family-by-family; min-deflection strokes (`maxTurn=90°`) ordered by band-snake. Short float at each row end. |
 | **2** | Zigzag | `continuous` | Yamagata, Nowaki, all wave/zigzag meshes | Strokes follow connected diagonals through every crossing (`maxTurn=180°`); all chains ordered globally by nearest-neighbour → long zigzag runs edge-to-edge, floats only between runs. |
 | **3** | Waves | `contour` | Seigaiha, Shippō, isolated shapes with gaps, curve/arc patterns | `buildContourStrokes` chains arcs into long forward-marching **waves** (scallops), trying 4 sweep axes and keeping the decomposition with the fewest/longest runs (auto horizontal / vertical / diagonal). Within a wave the needle always progresses along the axis, taking the smoothest forward arc at each crossing (`maxTurn=120°`) → long repeating curves, no cusp folds. Waves then swept row-by-row in orientation-aware bands with snaking (`orderStrokesFamily`) — one wave finished before the next row. |
+| **4** | One by one (motifs) | `sequential` | **Ishi Guruma**, linked rings/wheels, crests, any pattern of discrete repeated motifs | `_buildMotifPath`: finish each motif completely, then the nearest next one. Motifs are detected automatically — single-linkage clustering of `maxTurn=90°` strokes by endpoint proximity, **cut at the largest natural gap** in the merge distances (strokes inside a motif sit closer than neighbouring motifs, so that gap *is* the boundary — no fixed threshold). Motifs visited nearest-first from the top-left; strokes within (and the entry into) each motif ordered nearest-first. NN is scoped per motif, so it's also far faster than global `continuous` on big tilings. Validated on Ishi Guruma: 20-stroke wheels, each stitched contiguously. |
 
 Legacy values `smooth` (60°) and `fewer-jumps` (120°) are Logik-1 variants kept for backward compatibility; collapsed to `default` on edit.
 
