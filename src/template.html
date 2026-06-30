@@ -17,6 +17,14 @@
     <h1 class="g-title">Sashiko</h1>
     <span class="g-sub">Pattern Library</span>
   </div>
+  <div class="about-lib">
+    <button class="about-toggle" id="aboutToggle" onclick="toggleAbout()">About this library <span class="about-caret">▾</span></button>
+    <div class="about-body" id="aboutBody" style="display:none">
+      <p>A free, open-source space for the crafting and visible mending community.</p>
+      <p>This library is built with love to keep traditional patterns alive and to support sustainable crafting and mindful garment repair.</p>
+      <p>If you love what’s being built here, a small donation keeps the servers running and the stitches flowing❤️</p>
+    </div>
+  </div>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
     <select class="filt-select" id="filtSelect" onchange="setFilterSelect(this.value)">
@@ -96,6 +104,7 @@
       </div>
       <div class="gal-fam-chips" id="galFamChips"></div>
       <div class="gal-swatches" id="galSwatches"></div>
+      <div class="gal-sw-name" id="galSwName">Pick a thread colour</div>
     </div>
     <div class="gal-pop gal-adv" id="galAdv" style="display:none">
       <span class="cad-panel-stepper">
@@ -142,6 +151,16 @@
   <p class="tip" id="animTip">Fibonacci Snowflake order 2. Phase
 sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element
 palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
+
+  <!-- Download dropdown (bottom of the pattern viewer) -->
+  <div class="download-bar" id="downloadBar">
+    <button class="ctrl gal-pop-btn" id="downloadBtn" onclick="toggleDownloadMenu()">⬇ Download <span class="dl-caret">▾</span></button>
+    <div class="dl-menu" id="dlMenu" style="display:none">
+      <button class="dl-item" onclick="downloadGIF()"><span>🎞 Animated GIF</span><small>this pattern’s stitch animation</small></button>
+      <button class="dl-item" onclick="downloadPDF()"><span>📄 PDF</span><small>coming soon</small></button>
+      <button class="dl-item" onclick="downloadSTL()"><span>🧩 STL template</span><small>for 3D printing · coming soon</small></button>
+    </div>
+  </div>
 
   <!-- Stitching Order Settings + community profiles — commented out for later reuse, DO NOT DELETE -->
   <!--
@@ -196,7 +215,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <div class="cad-canvas-label">Draw</div>
             <span class="cad-panel-stepper">
               <span class="cad-panel-stepper-label">Grid</span>
-              <input type="number" id="cadGridSize" value="3" min="2" max="12" onchange="cadUpdateSettings()">
+              <input type="number" id="cadGridSize" value="3" min="1" max="12" onchange="cadUpdateSettings()">
               <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
             </span>
           </div>
@@ -240,7 +259,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             </label>
             <span class="cad-panel-stepper">
               <span class="cad-panel-stepper-label">Tiles</span>
-              <input type="number" id="cadPatSize" value="3" min="2" max="12" onchange="cadUpdateSettings()">
+              <input type="number" id="cadPatSize" value="3" min="1" max="12" onchange="cadUpdateSettings()">
               <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>
             </span>
             <span class="cad-panel-stepper">
