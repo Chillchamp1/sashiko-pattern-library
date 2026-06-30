@@ -10,6 +10,17 @@ const FIREBASE_CONFIG = {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Admin Google account(s) — used to gate the admin UI on the client. Set this to the
+// SAME address(es) as isAdmin() in firestore.rules. While left as the placeholder it
+// is "not configured" → any Google sign-in shows the admin UI (the rules still enforce
+// real power), so admin isn't accidentally locked out before you set it.
+const ADMIN_EMAILS=['PASTE_YOUR_GOOGLE_EMAIL'];
+function _emailAllowed(email){
+  const list=ADMIN_EMAILS.filter(e=>e&&!/^PASTE_/.test(e)).map(e=>e.toLowerCase());
+  if(!list.length)return true;                       // not configured yet — don't lock out
+  return !!email&&list.includes(String(email).toLowerCase());
+}
+
 let EXP_PATTERNS=[];
 let _cadSource='sandbox';
 let _db=null;   // Firestore instance, set after SDK loads
@@ -119,7 +130,7 @@ async function _awaitAuth(){ if(_authReady){try{await Promise.race([_authReady,n
 // Admin = signed in with a real Google account whose email is allow-listed in the
 // Firestore rules (isAdmin()). The client only knows "signed in with Google"; the
 // rules are the real boundary (publish + any gallery edit/delete).
-function _isAdmin(){return !!_adminUser;}
+function _isAdmin(){return !!_adminUser && _emailAllowed(_adminUser.email);}
 function _updateAdminUI(){
   const on=_isAdmin();
   if(document.body)document.body.classList.toggle('is-admin',on);
@@ -136,6 +147,13 @@ async function _ensureAdmin(){
   try{
     const res=await _auth.signInWithPopup(provider);
     _adminUser=(res&&res.user&&!res.user.isAnonymous)?res.user:null;
+    if(_adminUser&&!_emailAllowed(_adminUser.email)){
+      // Signed in, but not an authorized admin account — drop back to anonymous.
+      alert('This Google account ('+(_adminUser.email||'?')+') is not an authorized admin.');
+      _adminUser=null;_updateAdminUI();
+      try{await _auth.signInAnonymously();}catch(e){}
+      return false;
+    }
     _updateAdminUI();
     return _isAdmin();
   }catch(e){
@@ -2106,7 +2124,7 @@ function expCardHTML(pat){
   return`<div class="pcard exp-card" data-id="${esc(pat.id)}" onclick="openExpPattern('${esc(pat.id)}')">
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${esc(pat.id)}"></canvas>
     <div class="pcard-body">
-      <div class="pcard-name">${esc(pat.name||'Custom')}</div>
+      <div class="pcard-name">${esc(_displayName(pat.name||'Custom'))}</div>
       <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>
