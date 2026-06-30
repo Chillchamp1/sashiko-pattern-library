@@ -368,6 +368,9 @@ body.is-admin #pgrid .pcard:hover .exp-del-btn{display:flex!important}
 body.is-admin #pgrid .pcard.exp-card:hover .exp-edit-btn{display:flex!important}
 #cadPublishBtn{display:none}
 body.is-admin #cadPublishBtn{display:inline-flex}
+/* Sandbox "publish to gallery" button — admin only (normal users just save to sandbox) */
+.exp-pub-btn{position:absolute;top:5px;left:27px;width:18px;height:18px;border-radius:50%;background:rgba(210,140,40,.92);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
+body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:center;justify-content:center}
 /* Filter dropdown */
 .filt-select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;padding-right:22px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238aa3bd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
 .filt-select:hover{border-color:#33557a;color:#e7eef6}

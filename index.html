@@ -375,6 +375,9 @@ body.is-admin #pgrid .pcard:hover .exp-del-btn{display:flex!important}
 body.is-admin #pgrid .pcard.exp-card:hover .exp-edit-btn{display:flex!important}
 #cadPublishBtn{display:none}
 body.is-admin #cadPublishBtn{display:inline-flex}
+/* Sandbox "publish to gallery" button — admin only (normal users just save to sandbox) */
+.exp-pub-btn{position:absolute;top:5px;left:27px;width:18px;height:18px;border-radius:50%;background:rgba(210,140,40,.92);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
+body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:center;justify-content:center}
 /* Filter dropdown */
 .filt-select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;padding-right:22px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238aa3bd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
 .filt-select:hover{border-color:#33557a;color:#e7eef6}
@@ -6375,14 +6378,27 @@ function _updateAdminUI(){
 async function _ensureAdmin(){
   if(_isAdmin())return true;
   if(!_firebaseReady||!_auth){alert('Admin needs an internet connection.');return false;}
+  const provider=new firebase.auth.GoogleAuthProvider();
   try{
-    const provider=new firebase.auth.GoogleAuthProvider();
     const res=await _auth.signInWithPopup(provider);
     _adminUser=(res&&res.user&&!res.user.isAnonymous)?res.user:null;
     _updateAdminUI();
-    if(!_adminUser){alert('Sign-in did not complete.');return false;}
-    return true;
-  }catch(e){console.warn('Admin sign-in failed:',e);alert('Admin sign-in cancelled or failed.');return false;}
+    return _isAdmin();
+  }catch(e){
+    const code=(e&&e.code)||'';
+    console.warn('Admin sign-in failed:',code,e);
+    // User just closed the popup — not worth an alert.
+    if(code==='auth/popup-closed-by-user'||code==='auth/cancelled-popup-request')return false;
+    // Popups blocked → full-page redirect instead (onAuthStateChanged picks it up on return).
+    if(code==='auth/popup-blocked'){try{await _auth.signInWithRedirect(provider);}catch(e2){}return false;}
+    let msg='Admin sign-in failed: '+(code||e.message||e);
+    if(code==='auth/operation-not-allowed')
+      msg='Google sign-in is not enabled.\nFirebase Console → Authentication → Sign-in method → enable Google.';
+    else if(code==='auth/unauthorized-domain')
+      msg='This site is not an authorized domain.\nFirebase Console → Authentication → Settings → Authorized domains → add '+location.hostname+'.';
+    alert(msg);
+    return false;
+  }
 }
 window.adminLogin=function(){ if(_isAdmin())window.adminLogout(); else _ensureAdmin(); };
 window.adminLogout=function(){
@@ -8332,7 +8348,8 @@ function expCardHTML(pat){
       <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>
-     <button class="exp-edit-btn" title="Edit (admin)" onclick="event.stopPropagation();_cadSource='sandbox';editExpPattern('${esc(pat.id)}')">✎</button>
+    <button class="exp-pub-btn" title="Publish to gallery (admin)" onclick="event.stopPropagation();publishExpPattern('${esc(pat.id)}')">📌</button>
+    <button class="exp-edit-btn" title="Edit" onclick="event.stopPropagation();_cadSource='sandbox';editExpPattern('${esc(pat.id)}')">✎</button>
     <button class="exp-del-btn" title="Delete" onclick="event.stopPropagation();removeExpPattern('${esc(pat.id)}')">✕</button>
   </div>`;
 }
@@ -8356,6 +8373,20 @@ function rebuildMyPatsView(){
 }
 
 function rebuildExpGallery(){rebuildMyPatsView();}
+
+// Admin: promote a sandbox pattern into the public gallery (published:true).
+window.publishExpPattern=async function(id){
+  if(!await _ensureAdmin())return;
+  const pat=EXP_PATTERNS.find(p=>p.id===id);
+  if(!pat)return;
+  if(!confirm('Publish "'+(pat.name||'Custom')+'" to the main gallery?'))return;
+  pat.published=true;
+  _saveLocal();
+  await _pushToFirestore(pat);
+  buildGallery();           // it now appears in the gallery…
+  rebuildMyPatsView();      // …and leaves the sandbox list
+  alert('Published to the gallery.');
+};
 
 window.removeExpPattern=async function removeExpPattern(id){
   if(!confirm('Permanently delete this pattern? This cannot be undone.'))return;
