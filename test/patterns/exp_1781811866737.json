@@ -1,16 +1,4 @@
 {
-  "patMacro": 5,
-  "id": "exp_1781811866737",
-  "gridType": "isometric",
-  "bbox": {
-    "maxV": 10,
-    "maxU": 10,
-    "minU": 0,
-    "minV": 0
-  },
-  "type": "exp",
-  "creatorId": "u8rlr9s3s75",
-  "name": "My Pattern",
   "lines": [
     {
       "start": [
@@ -53,15 +41,29 @@
       ]
     },
     {
-      "end": [
-        0,
-        0
-      ],
       "start": [
         10,
         10
+      ],
+      "end": [
+        0,
+        0
       ]
     }
   ],
+  "deletedAt": 1782848286522,
+  "id": "exp_1781811866737",
+  "type": "exp",
+  "name": "My Pattern",
+  "patMacro": 5,
+  "gridType": "isometric",
+  "bbox": {
+    "maxV": 10,
+    "minU": 0,
+    "maxU": 10,
+    "minV": 0
+  },
+  "creatorId": "u8rlr9s3s75",
+  "deleted": true,
   "createdAt": 1781811866744
 }

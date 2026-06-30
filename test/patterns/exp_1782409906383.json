@@ -1,40 +1,39 @@
 {
-  "bboxRotated": false,
+  "createdAt": 1782409906383,
+  "famOrder": [
+    0,
+    1
+  ],
   "published": true,
-  "routingMode": "default",
-  "patMacro": 3,
-  "traditional": true,
-  "type": "exp",
-  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
   "lines": [
     {
+      "end": [
+        0,
+        3
+      ],
       "start": [
         2,
         2
-      ],
+      ]
+    },
+    {
       "end": [
+        2,
+        4
+      ],
+      "start": [
         0,
         3
       ]
     },
     {
-      "start": [
-        0,
-        3
-      ],
-      "end": [
-        2,
-        4
-      ]
-    },
-    {
-      "start": [
-        2,
-        4
-      ],
       "end": [
         4,
         3
+      ],
+      "start": [
+        2,
+        4
       ]
     },
     {
@@ -58,43 +57,43 @@
       ]
     },
     {
-      "start": [
-        2,
-        2
-      ],
       "end": [
         4,
         1
+      ],
+      "start": [
+        2,
+        2
       ]
     },
     {
-      "start": [
-        0,
-        1
-      ],
       "end": [
         2,
         0
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
       ],
-      "end": [
+      "start": [
         0,
         1
       ]
     },
     {
-      "start": [
-        4,
-        3
+      "end": [
+        0,
+        1
       ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
       "end": [
         6,
         2
+      ],
+      "start": [
+        4,
+        3
       ]
     },
     {
@@ -108,13 +107,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        3
-      ],
       "end": [
         6,
         4
+      ],
+      "start": [
+        4,
+        3
       ]
     },
     {
@@ -128,18 +127,7 @@
       ]
     }
   ],
-  "famOrder": [
-    0,
-    1
-  ],
-  "bbox": {
-    "maxU": 8,
-    "maxV": 4,
-    "minU": 0,
-    "minV": 0
-  },
-  "gridType": "square",
-  "creatorId": "uyqa6wy657m",
+  "name": "Yotsukumi Hishi (Four Linked Diamonds)",
   "families": [
     1,
     0,
@@ -154,7 +142,19 @@
     0,
     1
   ],
-  "createdAt": 1782409906383,
+  "routingMode": "default",
+  "id": "exp_1782409906383",
   "spacing": 0,
-  "id": "exp_1782409906383"
+  "bbox": {
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0,
+    "maxU": 8
+  },
+  "gridType": "square",
+  "patMacro": 3,
+  "creatorId": "uyqa6wy657m",
+  "traditional": true,
+  "type": "exp",
+  "bboxRotated": false
 }

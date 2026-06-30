@@ -1,27 +1,54 @@
 {
+  "creatorId": "uy09jle01o7",
+  "stitchLen": 9,
+  "gridType": "square",
+  "patMacro": 3,
+  "spacing": 0,
   "bbox": {
-    "minV": 0,
-    "minU": 0,
     "maxV": 12,
+    "minU": 0,
+    "minV": 0,
     "maxU": 8
   },
-  "gridType": "square",
-  "famOrder": [
+  "type": "exp",
+  "bboxRotated": false,
+  "thumbCells": 3,
+  "stitchGrid": false,
+  "traditional": false,
+  "createdAt": 1782748414982,
+  "deleted": true,
+  "stitchView": true,
+  "families": [
+    2,
+    0,
+    1,
+    2,
+    0,
     1,
     0,
-    2
+    2,
+    2,
+    0,
+    1,
+    0,
+    2,
+    0,
+    1,
+    1
   ],
-  "type": "exp",
+  "routingMode": "default",
+  "id": "exp_1782748414982",
   "name": "Musubi Kikkō (Knotted Tortoise Shell)",
+  "stitchRatio": "standard",
   "lines": [
     {
-      "end": [
-        2,
-        2
-      ],
       "start": [
         0,
         3
+      ],
+      "end": [
+        2,
+        2
       ]
     },
     {
@@ -35,23 +62,23 @@
       ]
     },
     {
-      "end": [
-        4,
-        5
-      ],
       "start": [
         4,
         3
+      ],
+      "end": [
+        4,
+        5
       ]
     },
     {
-      "end": [
-        2,
-        6
-      ],
       "start": [
         4,
         5
+      ],
+      "end": [
+        2,
+        6
       ]
     },
     {
@@ -85,23 +112,23 @@
       ]
     },
     {
-      "end": [
-        8,
-        3
-      ],
       "start": [
         4,
         5
+      ],
+      "end": [
+        8,
+        3
       ]
     },
     {
-      "end": [
-        6,
-        8
-      ],
       "start": [
         0,
         11
+      ],
+      "end": [
+        6,
+        8
       ]
     },
     {
@@ -115,13 +142,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        11
-      ],
       "start": [
         4,
         9
+      ],
+      "end": [
+        4,
+        11
       ]
     },
     {
@@ -175,35 +202,10 @@
       ]
     }
   ],
-  "traditional": false,
-  "thumbCells": 3,
-  "patMacro": 3,
-  "bboxRotated": false,
-  "routingMode": "default",
-  "id": "exp_1782748414982",
-  "stitchRatio": "standard",
-  "spacing": 0,
-  "createdAt": 1782748414982,
-  "creatorId": "uy09jle01o7",
-  "stitchLen": 9,
-  "families": [
-    2,
-    0,
-    1,
-    2,
-    0,
+  "deletedAt": 1782848238067,
+  "famOrder": [
     1,
     0,
-    2,
-    2,
-    0,
-    1,
-    0,
-    2,
-    0,
-    1,
-    1
-  ],
-  "stitchGrid": false,
-  "stitchView": true
+    2
+  ]
 }

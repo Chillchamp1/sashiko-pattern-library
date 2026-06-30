@@ -6604,6 +6604,10 @@ async function _voteProfile(patternId, profileId, delta){
 async function _pushToFirestore(pat){
   if(!_db)return;
   await _awaitAuth();
+  // Monotonic save marker for conflict resolution. createdAt is preserved across edits,
+  // so it can't tell an edited remote doc apart from a stale local/backup copy — updatedAt
+  // changes on every save, so the newest version always wins (see _fetchFromFirestore).
+  pat.updatedAt=Date.now();
   const doc={...pat};delete doc.thumbnail;
   // creatorId is attribution only (the rules gate by published-state + admin, not by
   // creator). Keep any existing value; stamp the current uid if missing.
@@ -6691,14 +6695,18 @@ async function _fetchFromFirestore(){
       seenIds.add(p.id);
       if(p.deleted||deletedSet.has(p.id))continue; // tombstoned / user-deleted → don't show
       const lpat=localById[p.id];
-      if(lpat && (lpat.createdAt||0) >= (p.createdAt||0)){
-        // Local is same age or newer — keep local, push to Firestore if newer
+      // Compare by updatedAt (changes on every save), falling back to createdAt for old
+      // docs. Keep local ONLY if it is STRICTLY newer (a genuine offline edit) — on a tie
+      // the remote (shared source of truth) wins. This is what stops a stale embedded-backup
+      // seed (same createdAt, no updatedAt) from overriding the live edited pattern.
+      const lv=lpat?(lpat.updatedAt||lpat.createdAt||0):-1;
+      const rv=(p.updatedAt||p.createdAt||0);
+      if(lpat && lv>rv){
+        // Local is a newer unsynced edit — keep it and push it up.
         merged.push({...lpat});
-        if((lpat.createdAt||0) > (p.createdAt||0)){
-          await _pushToFirestore(lpat);
-        }
+        await _pushToFirestore(lpat);
       }else{
-        // Remote is newer or local doesn't have it
+        // Remote is newer or equal (or local doesn't have it) — use remote.
         merged.push({...p,thumbnail:null});
         _saveLocal();
       }

@@ -1,117 +1,5 @@
 {
-  "published": true,
-  "bboxRotated": false,
-  "patMacro": 3,
-  "traditional": false,
-  "type": "exp",
-  "lines": [
-    {
-      "end": [
-        0,
-        0
-      ],
-      "start": [
-        0,
-        10
-      ]
-    },
-    {
-      "end": [
-        10,
-        0
-      ],
-      "start": [
-        0,
-        0
-      ]
-    },
-    {
-      "start": [
-        10,
-        10
-      ],
-      "end": [
-        0,
-        0
-      ]
-    },
-    {
-      "end": [
-        3.333,
-        6.667
-      ],
-      "start": [
-        0,
-        0
-      ]
-    },
-    {
-      "end": [
-        3.333,
-        6.667
-      ],
-      "start": [
-        10,
-        10
-      ]
-    },
-    {
-      "start": [
-        10,
-        10
-      ],
-      "end": [
-        6.667,
-        3.333
-      ]
-    },
-    {
-      "end": [
-        6.667,
-        3.333
-      ],
-      "start": [
-        0,
-        0
-      ]
-    },
-    {
-      "start": [
-        0,
-        10
-      ],
-      "end": [
-        3.333,
-        6.667
-      ]
-    },
-    {
-      "end": [
-        10,
-        0
-      ],
-      "start": [
-        6.667,
-        3.333
-      ]
-    }
-  ],
-  "name": "Asanoha (Hemp Leaf) Remix",
-  "famOrder": [
-    3,
-    0,
-    1,
-    5,
-    2,
-    4
-  ],
-  "gridType": "isometric",
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxV": 10,
-    "maxU": 10
-  },
+  "createdAt": 1782328735477,
   "families": [
     5,
     1,
@@ -123,7 +11,119 @@
     0,
     0
   ],
+  "id": "exp_1782328735477",
+  "name": "Asanoha (Hemp Leaf) Remix",
+  "published": true,
+  "lines": [
+    {
+      "start": [
+        0,
+        10
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        10,
+        0
+      ]
+    },
+    {
+      "start": [
+        10,
+        10
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        3.333,
+        6.667
+      ]
+    },
+    {
+      "start": [
+        10,
+        10
+      ],
+      "end": [
+        3.333,
+        6.667
+      ]
+    },
+    {
+      "start": [
+        10,
+        10
+      ],
+      "end": [
+        6.667,
+        3.333
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        6.667,
+        3.333
+      ]
+    },
+    {
+      "start": [
+        0,
+        10
+      ],
+      "end": [
+        3.333,
+        6.667
+      ]
+    },
+    {
+      "start": [
+        6.667,
+        3.333
+      ],
+      "end": [
+        10,
+        0
+      ]
+    }
+  ],
+  "famOrder": [
+    3,
+    0,
+    1,
+    5,
+    2,
+    4
+  ],
   "creatorId": "uy09jle01o7",
-  "createdAt": 1782328735477,
-  "id": "exp_1782328735477"
+  "gridType": "isometric",
+  "patMacro": 3,
+  "bbox": {
+    "maxU": 10,
+    "minV": 0,
+    "minU": 0,
+    "maxV": 10
+  },
+  "type": "exp",
+  "bboxRotated": false,
+  "traditional": false
 }

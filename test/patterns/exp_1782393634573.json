@@ -1,7 +1,5 @@
 {
-  "spacing": 0,
   "id": "exp_1782393634573",
-  "creatorId": "uyqa6wy657m",
   "families": [
     2,
     0,
@@ -33,15 +31,6 @@
     2,
     3
   ],
-  "createdAt": 1782393634573,
-  "zigzagRouting": false,
-  "gridType": "square",
-  "bbox": {
-    "minV": 0,
-    "minU": 0,
-    "maxV": 12,
-    "maxU": 12
-  },
   "name": "Hirasan Kuzushi (Checkered Sankuzushi)",
   "lines": [
     {
@@ -55,13 +44,13 @@
       ]
     },
     {
-      "end": [
-        2,
-        6
-      ],
       "start": [
         0,
         6
+      ],
+      "end": [
+        2,
+        6
       ]
     },
     {
@@ -75,13 +64,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        0
-      ],
       "end": [
         0,
         0
+      ],
+      "start": [
+        2,
+        0
       ]
     },
     {
@@ -105,13 +94,13 @@
       ]
     },
     {
+      "start": [
+        4,
+        6
+      ],
       "end": [
         2,
         6
-      ],
-      "start": [
-        4,
-        6
       ]
     },
     {
@@ -125,33 +114,33 @@
       ]
     },
     {
+      "end": [
+        6,
+        6
+      ],
       "start": [
         6,
         0
-      ],
-      "end": [
-        6,
-        6
       ]
     },
     {
-      "start": [
-        6,
-        6
-      ],
       "end": [
         4,
         6
-      ]
-    },
-    {
+      ],
       "start": [
         6,
         6
-      ],
+      ]
+    },
+    {
       "end": [
         6,
         8
+      ],
+      "start": [
+        6,
+        6
       ]
     },
     {
@@ -165,23 +154,23 @@
       ]
     },
     {
-      "start": [
-        12,
-        6
-      ],
       "end": [
         12,
         8
+      ],
+      "start": [
+        12,
+        6
       ]
     },
     {
+      "start": [
+        12,
+        11
+      ],
       "end": [
         12,
         12
-      ],
-      "start": [
-        12,
-        11
       ]
     },
     {
@@ -205,13 +194,53 @@
       ]
     },
     {
-      "end": [
-        12,
-        0
-      ],
       "start": [
         6,
         0
+      ],
+      "end": [
+        12,
+        0
+      ]
+    },
+    {
+      "start": [
+        12,
+        0
+      ],
+      "end": [
+        12,
+        6
+      ]
+    },
+    {
+      "end": [
+        12,
+        2
+      ],
+      "start": [
+        6,
+        2
+      ]
+    },
+    {
+      "start": [
+        6,
+        4
+      ],
+      "end": [
+        11,
+        4
+      ]
+    },
+    {
+      "start": [
+        11,
+        4
+      ],
+      "end": [
+        12,
+        4
       ]
     },
     {
@@ -220,47 +249,7 @@
         6
       ],
       "start": [
-        12,
-        0
-      ]
-    },
-    {
-      "start": [
         6,
-        2
-      ],
-      "end": [
-        12,
-        2
-      ]
-    },
-    {
-      "end": [
-        11,
-        4
-      ],
-      "start": [
-        6,
-        4
-      ]
-    },
-    {
-      "end": [
-        12,
-        4
-      ],
-      "start": [
-        11,
-        4
-      ]
-    },
-    {
-      "start": [
-        6,
-        6
-      ],
-      "end": [
-        12,
         6
       ]
     },
@@ -285,12 +274,12 @@
       ]
     },
     {
-      "start": [
-        0,
-        8
-      ],
       "end": [
         6,
+        8
+      ],
+      "start": [
+        0,
         8
       ]
     },
@@ -325,24 +314,37 @@
       ]
     },
     {
-      "start": [
-        6,
-        12
-      ],
       "end": [
         12,
+        12
+      ],
+      "start": [
+        6,
         12
       ]
     }
   ],
-  "type": "exp",
   "famOrder": [
     2,
     3,
     0,
     1
   ],
-  "patMacro": 5,
+  "deletedAt": 1782848255864,
+  "zigzagRouting": false,
+  "deleted": true,
+  "createdAt": 1782393634573,
+  "bboxRotated": true,
+  "type": "exp",
   "traditional": false,
-  "bboxRotated": true
+  "creatorId": "uyqa6wy657m",
+  "patMacro": 5,
+  "gridType": "square",
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxU": 12,
+    "maxV": 12
+  },
+  "spacing": 0
 }

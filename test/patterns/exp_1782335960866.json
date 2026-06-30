@@ -1,48 +1,50 @@
 {
-  "bbox": {
-    "maxV": 4,
-    "maxU": 4,
-    "minU": 0,
-    "minV": 0
-  },
+  "patMacro": 4,
   "gridType": "square",
+  "bbox": {
+    "maxU": 4,
+    "minV": 0,
+    "minU": 0,
+    "maxV": 4
+  },
+  "spacing": 5,
+  "creatorId": "ux1nzh07kvl",
+  "traditional": false,
+  "bboxRotated": false,
+  "type": "exp",
+  "deleted": true,
+  "createdAt": 1782335960866,
   "lines": [
     {
-      "start": [
-        2,
-        0
-      ],
       "end": [
         2,
         4
+      ],
+      "start": [
+        2,
+        0
       ]
     },
     {
-      "start": [
-        0,
-        2
-      ],
       "end": [
         4,
+        2
+      ],
+      "start": [
+        0,
         2
       ]
     }
   ],
-  "name": "Jūji-zashi十字刺し · Cross Stitch",
-  "type": "exp",
   "famOrder": [
     0,
     1
   ],
-  "patMacro": 4,
-  "traditional": false,
-  "bboxRotated": false,
-  "spacing": 5,
+  "deletedAt": 1782848257754,
   "id": "exp_1782335960866",
-  "creatorId": "ux1nzh07kvl",
   "families": [
     1,
     0
   ],
-  "createdAt": 1782335960866
+  "name": "Jūji-zashi十字刺し · Cross Stitch"
 }

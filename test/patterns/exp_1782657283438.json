@@ -1,11 +1,6 @@
 {
-  "gridType": "square",
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxV": 11.314,
-    "maxU": 11.314
-  },
+  "stitchView": false,
+  "createdAt": 1782657283438,
   "lines": [
     {
       "start": [
@@ -58,12 +53,12 @@
       ]
     },
     {
-      "end": [
-        1.657,
-        1.657
-      ],
       "start": [
         4,
+        1.657
+      ],
+      "end": [
+        1.657,
         1.657
       ]
     },
@@ -78,33 +73,33 @@
       ]
     },
     {
-      "end": [
-        9.657,
-        4
-      ],
       "start": [
         8.485,
         2.828
+      ],
+      "end": [
+        9.657,
+        4
       ]
     },
     {
+      "start": [
+        9.657,
+        4
+      ],
       "end": [
         11.314,
         5.657
-      ],
-      "start": [
-        9.657,
-        4
       ]
     },
     {
-      "end": [
-        9.657,
-        7.314
-      ],
       "start": [
         9.657,
         9.657
+      ],
+      "end": [
+        9.657,
+        7.314
       ]
     },
     {
@@ -118,23 +113,23 @@
       ]
     },
     {
-      "end": [
-        9.657,
-        1.657
-      ],
       "start": [
         9.657,
         4
+      ],
+      "end": [
+        9.657,
+        1.657
       ]
     },
     {
-      "end": [
-        7.314,
-        9.657
-      ],
       "start": [
         5.657,
         11.314
+      ],
+      "end": [
+        7.314,
+        9.657
       ]
     },
     {
@@ -148,22 +143,22 @@
       ]
     },
     {
-      "end": [
-        11.314,
-        5.657
-      ],
       "start": [
         9.657,
         7.314
+      ],
+      "end": [
+        11.314,
+        5.657
       ]
     },
     {
-      "end": [
-        4,
-        9.657
-      ],
       "start": [
         1.657,
+        9.657
+      ],
+      "end": [
+        4,
         9.657
       ]
     },
@@ -188,33 +183,33 @@
       ]
     },
     {
-      "end": [
-        1.657,
-        7.314
-      ],
       "start": [
         0,
         5.657
-      ]
-    },
-    {
-      "end": [
-        2.828,
-        8.485
       ],
-      "start": [
+      "end": [
         1.657,
         7.314
       ]
     },
     {
-      "end": [
-        5.657,
-        11.314
+      "start": [
+        1.657,
+        7.314
       ],
+      "end": [
+        2.828,
+        8.485
+      ]
+    },
+    {
       "start": [
         4,
         9.657
+      ],
+      "end": [
+        5.657,
+        11.314
       ]
     },
     {
@@ -228,49 +223,29 @@
       ]
     },
     {
-      "end": [
-        1.657,
-        5.657
-      ],
       "start": [
         1.657,
         4
+      ],
+      "end": [
+        1.657,
+        5.657
       ]
     },
     {
-      "end": [
-        1.657,
-        9.657
-      ],
       "start": [
         1.657,
         7.314
-      ]
-    },
-    {
-      "end": [
-        5.657,
-        5.657
       ],
-      "start": [
-        2.828,
-        2.828
-      ]
-    },
-    {
       "end": [
-        8.485,
-        8.485
-      ],
-      "start": [
-        5.657,
-        5.657
+        1.657,
+        9.657
       ]
     },
     {
       "start": [
         2.828,
-        8.485
+        2.828
       ],
       "end": [
         5.657,
@@ -284,16 +259,36 @@
       ],
       "end": [
         8.485,
+        8.485
+      ]
+    },
+    {
+      "start": [
+        2.828,
+        8.485
+      ],
+      "end": [
+        5.657,
+        5.657
+      ]
+    },
+    {
+      "start": [
+        5.657,
+        5.657
+      ],
+      "end": [
+        8.485,
         2.828
       ]
     },
     {
-      "end": [
-        5.657,
-        5.657
-      ],
       "start": [
         1.657,
+        5.657
+      ],
+      "end": [
+        5.657,
         5.657
       ]
     },
@@ -328,25 +323,16 @@
       ]
     }
   ],
-  "name": "Ishi Guruma (Stone Wheel)",
-  "type": "exp",
+  "stitchRatio": "standard",
+  "published": true,
   "famOrder": [
     0,
     1,
     2,
     3
   ],
-  "patMacro": 6,
-  "thumbCells": 4,
-  "traditional": false,
-  "routingMode": "default",
-  "published": true,
-  "bboxRotated": true,
-  "spacing": 9,
-  "stitchRatio": "standard",
   "id": "exp_1782657283438",
-  "creatorId": "un4bcd6du2x",
-  "stitchLen": 8,
+  "routingMode": "sequential",
   "families": [
     2,
     2,
@@ -381,7 +367,21 @@
     1,
     1
   ],
-  "createdAt": 1782657283438,
+  "name": "Ishi Guruma (Stone Wheel)",
+  "patMacro": 4,
+  "gridType": "square",
+  "bbox": {
+    "minV": 0,
+    "maxU": 11.314,
+    "minU": 0,
+    "maxV": 11.314
+  },
+  "spacing": 9,
+  "stitchLen": 8,
+  "creatorId": "un4bcd6du2x",
+  "thumbCells": 4,
   "stitchGrid": false,
-  "stitchView": false
+  "traditional": true,
+  "bboxRotated": true,
+  "type": "exp"
 }
