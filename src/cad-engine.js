@@ -1190,7 +1190,7 @@ function _renderTileFrame(){
     _cadDrawDenim(x);
     // Grid always on (whole canvas); stitches at FULL contrast (no gallery-style subduing).
     _cadEditorGrid(x,_cadStitchCache);
-    const w=_cadStitchW();
+    const w=(_cadStitchCache&&_cadStitchCache.w)||_cadStitchW();
     _tpSts.forEach((s,i)=>{if(i<_tpStep)_cadDrawStitch(x,s,w);});
     return;
   }
@@ -1449,17 +1449,9 @@ function _layStitches(strokes,L,ratioKey,w){
   });
   return out;
 }
-// Lay stitches at a length anchored to the GRID (not to absolute canvas px), so that changing
-// the Live-Tiling display size (Tiles count) does NOT change the number of stitches per line.
-// cadStitchLen is interpreted as px at the Draw-canvas scale (cadBase px / grid unit); it is
-// rescaled to the current stitch-scene scale so a given line always gets the same stitch count.
-function _cadLayStitches(strokes,sceneScale){
-  const r=(sceneScale&&cadBase)?sceneScale/cadBase:1;
-  const L=Math.max(3,cadStitchLen*r);
-  const w=Math.max(1.2,Math.min(6,L*0.22));
-  return _layStitches(strokes,L,cadStitchRatio,w);
-}
 // Build (and cache) the off-white stitch list for the current geometry, fitted to the 500px canvas.
+// Stitch length is anchored to the grid (so the per-line stitch count is invariant to the Tiles
+// count) and the laid width is kept on the scene so the draw uses a matching width (see below).
 function _cadStitchScene(){
   const sig=_cadStitchSig();
   if(_cadStitchCache&&_cadStitchCache.sig===sig)return _cadStitchCache;
@@ -1492,7 +1484,13 @@ function _cadStitchScene(){
   const T=p=>{const a=lay.g2s(p);return[ox+a.x*sc,oy+a.y*sc];};
   const strokes=_buildStrokesFromPath(path,T);
   const tf={g2s:lay.g2s,s2g:lay.s2g,ox,oy,sc};
-  return(_cadStitchCache={sig,stitches:_cadLayStitches(strokes,lay.sz*sc),tf,ur:lay.uRange,vr:lay.vRange});
+  // Lay the stitches, anchoring length to the grid (so the per-line stitch count is invariant
+  // to the Tiles count), and keep the LAID width so the static/play draw uses the same width
+  // the geometry was laid with — exactly like the gallery (otherwise long stitches look blobby).
+  const r=(lay.sz*sc&&cadBase)?lay.sz*sc/cadBase:1;
+  const L=Math.max(3,cadStitchLen*r);
+  const w=Math.max(1.2,Math.min(6,L*0.22));
+  return(_cadStitchCache={sig,stitches:_layStitches(strokes,L,cadStitchRatio,w),tf,ur:lay.uRange,vr:lay.vRange,w});
 }
 // Fabric grid overlay (main lines every CAD_MICRO + dot sub-grid), mapped through the stitch-scene transform.
 // dotsOnly=true skips main lines, shows only dot grid (gallery stitch view uses this).
@@ -1566,11 +1564,12 @@ function _cadDrawStitchStatic(){
   const pv=document.getElementById('patCanvas');if(!pv)return;
   const x=pv.getContext('2d');
   x.clearRect(0,0,500,500);_cadDrawDenim(x);
-  const sc=_cadStitchScene(),w=_cadStitchW();
+  const sc=_cadStitchScene();
   // Grid is always on in the CAD Live Tiling, covering the whole canvas; stitches stay at
-  // FULL contrast (subduing-under-grid is a gallery-only feature).
+  // FULL contrast (subduing-under-grid is a gallery-only feature). Draw with the LAID width
+  // (sc.w) so stitch width matches stitch length — same as the gallery.
   _cadEditorGrid(x,sc);
-  sc.stitches.forEach(s=>_cadDrawStitch(x,s,w));
+  sc.stitches.forEach(s=>_cadDrawStitch(x,s,sc.w));
 }
 window.cadToggleStitchView=function(){
   if(_tpOn)_stopTilePlay();
