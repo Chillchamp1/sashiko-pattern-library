@@ -15,6 +15,7 @@ let _cadSource='sandbox';
 let _db=null;   // Firestore instance, set after SDK loads
 let _firebaseReady=false;
 let _auth=null, _authUid=null, _authReady=null;   // anonymous-auth session (for Firestore rules)
+let _adminUser=null;                              // set when signed in with a real (Google) account = admin
 
 // ── EXP animation state ──────────────────────────────────────────────────────
 let EXP_path=[];       // [{start:[u,v], end:[u,v], jump:bool}]
@@ -93,9 +94,18 @@ function _initFirebase(){
       _auth=firebase.auth();
       _authReady=new Promise(res=>{
         let done=false;
-        _auth.onAuthStateChanged(u=>{ if(u){_authUid=u.uid;} if(!done){done=true;res(u?u.uid:null);} });
+        _auth.onAuthStateChanged(u=>{
+          _authUid=u?u.uid:null;
+          // A non-anonymous session (Google) = admin candidate; the Firestore rules
+          // enforce the actual admin email allow-list.
+          _adminUser=(u&&!u.isAnonymous)?u:null;
+          if(u&&!done){done=true;res(u.uid);}   // resolve once we actually hold a session
+          _updateAdminUI();
+          // Keep everyone signed in: if there's no session, fall back to anonymous so
+          // the open sandbox stays writable. (Doesn't clobber a Google session.)
+          if(!u)_auth.signInAnonymously().catch(e=>console.warn('Anonymous auth failed — enable it in Firebase Console → Authentication → Anonymous:',e));
+        });
       });
-      _auth.signInAnonymously().catch(e=>console.warn('Anonymous auth failed — enable it in Firebase Console → Authentication → Anonymous:',e));
     }
   }catch(e){console.warn('Firebase init failed:',e);}
 }
@@ -104,6 +114,39 @@ function _initFirebase(){
 window.sashikoMyUid=function(){const id=_authUid||null;console.log('Your Firebase admin uid:',id||'(signing in… try again in a second)');return id;};
 // Wait (briefly) for the anonymous session so writes carry a valid auth.uid.
 async function _awaitAuth(){ if(_authReady){try{await Promise.race([_authReady,new Promise(r=>setTimeout(r,4000))]);}catch(e){}} }
+
+// ── Admin (Google sign-in) ───────────────────────────────────────────────────
+// Admin = signed in with a real Google account whose email is allow-listed in the
+// Firestore rules (isAdmin()). The client only knows "signed in with Google"; the
+// rules are the real boundary (publish + any gallery edit/delete).
+function _isAdmin(){return !!_adminUser;}
+function _updateAdminUI(){
+  const on=_isAdmin();
+  if(document.body)document.body.classList.toggle('is-admin',on);
+  document.querySelectorAll('.admin-login-btn').forEach(b=>{
+    b.textContent=on?('✓ Admin — sign out'):'Admin login';
+    b.classList.toggle('on',on);
+  });
+}
+// Ensure an admin session, prompting Google sign-in if needed. Returns true if admin.
+async function _ensureAdmin(){
+  if(_isAdmin())return true;
+  if(!_firebaseReady||!_auth){alert('Admin needs an internet connection.');return false;}
+  try{
+    const provider=new firebase.auth.GoogleAuthProvider();
+    const res=await _auth.signInWithPopup(provider);
+    _adminUser=(res&&res.user&&!res.user.isAnonymous)?res.user:null;
+    _updateAdminUI();
+    if(!_adminUser){alert('Sign-in did not complete.');return false;}
+    return true;
+  }catch(e){console.warn('Admin sign-in failed:',e);alert('Admin sign-in cancelled or failed.');return false;}
+}
+window.adminLogin=function(){ if(_isAdmin())window.adminLogout(); else _ensureAdmin(); };
+window.adminLogout=function(){
+  if(!_auth)return;
+  _auth.signOut().then(()=>{ _adminUser=null; _updateAdminUI(); }).catch(()=>{});
+  // onAuthStateChanged then signs back in anonymously so the sandbox stays writable.
+};
 
 // ── Cat name generator ─────────────────────────────────────────────────
 const CAT_FIRST=['Sir','Lady','Captain','Prof','Dr','Mr','Miss','Prince','Princess','Duke','Duchess','Lord','Baron','Count','Madame','Chef','DJ','King','Queen','Emperor'];
@@ -303,10 +346,9 @@ async function _pushToFirestore(pat){
   if(!_db)return;
   await _awaitAuth();
   const doc={...pat};delete doc.thumbnail;
-  // creatorId MUST equal the signed-in uid so the Firestore create/update rule passes
-  // (the rule ties each pattern to its creator). Fall back to the local id only if
-  // anonymous auth isn't available (offline / auth disabled).
-  doc.creatorId=_authUid||doc.creatorId||_getUserId();
+  // creatorId is attribution only (the rules gate by published-state + admin, not by
+  // creator). Keep any existing value; stamp the current uid if missing.
+  if(!doc.creatorId)doc.creatorId=_authUid||_getUserId();
   // Firestore rejects undefined values — strip them
   Object.keys(doc).forEach(k=>{if(doc[k]===undefined)delete doc[k];});
   try{
@@ -1013,11 +1055,11 @@ function publishToLibrary(){
 }
 window.publishToLibrary=publishToLibrary;
 ═══════════════════════════════════════════════════════════════════════════════ */
-window.editExpPattern=function(idOrPat){
+window.editExpPattern=async function(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
-  const pw=prompt('Admin password:');
-  if(pw!=='111'){alert('Wrong password');return;}
+  // Published (gallery) patterns are admin-only to edit; sandbox patterns stay open.
+  if(pat.published && !await _ensureAdmin())return;
   cadHistory=[];
   cadTool='draw';
   cadArcState=0;cadArcCenter=null;cadArcStart=null;

@@ -2,29 +2,33 @@ rules_version = '2';
 
 // Security rules for the Sashiko Pattern Library Firestore.
 //
-// The app ships a public (by-design) Firebase web config and uses ANONYMOUS auth,
-// so anyone can get a session. These rules ensure that even so:
-//   - the gallery stays publicly readable,
-//   - nobody can WIPE the collection (hard delete is off; the app tombstones),
-//   - a pattern can only be edited/tombstoned by its creator (or an admin),
-//   - only well-formed, size-bounded documents can be written.
+// Model:
+//   - The GALLERY (published patterns) is the protected asset: only the admin can
+//     publish, or edit/delete anything that is published.
+//   - The SANDBOX (unpublished patterns) is open: any signed-in visitor (anonymous
+//     is fine) can add and edit/remove unpublished patterns. Not airtight by design.
+//   - Hard delete is disabled everywhere; the app tombstones (sets deleted:true), so
+//     the collection can never be wiped.
 //
-// DEPLOY: Firebase Console -> Firestore Database -> Rules -> paste -> Publish,
-//         or: firebase deploy --only firestore:rules
-// ALSO REQUIRED: Firebase Console -> Authentication -> Sign-in method -> enable "Anonymous".
+// SETUP:
+//   1. Firebase Console -> Authentication -> Sign-in method:
+//        enable "Anonymous"  AND  "Google".
+//   2. Put your Google address in isAdmin() below (replace the placeholder).
+//      (Rules are server-side/private, so the email is NOT exposed to visitors.)
+//   3. Deploy: Console -> Firestore Database -> Rules -> paste -> Publish,
+//      or:  firebase deploy --only firestore:rules
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Admin allowlist: anonymous uids allowed to edit/tombstone ANY pattern.
-    // On the live site, open the browser console and run  sashikoMyUid()  then
-    // paste the uid below. Anonymous uids are per-browser; add each device you admin from.
+    // Admin = signed in with a real Google account whose verified email is listed here.
+    // Anonymous sessions have no email, so they are never admin.
     function isAdmin() {
       return request.auth != null
-          && request.auth.uid in ['PASTE_YOUR_ADMIN_UID_HERE'];
+          && request.auth.token.email_verified == true
+          && request.auth.token.email in ['PASTE_YOUR_GOOGLE_EMAIL'];
     }
 
-    // Basic shape/size validation: keeps junk and oversized blobs out.
     function isValidPattern(d) {
       return d.type == 'exp'
           && d.id is string && d.id.size() < 200
@@ -33,19 +37,29 @@ service cloud.firestore {
           && (!('lines' in d) || (d.lines is list && d.lines.size() <= 5000));
     }
 
-    match /patterns/{id} {
-      allow read: if true;
+    function unpublished(d) {
+      return d.get('published', false) == false;
+    }
 
+    match /patterns/{id} {
+      allow read: if true;                                   // gallery + sandbox public
+
+      // Create: any signed-in visitor may add an UNPUBLISHED (sandbox) pattern.
+      // Creating something already published requires admin.
       allow create: if request.auth != null
                     && isValidPattern(request.resource.data)
-                    && request.resource.data.creatorId == request.auth.uid;
+                    && (unpublished(request.resource.data) || isAdmin());
 
-      allow update: if request.auth != null
-                    && isValidPattern(request.resource.data)
-                    && (resource.data.creatorId == request.auth.uid || isAdmin());
+      // Update: admin can change anything. Everyone else may only touch a pattern that
+      // is unpublished AND stays unpublished -> so nobody but admin can publish to the
+      // gallery or modify a gallery pattern. (Tombstone-delete is an update too.)
+      allow update: if isAdmin()
+                    || (request.auth != null
+                        && isValidPattern(request.resource.data)
+                        && unpublished(resource.data)
+                        && unpublished(request.resource.data));
 
-      // Hard delete is disabled. The app sets deleted:true (a tombstone write),
-      // so the collection can never be wiped.
+      // No hard deletes - the app uses tombstones (deleted:true).
       allow delete: if false;
 
       // Community stitching-order profiles (currently disabled in the app).
