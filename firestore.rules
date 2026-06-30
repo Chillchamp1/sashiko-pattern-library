@@ -1,0 +1,70 @@
+rules_version = '2';
+
+// Security rules for the Sashiko Pattern Library Firestore.
+//
+// Threat model: the app ships its (public, by-design) Firebase web config, and uses
+// ANONYMOUS auth — so anyone can obtain a session. These rules make sure that even so:
+//   • the gallery stays publicly readable,
+//   • nobody can WIPE the collection (hard delete is disabled — the app tombstones),
+//   • a pattern can only be edited/tombstoned by its creator (or an admin),
+//   • only well-formed, size-bounded documents can be written.
+//
+// DEPLOY: Firebase Console → Firestore Database → Rules → paste this → Publish,
+//         or `firebase deploy --only firestore:rules`.
+// ALSO REQUIRED: Firebase Console → Authentication → Sign-in method → enable "Anonymous".
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Admin allowlist ────────────────────────────────────────────────────
+    // Anonymous uids allowed to edit/tombstone ANY pattern (the ✎ / publish / delete
+    // admin actions). On the live site open the browser console and run:
+    //     sashikoMyUid()
+    // then paste the uid below. Anonymous uids are per-browser, so add each device you
+    // administer from. (For admin that survives clearing browser data, switch this to a
+    // real sign-in provider later, e.g. request.auth.token.email == "you@example.com".)
+    function isAdmin() {
+      return request.auth != null && request.auth.uid in [
+        "PASTE_YOUR_ADMIN_UID_HERE"
+      ];
+    }
+
+    // Basic shape/size validation — keeps junk and oversized blobs out.
+    function validPattern(d) {
+      return d.type == 'exp'
+          && d.id is string && d.id.size() < 200
+          && d.keys().size() < 80
+          && (!('name' in d) || (d.name is string && d.name.size() < 200))
+          && (!('lines' in d) || (d.lines is list && d.lines.size() <= 5000));
+    }
+
+    match /patterns/{id} {
+      allow read: if true;                         // public gallery
+
+      // Create: signed in, valid, and you own what you create.
+      allow create: if request.auth != null
+                    && validPattern(request.resource.data)
+                    && request.resource.data.creatorId == request.auth.uid;
+
+      // Update (edit / publish / tombstone-delete): the creator, or an admin.
+      allow update: if request.auth != null
+                    && validPattern(request.resource.data)
+                    && (resource.data.creatorId == request.auth.uid || isAdmin());
+
+      // Hard delete disabled — the app sets deleted:true (a tombstone), so the
+      // collection can never be wiped, by anyone.
+      allow delete: if false;
+
+      // Community stitching-order profiles (currently disabled in the app).
+      match /profiles/{pid} {
+        allow read: if true;
+        allow write: if request.auth != null;
+      }
+    }
+
+    // Everything else is closed by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
