@@ -31,7 +31,8 @@ function buildGallery(){
   EXP_PATTERNS.filter(p=>p.published&&!deleted.includes(p.id)).forEach(pat=>{
     const card=document.createElement('button');
     card.className='pcard exp-card';
-    card.dataset.id=pat.id;card.dataset.p='0';card.dataset.type='exp';
+    // data-p = number of stitch families (passes), derived automatically — drives the pass filter.
+    card.dataset.id=pat.id;card.dataset.p=String(expFamilyCount(pat));card.dataset.type='exp';
     const thumb=document.createElement('canvas');
     thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
     card.appendChild(thumb);
@@ -66,10 +67,14 @@ window.filterGallery=function(){
     let mp=true;
     if(!activeFilters.has(0)){
       mp=false;
+      const pv=parseInt(card.dataset.p)||0;   // pass/family count (auto for custom patterns)
       if(activeFilters.has('hm') && type==='generator') mp=true;
       if(activeFilters.has('trad') && pat.traditional===true) mp=true;
-      if(activeFilters.has(2) && parseInt(card.dataset.p)===2) mp=true;
-      if(activeFilters.has(4) && parseInt(card.dataset.p)===4) mp=true;
+      activeFilters.forEach(f=>{
+        if(typeof f!=='number')return;
+        if(f>=5){if(pv>=5)mp=true;}          // "5+ passes" bucket
+        else if(pv===f)mp=true;              // exact 1/2/3/4
+      });
     }
     let mq=!q;
     if(q){

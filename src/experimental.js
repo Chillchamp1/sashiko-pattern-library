@@ -303,9 +303,15 @@ async function _syncLocalToFirestore(){
   _saveLocal();
 }
 
+// Soft-delete = a shared tombstone. A HARD delete (.delete()) only removes the doc on the
+// cloud, but any *other* device that still holds a stale local copy will see it "missing from
+// remote" on its next fetch and helpfully re-upload it (see _fetchFromFirestore's local→remote
+// push) — resurrecting it for everyone. A tombstone (deleted:true) stays in Firestore so every
+// device learns the pattern is gone and no device ever re-creates it.
 async function _deleteFromFirestore(id){
   if(!_db)return;
-  try{await _db.collection('patterns').doc(id).delete();}catch(e){console.warn('Firestore delete failed:',e);}
+  try{await _db.collection('patterns').doc(id).set({id,deleted:true,deletedAt:Date.now()},{merge:true});}
+  catch(e){console.warn('Firestore tombstone failed:',e);}
 }
 
 // Seed patterns from embedded backup data into localStorage (once per origin),
@@ -315,9 +321,12 @@ function _seedLocalFromBackup(){
   const data=typeof SEED_PATTERNS!=='undefined'?SEED_PATTERNS:null;
   if(!data||!Array.isArray(data.patterns))return;
   const existingIds=new Set(EXP_PATTERNS.map(p=>p.id));
+  let deletedIds=[];try{deletedIds=JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');}catch(e){}
+  const deletedSet=new Set(deletedIds);
   let added=false;
   for(const p of data.patterns){
     if(!p.id||existingIds.has(p.id))continue;
+    if(p.deleted||deletedSet.has(p.id))continue;   // don't re-seed a tombstoned / deleted pattern
     if(!p.creatorId)p.creatorId=_getUserId();
     EXP_PATTERNS.push(p);
     added=true;
@@ -337,9 +346,15 @@ async function _fetchFromFirestore(){
     const remoteById=Object.fromEntries(remote.map(p=>[p.id,p]));
     const uid=_getUserId();
 
-    // Filter out patterns that were explicitly deleted by the user
+    // Patterns the user deleted (local list) + shared tombstones from the cloud.
     let deletedIds=[];
     try{deletedIds=JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');}catch(e){}
+    // Fold remote tombstones into the local deleted set so deletions propagate across devices,
+    // and persist so offline / file:// keeps filtering them too.
+    let delChanged=false;
+    for(const p of remote){if(p.deleted&&deletedIds.indexOf(p.id)<0){deletedIds.push(p.id);delChanged=true;}}
+    if(delChanged){try{localStorage.setItem('sashiko_deleted',JSON.stringify(deletedIds));}catch(e){}}
+    const deletedSet=new Set(deletedIds);
 
     const localById=Object.fromEntries(EXP_PATTERNS.map(p=>[p.id,p]));
     const merged=[];
@@ -347,8 +362,10 @@ async function _fetchFromFirestore(){
 
     // Merge: newer timestamp wins for duplicate IDs
     for(const p of remote){
-      if(deletedIds.indexOf(p.id)>=0)continue; // skip user-deleted
+      // Mark every remote id as seen FIRST — even deleted ones — so the local→remote push
+      // below can never re-upload a pattern that exists in the cloud (incl. tombstones).
       seenIds.add(p.id);
+      if(p.deleted||deletedSet.has(p.id))continue; // tombstoned / user-deleted → don't show
       const lpat=localById[p.id];
       if(lpat && (lpat.createdAt||0) >= (p.createdAt||0)){
         // Local is same age or newer — keep local, push to Firestore if newer
@@ -363,9 +380,10 @@ async function _fetchFromFirestore(){
       }
     }
 
-    // Local patterns not in remote: push to Firestore (they're new)
+    // Local patterns not in remote: push to Firestore (they're genuinely new).
+    // NEVER re-push a deleted one — that was the resurrection bug.
     for(const p of EXP_PATTERNS){
-      if(seenIds.has(p.id))continue;
+      if(seenIds.has(p.id)||deletedSet.has(p.id))continue;
       merged.push(p);
       if(!p.creatorId)p.creatorId=uid;
       await _pushToFirestore(p);
@@ -529,6 +547,17 @@ function detectSymmetryFamilies(pat){
   }
   return [...groups.values()].sort((a,b)=>Math.min(...a)-Math.min(...b));
 }
+
+// Number of stitch families (= "passes") a custom pattern routes into — the same families
+// genTiledSegs/buildExpPath colour by. Used to set the gallery pass-filter automatically.
+// Uses the pattern's saved families (flat `famIdx`/line or grouped `[lines]` form) when present,
+// otherwise derives them by symmetry. So filtering by passes works without any manual tagging.
+window.expFamilyCount=function expFamilyCount(pat){
+  let fams=pat&&pat.families;
+  if(!fams||!fams.length){try{fams=detectSymmetryFamilies(pat);}catch(e){fams=null;}}
+  if(!fams||!fams.length)return 0;
+  return Array.isArray(fams[0])?fams.length:new Set(fams.filter(f=>f>=0)).size;
+};
 
 // Flatten an arc to polyline segments in grid space.
 function _flattenArc(l, nSegs, arcId){

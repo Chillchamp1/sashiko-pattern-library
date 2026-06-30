@@ -1,159 +1,8 @@
 {
-  "traditional": false,
-  "creatorId": "uy09jle01o7",
-  "lines": [
-    {
-      "arc": true,
-      "start": [
-        4,
-        2
-      ],
-      "a1": 7.068583,
-      "center": [
-        3,
-        1
-      ],
-      "end": [
-        2,
-        2
-      ],
-      "a2": 8.63938,
-      "r": 1.414
-    },
-    {
-      "a2": -0.785398,
-      "r": 1.414,
-      "arc": true,
-      "end": [
-        2,
-        2
-      ],
-      "a1": -2.356194,
-      "center": [
-        1,
-        3
-      ],
-      "start": [
-        0,
-        2
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
-      ],
-      "center": [
-        1,
-        3
-      ],
-      "a1": -0.785398,
-      "end": [
-        2,
-        4
-      ],
-      "arc": true,
-      "r": 1.414,
-      "a2": 0.785398
-    },
-    {
-      "start": [
-        0,
-        2
-      ],
-      "end": [
-        0,
-        4
-      ],
-      "a1": 5.497787,
-      "center": [
-        -1,
-        3
-      ],
-      "arc": true,
-      "r": 1.414,
-      "a2": 7.068583
-    },
-    {
-      "a2": -0.785398,
-      "r": 1.414,
-      "arc": true,
-      "start": [
-        0,
-        4
-      ],
-      "a1": -2.356194,
-      "center": [
-        1,
-        5
-      ],
-      "end": [
-        2,
-        4
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
-      ],
-      "center": [
-        3,
-        1
-      ],
-      "a1": 2.356194,
-      "end": [
-        2,
-        0
-      ],
-      "arc": true,
-      "a2": 3.926991,
-      "r": 1.414
-    },
-    {
-      "arc": true,
-      "start": [
-        4,
-        0
-      ],
-      "center": [
-        3,
-        -1
-      ],
-      "end": [
-        2,
-        0
-      ],
-      "a1": 0.785398,
-      "r": 1.414,
-      "a2": 2.356194
-    },
-    {
-      "a2": 3.926991,
-      "r": 1.414,
-      "arc": true,
-      "start": [
-        4,
-        2
-      ],
-      "end": [
-        4,
-        0
-      ],
-      "a1": 2.356194,
-      "center": [
-        5,
-        1
-      ]
-    }
-  ],
-  "spacing": 0,
   "id": "exp_1782555421394",
-  "type": "exp",
-  "routingMode": "default",
-  "bboxRotated": false,
-  "published": true,
-  "name": "Toridasuki (Crossed Birds)",
+  "spacing": 0,
+  "createdAt": 1782555421394,
+  "creatorId": "uy09jle01o7",
   "families": [
     0,
     0,
@@ -164,17 +13,168 @@
     0,
     1
   ],
-  "createdAt": 1782555421394,
-  "famOrder": [
-    0,
-    1
-  ],
+  "traditional": false,
+  "patMacro": 2,
+  "routingMode": "default",
+  "bboxRotated": false,
+  "published": true,
+  "gridType": "square",
   "bbox": {
     "minV": 0,
     "minU": 0,
     "maxV": 4.000302349550018,
     "maxU": 4.00030265668332
   },
-  "patMacro": 2,
-  "gridType": "square"
+  "famOrder": [
+    0,
+    1
+  ],
+  "lines": [
+    {
+      "end": [
+        2,
+        2
+      ],
+      "center": [
+        3,
+        1
+      ],
+      "start": [
+        4,
+        2
+      ],
+      "r": 1.414,
+      "a1": 7.068583,
+      "a2": 8.63938,
+      "arc": true
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "center": [
+        1,
+        3
+      ],
+      "r": 1.414,
+      "start": [
+        0,
+        2
+      ],
+      "a1": -2.356194,
+      "a2": -0.785398,
+      "arc": true
+    },
+    {
+      "a1": -0.785398,
+      "r": 1.414,
+      "start": [
+        2,
+        2
+      ],
+      "center": [
+        1,
+        3
+      ],
+      "end": [
+        2,
+        4
+      ],
+      "arc": true,
+      "a2": 0.785398
+    },
+    {
+      "center": [
+        -1,
+        3
+      ],
+      "end": [
+        0,
+        4
+      ],
+      "r": 1.414,
+      "start": [
+        0,
+        2
+      ],
+      "a1": 5.497787,
+      "arc": true,
+      "a2": 7.068583
+    },
+    {
+      "a2": -0.785398,
+      "arc": true,
+      "center": [
+        1,
+        5
+      ],
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        0,
+        4
+      ],
+      "r": 1.414,
+      "a1": -2.356194
+    },
+    {
+      "a1": 2.356194,
+      "start": [
+        2,
+        2
+      ],
+      "r": 1.414,
+      "end": [
+        2,
+        0
+      ],
+      "center": [
+        3,
+        1
+      ],
+      "a2": 3.926991,
+      "arc": true
+    },
+    {
+      "arc": true,
+      "a2": 2.356194,
+      "end": [
+        2,
+        0
+      ],
+      "center": [
+        3,
+        -1
+      ],
+      "a1": 0.785398,
+      "r": 1.414,
+      "start": [
+        4,
+        0
+      ]
+    },
+    {
+      "a2": 3.926991,
+      "arc": true,
+      "center": [
+        5,
+        1
+      ],
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        4,
+        2
+      ],
+      "r": 1.414,
+      "a1": 2.356194
+    }
+  ],
+  "name": "Toridasuki (Crossed Birds)",
+  "type": "exp"
 }

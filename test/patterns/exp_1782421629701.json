@@ -1,11 +1,177 @@
 {
-  "stitchRatio": "standard",
+  "traditional": false,
+  "patMacro": 5,
+  "thumbCells": 4,
+  "published": true,
+  "routingMode": "contour",
+  "bboxRotated": false,
+  "gridType": "square",
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 10.000001732051032,
+    "maxU": 10.000001633974485
+  },
   "famOrder": [
     0,
     1
   ],
-  "thumbCells": 4,
+  "name": "Shippo tsunagi (Seven Treasures)",
+  "lines": [
+    {
+      "arc": true,
+      "a2": 1.570796,
+      "center": [
+        5,
+        5
+      ],
+      "end": [
+        5,
+        10
+      ],
+      "start": [
+        10,
+        5
+      ],
+      "r": 5,
+      "a1": 0
+    },
+    {
+      "arc": true,
+      "a2": 3.141593,
+      "center": [
+        5,
+        5
+      ],
+      "end": [
+        0,
+        5
+      ],
+      "r": 5,
+      "start": [
+        5,
+        10
+      ],
+      "a1": 1.570796
+    },
+    {
+      "arc": true,
+      "a2": 4.712389,
+      "end": [
+        5,
+        0
+      ],
+      "center": [
+        5,
+        5
+      ],
+      "a1": 3.141593,
+      "r": 5,
+      "start": [
+        0,
+        5
+      ]
+    },
+    {
+      "arc": true,
+      "a2": 6.283185,
+      "end": [
+        10,
+        5
+      ],
+      "center": [
+        5,
+        5
+      ],
+      "r": 5,
+      "start": [
+        5,
+        0
+      ],
+      "a1": 4.712389
+    },
+    {
+      "start": [
+        5,
+        0
+      ],
+      "r": 5,
+      "a1": 0,
+      "center": [
+        0,
+        0
+      ],
+      "end": [
+        0,
+        4
+      ],
+      "arc": true,
+      "a2": 1.570796
+    },
+    {
+      "end": [
+        10,
+        5
+      ],
+      "center": [
+        10,
+        0
+      ],
+      "a1": 3.141593,
+      "r": 5,
+      "start": [
+        5,
+        0
+      ],
+      "arc": true,
+      "a2": 1.570796
+    },
+    {
+      "arc": true,
+      "a2": -1.570796,
+      "center": [
+        0,
+        10
+      ],
+      "end": [
+        0,
+        5
+      ],
+      "r": 5,
+      "start": [
+        5,
+        10
+      ],
+      "a1": 0
+    },
+    {
+      "arc": true,
+      "a2": 4.712389,
+      "a1": 3.141593,
+      "start": [
+        5,
+        10
+      ],
+      "r": 5,
+      "center": [
+        10,
+        10
+      ],
+      "end": [
+        10,
+        5
+      ]
+    }
+  ],
+  "type": "exp",
+  "stitchGrid": false,
+  "stitchView": false,
+  "stitchRatio": "standard",
+  "id": "exp_1782421629701",
+  "spacing": 0,
   "createdAt": 1782421629701,
+  "creatorId": "un4bcd6du2x",
+  "stitchLen": 8,
   "families": [
     0,
     1,
@@ -15,171 +181,5 @@
     1,
     1,
     0
-  ],
-  "stitchGrid": false,
-  "name": "Shippo tsunagi (Seven Treasures)",
-  "gridType": "square",
-  "patMacro": 5,
-  "bbox": {
-    "maxU": 10.000001633974485,
-    "maxV": 10.000001732051032,
-    "minU": 0,
-    "minV": 0
-  },
-  "stitchLen": 8,
-  "published": true,
-  "bboxRotated": false,
-  "routingMode": "contour",
-  "type": "exp",
-  "id": "exp_1782421629701",
-  "spacing": 0,
-  "creatorId": "un4bcd6du2x",
-  "traditional": false,
-  "stitchView": false,
-  "lines": [
-    {
-      "start": [
-        10,
-        5
-      ],
-      "end": [
-        5,
-        10
-      ],
-      "a1": 0,
-      "center": [
-        5,
-        5
-      ],
-      "arc": true,
-      "r": 5,
-      "a2": 1.570796
-    },
-    {
-      "r": 5,
-      "a2": 3.141593,
-      "arc": true,
-      "start": [
-        5,
-        10
-      ],
-      "center": [
-        5,
-        5
-      ],
-      "a1": 1.570796,
-      "end": [
-        0,
-        5
-      ]
-    },
-    {
-      "r": 5,
-      "a2": 4.712389,
-      "arc": true,
-      "start": [
-        0,
-        5
-      ],
-      "center": [
-        5,
-        5
-      ],
-      "end": [
-        5,
-        0
-      ],
-      "a1": 3.141593
-    },
-    {
-      "r": 5,
-      "a2": 6.283185,
-      "end": [
-        10,
-        5
-      ],
-      "a1": 4.712389,
-      "center": [
-        5,
-        5
-      ],
-      "start": [
-        5,
-        0
-      ],
-      "arc": true
-    },
-    {
-      "arc": true,
-      "start": [
-        5,
-        0
-      ],
-      "center": [
-        0,
-        0
-      ],
-      "end": [
-        0,
-        4
-      ],
-      "a1": 0,
-      "r": 5,
-      "a2": 1.570796
-    },
-    {
-      "r": 5,
-      "a2": 1.570796,
-      "arc": true,
-      "end": [
-        10,
-        5
-      ],
-      "a1": 3.141593,
-      "center": [
-        10,
-        0
-      ],
-      "start": [
-        5,
-        0
-      ]
-    },
-    {
-      "r": 5,
-      "a2": -1.570796,
-      "start": [
-        5,
-        10
-      ],
-      "end": [
-        0,
-        5
-      ],
-      "a1": 0,
-      "center": [
-        0,
-        10
-      ],
-      "arc": true
-    },
-    {
-      "end": [
-        10,
-        5
-      ],
-      "a1": 3.141593,
-      "center": [
-        10,
-        10
-      ],
-      "start": [
-        5,
-        10
-      ],
-      "arc": true,
-      "r": 5,
-      "a2": 4.712389
-    }
   ]
 }

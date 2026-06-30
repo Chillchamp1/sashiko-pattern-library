@@ -1,94 +1,100 @@
 {
-  "spacing": 0,
-  "id": "exp_1782409076073",
+  "gridType": "square",
+  "bbox": {
+    "maxV": 16,
+    "maxU": 16,
+    "minV": 0,
+    "minU": 0
+  },
+  "type": "exp",
   "lines": [
     {
-      "start": [
-        6,
-        6
-      ],
       "end": [
         10,
         6
-      ]
-    },
-    {
-      "start": [
-        10,
-        6
-      ],
-      "end": [
-        10,
-        10
-      ]
-    },
-    {
-      "end": [
-        6,
-        10
       ],
       "start": [
-        10,
-        10
-      ]
-    },
-    {
-      "start": [
-        6,
-        10
-      ],
-      "end": [
         6,
         6
       ]
     },
     {
       "start": [
-        4,
-        4
+        10,
+        6
       ],
       "end": [
-        12,
-        4
+        10,
+        10
+      ]
+    },
+    {
+      "end": [
+        6,
+        10
+      ],
+      "start": [
+        10,
+        10
+      ]
+    },
+    {
+      "start": [
+        6,
+        10
+      ],
+      "end": [
+        6,
+        6
       ]
     },
     {
       "end": [
         12,
-        12
+        4
       ],
       "start": [
-        12,
+        4,
         4
       ]
     },
     {
       "start": [
         12,
-        12
+        4
       ],
       "end": [
-        4,
+        12,
         12
       ]
     },
     {
-      "start": [
+      "end": [
         4,
         12
       ],
+      "start": [
+        12,
+        12
+      ]
+    },
+    {
       "end": [
         4,
         4
+      ],
+      "start": [
+        4,
+        12
       ]
     },
     {
-      "start": [
-        2,
-        14
-      ],
       "end": [
         14,
+        14
+      ],
+      "start": [
+        2,
         14
       ]
     },
@@ -173,23 +179,23 @@
       ]
     },
     {
-      "end": [
-        11,
-        10
-      ],
       "start": [
         10,
+        10
+      ],
+      "end": [
+        11,
         10
       ]
     },
     {
-      "start": [
-        6,
-        10
-      ],
       "end": [
         6,
         11
+      ],
+      "start": [
+        6,
+        10
       ]
     },
     {
@@ -213,23 +219,23 @@
       ]
     },
     {
-      "start": [
-        4,
-        4
-      ],
       "end": [
         4,
         3
+      ],
+      "start": [
+        4,
+        4
       ]
     },
     {
-      "start": [
-        12,
-        4
-      ],
       "end": [
         12,
         3
+      ],
+      "start": [
+        12,
+        4
       ]
     },
     {
@@ -243,13 +249,13 @@
       ]
     },
     {
-      "start": [
-        12,
-        12
-      ],
       "end": [
         12,
         13
+      ],
+      "start": [
+        12,
+        12
       ]
     },
     {
@@ -293,23 +299,23 @@
       ]
     },
     {
-      "start": [
-        2,
-        14
-      ],
       "end": [
         1,
         14
+      ],
+      "start": [
+        2,
+        14
       ]
     },
     {
-      "end": [
-        14,
-        15
-      ],
       "start": [
         14,
         14
+      ],
+      "end": [
+        14,
+        15
       ]
     },
     {
@@ -333,12 +339,12 @@
       ]
     },
     {
-      "start": [
-        14,
-        2
-      ],
       "end": [
         15,
+        2
+      ],
+      "start": [
+        14,
         2
       ]
     },
@@ -373,13 +379,13 @@
       ]
     },
     {
-      "start": [
-        16,
-        0
-      ],
       "end": [
         16,
         16
+      ],
+      "start": [
+        16,
+        0
       ]
     },
     {
@@ -403,18 +409,19 @@
       ]
     }
   ],
-  "creatorId": "uyqa6wy657m",
-  "traditional": true,
-  "routingMode": "default",
-  "type": "exp",
-  "bboxRotated": false,
-  "published": true,
   "name": "Masusashi (Square Measures Stitch)",
   "famOrder": [
     0,
     1
   ],
-  "createdAt": 1782409076073,
+  "patMacro": 5,
+  "traditional": true,
+  "routingMode": "default",
+  "published": true,
+  "bboxRotated": false,
+  "spacing": 0,
+  "id": "exp_1782409076073",
+  "creatorId": "uyqa6wy657m",
   "families": [
     0,
     1,
@@ -457,12 +464,5 @@
     0,
     1
   ],
-  "bbox": {
-    "maxV": 16,
-    "maxU": 16,
-    "minV": 0,
-    "minU": 0
-  },
-  "gridType": "square",
-  "patMacro": 5
+  "createdAt": 1782409076073
 }

@@ -1,45 +1,17 @@
 {
-  "name": "Kaku Shippō (Shippō Tsunagi Variation)",
-  "stitchGrid": false,
+  "bboxRotated": false,
+  "routingMode": "default",
+  "traditional": false,
   "thumbCells": 0,
+  "patMacro": 2,
   "famOrder": [
     0,
     1,
     2,
     3
   ],
-  "createdAt": 1782654886460,
-  "families": [
-    3,
-    2,
-    2,
-    3,
-    0,
-    1,
-    0,
-    1,
-    3,
-    2,
-    3,
-    2,
-    0,
-    1,
-    0,
-    1
-  ],
-  "stitchRatio": "standard",
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxU": 8,
-    "maxV": 8
-  },
-  "gridType": "square",
-  "patMacro": 2,
-  "spacing": 0,
-  "id": "exp_1782654886460",
-  "traditional": false,
-  "stitchView": true,
+  "type": "exp",
+  "name": "Kaku Shippō (Shippō Tsunagi Variation)",
   "lines": [
     {
       "end": [
@@ -62,47 +34,47 @@
       ]
     },
     {
-      "end": [
-        5,
-        1
-      ],
       "start": [
         4,
         4
+      ],
+      "end": [
+        5,
+        1
       ]
     },
     {
+      "start": [
+        5,
+        1
+      ],
       "end": [
         8,
         0
-      ],
-      "start": [
-        5,
-        1
       ]
     },
     {
+      "end": [
+        1,
+        3
+      ],
       "start": [
         4,
         4
-      ],
+      ]
+    },
+    {
       "end": [
+        0,
+        0
+      ],
+      "start": [
         1,
         3
       ]
     },
     {
       "start": [
-        1,
-        3
-      ],
-      "end": [
-        0,
-        0
-      ]
-    },
-    {
-      "start": [
         0,
         0
       ],
@@ -122,37 +94,37 @@
       ]
     },
     {
-      "end": [
-        1,
-        5
-      ],
       "start": [
         4,
         4
-      ]
-    },
-    {
-      "end": [
-        0,
-        8
       ],
-      "start": [
+      "end": [
         1,
         5
       ]
     },
     {
-      "end": [
-        3,
-        7
-      ],
       "start": [
+        1,
+        5
+      ],
+      "end": [
         0,
         8
       ]
     },
     {
       "start": [
+        0,
+        8
+      ],
+      "end": [
+        3,
+        7
+      ]
+    },
+    {
+      "start": [
         3,
         7
       ],
@@ -162,13 +134,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        4
-      ],
       "end": [
         7,
         5
+      ],
+      "start": [
+        4,
+        4
       ]
     },
     {
@@ -182,29 +154,57 @@
       ]
     },
     {
-      "end": [
-        5,
-        7
-      ],
       "start": [
         8,
         8
+      ],
+      "end": [
+        5,
+        7
       ]
     },
     {
-      "end": [
-        4,
-        4
-      ],
       "start": [
         5,
         7
+      ],
+      "end": [
+        4,
+        4
       ]
     }
   ],
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 8,
+    "maxV": 8
+  },
+  "gridType": "square",
+  "stitchView": true,
+  "stitchGrid": false,
+  "createdAt": 1782654886460,
+  "families": [
+    3,
+    2,
+    2,
+    3,
+    0,
+    1,
+    0,
+    1,
+    3,
+    2,
+    3,
+    2,
+    0,
+    1,
+    0,
+    1
+  ],
   "creatorId": "uumxr3t6o2s",
-  "routingMode": "default",
-  "type": "exp",
-  "bboxRotated": false,
-  "stitchLen": 7
+  "stitchLen": 7,
+  "stitchRatio": "standard",
+  "id": "exp_1782654886460",
+  "spacing": 0
 }
