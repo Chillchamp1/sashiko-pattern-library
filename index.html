@@ -364,6 +364,17 @@ button.ctrl.primary:hover{background:#275784}
 /* My Patterns button in toolbar */
 .filt.mypats-btn{background:#141828;border-color:#2a3060;color:#9090d4}
 .filt.mypats-btn:hover{background:#1a2040;border-color:#3a4a8a;color:#c0c0ee}
+/* Admin (Google) login button */
+.filt.admin-login-btn{background:#1c1410;border-color:#5a3a1e;color:#d8a060}
+.filt.admin-login-btn:hover{background:#26190f;border-color:#7a4e26;color:#f0bd76}
+.filt.admin-login-btn.on{background:#16301c;border-color:#2e6a36;color:#88d4a0}
+/* Gallery admin controls (edit/delete on #pgrid cards, CAD publish) — admin only.
+   The sandbox (#myPatsView) keeps its own controls for the community. */
+#pgrid .exp-edit-btn,#pgrid .exp-del-btn{display:none!important}
+body.is-admin #pgrid .pcard:hover .exp-del-btn{display:flex!important}
+body.is-admin #pgrid .pcard.exp-card:hover .exp-edit-btn{display:flex!important}
+#cadPublishBtn{display:none}
+body.is-admin #cadPublishBtn{display:inline-flex}
 /* Filter dropdown */
 .filt-select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;padding-right:22px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238aa3bd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
 .filt-select:hover{border-color:#33557a;color:#e7eef6}
@@ -426,6 +437,7 @@ button.ctrl.primary:hover{background:#275784}
       <option value="trad">Traditional</option>
     </select>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
+    <button class="filt admin-login-btn" onclick="adminLogin()" title="Sign in with Google to manage the gallery">Admin login</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
 </div><!-- /galleryView -->
@@ -6213,9 +6225,9 @@ function getCss(v){return getComputedStyle(document.documentElement).getProperty
 function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
 // ── Delete pattern (admin) ──────────────────────────────────────────────────
 function _getDeleted(){try{return JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');}catch(e){return[];}}
-window.deletePattern=function(id){
-  const pw=prompt('Admin password:');
-  if(pw!=='111'){alert('Wrong password');return;}
+window.deletePattern=async function(id){
+  // Gallery deletions are admin-only (Google sign-in, enforced by Firestore rules).
+  if(!await _ensureAdmin())return;
   if(!confirm('Permanently delete "'+id+'"? This cannot be undone.'))return;
   const pat=PATTERNS.find(p=>p.id===id);
   if(pat){
@@ -6246,6 +6258,7 @@ let _cadSource='sandbox';
 let _db=null;   // Firestore instance, set after SDK loads
 let _firebaseReady=false;
 let _auth=null, _authUid=null, _authReady=null;   // anonymous-auth session (for Firestore rules)
+let _adminUser=null;                              // set when signed in with a real (Google) account = admin
 
 // ── EXP animation state ──────────────────────────────────────────────────────
 let EXP_path=[];       // [{start:[u,v], end:[u,v], jump:bool}]
@@ -6324,9 +6337,18 @@ function _initFirebase(){
       _auth=firebase.auth();
       _authReady=new Promise(res=>{
         let done=false;
-        _auth.onAuthStateChanged(u=>{ if(u){_authUid=u.uid;} if(!done){done=true;res(u?u.uid:null);} });
+        _auth.onAuthStateChanged(u=>{
+          _authUid=u?u.uid:null;
+          // A non-anonymous session (Google) = admin candidate; the Firestore rules
+          // enforce the actual admin email allow-list.
+          _adminUser=(u&&!u.isAnonymous)?u:null;
+          if(u&&!done){done=true;res(u.uid);}   // resolve once we actually hold a session
+          _updateAdminUI();
+          // Keep everyone signed in: if there's no session, fall back to anonymous so
+          // the open sandbox stays writable. (Doesn't clobber a Google session.)
+          if(!u)_auth.signInAnonymously().catch(e=>console.warn('Anonymous auth failed — enable it in Firebase Console → Authentication → Anonymous:',e));
+        });
       });
-      _auth.signInAnonymously().catch(e=>console.warn('Anonymous auth failed — enable it in Firebase Console → Authentication → Anonymous:',e));
     }
   }catch(e){console.warn('Firebase init failed:',e);}
 }
@@ -6335,6 +6357,39 @@ function _initFirebase(){
 window.sashikoMyUid=function(){const id=_authUid||null;console.log('Your Firebase admin uid:',id||'(signing in… try again in a second)');return id;};
 // Wait (briefly) for the anonymous session so writes carry a valid auth.uid.
 async function _awaitAuth(){ if(_authReady){try{await Promise.race([_authReady,new Promise(r=>setTimeout(r,4000))]);}catch(e){}} }
+
+// ── Admin (Google sign-in) ───────────────────────────────────────────────────
+// Admin = signed in with a real Google account whose email is allow-listed in the
+// Firestore rules (isAdmin()). The client only knows "signed in with Google"; the
+// rules are the real boundary (publish + any gallery edit/delete).
+function _isAdmin(){return !!_adminUser;}
+function _updateAdminUI(){
+  const on=_isAdmin();
+  if(document.body)document.body.classList.toggle('is-admin',on);
+  document.querySelectorAll('.admin-login-btn').forEach(b=>{
+    b.textContent=on?('✓ Admin — sign out'):'Admin login';
+    b.classList.toggle('on',on);
+  });
+}
+// Ensure an admin session, prompting Google sign-in if needed. Returns true if admin.
+async function _ensureAdmin(){
+  if(_isAdmin())return true;
+  if(!_firebaseReady||!_auth){alert('Admin needs an internet connection.');return false;}
+  try{
+    const provider=new firebase.auth.GoogleAuthProvider();
+    const res=await _auth.signInWithPopup(provider);
+    _adminUser=(res&&res.user&&!res.user.isAnonymous)?res.user:null;
+    _updateAdminUI();
+    if(!_adminUser){alert('Sign-in did not complete.');return false;}
+    return true;
+  }catch(e){console.warn('Admin sign-in failed:',e);alert('Admin sign-in cancelled or failed.');return false;}
+}
+window.adminLogin=function(){ if(_isAdmin())window.adminLogout(); else _ensureAdmin(); };
+window.adminLogout=function(){
+  if(!_auth)return;
+  _auth.signOut().then(()=>{ _adminUser=null; _updateAdminUI(); }).catch(()=>{});
+  // onAuthStateChanged then signs back in anonymously so the sandbox stays writable.
+};
 
 // ── Cat name generator ─────────────────────────────────────────────────
 const CAT_FIRST=['Sir','Lady','Captain','Prof','Dr','Mr','Miss','Prince','Princess','Duke','Duchess','Lord','Baron','Count','Madame','Chef','DJ','King','Queen','Emperor'];
@@ -6534,10 +6589,9 @@ async function _pushToFirestore(pat){
   if(!_db)return;
   await _awaitAuth();
   const doc={...pat};delete doc.thumbnail;
-  // creatorId MUST equal the signed-in uid so the Firestore create/update rule passes
-  // (the rule ties each pattern to its creator). Fall back to the local id only if
-  // anonymous auth isn't available (offline / auth disabled).
-  doc.creatorId=_authUid||doc.creatorId||_getUserId();
+  // creatorId is attribution only (the rules gate by published-state + admin, not by
+  // creator). Keep any existing value; stamp the current uid if missing.
+  if(!doc.creatorId)doc.creatorId=_authUid||_getUserId();
   // Firestore rejects undefined values — strip them
   Object.keys(doc).forEach(k=>{if(doc[k]===undefined)delete doc[k];});
   try{
@@ -7244,11 +7298,11 @@ function publishToLibrary(){
 }
 window.publishToLibrary=publishToLibrary;
 ═══════════════════════════════════════════════════════════════════════════════ */
-window.editExpPattern=function(idOrPat){
+window.editExpPattern=async function(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
-  const pw=prompt('Admin password:');
-  if(pw!=='111'){alert('Wrong password');return;}
+  // Published (gallery) patterns are admin-only to edit; sandbox patterns stay open.
+  if(pat.published && !await _ensureAdmin())return;
   cadHistory=[];
   cadTool='draw';
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
@@ -9539,9 +9593,9 @@ window.cadSaveToLibrary=function(){
   btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},2000);
 };
-window.cadPublishToLibrary=function(){
-  const pw=prompt('Admin password:');
-  if(pw!=='111'){alert('Wrong password');return;}
+window.cadPublishToLibrary=async function(){
+  // Publishing to the gallery is admin-only (Google sign-in, enforced by Firestore rules).
+  if(!await _ensureAdmin())return;
   if(!cadLines.length){alert('No lines to publish.');return;}
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim();

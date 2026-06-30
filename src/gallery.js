@@ -143,9 +143,9 @@ function getCss(v){return getComputedStyle(document.documentElement).getProperty
 function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
 // ── Delete pattern (admin) ──────────────────────────────────────────────────
 function _getDeleted(){try{return JSON.parse(localStorage.getItem('sashiko_deleted')||'[]');}catch(e){return[];}}
-window.deletePattern=function(id){
-  const pw=prompt('Admin password:');
-  if(pw!=='111'){alert('Wrong password');return;}
+window.deletePattern=async function(id){
+  // Gallery deletions are admin-only (Google sign-in, enforced by Firestore rules).
+  if(!await _ensureAdmin())return;
   if(!confirm('Permanently delete "'+id+'"? This cannot be undone.'))return;
   const pat=PATTERNS.find(p=>p.id===id);
   if(pat){

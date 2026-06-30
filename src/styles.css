@@ -357,6 +357,17 @@ button.ctrl.primary:hover{background:#275784}
 /* My Patterns button in toolbar */
 .filt.mypats-btn{background:#141828;border-color:#2a3060;color:#9090d4}
 .filt.mypats-btn:hover{background:#1a2040;border-color:#3a4a8a;color:#c0c0ee}
+/* Admin (Google) login button */
+.filt.admin-login-btn{background:#1c1410;border-color:#5a3a1e;color:#d8a060}
+.filt.admin-login-btn:hover{background:#26190f;border-color:#7a4e26;color:#f0bd76}
+.filt.admin-login-btn.on{background:#16301c;border-color:#2e6a36;color:#88d4a0}
+/* Gallery admin controls (edit/delete on #pgrid cards, CAD publish) — admin only.
+   The sandbox (#myPatsView) keeps its own controls for the community. */
+#pgrid .exp-edit-btn,#pgrid .exp-del-btn{display:none!important}
+body.is-admin #pgrid .pcard:hover .exp-del-btn{display:flex!important}
+body.is-admin #pgrid .pcard.exp-card:hover .exp-edit-btn{display:flex!important}
+#cadPublishBtn{display:none}
+body.is-admin #cadPublishBtn{display:inline-flex}
 /* Filter dropdown */
 .filt-select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;padding-right:22px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238aa3bd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
 .filt-select:hover{border-color:#33557a;color:#e7eef6}

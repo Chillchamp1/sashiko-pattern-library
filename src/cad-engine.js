@@ -1084,9 +1084,9 @@ window.cadSaveToLibrary=function(){
   btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
   setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},2000);
 };
-window.cadPublishToLibrary=function(){
-  const pw=prompt('Admin password:');
-  if(pw!=='111'){alert('Wrong password');return;}
+window.cadPublishToLibrary=async function(){
+  // Publishing to the gallery is admin-only (Google sign-in, enforced by Firestore rules).
+  if(!await _ensureAdmin())return;
   if(!cadLines.length){alert('No lines to publish.');return;}
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim();
