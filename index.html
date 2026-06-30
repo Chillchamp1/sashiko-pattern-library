@@ -8621,6 +8621,11 @@ let cadGridType='isometric',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
 let cadThumbCells=0;
+// Natural tile count for the stitch-length reference — frozen when a pattern loads (mirrors the
+// gallery's EXP_szRef). Anchoring stitch length to the layout scale at this count makes the CAD
+// stitch view match the gallery (same stitch value → same look) AND keeps the per-line stitch
+// count invariant to the live Tiles count.
+let _cadRefMacro=3;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
@@ -9832,7 +9837,7 @@ function _tpLoop(t){
 }
 // ── Realistic stitch scene ───────────────────────────────────────────────────
 function _cadStitchSig(){
-  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+cadSpacing+'|'+
+  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+_cadRefMacro+'|'+cadSpacing+'|'+
     cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio;
 }
 // Bake the indigo-denim background once (base wash + twill diagonal + speckle).
@@ -10100,10 +10105,14 @@ function _cadStitchScene(){
   const T=p=>{const a=lay.g2s(p);return[ox+a.x*sc,oy+a.y*sc];};
   const strokes=_buildStrokesFromPath(path,T);
   const tf={g2s:lay.g2s,s2g:lay.s2g,ox,oy,sc};
-  // Lay the stitches, anchoring length to the grid (so the per-line stitch count is invariant
-  // to the Tiles count), and keep the LAID width so the static/play draw uses the same width
-  // the geometry was laid with — exactly like the gallery (otherwise long stitches look blobby).
-  const r=(lay.sz*sc&&cadBase)?lay.sz*sc/cadBase:1;
+  // Lay the stitches anchored to the layout scale at the NATURAL tile count (_cadRefMacro) —
+  // the SAME reference the gallery uses (EXP_szRef) — so a given stitch-length value produces
+  // the same look in the CAD editor and the gallery. (Anchoring to the live scale would make
+  // the value scale-dependent; anchoring to the draw-canvas cadBase made CAD need ~2× the
+  // gallery's value.) The reference is frozen at load, so the per-line stitch count also stays
+  // invariant to the live Tiles count. Keep the laid width so the draw width matches the length.
+  const refSz=(computeExpLayout({...pat,patMacro:_cadRefMacro}).sz)||lay.sz;
+  const r=(lay.sz*sc&&refSz)?lay.sz*sc/refSz:1;
   const L=Math.max(3,cadStitchLen*r);
   const w=Math.max(1.2,Math.min(6,L*0.22));
   return(_cadStitchCache={sig,stitches:_layStitches(strokes,L,cadStitchRatio,w),tf,ur:lay.uRange,vr:lay.vRange,w});
@@ -10224,6 +10233,7 @@ function cadInit(){
   if(cadInited)return;cadInited=true;
   const cv=document.getElementById('cadCanvas');
   cadUpdateSettings();
+  _cadRefMacro=cadPatMacro;   // freeze the stitch-length reference at the loaded tile count
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   cv.addEventListener('wheel',e=>{
     e.preventDefault();
