@@ -1,10 +1,5 @@
 {
-  "stitchGrid": false,
-  "stitchView": false,
-  "spacing": 0,
-  "stitchRatio": "standard",
-  "id": "exp_1782748419661",
-  "stitchLen": 8,
+  "name": "Musubi Kasane Kikkō (Knotted and Overlapping Tortoise Shell)",
   "families": [
     2,
     3,
@@ -34,40 +29,35 @@
     0,
     0
   ],
-  "creatorId": "un4bcd6du2x",
-  "createdAt": 1782748419661,
-  "patMacro": 3,
-  "thumbCells": 3,
-  "traditional": true,
-  "bboxRotated": false,
+  "id": "exp_1782748419661",
   "routingMode": "default",
+  "famOrder": [
+    1,
+    0,
+    2,
+    3
+  ],
+  "stitchRatio": "standard",
   "published": true,
-  "gridType": "square",
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxU": 8,
-    "maxV": 12
-  },
   "lines": [
     {
-      "end": [
-        2,
-        2
-      ],
       "start": [
         0,
         3
+      ],
+      "end": [
+        2,
+        2
       ]
     },
     {
-      "end": [
-        4,
-        3
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        4,
+        3
       ]
     },
     {
@@ -91,23 +81,23 @@
       ]
     },
     {
-      "end": [
-        0,
-        5
-      ],
       "start": [
         2,
         6
+      ],
+      "end": [
+        0,
+        5
       ]
     },
     {
+      "start": [
+        8,
+        3
+      ],
       "end": [
         8,
         9
-      ],
-      "start": [
-        8,
-        3
       ]
     },
     {
@@ -201,33 +191,33 @@
       ]
     },
     {
-      "end": [
-        0,
-        9
-      ],
       "start": [
         0,
         11
+      ],
+      "end": [
+        0,
+        9
       ]
     },
     {
-      "end": [
-        6,
-        2
-      ],
       "start": [
         6,
         4
+      ],
+      "end": [
+        6,
+        2
       ]
     },
     {
-      "end": [
-        6,
-        6
-      ],
       "start": [
         6,
         4
+      ],
+      "end": [
+        6,
+        6
       ]
     },
     {
@@ -241,23 +231,23 @@
       ]
     },
     {
+      "start": [
+        6,
+        2
+      ],
       "end": [
         8,
         1
-      ],
-      "start": [
-        6,
-        2
       ]
     },
     {
-      "end": [
-        4,
-        7
-      ],
       "start": [
         6,
         6
+      ],
+      "end": [
+        4,
+        7
       ]
     },
     {
@@ -271,13 +261,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        7
-      ],
       "start": [
         2,
         8
+      ],
+      "end": [
+        4,
+        7
       ]
     },
     {
@@ -291,13 +281,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        1
-      ],
       "start": [
         2,
         0
+      ],
+      "end": [
+        4,
+        1
       ]
     },
     {
@@ -321,12 +311,22 @@
       ]
     }
   ],
-  "name": "Musubi Kasane Kikkō (Knotted and Overlapping Tortoise Shell)",
+  "createdAt": 1782748419661,
+  "stitchView": false,
   "type": "exp",
-  "famOrder": [
-    1,
-    0,
-    2,
-    3
-  ]
+  "bboxRotated": false,
+  "traditional": true,
+  "thumbCells": 3,
+  "stitchGrid": false,
+  "creatorId": "un4bcd6du2x",
+  "stitchLen": 8,
+  "spacing": 0,
+  "bbox": {
+    "maxV": 12,
+    "maxU": 8,
+    "minV": 0,
+    "minU": 0
+  },
+  "gridType": "square",
+  "patMacro": 3
 }

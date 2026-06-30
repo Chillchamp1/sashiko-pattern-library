@@ -1,9 +1,7 @@
 {
-  "famOrder": [
-    0,
-    1
-  ],
-  "type": "exp",
+  "zigzagRouting": false,
+  "createdAt": 1782393370706,
+  "published": true,
   "lines": [
     {
       "start": [
@@ -16,47 +14,47 @@
       ]
     },
     {
+      "start": [
+        2,
+        4
+      ],
       "end": [
         2,
         0
-      ],
+      ]
+    },
+    {
       "start": [
+        4,
+        0
+      ],
+      "end": [
+        4,
+        6
+      ]
+    },
+    {
+      "start": [
+        4,
+        6
+      ],
+      "end": [
+        2,
+        6
+      ]
+    },
+    {
+      "start": [
+        2,
+        6
+      ],
+      "end": [
         2,
         4
       ]
     },
     {
       "start": [
-        4,
-        0
-      ],
-      "end": [
-        4,
-        6
-      ]
-    },
-    {
-      "start": [
-        4,
-        6
-      ],
-      "end": [
-        2,
-        6
-      ]
-    },
-    {
-      "end": [
-        2,
-        4
-      ],
-      "start": [
-        2,
-        6
-      ]
-    },
-    {
-      "start": [
         0,
         4
       ],
@@ -116,23 +114,23 @@
       ]
     },
     {
-      "end": [
-        6,
-        10
-      ],
       "start": [
         0,
+        10
+      ],
+      "end": [
+        6,
         10
       ]
     },
     {
+      "start": [
+        6,
+        10
+      ],
       "end": [
         6,
         8
-      ],
-      "start": [
-        6,
-        10
       ]
     },
     {
@@ -156,32 +154,32 @@
       ]
     },
     {
-      "end": [
-        8,
-        6
-      ],
       "start": [
         6,
         6
+      ],
+      "end": [
+        8,
+        6
       ]
     },
     {
+      "start": [
+        8,
+        6
+      ],
       "end": [
         8,
         12
-      ],
-      "start": [
-        8,
-        6
       ]
     },
     {
-      "end": [
-        12,
-        6
-      ],
       "start": [
         8,
+        6
+      ],
+      "end": [
+        12,
         6
       ]
     },
@@ -196,22 +194,22 @@
       ]
     },
     {
-      "end": [
-        10,
-        6
-      ],
       "start": [
         10,
         12
+      ],
+      "end": [
+        10,
+        6
       ]
     },
     {
-      "end": [
-        12,
-        4
-      ],
       "start": [
         6,
+        4
+      ],
+      "end": [
+        12,
         4
       ]
     },
@@ -236,19 +234,10 @@
       ]
     }
   ],
-  "name": "Sankuzushimon (Sets of Three)",
-  "gridType": "square",
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxV": 12,
-    "maxU": 12
-  },
-  "bboxRotated": false,
-  "published": true,
-  "traditional": true,
-  "patMacro": 4,
-  "createdAt": 1782393370706,
+  "famOrder": [
+    0,
+    1
+  ],
   "families": [
     0,
     0,
@@ -274,8 +263,19 @@
     1,
     1
   ],
-  "creatorId": "uyqa6wy657m",
   "id": "exp_1782393370706",
+  "name": "Sankuzushimon (Sets of Three)",
+  "gridType": "square",
+  "patMacro": 4,
   "spacing": 0,
-  "zigzagRouting": false
+  "bbox": {
+    "maxV": 12,
+    "minU": 0,
+    "minV": 0,
+    "maxU": 12
+  },
+  "creatorId": "uyqa6wy657m",
+  "traditional": true,
+  "type": "exp",
+  "bboxRotated": false
 }

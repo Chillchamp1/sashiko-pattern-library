@@ -1,9 +1,10 @@
 {
-  "id": "exp_1782748370691",
-  "stitchRatio": "standard",
-  "spacing": 0,
+  "deleted": true,
   "createdAt": 1782748370691,
-  "stitchLen": 9,
+  "stitchView": true,
+  "name": "Masusashi (Square Measures Stitch)",
+  "routingMode": "default",
+  "id": "exp_1782748370691",
   "families": [
     2,
     0,
@@ -22,42 +23,31 @@
     1,
     1
   ],
-  "creatorId": "uy09jle01o7",
-  "stitchGrid": false,
-  "stitchView": true,
-  "gridType": "square",
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxV": 12,
-    "maxU": 8
-  },
   "famOrder": [
     1,
     0,
     2
   ],
-  "type": "exp",
-  "name": "Masusashi (Square Measures Stitch)",
+  "deletedAt": 1782848240706,
   "lines": [
     {
-      "end": [
-        2,
-        2
-      ],
       "start": [
         0,
         3
+      ],
+      "end": [
+        2,
+        2
       ]
     },
     {
-      "end": [
-        4,
-        3
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        4,
+        3
       ]
     },
     {
@@ -81,13 +71,13 @@
       ]
     },
     {
-      "end": [
-        0,
-        5
-      ],
       "start": [
         2,
         6
+      ],
+      "end": [
+        0,
+        5
       ]
     },
     {
@@ -101,13 +91,13 @@
       ]
     },
     {
-      "end": [
-        8,
-        9
-      ],
       "start": [
         2,
         6
+      ],
+      "end": [
+        8,
+        9
       ]
     },
     {
@@ -121,13 +111,13 @@
       ]
     },
     {
+      "start": [
+        0,
+        11
+      ],
       "end": [
         6,
         8
-      ],
-      "start": [
-        0,
-        11
       ]
     },
     {
@@ -141,23 +131,23 @@
       ]
     },
     {
-      "end": [
-        4,
-        11
-      ],
       "start": [
         4,
         9
+      ],
+      "end": [
+        4,
+        11
       ]
     },
     {
-      "end": [
-        6,
-        12
-      ],
       "start": [
         4,
         11
+      ],
+      "end": [
+        6,
+        12
       ]
     },
     {
@@ -181,13 +171,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        0
-      ],
       "start": [
         4,
         3
+      ],
+      "end": [
+        4,
+        0
       ]
     },
     {
@@ -201,9 +191,21 @@
       ]
     }
   ],
-  "traditional": false,
-  "thumbCells": 3,
+  "stitchRatio": "standard",
+  "stitchLen": 9,
+  "creatorId": "uy09jle01o7",
+  "bbox": {
+    "maxV": 12,
+    "maxU": 8,
+    "minV": 0,
+    "minU": 0
+  },
+  "spacing": 0,
   "patMacro": 3,
+  "gridType": "square",
   "bboxRotated": false,
-  "routingMode": "default"
+  "type": "exp",
+  "traditional": false,
+  "stitchGrid": false,
+  "thumbCells": 3
 }
