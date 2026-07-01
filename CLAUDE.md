@@ -62,6 +62,29 @@ Metrics: `strokes`, `jumps`, `jumpLen`, `maxTurn` (sharpest in-stroke turn), `mi
 
 ---
 
+## Routing Engine Versioning — published patterns are LOCKED to their engine
+
+A pattern stores only **geometry** (`lines`, `families`, `famOrder`, `routingMode`, `patMacro`), never the routed stitch order — the stitch path (`EXP_path`) is recomputed **live** on every open and every tile-count change via `genTiledSegs` + `buildExpPath`. So editing those functions would silently re-route **every** pattern, including ones already published to the gallery.
+
+To prevent that, published gallery patterns are **pinned** to the routing engine they were published with (`pat.routingEngine`); sandbox / new / remix / edit patterns always use the current engine (authoring gets the newest routing). Implemented in `experimental.js` (just above `genTiledSegs`):
+
+- `ROUTING_ENGINE_CURRENT` (currently `1`) + `ROUTING_ENGINES = {1:{genTiledSegs, buildExpPath}}`.
+- `routingEngineFor(pat)` → published: `pat.routingEngine || 1` (missing field = pre-versioning = engine 1); unpublished: current.
+- `tiledSegsFor(pat)` / `expPathFor(segs, pat)` — **use these at every GALLERY-facing routing call site**, not the bare functions. Wired in: `render.js` (`loadPattern`, `_reloadExpWithTiles`), `generator.js` (`renderThumb`), `experimental.js` (`loadStitchingProfile`, `rerouteExp`, `_galDraftShapes`). CAD-editor call sites (`cad-engine.js`) deliberately stay on the bare/current engine — the editor is authoring.
+- **Stamping:** `cadPublishToLibrary` new publish → `ROUTING_ENGINE_CURRENT`; re-publish/edit of an existing pattern → preserves the pinned value. `publishExpPattern` (promote sandbox→gallery) → stamps current. `cadSaveToLibrary` preserves it on edit. The Firestore rules cap keys at 80 (not a whitelist), so the new field needs no rules change; `_pushToFirestore` spreads all fields so it round-trips.
+
+**Today there is ONE engine (v1 === the live functions), so the whole layer is a transparent pass-through — zero behavioral change** (verified: `route.js --check` diff is identical with/without the layer; it's fixture drift only).
+
+**>>> WHEN YOU CHANGE ROUTING, FORK FIRST:**
+1. Copy the current `genTiledSegs` + `buildExpPath` + their private helpers (`buildStrokesForFamily`, `matchVertex`, `orderStrokesFamily`, `buildContourStrokes`, `_buildMotifPath`, …) to frozen `*_v1` versions — never edit those again.
+2. `ROUTING_ENGINES[1] = {genTiledSegs:genTiledSegs_v1, buildExpPath:buildExpPath_v1}`.
+3. Write the new algorithm as the live `genTiledSegs` / `buildExpPath`.
+4. `ROUTING_ENGINES[2] = {genTiledSegs, buildExpPath}` and bump `ROUTING_ENGINE_CURRENT = 2`.
+
+Every already-published pattern (stamped `routingEngine:1` or no field → 1) keeps v1; everything published afterward gets v2. The registry indirection is what makes the fork a mechanical copy-paste-rename of one block. (The headless `route.js` calls the bare functions directly, so it always measures the *current* engine — that's intended for iterating on new routing.)
+
+---
+
 ## Architecture
 
 Three separate rendering engines:

@@ -1068,6 +1068,10 @@ window.cadSaveToLibrary=function(){
       pat.id=cadEditId;
       pat.createdAt=EXP_PATTERNS[idx].createdAt;
       pat.published=EXP_PATTERNS[idx].published;
+      // Preserve the pinned routing engine on edit (published patterns stay locked to it;
+      // sandbox patterns carry undefined and keep using the current engine).
+      if(EXP_PATTERNS[idx].routingEngine!==undefined)pat.routingEngine=EXP_PATTERNS[idx].routingEngine;
+      else if(pat.published)pat.routingEngine=1;
       cadIsPublished=pat.published;
       pat.families=cf.families;
       EXP_PATTERNS[idx]=pat;
@@ -1109,11 +1113,14 @@ window.cadPublishToLibrary=async function(){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
       pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;pat.published=true;
+      // Re-publishing an already-published pattern KEEPS its pinned routing engine
+      // (a missing field = published before versioning → engine 1), so the lock holds.
+      pat.routingEngine=EXP_PATTERNS[idx].routingEngine||1;
       pat.families=cf2.families;
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
   }else{
-    pat.id='exp_'+Date.now();pat.families=cf2.families;
+    pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;
     EXP_PATTERNS.unshift(pat);
   }
   if(cadRemixOf){

@@ -250,7 +250,7 @@ function renderThumb(canvas,pat){
       EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
       EXP_uRange=expLay.uRange; EXP_vRange=expLay.vRange;
       EXP_sz=expLay.sz; EXP_szRef=expLay.sz;   // thumb renders at the pattern's natural scale (ratio 1)
-      EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode);
+      EXP_path=expPathFor(tiledSegsFor(pat),pat);
       TOTAL=EXP_path.length;
       // Thumbnails render in the realistic stitch view (denim + off-white yarn),
       // using the pattern's saved stitch settings; grid is omitted (too fine to read).

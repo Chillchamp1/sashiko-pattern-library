@@ -725,6 +725,41 @@ function _flattenArc(l, nSegs, arcId){
   return result;
 }
 
+// ── Routing engine versioning ──────────────────────────────────────────────
+// Published gallery patterns are LOCKED to the routing engine they were published
+// with, so future changes to the routing algorithm can never alter an already-published
+// pattern. Sandbox / new / remix / edit patterns always use the CURRENT engine, so
+// authoring gets the newest routing.
+//
+// Today there is exactly ONE engine (v1 === the live genTiledSegs / buildExpPath below),
+// so this whole layer is a transparent pass-through and changes nothing visible.
+//
+// >>> WHEN YOU CHANGE ROUTING, FORK FIRST (see CLAUDE.md "Routing engine versioning"):
+//   1. Copy the CURRENT genTiledSegs + buildExpPath + their private helpers
+//      (buildStrokesForFamily, matchVertex, orderStrokesFamily, buildContourStrokes,
+//       _buildMotifPath, …) to frozen *_v1 versions — DO NOT edit those copies ever again.
+//   2. Register them:  ROUTING_ENGINES[1] = {genTiledSegs:genTiledSegs_v1, buildExpPath:buildExpPath_v1}
+//   3. Write your new algorithm as the live genTiledSegs / buildExpPath.
+//   4. Register the new engine:  ROUTING_ENGINES[2] = {genTiledSegs, buildExpPath}
+//      and bump ROUTING_ENGINE_CURRENT = 2.
+// Every already-published pattern is stamped routingEngine:1 (or has no field → treated
+// as 1), so it keeps v1. Everything published from then on gets v2. <<<
+const ROUTING_ENGINE_CURRENT = 1;
+const ROUTING_ENGINES = {
+  1: { genTiledSegs:(p)=>genTiledSegs(p), buildExpPath:(segs,fo,rm)=>buildExpPath(segs,fo,rm) },
+};
+// The engine a pattern must route with. Published → its pinned version (a missing field
+// means "published before versioning" = engine 1). Unpublished (sandbox/new/remix/edit)
+// → the current engine.
+function routingEngineFor(pat){
+  const v = (pat && pat.published) ? (pat.routingEngine || 1) : ROUTING_ENGINE_CURRENT;
+  return ROUTING_ENGINES[v] || ROUTING_ENGINES[ROUTING_ENGINE_CURRENT];
+}
+// Route an exp pattern's tiled segments / stitch path through its pinned engine.
+// Use these (not the bare genTiledSegs/buildExpPath) at every GALLERY-facing call site.
+function tiledSegsFor(pat){ return routingEngineFor(pat).genTiledSegs(pat); }
+function expPathFor(segs, pat){ return routingEngineFor(pat).buildExpPath(segs, pat.famOrder, pat.routingMode); }
+
 // ── Tiled segments (with symmetry-family assignment) ───────────────────────
 function genTiledSegs(pat){
   const lay=computeExpLayout(pat);
@@ -1098,7 +1133,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
+  EXP_path=expPathFor(tiledSegsFor(curPat),curPat);
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -1925,7 +1960,7 @@ function _galDraftShapes(){
   if(_galDraftCache&&_galDraftCache.ref===EXP_path)return _galDraftCache;
   const out={ref:EXP_path,lines:[],circles:[]};
   if(!curPat){return(_galDraftCache=out);}
-  const segs=genTiledSegs({...curPat,patMacro:_tileCells});
+  const segs=tiledSegsFor({...curPat,patMacro:_tileCells});
   const byAid=new Map();
   segs.forEach(s=>{
     if(s.aid>=0){if(!byAid.has(s.aid))byAid.set(s.aid,[]);byAid.get(s.aid).push(s);}
@@ -2150,7 +2185,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
+  EXP_path=expPathFor(tiledSegsFor(curPat),curPat);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -2199,6 +2234,9 @@ window.publishExpPattern=async function(id){
   if(!pat)return;
   if(!confirm('Publish "'+(pat.name||'Custom')+'" to the main gallery?'))return;
   pat.published=true;
+  // Lock this pattern to the routing engine it was authored under (its stitching never
+  // changes when the routing algorithm is updated later).
+  if(pat.routingEngine===undefined)pat.routingEngine=ROUTING_ENGINE_CURRENT;
   _saveLocal();
   await _pushToFirestore(pat);
   buildGallery();           // it now appears in the gallery…
