@@ -5562,7 +5562,7 @@ function _reloadExpWithTiles(){
   const effPat={...curPat,patMacro:_tileCells};
   setupExpCanvas(effPat);
   const expLay=computeExpLayout(effPat);
-  EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
+  EXP_path=filterVisiblePath(expPathFor(tiledSegsFor(effPat),effPat),expLay);
   TOTAL=EXP_path.length;
   _galStitchCache=null;_galDraftCache=null;
   step=TOTAL;
@@ -5699,7 +5699,7 @@ function loadPattern(pat){
     // per line is invariant under the gallery tile-count picker (stepTileCells).
     EXP_szRef=computeExpLayout({...pat,patMacro:pat.patMacro||3}).sz;
     const expLay=computeExpLayout(effPat);
-    EXP_path=filterVisiblePath(buildExpPath(genTiledSegs(effPat),effPat.famOrder,effPat.routingMode),expLay);
+    EXP_path=filterVisiblePath(expPathFor(tiledSegsFor(effPat),effPat),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='';
     const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
@@ -6075,7 +6075,7 @@ function renderThumb(canvas,pat){
       EXP_g2s=expLay.g2s; EXP_canvasH=expLay.canvasH;
       EXP_uRange=expLay.uRange; EXP_vRange=expLay.vRange;
       EXP_sz=expLay.sz; EXP_szRef=expLay.sz;   // thumb renders at the pattern's natural scale (ratio 1)
-      EXP_path=buildExpPath(genTiledSegs(pat),pat.famOrder,pat.routingMode);
+      EXP_path=expPathFor(tiledSegsFor(pat),pat);
       TOTAL=EXP_path.length;
       // Thumbnails render in the realistic stitch view (denim + off-white yarn),
       // using the pattern's saved stitch settings; grid is omitted (too fine to read).
@@ -7014,6 +7014,41 @@ function _flattenArc(l, nSegs, arcId){
   return result;
 }
 
+// ── Routing engine versioning ──────────────────────────────────────────────
+// Published gallery patterns are LOCKED to the routing engine they were published
+// with, so future changes to the routing algorithm can never alter an already-published
+// pattern. Sandbox / new / remix / edit patterns always use the CURRENT engine, so
+// authoring gets the newest routing.
+//
+// Today there is exactly ONE engine (v1 === the live genTiledSegs / buildExpPath below),
+// so this whole layer is a transparent pass-through and changes nothing visible.
+//
+// >>> WHEN YOU CHANGE ROUTING, FORK FIRST (see CLAUDE.md "Routing engine versioning"):
+//   1. Copy the CURRENT genTiledSegs + buildExpPath + their private helpers
+//      (buildStrokesForFamily, matchVertex, orderStrokesFamily, buildContourStrokes,
+//       _buildMotifPath, …) to frozen *_v1 versions — DO NOT edit those copies ever again.
+//   2. Register them:  ROUTING_ENGINES[1] = {genTiledSegs:genTiledSegs_v1, buildExpPath:buildExpPath_v1}
+//   3. Write your new algorithm as the live genTiledSegs / buildExpPath.
+//   4. Register the new engine:  ROUTING_ENGINES[2] = {genTiledSegs, buildExpPath}
+//      and bump ROUTING_ENGINE_CURRENT = 2.
+// Every already-published pattern is stamped routingEngine:1 (or has no field → treated
+// as 1), so it keeps v1. Everything published from then on gets v2. <<<
+const ROUTING_ENGINE_CURRENT = 1;
+const ROUTING_ENGINES = {
+  1: { genTiledSegs:(p)=>genTiledSegs(p), buildExpPath:(segs,fo,rm)=>buildExpPath(segs,fo,rm) },
+};
+// The engine a pattern must route with. Published → its pinned version (a missing field
+// means "published before versioning" = engine 1). Unpublished (sandbox/new/remix/edit)
+// → the current engine.
+function routingEngineFor(pat){
+  const v = (pat && pat.published) ? (pat.routingEngine || 1) : ROUTING_ENGINE_CURRENT;
+  return ROUTING_ENGINES[v] || ROUTING_ENGINES[ROUTING_ENGINE_CURRENT];
+}
+// Route an exp pattern's tiled segments / stitch path through its pinned engine.
+// Use these (not the bare genTiledSegs/buildExpPath) at every GALLERY-facing call site.
+function tiledSegsFor(pat){ return routingEngineFor(pat).genTiledSegs(pat); }
+function expPathFor(segs, pat){ return routingEngineFor(pat).buildExpPath(segs, pat.famOrder, pat.routingMode); }
+
 // ── Tiled segments (with symmetry-family assignment) ───────────────────────
 function genTiledSegs(pat){
   const lay=computeExpLayout(pat);
@@ -7387,7 +7422,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
+  EXP_path=expPathFor(tiledSegsFor(curPat),curPat);
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -8214,7 +8249,7 @@ function _galDraftShapes(){
   if(_galDraftCache&&_galDraftCache.ref===EXP_path)return _galDraftCache;
   const out={ref:EXP_path,lines:[],circles:[]};
   if(!curPat){return(_galDraftCache=out);}
-  const segs=genTiledSegs({...curPat,patMacro:_tileCells});
+  const segs=tiledSegsFor({...curPat,patMacro:_tileCells});
   const byAid=new Map();
   segs.forEach(s=>{
     if(s.aid>=0){if(!byAid.has(s.aid))byAid.set(s.aid,[]);byAid.get(s.aid).push(s);}
@@ -8439,7 +8474,7 @@ window.openExpPattern=function openExpPattern(idOrPat){
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=buildExpPath(genTiledSegs(curPat),curPat.famOrder,curPat.routingMode);
+  EXP_path=expPathFor(tiledSegsFor(curPat),curPat);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -8488,6 +8523,9 @@ window.publishExpPattern=async function(id){
   if(!pat)return;
   if(!confirm('Publish "'+(pat.name||'Custom')+'" to the main gallery?'))return;
   pat.published=true;
+  // Lock this pattern to the routing engine it was authored under (its stitching never
+  // changes when the routing algorithm is updated later).
+  if(pat.routingEngine===undefined)pat.routingEngine=ROUTING_ENGINE_CURRENT;
   _saveLocal();
   await _pushToFirestore(pat);
   buildGallery();           // it now appears in the gallery…
@@ -9715,6 +9753,10 @@ window.cadSaveToLibrary=function(){
       pat.id=cadEditId;
       pat.createdAt=EXP_PATTERNS[idx].createdAt;
       pat.published=EXP_PATTERNS[idx].published;
+      // Preserve the pinned routing engine on edit (published patterns stay locked to it;
+      // sandbox patterns carry undefined and keep using the current engine).
+      if(EXP_PATTERNS[idx].routingEngine!==undefined)pat.routingEngine=EXP_PATTERNS[idx].routingEngine;
+      else if(pat.published)pat.routingEngine=1;
       cadIsPublished=pat.published;
       pat.families=cf.families;
       EXP_PATTERNS[idx]=pat;
@@ -9756,11 +9798,14 @@ window.cadPublishToLibrary=async function(){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
       pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;pat.published=true;
+      // Re-publishing an already-published pattern KEEPS its pinned routing engine
+      // (a missing field = published before versioning → engine 1), so the lock holds.
+      pat.routingEngine=EXP_PATTERNS[idx].routingEngine||1;
       pat.families=cf2.families;
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
   }else{
-    pat.id='exp_'+Date.now();pat.families=cf2.families;
+    pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;
     EXP_PATTERNS.unshift(pat);
   }
   if(cadRemixOf){
