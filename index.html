@@ -8597,7 +8597,12 @@ window.remixPattern=function(id){
   const pat=EXP_PATTERNS.find(p=>p.id===id);
   if(!pat)return;
   if(!confirm('Create a remix of "'+(pat.name||'Custom')+'"?'))return;
-  cadLines=pat.lines.map(l=>({start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]}));
+  cadLines=pat.lines.map(l=>{
+    if(l.arc&&l.center!==undefined){
+      return{arc:true,center:[l.center[0],l.center[1]],r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]};
+    }
+    return{start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]],...(l.arc?{arc:true}:{})};
+  });
   cadHistory=[];cadEditId=null;cadRemixOf=pat.id;
   cadTool='draw';cadArcState=0;cadArcCenter=null;cadArcStart=null;
   document.getElementById('cadGridType').value=pat.gridType||'isometric';
