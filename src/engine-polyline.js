@@ -140,31 +140,48 @@ function orderNN(items){                          // nearest-neighbour stroke or
 
 function buildTsuzukiYamagata(NHU){
   const edges=genTYedges(NHU);
-  const family=(f,pal)=>{
+  // Build colored chain items for one edge family (f=1 steep, f=2 shallow).
+  // Geometric invariant: band-coord % 8 === 4 → class 0 (light), === 0 → class 1 (dark).
+  const famItems=(f,pal)=>{
     const chains=tracePaired(edges.filter(e=>Math.abs(e.x2-e.x1)===f));
-    // Geometric invariant: band-coord % 8 === 4 → class 0 (light), === 0 → class 1 (dark).
-    // Bypasses lattice heuristic which misclassifies clipped border chains.
-    // H (steep, f=1): band = start y.  V (flat, f=2): band = start x.
     const cls=f===1
       ? chains.map(c=>(c[0][1]%8===4)?0:1)
       : chains.map(c=>(c[0][0]%8===4)?0:1);
     const items=chains.map((poly,i)=>({poly,col:pal[cls[i]%pal.length]}));
-    // V family: sort by x-band so x=0 border chains come before full chains,
-    // x=28 border chains after — prevents NN leaving one border stranded far from the other.
     if(f===2) items.sort((a,b)=>a.poly[0][0]-b.poly[0][0]);
-    return orderNN(items);
+    return items;
   };
-  const H=family(1,PHASE_COLORS.H);              // horizontal march (green)
-  const V=family(2,PHASE_COLORS.V);              // vertical march (blue, 90° rot)
+  const Hitems=famItems(1,PHASE_COLORS.H);
+  const Vitems=famItems(2,PHASE_COLORS.V);
+  // Boundary chains (short edge fragments at the canvas perimeter) are emitted into
+  // path but NOT into fronts — they appear instantly at the start of each pass so the
+  // animation ends with a smooth full-height sweep rather than a jumpy fragment cleanup.
+  const maxH=Hitems.length?Math.max(...Hitems.map(c=>c.poly.length-1)):0;
+  const maxV=Vitems.length?Math.max(...Vitems.map(c=>c.poly.length-1)):0;
+  const Hlong=Hitems.filter(c=>c.poly.length-1>=maxH), Hbdr=Hitems.filter(c=>c.poly.length-1<maxH);
+  const Vlong=Vitems.filter(c=>c.poly.length-1>=maxV), Vbdr=Vitems.filter(c=>c.poly.length-1<maxV);
   const path=[], fronts=[];
-  const emit=items=>items.forEach(it=>{for(let k=0;k<it.poly.length-1;k++){
-    fronts.push(path.length);
-    path.push({type:'front',x1:it.poly[k][0],y1:it.poly[k][1],x2:it.poly[k+1][0],y2:it.poly[k+1][1],col:it.col});
-  }});
+  // Instant: added to path but not fronts → drawn as soon as the pass begins (step=1 for H,
+  // first V step for V), consuming no animation ticks.
+  const emitInst=items=>orderNN(items).forEach(it=>{
+    for(let k=0;k<it.poly.length-1;k++)
+      path.push({type:'front',x1:it.poly[k][0],y1:it.poly[k][1],x2:it.poly[k+1][0],y2:it.poly[k+1][1],col:it.col});
+  });
+  // Animated: added to both path and fronts → drives TOTAL and animates step by step.
+  const emitAnim=items=>orderNN(items).forEach(it=>{
+    for(let k=0;k<it.poly.length-1;k++){
+      fronts.push(path.length);
+      path.push({type:'front',x1:it.poly[k][0],y1:it.poly[k][1],x2:it.poly[k+1][0],y2:it.poly[k+1][1],col:it.col});
+    }
+  });
+  // H pass: boundary stubs first (instant), then full-height chains (animated).
+  emitInst(Hbdr);
   const passes=[{start:0,label:'Horizontal ranges (shallow)',glyph:'↗',col:'H'}];
-  emit(H);
+  emitAnim(Hlong);
+  // V pass: boundary stubs first (instant), then full-height chains (animated).
+  emitInst(Vbdr);
   passes.push({start:fronts.length,label:'Vertical ranges (steep)',glyph:'↕',col:'V'});
-  emit(V);
+  emitAnim(Vlong);
   return {path,fronts,passes,shCount:passes[1].start};
 }
 

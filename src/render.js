@@ -207,6 +207,8 @@ function loadPattern(pat){
     return;
   }
   showGenUI(false);
+  // Track pattern opens (fires after GoatCounter loads; silently skipped if not configured)
+  if(window.goatcounter?.count) window.goatcounter.count({path:'pattern/'+pat.id,title:pat.name||pat.id,event:true});
 
   if(isEXP){
     _tileCells=pat.patMacro||3;
