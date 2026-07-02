@@ -8270,6 +8270,17 @@ function _isV2Mode(m){return m==='rows2'||m==='rows2e'||m==='zigzag2'||m==='wave
 // produce the same key, so arc-endpoint / fam lookups can't miss on float noise.
 function _v2VKey(p){return Math.round(p[0]*1e4)+','+Math.round(p[1]*1e4);}
 
+// March-direction class of a segment for zigzag colouring/passes: 0 = horizontal-marching,
+// 1 = vertical-marching, by nearest screen axis (iso grids map (u,v)→screen like
+// autoAssignFamilies: dx=du−dv, dy=du+dv). Both legs of one zigzag line share a class, so a
+// continuous zigzag line gets one colour and a mesh routes into the two traditional passes.
+function _zzDirClass(a,b,iso){
+  let dx=b[0]-a[0], dy=b[1]-a[1];
+  if(iso){const du=dx,dv=dy;dx=du-dv;dy=du+dv;}
+  let ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI;   // [0,π)
+  return Math.min(ang,Math.PI-ang)<Math.PI/4 ? 0 : 1;
+}
+
 // Length, length-weighted centroid, net orientation [0,π) and movement type of one stroke
 // (ROUTING.md Rule 3: Σ|turn| small ⇒ straight 0; alternating signs ⇒ zigzag 1; else curve 2).
 function _v2StrokeInfo(pts){
@@ -8544,12 +8555,19 @@ function buildExpPathV2(lines,famOrderOverride,mode,opts){
   if(mode==='zigzag2'){
     // Pooled stroke building: all families in ONE buildStrokesForFamily call so ±slope
     // legs chain through every apex (Tsuzuki Yamagata: 2 edge-to-edge chains instead of
-    // 878 apex-broken ones). The drawn family is recovered per segment for colouring.
-    const SK=(a,b)=>{const k1=_v2VKey(a),k2=_v2VKey(b);return k1<k2?k1+'|'+k2:k2+'|'+k1;};
-    const famOfSeg=new Map();
-    lines.forEach(l=>famOfSeg.set(SK(l.start,l.end),l.fam||0));
+    // 878 apex-broken ones).
+    //
+    // COLOURING / PASSES for zigzag are by MARCH DIRECTION, not by drawn leg-family: the two
+    // legs of one continuous zigzag line sit in different drawn families, so colouring by
+    // drawn family would paint a single line in two alternating colours and split it across
+    // two PDF pass windows. Instead each segment is classed by its nearest screen axis
+    // (`_zzDirClass`) → both legs of a horizontal-marching zigzag are class 0, both legs of a
+    // vertical one are class 1. Result: one colour per continuous line, and exactly the
+    // traditional two passes (all horizontal zigzags, then all vertical) — like the built-in
+    // Tsuzuki Yamagata engine. Colouring (renderExp) and the PDF passes both read this fam,
+    // so they stay consistent. Only zigzag2 does this; every other mode is untouched.
     const ordered=_v2NN(buildStrokesForFamily(lines,Math.PI).map(p=>_v2StrokeInfo(p)).filter(s=>s.pts.length>=2),null);
-    const path=[];let cur=null,lastFam=0;
+    const path=[];let cur=null;
     for(const s of ordered){
       let pts=s.pts;
       const closed=pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3;
@@ -8559,11 +8577,8 @@ function buildExpPathV2(lines,famOrderOverride,mode,opts){
         const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
         if(dE<dS)pts=pts.slice().reverse();
       }
-      for(let k=0;k<pts.length-1;k++){
-        const f=famOfSeg.get(SK(pts[k],pts[k+1]));
-        if(f!==undefined)lastFam=f;
-        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:lastFam});
-      }
+      for(let k=0;k<pts.length-1;k++)
+        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:_zzDirClass(pts[k],pts[k+1],iso)});
       cur=pts[pts.length-1];
     }
     return path;

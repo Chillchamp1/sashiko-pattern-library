@@ -24,7 +24,7 @@ Four additional modes route through a **separate pipeline** (`buildExpPathV2` in
 |---|---|---|---|
 | **1b** | Rows v2 · ordered | `rows2` | Robust band-snake: bands from **gap-clustered** centroid coordinates with **rank** parity (snake alternates by construction), movement-type + 30° orientation bins (the Rule-3 levels 1–2, previously unimplemented), v1 ordering and NN as fallback candidates. Picks the most **predictable** candidate within 15 % of the cheapest score. |
 | **1c** | Rows v2 · efficient | `rows2e` | Same candidate set, always the **cheapest** score. |
-| **2b** | Zigzag v2 | `zigzag2` | Strokes built from the **pooled** segment set (not per family), so ±slope zigzag legs chain through every apex into true edge-to-edge runs (Tsuzuki Yamagata: 2 strokes instead of 878); drawn family kept per segment for colouring; chains ordered by global NN. |
+| **2b** | Zigzag v2 | `zigzag2` | Strokes built from the **pooled** segment set (not per family), so ±slope zigzag legs chain through every apex into true edge-to-edge runs (Tsuzuki Yamagata: 2 strokes instead of 878); chains ordered by global NN. **Passes/colours by MARCH DIRECTION** (`_zzDirClass`, nearest screen axis H vs V), not drawn leg-family: each continuous zigzag line is **one colour** and a mesh routes into the traditional **two passes** (all horizontal zigzags, then all vertical), like the built-in Tsuzuki Yamagata engine. Gallery colouring and the PDF pass windows both read this `fam`, so they stay consistent; only zigzag2 re-groups. |
 | **3b** | Waves v2 | `waves2` | Contour waves exactly as mode 3 builds them, ordered with the robust band-snake / fallback candidates instead of the fragile min-gap pitch. |
 
 Shared v2 rules (owner decisions 2026-07-02):
