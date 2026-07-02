@@ -9,6 +9,7 @@ Output: Sashiko — Pattern Library.htm  +  index.html  (identical)
 """
 
 import os
+from datetime import datetime, timezone
 
 SRC = "src"
 OUTPUTS = ["Sashiko — Pattern Library.htm", "index.html"]
@@ -48,6 +49,11 @@ def main():
     # Inject backup seed data so offline / file:// also has patterns
     backup_json = read("backup-patterns.json")
     html = html.replace("<!-- INJECT:backup.json -->", backup_json)
+
+    # Build stamp (visible in the About panel) so a deployed version is identifiable —
+    # if the live date differs from what a browser shows, that browser is serving a cache.
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    html = html.replace("<!-- INJECT:buildstamp -->", stamp)
 
     for out in OUTPUTS:
         with open(out, "w", encoding="utf-8") as f:

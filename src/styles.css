@@ -344,6 +344,7 @@ button.ctrl.primary:hover{background:#275784}
 .gal-color-tab.on{background:#214a72;border-color:#3a6ea3;color:#e7eef6}
 .gal-tab-ico{width:20px;height:20px;border-radius:5px;border:1px solid rgba(255,255,255,.22);display:block}
 .gal-tab-emoji{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;font-size:15px;line-height:1}
+.build-stamp{font-size:11px;color:var(--muted);opacity:.65;margin-top:8px}
 /* Grid/Draft segmented control (compact, mutually exclusive) */
 .gal-overlay-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel2,#1c3045)}
 .gal-overlay-seg button{background:transparent;border:0;border-left:1px solid var(--line);padding:5px 11px;font-size:11px;color:var(--muted);cursor:pointer;font:inherit}
