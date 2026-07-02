@@ -285,7 +285,7 @@ function _pdfDotGrid(x,colMain,colSub,rMain,rSub){
 function _pdfStitchWindow(px){
   const {c,x}=_pdfCanvas(px);
   x.fillStyle='#ffffff';x.fillRect(0,0,SIZE,SIZE);
-  _pdfDotGrid(x,'rgba(60,95,150,0.5)','rgba(60,95,150,0.26)',1.15,0.55);
+  _pdfDotGrid(x,'rgba(45,80,140,0.92)','rgba(45,80,140,0.6)',1.6,0.95);
   const sc=_galStitchScene();
   x.lineCap='round';
   for(const s of sc.stitches){
@@ -315,7 +315,7 @@ function _pdfDrawLines(x,famOnly,stroke,width){
 function _pdfDraftWindow(px){
   const {c,x}=_pdfCanvas(px);
   x.fillStyle='#ffffff';x.fillRect(0,0,SIZE,SIZE);
-  _pdfDotGrid(x,'rgba(60,95,150,0.5)','rgba(60,95,150,0.26)',1.15,0.55);
+  _pdfDotGrid(x,'rgba(45,80,140,0.92)','rgba(45,80,140,0.6)',1.6,0.95);
   // Drafting guides (weak, non-overpowering): ruler-extended straight lines + full circles.
   const {lines,circles}=_galDraftShapes();
   x.strokeStyle='rgba(40,70,120,0.32)';x.lineWidth=0.6;x.lineCap='round';x.setLineDash([]);
@@ -345,7 +345,7 @@ function _pdfDraftWindow(px){
 function _pdfPassWindow(px,fam){
   const {c,x}=_pdfCanvas(px);
   x.fillStyle='#ffffff';x.fillRect(0,0,SIZE,SIZE);
-  _pdfDotGrid(x,'rgba(70,100,150,0.4)','rgba(70,100,150,0.2)',1.0,0.5);
+  _pdfDotGrid(x,'rgba(55,90,145,0.85)','rgba(55,90,145,0.5)',1.4,0.85);
   _pdfDrawLines(x,fam,_pdfInk(famColor(fam)),1.3);
   return c;
 }
