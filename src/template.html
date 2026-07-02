@@ -92,6 +92,7 @@
   <!-- Stitch-view options (custom patterns render in stitch view by default) -->
   <div class="stitch-view-bar" id="stitchViewBar" style="display:none">
     <button class="ctrl gal-pop-btn" id="galColBtn" onclick="galToggleColours()">🎨 Thread colours ▾</button>
+    <button class="ctrl gal-pop-btn" id="galFabBtn" onclick="galToggleFabric()">🧵 Fabric ▾</button>
     <label class="cad-routing-toggle" title="Show the fabric grid" style="margin-left:4px">
       <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
     </label>
@@ -112,16 +113,22 @@
         <option value="sequential">4 · One by one</option>
       </select>
     </label>
-    <!-- Thread-colour preview: keep stitches off-white, or paint each family -->
+    <!-- Thread-colour preview: keep stitches off-white, or paint each family. One panel,
+         palettes shown as labelled sections (Olympus, Pastel, …) — no tabs. -->
     <div class="gal-pop gal-colours" id="galColours" style="display:none">
-      <div class="gal-pal-tabs">
-        <button class="gal-pal-reset" onclick="galResetColours()" title="Reset all to off-white">↺ All white</button>
-        <button class="gal-pal-tab on" id="galPalSashiko" onclick="galSetPalette('sashiko')">Sashiko</button>
-        <button class="gal-pal-tab" id="galPalPastel" onclick="galSetPalette('pastel')">Pastel</button>
+      <div class="gal-pop-head">
+        <span>Thread colours</span>
+        <button class="gal-pal-reset" onclick="galResetColours()" title="Reset all threads to off-white">↺ All white</button>
       </div>
       <div class="gal-fam-chips" id="galFamChips"></div>
-      <div class="gal-swatches" id="galSwatches"></div>
+      <div class="gal-swatches gal-swatch-sections" id="galSwatches"></div>
       <div class="gal-sw-name" id="galSwName">Pick a thread colour</div>
+    </div>
+    <!-- Fabric picker: curated sashiko cloths (indigo, black, natural, …), with texture. -->
+    <div class="gal-pop gal-fabric" id="galFabricPop" style="display:none">
+      <div class="gal-pop-head"><span>Fabric</span></div>
+      <div class="gal-fab-swatches" id="galFabSwatches"></div>
+      <div class="gal-sw-name" id="galFabName">Pick a fabric</div>
     </div>
     <div class="gal-pop gal-adv" id="galAdv" style="display:none">
       <span class="cad-panel-stepper">

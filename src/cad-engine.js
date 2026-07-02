@@ -1259,6 +1259,58 @@ function _cadBakeDenim(){
 }
 function _cadDrawDenim(x,w,h){if(!_cadDenimBuf)_cadBakeDenim();x.drawImage(_cadDenimBuf,0,0,w||500,h||500);}
 
+// ── Sashiko fabrics (curated) ────────────────────────────────────────────────
+// The cloths sashiko is actually worked on: indigo aizome (the classic), a deeper
+// indigo, black, slate grey, natural (unbleached cotton/linen) and kakishibu
+// (persimmon-dyed). Small on purpose — the important ones, well curated. Each is
+// baked once into a 500×500 woven-texture buffer (twill sheen + fibre speckle +
+// vignette), tuned to the cloth's lightness. The gallery viewer picks one; the CAD
+// editor and thumbnails keep the default indigo denim.
+const SASHIKO_FABRICS=[
+  {id:'indigo',   name:'Indigo',     g0:'#2c4878', g1:'#213a64', light:false},
+  {id:'midnight', name:'Midnight',   g0:'#1c2740', g1:'#121a2e', light:false},
+  {id:'black',    name:'Black',      g0:'#2b2b2e', g1:'#191a1c', light:false},
+  {id:'slate',    name:'Slate grey', g0:'#565a61', g1:'#43464c', light:false},
+  {id:'natural',  name:'Natural',    g0:'#e9dfc7', g1:'#dcd0b3', light:true },
+  {id:'kakishibu',name:'Kakishibu',  g0:'#7c4c33', g1:'#5f3926', light:false},
+];
+function _fabricById(id){return SASHIKO_FABRICS.find(f=>f.id===id)||SASHIKO_FABRICS[0];}
+const _fabricBufs={};
+function _bakeFabric(fab){
+  const c=document.createElement('canvas');c.width=500;c.height=500;
+  const d=c.getContext('2d');
+  const g=d.createLinearGradient(0,0,0,500);
+  g.addColorStop(0,fab.g0);g.addColorStop(1,fab.g1);
+  d.fillStyle=g;d.fillRect(0,0,500,500);
+  // Twill weave: faint parallel diagonals (sheen + shadow tuned to cloth lightness).
+  const hi=fab.light?'rgba(255,255,255,0.16)':'rgba(255,255,255,0.035)';
+  const lo=fab.light?'rgba(120,96,60,0.06)':'rgba(0,0,0,0.05)';
+  d.lineWidth=1;
+  for(let i=-500;i<500;i+=4){
+    d.strokeStyle=hi;d.beginPath();d.moveTo(i,500);d.lineTo(i+500,0);d.stroke();
+    d.strokeStyle=lo;d.beginPath();d.moveTo(i+1.4,500);d.lineTo(i+501.4,0);d.stroke();
+  }
+  // Speckle (fibres / slubs)
+  const sp1=fab.light?'rgba(120,96,60,0.06)':'rgba(255,255,255,0.05)';
+  const sp2=fab.light?'rgba(255,255,255,0.10)':'rgba(0,0,0,0.07)';
+  for(let i=0;i<2600;i++){
+    const x=Math.random()*500,y=Math.random()*500,r=Math.random()*0.9+0.2;
+    d.fillStyle=Math.random()<0.5?sp1:sp2;
+    d.beginPath();d.arc(x,y,r,0,Math.PI*2);d.fill();
+  }
+  // Soft vignette
+  const v=d.createRadialGradient(250,250,120,250,250,360);
+  v.addColorStop(0,'rgba(0,0,0,0)');
+  v.addColorStop(1,fab.light?'rgba(90,70,40,0.12)':'rgba(0,0,0,0.22)');
+  d.fillStyle=v;d.fillRect(0,0,500,500);
+  return c;
+}
+// Draw a fabric by id (baked + cached). Used by the gallery viewer + PDF export.
+function _drawFabric(x,id,w,h){
+  if(!_fabricBufs[id])_fabricBufs[id]=_bakeFabric(_fabricById(id));
+  x.drawImage(_fabricBufs[id],0,0,w||500,h||500);
+}
+
 // Intersection of segments a→b and c→d, INCLUDING shared endpoints/vertices (so a
 // crossing that lands on a grid vertex still counts). Parallel/collinear → null.
 function _segCross(a,b,c,d){
@@ -1510,7 +1562,7 @@ function _cadStitchScene(){
 }
 // Fabric grid overlay (main lines every CAD_MICRO + dot sub-grid), mapped through the stitch-scene transform.
 // dotsOnly=true skips main lines, shows only dot grid (gallery stitch view uses this).
-function _cadDrawStitchGrid(x,scene,dotsOnly){
+function _cadDrawStitchGrid(x,scene,dotsOnly,dark){
   if(!scene||!scene.tf)return;
   const tf=scene.tf,M=CAD_MICRO;
   const[mnU,mxU]=scene.ur,[mnV,mxV]=scene.vr;
@@ -1526,10 +1578,11 @@ function _cadDrawStitchGrid(x,scene,dotsOnly){
   // per cell, the same grid the pattern was drawn on. The CAD stitch view keeps the coarser
   // M/2 sub-grid (legibility on the fitted 500px canvas).
   const sub=dotsOnly?1:M/2;
-  // Gallery grid (dotsOnly): plain white dots as the foreground (threads are toned down in
-  // grid/draft mode). Dots 50% smaller. CAD stitch-view keeps the original blue-ish dots.
-  const colMain=dotsOnly?'rgba(255,255,255,0.95)':'rgba(200,220,255,0.40)';
-  const colSub =dotsOnly?'rgba(255,255,255,0.6)':'rgba(180,205,255,0.20)';
+  // Gallery grid (dotsOnly): plain dots as the foreground (threads are toned down in
+  // grid/draft mode). Dots 50% smaller. On a LIGHT fabric (`dark`) the dots go dark so
+  // they stay visible. CAD stitch-view keeps the original blue-ish dots.
+  const colMain=dotsOnly?(dark?'rgba(28,40,66,0.9)':'rgba(255,255,255,0.95)'):'rgba(200,220,255,0.40)';
+  const colSub =dotsOnly?(dark?'rgba(28,40,66,0.6)':'rgba(255,255,255,0.6)'):'rgba(180,205,255,0.20)';
   const rMain=dotsOnly?1.25:2.5, rSub=dotsOnly?0.6:1.2;
   for(let u=u0;u<=u1;u+=sub){for(let v=v0;v<=v1;v+=sub){
     const onMain=(u%M===0)&&(v%M===0);

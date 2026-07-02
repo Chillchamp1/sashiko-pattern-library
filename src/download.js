@@ -279,13 +279,15 @@ function _pdfDotGrid(x,colMain,colSub,rMain,rSub){
     x.beginPath();x.arc(p.x,p.y,onMain?rMain:rSub,0,Math.PI*2);x.fill();
   }
 }
-// Stitch window: denim + dot grid + the laid stitches (matches the gallery stitch view).
+// Stitch window: fabric + dot grid + the laid stitches (matches the gallery stitch view,
+// including the selected fabric and its fabric-aware default yarn / grid colour).
 function _pdfStitchWindow(px){
   const {c,x}=_pdfCanvas(px);
-  _cadDrawDenim(x,SIZE,SIZE);
-  _cadDrawStitchGrid(x,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true);
+  const fabLight=_fabricById(galFabric).light;
+  _drawFabric(x,galFabric,SIZE,SIZE);
+  _cadDrawStitchGrid(x,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true,fabLight);
   const sc=_galStitchScene();
-  for(const s of sc.stitches){if(_famToggles[s.fam]===false)continue;_cadDrawStitch(x,s,sc.w,galThreadColors[s.fam]);}
+  for(const s of sc.stitches){if(_famToggles[s.fam]===false)continue;_cadDrawStitch(x,s,sc.w,galThreadColors[s.fam]||_galDefaultYarn());}
   return c;
 }
 // Draw the routed geometry as lines. famOnly>=0 → only that family; else the whole pattern.
@@ -299,12 +301,37 @@ function _pdfDrawLines(x,famOnly,stroke,width){
   }
   x.stroke();
 }
-// Draft window: white, faint dot grid, pattern as weak thin lines. Same framing as stitches.
+// Draft window = the gallery "Draft" view, but as lines: the dot grid, the drafting help
+// (each straight line extended ruler-style across the frame + every arc recovered as its
+// FULL circle), and on top the actual stitch-path lines HIGHLIGHTED. Same framing/size as
+// the stitch window. Not the individual stitches — the lines the stitches run along.
 function _pdfDraftWindow(px){
   const {c,x}=_pdfCanvas(px);
   x.fillStyle='#ffffff';x.fillRect(0,0,SIZE,SIZE);
-  _pdfDotGrid(x,'rgba(60,95,150,0.55)','rgba(60,95,150,0.28)',1.15,0.55);
-  _pdfDrawLines(x,-1,'rgba(30,55,95,0.5)',0.8);   // weak, non-overpowering
+  _pdfDotGrid(x,'rgba(60,95,150,0.5)','rgba(60,95,150,0.26)',1.15,0.55);
+  // Drafting guides (weak, non-overpowering): ruler-extended straight lines + full circles.
+  const {lines,circles}=_galDraftShapes();
+  x.strokeStyle='rgba(40,70,120,0.32)';x.lineWidth=0.6;x.lineCap='round';x.setLineDash([]);
+  const seen=new Set();
+  lines.forEach(l=>{
+    const p0=EXP_g2s(l.a),p1=EXP_g2s(l.b);
+    let dx=p1.x-p0.x,dy=p1.y-p0.y;const len=Math.hypot(dx,dy);
+    if(len<1e-6)return;dx/=len;dy/=len;
+    let nx=-dy,ny=dx;if(nx<-1e-9||(Math.abs(nx)<1e-9&&ny<0)){nx=-nx;ny=-ny;}
+    const cc=nx*p0.x+ny*p0.y, key=Math.round(nx*100)/100+'|'+Math.round(ny*100)/100+'|'+Math.round(cc);
+    if(seen.has(key))return;seen.add(key);
+    const seg=_clipInfiniteLine(p0.x,p0.y,dx,dy,SIZE,SIZE);
+    if(!seg)return;
+    x.beginPath();x.moveTo(seg[0][0],seg[0][1]);x.lineTo(seg[1][0],seg[1][1]);x.stroke();
+  });
+  const NS=72;
+  circles.forEach(cc=>{
+    x.beginPath();
+    for(let k=0;k<=NS;k++){const a=k/NS*2*Math.PI;const p=EXP_g2s([cc.c[0]+cc.r*Math.cos(a),cc.c[1]+cc.r*Math.sin(a)]);if(k===0)x.moveTo(p.x,p.y);else x.lineTo(p.x,p.y);}
+    x.stroke();
+  });
+  // The stitch-path lines highlighted on top.
+  _pdfDrawLines(x,-1,'rgba(18,42,82,0.72)',1.0);
   return c;
 }
 // Pass window: white, faint grid, one family's geometry as clear lines (family-tinted).
