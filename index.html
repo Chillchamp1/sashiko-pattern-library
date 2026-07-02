@@ -576,7 +576,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     <button class="ctrl gal-pop-btn" id="downloadBtn" onclick="toggleDownloadMenu()">⬇ Download <span class="dl-caret">▾</span></button>
     <div class="dl-menu" id="dlMenu" style="display:none">
       <button class="dl-item" onclick="downloadGIF()"><span>🎞 Animated GIF</span><small>this pattern’s stitch animation</small></button>
-      <button class="dl-item" onclick="downloadPDF()"><span>📄 PDF</span><small>coming soon</small></button>
+      <button class="dl-item" onclick="downloadPDF()"><span>📄 PDF</span><small>printable stitching sheet (A4)</small></button>
       <button class="dl-item" onclick="downloadSTL()"><span>🧩 STL template</span><small>for 3D printing · coming soon</small></button>
     </div>
   </div>
@@ -10873,10 +10873,6 @@ document.addEventListener('pointerdown',e=>{
   if(!bar.contains(e.target))m.style.display='none';
 },true);
 
-window.downloadPDF=function(){
-  document.getElementById('dlMenu').style.display='none';
-  alert('PDF export is coming soon.');
-};
 window.downloadSTL=function(){
   document.getElementById('dlMenu').style.display='none';
   alert('STL export (3D-printable stitching template) is coming soon.');
@@ -11089,6 +11085,224 @@ function _lzwEncode(indices,colorBits,out){
   output(ent);
   output(eofCode);
   out.push(0);   // block terminator
+}
+
+// ── PDF export (one A4 sheet) ────────────────────────────────────────────────
+// A printable stitching sheet for a custom pattern, laid out on a single A4 page:
+//   • Pattern window — the realistic stitch view (denim + off-white stitches) with the
+//     dot grid, exactly as the gallery shows it.
+//   • Drafting window — SAME size, same framing, but the pattern drawn as weak thin
+//     LINES over the dot grid (the guide a maker traces onto cloth), not as stitches.
+//   • Pass windows — one small window per stitch family (only when there are ≥2), each
+//     that family's geometry drawn as lines, so each pass can be worked on its own.
+// Each window is rendered to an offscreen canvas (reusing the live stitch/grid drawing
+// helpers) and embedded as a JPEG image XObject. The PDF is written by hand (no library,
+// no external resources) — the same self-contained philosophy as the GIF encoder above.
+const A4_W=595.28, A4_H=841.89;
+
+window.downloadPDF=function(){
+  const menu=document.getElementById('dlMenu');if(menu)menu.style.display='none';
+  if(!curPat){alert('Open a pattern first.');return;}
+  try{ _buildPDF(); }
+  catch(err){ console.error(err); alert('PDF export failed: '+err.message); }
+};
+
+// Offscreen square canvas that draws in anim coordinates (0..SIZE) at `px` backing pixels.
+function _pdfCanvas(px){
+  const c=document.createElement('canvas');c.width=px;c.height=px;
+  const x=c.getContext('2d');x.scale(px/SIZE,px/SIZE);
+  return {c,x};
+}
+function _pdfJPEG(canvas,q){
+  const url=canvas.toDataURL('image/jpeg',q==null?0.92:q);
+  const b64=url.slice(url.indexOf(',')+1), bin=atob(b64), u=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  return u;
+}
+// Dot grid (mirrors the CAD/gallery grid geometry) in caller-chosen colours — so it can
+// read as white-on-denim (stitch window) or dark-on-white (draft/pass windows).
+function _pdfDotGrid(x,colMain,colSub,rMain,rSub){
+  const M=CAD_MICRO;
+  const[mnU,mxU]=EXP_uRange,[mnV,mxV]=EXP_vRange;
+  const u0=Math.floor(mnU/M)*M,u1=Math.ceil(mxU/M)*M,v0=Math.floor(mnV/M)*M,v1=Math.ceil(mxV/M)*M;
+  if((u1-u0)>4000||(v1-v0)>4000)return;   // sanity guard for extreme tile counts
+  for(let u=u0;u<=u1;u++)for(let v=v0;v<=v1;v++){
+    const onMain=(u%M===0)&&(v%M===0);
+    const p=EXP_g2s([u,v]);
+    x.fillStyle=onMain?colMain:colSub;
+    x.beginPath();x.arc(p.x,p.y,onMain?rMain:rSub,0,Math.PI*2);x.fill();
+  }
+}
+// Stitch window: denim + dot grid + the laid stitches (matches the gallery stitch view).
+function _pdfStitchWindow(px){
+  const {c,x}=_pdfCanvas(px);
+  _cadDrawDenim(x,SIZE,SIZE);
+  _cadDrawStitchGrid(x,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true);
+  const sc=_galStitchScene();
+  for(const s of sc.stitches){if(_famToggles[s.fam]===false)continue;_cadDrawStitch(x,s,sc.w,galThreadColors[s.fam]);}
+  return c;
+}
+// Draw the routed geometry as lines. famOnly>=0 → only that family; else the whole pattern.
+function _pdfDrawLines(x,famOnly,stroke,width){
+  x.strokeStyle=stroke;x.lineWidth=width;x.lineCap='round';x.lineJoin='round';
+  x.beginPath();
+  for(const s of EXP_path){
+    if(famOnly>=0&&(s.fam||0)!==famOnly)continue;
+    const a=EXP_g2s(s.start),b=EXP_g2s(s.end);
+    x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);
+  }
+  x.stroke();
+}
+// Draft window: white, faint dot grid, pattern as weak thin lines. Same framing as stitches.
+function _pdfDraftWindow(px){
+  const {c,x}=_pdfCanvas(px);
+  x.fillStyle='#ffffff';x.fillRect(0,0,SIZE,SIZE);
+  _pdfDotGrid(x,'rgba(60,95,150,0.55)','rgba(60,95,150,0.28)',1.15,0.55);
+  _pdfDrawLines(x,-1,'rgba(30,55,95,0.5)',0.8);   // weak, non-overpowering
+  return c;
+}
+// Pass window: white, faint grid, one family's geometry as clear lines (family-tinted).
+function _pdfPassWindow(px,fam){
+  const {c,x}=_pdfCanvas(px);
+  x.fillStyle='#ffffff';x.fillRect(0,0,SIZE,SIZE);
+  _pdfDotGrid(x,'rgba(70,100,150,0.4)','rgba(70,100,150,0.2)',1.0,0.5);
+  _pdfDrawLines(x,fam,_pdfInk(famColor(fam)),1.3);
+  return c;
+}
+// Darken a family colour to a print-legible ink (the pale gallery hues wash out on paper).
+function _pdfInk(hex){
+  const m=/^#?([0-9a-f]{6})$/i.exec(hex||'');
+  if(!m)return '#2a3f5f';
+  const n=parseInt(m[1],16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  r=Math.round(r*0.5);g=Math.round(g*0.5);b=Math.round(b*0.5);
+  return 'rgb('+r+','+g+','+b+')';
+}
+
+// Choose pass-window columns/cell so all N windows (with labels) fit the available box;
+// maximise cell size, capped so passes stay clearly SMALLER than the two main windows.
+function _pdfPassLayout(n,cw,availH,gap,labelH,cap){
+  let best={cols:1,cell:0};
+  for(let cols=1;cols<=n;cols++){
+    const rows=Math.ceil(n/cols);
+    const cellW=(cw-(cols-1)*gap)/cols;
+    const cellH=(availH-(rows-1)*gap-rows*labelH)/rows;
+    const cell=Math.min(cellW,cellH,cap);
+    if(cell>best.cell)best={cols,cell};
+  }
+  return best;
+}
+
+function _buildPDF(){
+  const isE=isEXP&&EXP_path&&EXP_path.length;
+  const images=[],texts=[];
+  const M=40, cw=A4_W-2*M;
+  const rawName=(typeof _displayName==='function'?_displayName(curPat.name||'Sashiko pattern'):(curPat.name||'Sashiko pattern'));
+  texts.push({x:M,y:A4_H-M-4,size:16,text:_pdfAscii(rawName)});
+  texts.push({x:M,y:A4_H-M-20,size:8.5,text:_pdfAscii('Sashiko Pattern Library  ·  stitching sheet')});
+
+  if(isE){
+    const gap=16, big=(cw-gap)/2;
+    const bandLabelY=A4_H-M-40;
+    texts.push({x:M,          y:bandLabelY,size:9.5,text:'Pattern — stitches & grid'});
+    texts.push({x:M+big+gap,  y:bandLabelY,size:9.5,text:'Drafting lines'});
+    const bigTop=bandLabelY-8, bigBottom=bigTop-big;
+    const bigPx=Math.min(1100,Math.round(big*3));
+    images.push({data:_pdfJPEG(_pdfStitchWindow(bigPx)),w:bigPx,h:bigPx,x:M,        y:bigBottom,dw:big,dh:big});
+    images.push({data:_pdfJPEG(_pdfDraftWindow(bigPx)), w:bigPx,h:bigPx,x:M+big+gap,y:bigBottom,dw:big,dh:big});
+
+    const fams=[...new Set(EXP_path.map(s=>s.fam||0))].sort((a,b)=>a-b);
+    if(fams.length>=2){
+      const headY=bigBottom-20;
+      texts.push({x:M,y:headY,size:9.5,text:'Passes / families ('+fams.length+') — one line pass per window'});
+      const availTop=headY-10, gap2=12, labelH=11;
+      const availH=availTop-M;
+      const {cols,cell}=_pdfPassLayout(fams.length,cw,availH,gap2,labelH,Math.min(150,big*0.62));
+      if(cell>8){
+        const rowW=cols*cell+(cols-1)*gap2, x0=M+(cw-rowW)/2;
+        const pitch=cell+labelH+gap2;
+        const cellPx=Math.min(600,Math.round(cell*3));
+        fams.forEach((f,i)=>{
+          const r=Math.floor(i/cols), cc=i%cols;
+          const wx=x0+cc*(cell+gap2);
+          const wTop=availTop-labelH-r*pitch, wBottom=wTop-cell;
+          texts.push({x:wx,y:wTop+2,size:7.5,text:'Pass '+(i+1)});
+          images.push({data:_pdfJPEG(_pdfPassWindow(cellPx,f)),w:cellPx,h:cellPx,x:wx,y:wBottom,dw:cell,dh:cell});
+        });
+      }
+    }
+  }else{
+    // Non-custom patterns have no stitch/family model — render the current full view
+    // as a single centred window so the button still produces a useful sheet.
+    const sStep=step,sZ=_zoom,sPx=_panX,sPy=_panY;
+    if(playing)pause();
+    _zoom=1;_panX=0;_panY=0;_setupCanvasSize(SIZE,SIZE);
+    render(TOTAL);
+    const jpg=_pdfJPEG(cv,0.92);
+    _zoom=sZ;_panX=sPx;_panY=sPy;_setupCanvasSize(SIZE,(isEXP&&EXP_canvasH)?EXP_canvasH:SIZE);
+    step=sStep;render(step);
+    const side=Math.min(cw,A4_H-2*M-80);
+    const x0=M+(cw-side)/2, yTop=A4_H-M-40;
+    images.push({data:jpg,w:cv.width,h:cv.height,x:x0,y:yTop-side,dw:side,dh:side});
+  }
+
+  _pdfDownload(new Blob([_pdfSerialize(A4_W,A4_H,images,texts)],{type:'application/pdf'}),_safeName(curPat)+'.pdf');
+}
+
+// ── Minimal PDF serialiser ───────────────────────────────────────────────────
+// One page, Helvetica (a PDF base-14 font, no embedding needed) for text, and JPEG
+// image XObjects (DCTDecode — the JPEG bytes are embedded verbatim). Objects:
+// 1 Catalog · 2 Pages · 3 Page · 4 Contents · 5 Font · 6…(5+N) Images.
+function _pdfNum(v){return (Math.round(v*100)/100).toString();}
+function _pdfEsc(s){return s.replace(/[\\()]/g,c=>'\\'+c);}
+function _pdfAscii(s){
+  return ((s||'').normalize('NFKD').replace(/[̀-ͯ]/g,'')   // strip diacritics
+    .replace(/[^\x20-\x7e]/g,'').replace(/\s+/g,' ').trim())||'Sashiko pattern';
+}
+function _pdfDownload(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function _pdfSerialize(W,H,images,texts){
+  const parts=[];let len=0;
+  const enc=s=>{const a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i)&0xff;return a;};
+  const put=x=>{const u=typeof x==='string'?enc(x):x;parts.push(u);len+=u.length;};
+  const off=[];
+  const nImg=images.length, fontObj=5, imgObj0=6, nObj=5+nImg;
+
+  // Content stream: place each image, then draw each text run.
+  let cs='';
+  images.forEach((im,i)=>{cs+='q '+_pdfNum(im.dw)+' 0 0 '+_pdfNum(im.dh)+' '+_pdfNum(im.x)+' '+_pdfNum(im.y)+' cm /Im'+i+' Do Q\n';});
+  texts.forEach(t=>{cs+='BT /F1 '+_pdfNum(t.size)+' Tf '+_pdfNum(t.x)+' '+_pdfNum(t.y)+' Td ('+_pdfEsc(t.text)+') Tj ET\n';});
+  const csBytes=enc(cs);
+
+  const startObj=n=>{off[n]=len;put(n+' 0 obj\n');};
+
+  put('%PDF-1.3\n%\xE2\xE3\xCF\xD3\n');
+  startObj(1);put('<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+  startObj(2);put('<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+  let xobj='';for(let i=0;i<nImg;i++)xobj+='/Im'+i+' '+(imgObj0+i)+' 0 R ';
+  startObj(3);
+  put('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+_pdfNum(W)+' '+_pdfNum(H)+'] '+
+      '/Resources << /Font << /F1 '+fontObj+' 0 R >> /XObject << '+xobj+'>> >> /Contents 4 0 R >>\nendobj\n');
+  startObj(4);put('<< /Length '+csBytes.length+' >>\nstream\n');put(csBytes);put('\nendstream\nendobj\n');
+  startObj(5);put('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\nendobj\n');
+  images.forEach((im,i)=>{
+    startObj(imgObj0+i);
+    put('<< /Type /XObject /Subtype /Image /Width '+im.w+' /Height '+im.h+
+        ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+im.data.length+' >>\nstream\n');
+    put(im.data);put('\nendstream\nendobj\n');
+  });
+
+  const xrefOff=len;
+  let xref='xref\n0 '+(nObj+1)+'\n0000000000 65535 f \n';
+  for(let n=1;n<=nObj;n++)xref+=String(off[n]).padStart(10,'0')+' 00000 n \n';
+  put(xref);
+  put('trailer\n<< /Size '+(nObj+1)+' /Root 1 0 R >>\nstartxref\n'+xrefOff+'\n%%EOF');
+
+  const out=new Uint8Array(len);let p=0;for(const u of parts){out.set(u,p);p+=u.length;}
+  return out;
 }
 
 })();
