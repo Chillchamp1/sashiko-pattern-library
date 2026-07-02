@@ -851,7 +851,7 @@ function cadUpdateThumbPreview(){
   galStitch=true; galStitchLen=cadStitchLen; galStitchRatio=cadStitchRatio; galStitchGrid=false; galDraft=false; _galStitchCache=null;
   try{
     EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH; EXP_sz=lay.sz; EXP_szRef=lay.sz;
-    EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode);
+    EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode,{iso:previewPat.gridType==='isometric'});
     TOTAL=EXP_path.length;
     renderExp(TOTAL);
   }catch(e){console.warn('cadThumbPreview',e);}
@@ -1158,7 +1158,7 @@ window.cadTilePlay=function(){
   const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
   if(!fullPath.length)return;
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);
@@ -1478,7 +1478,7 @@ function _cadStitchScene(){
     patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
   if(!fullPath.length){return(_cadStitchCache=empty);}
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);

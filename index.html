@@ -501,6 +501,19 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <input type="checkbox" id="galDraft" onchange="galToggleDraft()"> Draft
     </label>
     <button class="ctrl gal-pop-btn" id="galAdvBtn" onclick="galToggleAdv()">⚙ Advanced ▾</button>
+    <label class="cad-routing-toggle" title="Test a different stitch routing — view only, never saved to the pattern" style="margin-left:4px">🔀
+      <select id="galRoutingSel" onchange="galSetRouting(this.value)">
+        <option value="" selected>Routing: saved</option>
+        <option value="default">1 · Straight rows</option>
+        <option value="rows2">1b · Rows v2 · ordered</option>
+        <option value="rows2e">1c · Rows v2 · efficient</option>
+        <option value="continuous">2 · Zigzag</option>
+        <option value="zigzag2">2b · Zigzag v2</option>
+        <option value="contour">3 · Waves</option>
+        <option value="waves2">3b · Waves v2</option>
+        <option value="sequential">4 · One by one</option>
+      </select>
+    </label>
     <!-- Thread-colour preview: keep stitches off-white, or paint each family -->
     <div class="gal-pop gal-colours" id="galColours" style="display:none">
       <div class="gal-pal-tabs">
@@ -659,8 +672,12 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <label class="cad-routing-toggle">Routing:
               <select id="cadRoutingMode" onchange="cadUpdateSettings()">
                 <option value="default" selected>1 · Straight rows</option>
+                <option value="rows2">1b · Rows v2 · ordered</option>
+                <option value="rows2e">1c · Rows v2 · efficient</option>
                 <option value="continuous">2 · Zigzag</option>
+                <option value="zigzag2">2b · Zigzag v2</option>
                 <option value="contour">3 · Waves</option>
+                <option value="waves2">3b · Waves v2</option>
                 <option value="sequential">4 · One by one (motifs)</option>
               </select>
             </label>
@@ -5559,7 +5576,7 @@ function _reloadExpWithTiles(){
   const effPat={...curPat,patMacro:_tileCells};
   setupExpCanvas(effPat);
   const expLay=computeExpLayout(effPat);
-  EXP_path=filterVisiblePath(expPathFor(tiledSegsFor(effPat),effPat),expLay);
+  EXP_path=filterVisiblePath(_expPathForView(effPat),expLay);
   TOTAL=EXP_path.length;
   _galStitchCache=null;_galDraftCache=null;
   step=TOTAL;
@@ -5688,6 +5705,7 @@ function loadPattern(pat){
   if(window.goatcounter?.count) window.goatcounter.count({path:'pattern/'+pat.id,title:pat.name||pat.id,event:true});
 
   if(isEXP){
+    _galResetRouting();   // routing test switcher is per-view, reset on every load
     _tileCells=pat.patMacro||3;
     const lbl=document.getElementById('tileCellsVal');if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
     const effPat={...pat,patMacro:_tileCells};
@@ -5696,7 +5714,7 @@ function loadPattern(pat){
     // per line is invariant under the gallery tile-count picker (stepTileCells).
     EXP_szRef=computeExpLayout({...pat,patMacro:pat.patMacro||3}).sz;
     const expLay=computeExpLayout(effPat);
-    EXP_path=filterVisiblePath(expPathFor(tiledSegsFor(effPat),effPat),expLay);
+    EXP_path=filterVisiblePath(_expPathForView(effPat),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='';
     const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
@@ -7032,7 +7050,7 @@ function _flattenArc(l, nSegs, arcId){
 // as 1), so it keeps v1. Everything published from then on gets v2. <<<
 const ROUTING_ENGINE_CURRENT = 1;
 const ROUTING_ENGINES = {
-  1: { genTiledSegs:(p)=>genTiledSegs(p), buildExpPath:(segs,fo,rm)=>buildExpPath(segs,fo,rm) },
+  1: { genTiledSegs:(p)=>genTiledSegs(p), buildExpPath:(segs,fo,rm,op)=>buildExpPath(segs,fo,rm,op) },
 };
 // The engine a pattern must route with. Published → its pinned version (a missing field
 // means "published before versioning" = engine 1). Unpublished (sandbox/new/remix/edit)
@@ -7044,7 +7062,7 @@ function routingEngineFor(pat){
 // Route an exp pattern's tiled segments / stitch path through its pinned engine.
 // Use these (not the bare genTiledSegs/buildExpPath) at every GALLERY-facing call site.
 function tiledSegsFor(pat){ return routingEngineFor(pat).genTiledSegs(pat); }
-function expPathFor(segs, pat){ return routingEngineFor(pat).buildExpPath(segs, pat.famOrder, pat.routingMode); }
+function expPathFor(segs, pat){ return routingEngineFor(pat).buildExpPath(segs, pat.famOrder, pat.routingMode, {iso:!!pat&&pat.gridType==='isometric'}); }
 
 // ── Tiled segments (with symmetry-family assignment) ───────────────────────
 function genTiledSegs(pat){
@@ -7419,7 +7437,7 @@ window.loadStitchingProfile=async function(profileId){
   _saveLocal();
   _famToggles={};
   setupExpCanvas(curPat);
-  EXP_path=expPathFor(tiledSegsFor(curPat),curPat);
+  EXP_path=_expPathForView(curPat);   // honour the gallery routing test switcher if active
   TOTAL=EXP_path.length; PASSES=[];
   step=TOTAL;
   if(playing)pause();
@@ -7578,10 +7596,13 @@ function _stitchChains(chains, tol){
   return chains;
 }
 
-function buildExpPath(lines, famOrderOverride, routingMode){
+function buildExpPath(lines, famOrderOverride, routingMode, v2opts){
   if(!lines||!lines.length)return[];
 
   const mode=routingMode||'default';
+  // v2 modes route through their own additive pipeline; the four original modes
+  // below stay byte-identical (verified via tools/routing/route.js --check).
+  if(_isV2Mode(mode))return buildExpPathV2(lines,famOrderOverride,mode,v2opts||{});
   const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:120*Math.PI/180, sequential:90*Math.PI/180};
   const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
 
@@ -8185,6 +8206,362 @@ function matchVertex(d,cost,maxCost){
   return bestArr||new Int32Array(d).fill(-1);
 }
 
+// ══════════ Routing v2 (additive modes — the four original modes are untouched) ══════════
+// Four NEW selectable routing modes in a separate pipeline (buildExpPath dispatches here
+// before touching any v1 code path):
+//   rows2   "1b · Straight rows v2 · ordered"   — robust band-snake: gap-CLUSTERED bands
+//           with RANK parity (fixes min-gap pitch collapse + parity scramble), CENTROID
+//           band coordinate (per ROUTING.md Rule 3), movement-type + 30° orientation bins,
+//           NN fallback when banding degenerates. Prefers the most PREDICTABLE candidate
+//           ordering within 15% of the cheapest.
+//   rows2e  "1c · Straight rows v2 · efficient" — same candidates, always the cheapest by
+//           (jumps over the carry cap, then total jump length).
+//   zigzag2 "2b · Zigzag v2" — strokes built from the POOLED segment set instead of per
+//           family, so ±slope zigzag legs chain through every apex into true edge-to-edge
+//           runs (per-family building broke the chain at every apex); the drawn family is
+//           kept per SEGMENT for colouring.
+//   waves2  "3b · Waves v2" — contour waves exactly as mode 3 builds them, but ordered with
+//           the robust band-snake / NN fallback instead of the fragile min-gap pitch.
+// Shared v2 rules (user decisions 2026-07-02):
+//   • HARD CARRY CAP — a back-carry longer than ~1.5× the family's row advance means
+//     "cut the thread" in real sashiko; such jumps are penalised lexicographically BEFORE
+//     total jump length when choosing between candidate orderings.
+//   • TRADITIONAL FAMILY ORDER when the pattern has no famOrder: all horizontals → all
+//     verticals → diagonals → curves/mixed (screen-space orientation, iso-aware).
+//   • Closed loops assembled from several OPEN arcs enter at a drawn arc ENDPOINT
+//     (fixes the mid-arc entries _rotateClosedEntry produced on e.g. Maru Shippō).
+function _isV2Mode(m){return m==='rows2'||m==='rows2e'||m==='zigzag2'||m==='waves2';}
+
+// Vertex key aligned to the router's vertex-merge resolution (Q=1e-4 in
+// buildStrokesForFamily): two coordinates the router treats as ONE vertex always
+// produce the same key, so arc-endpoint / fam lookups can't miss on float noise.
+function _v2VKey(p){return Math.round(p[0]*1e4)+','+Math.round(p[1]*1e4);}
+
+// Length, length-weighted centroid, net orientation [0,π) and movement type of one stroke
+// (ROUTING.md Rule 3: Σ|turn| small ⇒ straight 0; alternating signs ⇒ zigzag 1; else curve 2).
+function _v2StrokeInfo(pts){
+  let len=0,cx=0,cy=0;
+  for(let k=1;k<pts.length;k++){
+    const l=Math.hypot(pts[k][0]-pts[k-1][0],pts[k][1]-pts[k-1][1]);
+    len+=l; cx+=(pts[k][0]+pts[k-1][0])/2*l; cy+=(pts[k][1]+pts[k-1][1])/2*l;
+  }
+  if(len>1e-9){cx/=len;cy/=len;}else{cx=pts[0][0];cy=pts[0][1];}
+  // Net orientation: first→last for open strokes (a zigzag's march direction);
+  // segment double-angle mean for closed loops.
+  let dx=pts[pts.length-1][0]-pts[0][0], dy=pts[pts.length-1][1]-pts[0][1];
+  if(Math.hypot(dx,dy)<1e-6){
+    let sc=0,ss=0;
+    for(let k=1;k<pts.length;k++){
+      const ux=pts[k][0]-pts[k-1][0],uy=pts[k][1]-pts[k-1][1],l=Math.hypot(ux,uy);
+      if(l<1e-9)continue; const a=Math.atan2(uy,ux);
+      sc+=l*Math.cos(2*a); ss+=l*Math.sin(2*a);
+    }
+    const a=0.5*Math.atan2(ss,sc); dx=Math.cos(a); dy=Math.sin(a);
+  }
+  let ang=Math.atan2(dy,dx); if(ang<0)ang+=Math.PI; if(ang>=Math.PI-1e-9)ang=0;
+  let sum=0,pos=0,neg=0;
+  for(let k=1;k<pts.length-1;k++){
+    const ax=pts[k][0]-pts[k-1][0],ay=pts[k][1]-pts[k-1][1];
+    const bx=pts[k+1][0]-pts[k][0],by=pts[k+1][1]-pts[k][1];
+    if(Math.hypot(ax,ay)<1e-9||Math.hypot(bx,by)<1e-9)continue;
+    const t=Math.atan2(ax*by-ay*bx,ax*bx+ay*by);
+    sum+=Math.abs(t); if(t>0.03)pos++; else if(t<-0.03)neg++;
+  }
+  const kind=sum<Math.PI/6?0:(pos&&neg?1:2);
+  return{pts,len,cx,cy,ang,kind};
+}
+
+// Cluster 1-D band coordinates at their natural break (robust replacement for the v1
+// min-gap pitch): if the sorted gap magnitudes contain a clear jump (ratio > 4), gaps
+// below it are float noise / same row and get merged; otherwise every distinct value is
+// its own band. Returns each value's band RANK (0,1,2,… consecutive), so snake parity
+// rank%2 alternates row by row BY CONSTRUCTION — no empty band indices.
+function _v2BandRanks(vals){
+  const idx=vals.map((v,i)=>[v,i]).sort((a,b)=>a[0]-b[0]);
+  const gaps=[];
+  for(let k=1;k<idx.length;k++){const g=idx[k][0]-idx[k-1][0];if(g>1e-9)gaps.push(g);}
+  let tol=1e-9;
+  if(gaps.length>1){
+    const sg=[...gaps].sort((a,b)=>a-b);
+    const span=idx[idx.length-1][0]-idx[0][0];
+    let bestR=0,at=-1;
+    for(let k=1;k<sg.length;k++){const r=sg[k]/Math.max(sg[k-1],1e-12);if(r>bestR){bestR=r;at=k;}}
+    // Merge only true float noise: a >4× gap-magnitude jump AND the smaller side must be
+    // tiny vs the average row advance. Without the second test a genuine cluster gap
+    // (e.g. from `spacing`) would collapse whole pitch-1 rows into one band.
+    if(bestR>4 && sg[at-1] < 0.25*span/Math.max(1,vals.length-1))
+      tol=Math.sqrt(sg[at]*sg[at-1]);   // geometric mean separates noise from rows
+  }
+  const ranks=new Array(vals.length); let band=0;
+  for(let k=0;k<idx.length;k++){
+    if(k>0&&idx[k][0]-idx[k-1][0]>tol)band++;
+    ranks[idx[k][1]]=band;
+  }
+  return ranks;
+}
+
+// Band-snake one stroke set along one axis: clustered CENTROID perpendicular coordinate,
+// bands swept in rank order, alternate bands reversed (snake).
+function _v2BandSnake(infos,axisAng){
+  const ax=Math.cos(axisAng),ay=Math.sin(axisAng),px=-Math.sin(axisAng),py=Math.cos(axisAng);
+  const bc=infos.map(s=>s.cx*px+s.cy*py);
+  const band=_v2BandRanks(bc);
+  const order=infos.map((s,i)=>({s,band:band[i],ac:s.cx*ax+s.cy*ay}));
+  order.sort((a,b)=>a.band!==b.band?a.band-b.band:(a.band%2===0?a.ac-b.ac:b.ac-a.ac));
+  return order.map(o=>o.s);
+}
+
+// Greedy nearest-neighbour ordering over stroke endpoints (degeneracy fallback and the
+// "efficient" candidate). Deterministic start: nearest to the top-left.
+function _v2NN(infos,start){
+  const rem=infos.slice(),out=[];
+  let cur=start||null;
+  while(rem.length){
+    let bi=0,bd=Infinity;
+    for(let i=0;i<rem.length;i++){
+      const p=rem[i].pts,s=p[0],e=p[p.length-1];
+      const d=cur?Math.min(Math.hypot(s[0]-cur[0],s[1]-cur[1]),Math.hypot(e[0]-cur[0],e[1]-cur[1]))
+                 :Math.min(s[0]+s[1],e[0]+e[1]);
+      if(d<bd){bd=d;bi=i;}
+    }
+    const s=rem.splice(bi,1)[0];out.push(s);
+    const p=s.pts,ps=p[0],pe=p[p.length-1];
+    if(!cur)cur=(ps[0]+ps[1]<=pe[0]+pe[1])?pe:ps;
+    else cur=(Math.hypot(ps[0]-cur[0],ps[1]-cur[1])<=Math.hypot(pe[0]-cur[0],pe[1]-cur[1]))?pe:ps;
+  }
+  return out;
+}
+
+// A jump longer than the carry cap means cutting + re-anchoring the thread. That is
+// drastically — but finitely — more expensive than carrying: one cut ≈ V2_CUT grid
+// units of extra carry. Score = jumpLen + V2_CUT · (jumps over cap).
+const V2_CUT=30;
+function _v2Score(c){return c.len+V2_CUT*c.over;}
+// Simulated emit cost of an ordering (nearest-end entry per stroke): total jump length
+// plus the count of jumps longer than the carry cap.
+function _v2Cost(infos,cap){
+  let over=0,len=0,cur=null;
+  for(const s of infos){
+    const p=s.pts,ps=p[0],pe=p[p.length-1];
+    // Match _v2Emit: a closed loop is entered at its nearest vertex and returns there,
+    // so the jump is to that vertex and the needle resumes from it (not from pts[0]).
+    const closed=p.length>=3&&Math.hypot(ps[0]-pe[0],ps[1]-pe[1])<1e-3;
+    if(cur){
+      let d,nx;
+      if(closed){
+        d=Infinity;
+        for(let k=0;k<p.length-1;k++){const dd=Math.hypot(p[k][0]-cur[0],p[k][1]-cur[1]);if(dd<d){d=dd;nx=p[k];}}
+      }else{
+        const dS=Math.hypot(ps[0]-cur[0],ps[1]-cur[1]),dE=Math.hypot(pe[0]-cur[0],pe[1]-cur[1]);
+        d=Math.min(dS,dE); nx=dS<=dE?pe:ps;
+      }
+      len+=d; if(d>cap)over++;
+      cur=nx;
+    }else cur=closed?ps:pe;
+  }
+  return{over,len};
+}
+
+// Carry cap for one family ≈ 1.5× the median row advance of its banded layout
+// (row-to-row jumps stay free; cross-canvas returns count as thread cuts), floor 2 units.
+function _v2Cap(infos,axisAng){
+  const px=-Math.sin(axisAng),py=Math.cos(axisAng);
+  const bc=infos.map(s=>s.cx*px+s.cy*py);
+  const ranks=_v2BandRanks(bc),sum=new Map(),cnt=new Map();
+  bc.forEach((v,i)=>{const r=ranks[i];sum.set(r,(sum.get(r)||0)+v);cnt.set(r,(cnt.get(r)||0)+1);});
+  const means=[...sum.keys()].sort((a,b)=>a-b).map(r=>sum.get(r)/cnt.get(r));
+  const gaps=[];for(let k=1;k<means.length;k++)gaps.push(means[k]-means[k-1]);
+  gaps.sort((a,b)=>a-b);
+  const med=gaps.length?gaps[gaps.length>>1]:0;
+  return Math.max(2,1.5*med);
+}
+
+// Length-weighted double-angle mean axis + orientation concentration R (1 = aligned).
+function _v2Axis(infos){
+  let sc=0,ss=0,w=0;
+  infos.forEach(s=>{const wt=s.len||1;sc+=wt*Math.cos(2*s.ang);ss+=wt*Math.sin(2*s.ang);w+=wt;});
+  return{ang:0.5*Math.atan2(ss,sc),R:w>0?Math.hypot(sc,ss)/w:0};
+}
+
+// Order one family's strokes. Candidates:
+//   A  single-axis band-snake with robust clustered bands (most predictable),
+//   B  movement-type + 30° orientation bins, band-snake per bin (ROUTING.md Rule 3),
+//   D  the v1 orderStrokesFamily ordering (guarantees v2 is never worse than v1),
+//   C  nearest-neighbour (most efficient).
+// variant 'ordered' → most predictable candidate within 15% of the cheapest score;
+// variant 'efficient' → outright cheapest.
+function _v2OrderFamily(strokes,variant){
+  const infos=strokes.map(p=>_v2StrokeInfo(p)).filter(s=>s.pts.length>=2);
+  if(infos.length<=1)return infos;
+  const axis=_v2Axis(infos);
+  const cap=_v2Cap(infos,axis.ang);
+  const cands=[{o:_v2BandSnake(infos,axis.ang),rank:0}];
+  const bins=new Map();
+  infos.forEach(s=>{
+    const key=s.kind*100+Math.floor(s.ang/(Math.PI/6));
+    if(!bins.has(key))bins.set(key,[]);
+    bins.get(key).push(s);
+  });
+  if(bins.size>1){
+    const o=[];
+    [...bins.keys()].sort((a,b)=>a-b).forEach(k=>{
+      const g=bins.get(k);
+      if(g.length>1)o.push(..._v2BandSnake(g,_v2Axis(g).ang)); else o.push(g[0]);
+    });
+    cands.push({o,rank:1});
+  }
+  cands.push({o:orderStrokesFamily(infos.map(s=>s.pts)).map(s=>_v2StrokeInfo(s.pts)),rank:2});
+  cands.push({o:_v2NN(infos,null),rank:3});
+  cands.forEach(c=>{c.cost=_v2Cost(c.o,cap);c.score=_v2Score(c.cost);});
+  cands.sort((x,y)=>x.score!==y.score?x.score-y.score:x.rank-y.rank);
+  if(variant==='efficient')return cands[0].o;
+  // ordered: the most predictable candidate within 15% of the cheapest score —
+  // banding only yields to NN when it is MATERIALLY worse (degenerate banding).
+  const best=cands[0];
+  for(const c of [...cands].sort((x,y)=>x.rank-y.rank)){
+    if(c.score<=best.score*1.15+1e-9)return c.o;
+  }
+  return best.o;
+}
+
+// Traditional pass class of one family: 0 horizontal, 1 vertical, 2 diagonal,
+// 3 curves/mixed. Screen-space orientation; iso grids map (u,v)→screen like
+// autoAssignFamilies (dx=du−dv, dy=du+dv).
+function _v2FamClass(infos,iso,arcFrac){
+  let sc=0,ss=0,w=0;
+  infos.forEach(s=>{
+    let dx=Math.cos(s.ang),dy=Math.sin(s.ang);
+    if(iso){const du=dx,dv=dy;dx=du-dv;dy=du+dv;}
+    let a=Math.atan2(dy,dx);if(a<0)a+=Math.PI;
+    const wt=s.len||1;sc+=wt*Math.cos(2*a);ss+=wt*Math.sin(2*a);w+=wt;
+  });
+  const R=w>0?Math.hypot(sc,ss)/w:0;
+  let a=0.5*Math.atan2(ss,sc);if(a<0)a+=Math.PI;
+  if(arcFrac>0.5||R<0.3)return{cls:3,a};
+  if(Math.min(a,Math.PI-a)<Math.PI/12)return{cls:0,a};   // horizontal ±15°
+  if(Math.abs(a-Math.PI/2)<Math.PI/12)return{cls:1,a};   // vertical ±15°
+  return{cls:2,a};
+}
+
+// Drawn-arc ENDPOINT keys (open arcs only) — the legal entry vertices for closed loops
+// assembled from several open arcs. Drawn full circles (single closed aid) contribute
+// nothing: they may legitimately start anywhere.
+function _v2ArcEndpoints(segs){
+  const K=_v2VKey;
+  const first=new Map(),last=new Map();
+  for(const s of segs){
+    if(s.aid===undefined||s.aid<0)continue;
+    if(!first.has(s.aid))first.set(s.aid,s.start);
+    last.set(s.aid,s.end);
+  }
+  const set=new Set();
+  for(const[aid,f]of first){
+    const kf=K(f),kl=K(last.get(aid));
+    if(kf===kl)continue;
+    set.add(kf);set.add(kl);
+  }
+  return set;
+}
+// Like _rotateClosedEntry, but restricted to drawn arc endpoints when the loop
+// contains any; falls back to nearest-anywhere for pure-line loops / drawn circles.
+function _rotateClosedEntryV2(pts,needle,allowed){
+  const n=pts.length-1;if(n<2)return pts;
+  const K=_v2VKey;
+  let best=-1,bestD=Infinity;
+  if(allowed&&allowed.size){
+    for(let r=0;r<n;r++){
+      if(!allowed.has(K(pts[r])))continue;
+      const d=Math.hypot(pts[r][0]-needle[0],pts[r][1]-needle[1]);
+      if(d<bestD){bestD=d;best=r;}
+    }
+  }
+  if(best<0)return _rotateClosedEntry(pts,needle);
+  if(best===0)return pts;
+  const core=pts.slice(0,n);
+  return[...core.slice(best),...core.slice(0,best),core[best].slice()];
+}
+
+// Shared v2 emit: family by family, nearest-end entry per stroke, closed loops enter
+// at a drawn arc endpoint where one exists.
+function _v2Emit(famSeq,allowed){
+  const path=[];let cur=null;
+  for(const fam of famSeq){
+    for(const s of fam.strokes){
+      let pts=s.pts;
+      const closed=pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3;
+      if(closed)pts=_rotateClosedEntryV2(pts,cur||pts[0],allowed);
+      else if(cur){
+        const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
+        const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
+        if(dE<dS)pts=pts.slice().reverse();
+      }
+      for(let k=0;k<pts.length-1;k++)path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:fam.fi});
+      cur=pts[pts.length-1];
+    }
+  }
+  return path;
+}
+
+function buildExpPathV2(lines,famOrderOverride,mode,opts){
+  const iso=!!(opts&&opts.iso);
+  const allowed=_v2ArcEndpoints(lines);
+  const famGroups=new Map();
+  lines.forEach(l=>{const fi=l.fam||0;if(!famGroups.has(fi))famGroups.set(fi,[]);famGroups.get(fi).push(l);});
+
+  if(mode==='zigzag2'){
+    // Pooled stroke building: all families in ONE buildStrokesForFamily call so ±slope
+    // legs chain through every apex (Tsuzuki Yamagata: 2 edge-to-edge chains instead of
+    // 878 apex-broken ones). The drawn family is recovered per segment for colouring.
+    const SK=(a,b)=>{const k1=_v2VKey(a),k2=_v2VKey(b);return k1<k2?k1+'|'+k2:k2+'|'+k1;};
+    const famOfSeg=new Map();
+    lines.forEach(l=>famOfSeg.set(SK(l.start,l.end),l.fam||0));
+    const ordered=_v2NN(buildStrokesForFamily(lines,Math.PI).map(p=>_v2StrokeInfo(p)).filter(s=>s.pts.length>=2),null);
+    const path=[];let cur=null,lastFam=0;
+    for(const s of ordered){
+      let pts=s.pts;
+      const closed=pts.length>=3&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<1e-3;
+      if(closed)pts=_rotateClosedEntryV2(pts,cur||pts[0],allowed);
+      else if(cur){
+        const dS=Math.hypot(pts[0][0]-cur[0],pts[0][1]-cur[1]);
+        const dE=Math.hypot(pts[pts.length-1][0]-cur[0],pts[pts.length-1][1]-cur[1]);
+        if(dE<dS)pts=pts.slice().reverse();
+      }
+      for(let k=0;k<pts.length-1;k++){
+        const f=famOfSeg.get(SK(pts[k],pts[k+1]));
+        if(f!==undefined)lastFam=f;
+        path.push({start:pts[k],end:pts[k+1],jump:!!cur&&k===0,fam:lastFam});
+      }
+      cur=pts[pts.length-1];
+    }
+    return path;
+  }
+
+  const variant=mode==='rows2e'?'efficient':'ordered';
+  const famData=[];
+  for(const[fi,segs]of famGroups){
+    const strokes=mode==='waves2'?buildContourStrokes(segs,120*Math.PI/180)
+                                 :buildStrokesForFamily(segs,90*Math.PI/180);
+    const infos=_v2OrderFamily(strokes,variant);
+    if(!infos.length)continue;
+    let arcLen=0,totLen=0;
+    for(const s of segs){
+      const l=Math.hypot(s.end[0]-s.start[0],s.end[1]-s.start[1]);
+      totLen+=l; if(s.aid!==undefined&&s.aid>=0)arcLen+=l;
+    }
+    const cl=_v2FamClass(infos,iso,totLen>0?arcLen/totLen:0);
+    famData.push({fi,strokes:infos,cls:cl.cls,a:cl.a});
+  }
+  if(!famData.length)return[];
+  if(famOrderOverride&&famOrderOverride.length){
+    const pos=new Map();famOrderOverride.forEach((fi,i)=>pos.set(fi,i));
+    famData.sort((x,y)=>((pos.has(x.fi)?pos.get(x.fi):1e9)-(pos.has(y.fi)?pos.get(y.fi):1e9))||x.fi-y.fi);
+  }else{
+    // Traditional pass order: horizontals → verticals → diagonals → curves/mixed.
+    famData.sort((x,y)=>x.cls-y.cls||x.a-y.a||x.fi-y.fi);
+  }
+  return _v2Emit(famData,allowed);
+}
+
 function drawExpGuide(){
   if(!curPat||!EXP_g2s)return;
   const lay=computeExpLayout(curPat);
@@ -8467,11 +8844,32 @@ window.openExpPattern=function openExpPattern(idOrPat){
   window.scrollTo({top:0,behavior:'smooth'});
 };
 
+// ── Gallery routing test switcher (view-only — never saved to the pattern) ──
+// '' = the pattern's saved routingMode through its pinned engine; any other value
+// re-routes the CURRENT view with that mode on the current engine, so every mode
+// (including the v2 ones) can be compared per pattern without touching its data.
+let _galRouteOverride='';
+window.galSetRouting=function(v){
+  _galRouteOverride=v||'';
+  if(curPat&&curPat.type==='exp')_reloadExpWithTiles();
+};
+function _galResetRouting(){
+  _galRouteOverride='';
+  const sel=document.getElementById('galRoutingSel');if(sel)sel.value='';
+}
+// Stitch path for the gallery viewer: saved mode via the pinned engine, or the
+// test-switcher mode on the current engine while the override is active.
+function _expPathForView(effPat){
+  const segs=tiledSegsFor(effPat);
+  if(!_galRouteOverride)return expPathFor(segs,effPat);
+  return buildExpPath(segs,effPat.famOrder,_galRouteOverride,{iso:effPat.gridType==='isometric'});
+}
+
 // Re-run the router on the current custom pattern (no redraw needed when routing rules change).
 window.rerouteExp=function rerouteExp(){
   if(!curPat||curPat.type!=='exp')return;
   setupExpCanvas(curPat);
-  EXP_path=expPathFor(tiledSegsFor(curPat),curPat);
+  EXP_path=_expPathForView(curPat);
   TOTAL=EXP_path.length; PASSES=[];
   step=0; if(playing)pause();
   buildJumpBar(); render(0);
@@ -9538,7 +9936,7 @@ function cadUpdateThumbPreview(){
   galStitch=true; galStitchLen=cadStitchLen; galStitchRatio=cadStitchRatio; galStitchGrid=false; galDraft=false; _galStitchCache=null;
   try{
     EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH; EXP_sz=lay.sz; EXP_szRef=lay.sz;
-    EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode);
+    EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode,{iso:previewPat.gridType==='isometric'});
     TOTAL=EXP_path.length;
     renderExp(TOTAL);
   }catch(e){console.warn('cadThumbPreview',e);}
@@ -9845,7 +10243,7 @@ window.cadTilePlay=function(){
   const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
   if(!fullPath.length)return;
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);
@@ -10165,7 +10563,7 @@ function _cadStitchScene(){
     patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode);
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
   if(!fullPath.length){return(_cadStitchCache=empty);}
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);

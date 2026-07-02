@@ -27,7 +27,7 @@ Interactive Sashiko pattern library with animated stitch-by-stitch preview. All 
 | `src/render.js` | Animation state, render dispatcher, `loadPattern`, zoom/pan | ~300 |
 | `src/generator.js` | Generator UI, playback, thumbnails | ~240 |
 | `src/gallery.js` | `buildGallery`, `filterGallery`, view switching | ~101 |
-| `src/experimental.js` | Custom Patterns (experimental), Firebase sync, family auto-assignment, trash, edit-pattern, deep links | ~1175 |
+| `src/experimental.js` | Custom Patterns (experimental), Firebase sync, family auto-assignment, routing (v1 + additive v2 pipeline), edit-pattern, deep links | ~2760 |
 | `src/cad-engine.js` | CAD editor, family colors, play animation, spacing, init | ~560 |
 | `src/download.js` | Gallery "About" toggle; pattern-viewer Download dropdown (self-contained animated-GIF encoder; PDF/STL placeholders) | ~210 |
 
@@ -58,7 +58,7 @@ node tools/routing/route.js --snapshot      # write golden test/routing-snapshot
 node tools/routing/route.js --check         # diff vs golden, exit 1 on any change
 ```
 
-Metrics: `strokes`, `jumps`, `jumpLen`, `maxTurn` (sharpest in-stroke turn), `midArc` (strokes that start mid-arc — **must be 0**). `load-routing.js` loads the live `src/` functions (no copy-paste, can't drift). Fixtures in `test/patterns/` and the snapshot are committed. When a routing change is intentional, re-run `--snapshot`. The four routing modes are `default`, `continuous`, `contour`, `sequential` (see `ROUTING.md`); `route.js` tests all four (`MODES`).
+Metrics: `strokes`, `jumps`, `jumpLen`, `maxTurn` (sharpest in-stroke turn), `midArc` (strokes that start mid-arc — **must be 0**; NB the metric false-positives on closed circles assembled from several open arcs, which v1 `default` triggers on Maru Shippō — the v2 modes report 0 there). `load-routing.js` loads the live `src/` functions (no copy-paste, can't drift). Fixtures in `test/patterns/` and the snapshot are committed. When a routing change is intentional, re-run `--snapshot`. The four v1 routing modes are `default`, `continuous`, `contour`, `sequential` (see `ROUTING.md`); `route.js` tests all four (`MODES`, = the snapshot surface). The four **v2 modes** `rows2`, `rows2e`, `zigzag2`, `waves2` (additive pipeline, ROUTING.md "Routing v2") are testable per pattern via the explicit mode arg, e.g. `node tools/routing/route.js asanoha rows2` — deliberately not in `MODES`, so the golden snapshot keeps guarding v1.
 
 ---
 
@@ -74,6 +74,8 @@ To prevent that, published gallery patterns are **pinned** to the routing engine
 - **Stamping:** `cadPublishToLibrary` new publish → `ROUTING_ENGINE_CURRENT`; re-publish/edit of an existing pattern → preserves the pinned value. `publishExpPattern` (promote sandbox→gallery) → stamps current. `cadSaveToLibrary` preserves it on edit. The Firestore rules cap keys at 80 (not a whitelist), so the new field needs no rules change; `_pushToFirestore` spreads all fields so it round-trips.
 
 **Today there is ONE engine (v1 === the live functions), so the whole layer is a transparent pass-through — zero behavioral change** (verified: `route.js --check` diff is identical with/without the layer; it's fixture drift only).
+
+**Routing v2 modes are NOT an engine fork:** `rows2`/`rows2e`/`zigzag2`/`waves2` are additive mode *values* dispatched from `buildExpPath` into a separate `buildExpPathV2` pipeline (`_isV2Mode`, section "Routing v2" in `experimental.js`; rules in ROUTING.md "Routing v2"). The four original mode values behave byte-identically (verified vs the golden snapshot), so no published pattern changes until a pattern is explicitly saved/published with a v2 mode. The gallery viewer additionally has a **view-only routing switcher** (`#galRoutingSel` in `#stitchViewBar`; `galSetRouting`/`_galRouteOverride`/`_expPathForView` in `experimental.js`) to preview any of the eight modes per pattern without saving; it resets on every pattern load (`_galResetRouting` in `loadPattern`) and also drives `_reloadExpWithTiles`, so the tile-count picker keeps the override. `buildExpPath` gained an optional 4th param `v2opts` (`{iso}`, threaded through `expPathFor`, the engine-1 wrapper and the CAD call sites) — only the v2 traditional family classification (H→V→diagonal→curves) reads it.
 
 **>>> WHEN YOU CHANGE ROUTING, FORK FIRST:**
 1. Copy the current `genTiledSegs` + `buildExpPath` + their private helpers (`buildStrokesForFamily`, `matchVertex`, `orderStrokesFamily`, `buildContourStrokes`, `_buildMotifPath`, …) to frozen `*_v1` versions — never edit those again.

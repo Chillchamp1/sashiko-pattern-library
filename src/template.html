@@ -99,6 +99,19 @@
       <input type="checkbox" id="galDraft" onchange="galToggleDraft()"> Draft
     </label>
     <button class="ctrl gal-pop-btn" id="galAdvBtn" onclick="galToggleAdv()">⚙ Advanced ▾</button>
+    <label class="cad-routing-toggle" title="Test a different stitch routing — view only, never saved to the pattern" style="margin-left:4px">🔀
+      <select id="galRoutingSel" onchange="galSetRouting(this.value)">
+        <option value="" selected>Routing: saved</option>
+        <option value="default">1 · Straight rows</option>
+        <option value="rows2">1b · Rows v2 · ordered</option>
+        <option value="rows2e">1c · Rows v2 · efficient</option>
+        <option value="continuous">2 · Zigzag</option>
+        <option value="zigzag2">2b · Zigzag v2</option>
+        <option value="contour">3 · Waves</option>
+        <option value="waves2">3b · Waves v2</option>
+        <option value="sequential">4 · One by one</option>
+      </select>
+    </label>
     <!-- Thread-colour preview: keep stitches off-white, or paint each family -->
     <div class="gal-pop gal-colours" id="galColours" style="display:none">
       <div class="gal-pal-tabs">
@@ -257,8 +270,12 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <label class="cad-routing-toggle">Routing:
               <select id="cadRoutingMode" onchange="cadUpdateSettings()">
                 <option value="default" selected>1 · Straight rows</option>
+                <option value="rows2">1b · Rows v2 · ordered</option>
+                <option value="rows2e">1c · Rows v2 · efficient</option>
                 <option value="continuous">2 · Zigzag</option>
+                <option value="zigzag2">2b · Zigzag v2</option>
                 <option value="contour">3 · Waves</option>
+                <option value="waves2">3b · Waves v2</option>
                 <option value="sequential">4 · One by one (motifs)</option>
               </select>
             </label>

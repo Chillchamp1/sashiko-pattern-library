@@ -16,6 +16,23 @@ The CAD editor exposes four routing logics via the **Routing** dropdown (`cadRou
 
 Legacy values `smooth` (60°) and `fewer-jumps` (120°) are Logik-1 variants kept for backward compatibility; collapsed to `default` on edit.
 
+### Routing v2 (additive modes, 2026-07-02)
+
+Four additional modes route through a **separate pipeline** (`buildExpPathV2` in `experimental.js`); the four original modes above are byte-identical to before (verified via `route.js --check`). They fix the measured v1 ordering defects (min-gap pitch collapse, band-index parity scramble, first-point banding, meaningless mean axis on mixed-orientation families, per-family zigzag apex breaks, mid-arc entry into assembled circles).
+
+| # | Mode | value | How |
+|---|---|---|---|
+| **1b** | Rows v2 · ordered | `rows2` | Robust band-snake: bands from **gap-clustered** centroid coordinates with **rank** parity (snake alternates by construction), movement-type + 30° orientation bins (the Rule-3 levels 1–2, previously unimplemented), v1 ordering and NN as fallback candidates. Picks the most **predictable** candidate within 15 % of the cheapest score. |
+| **1c** | Rows v2 · efficient | `rows2e` | Same candidate set, always the **cheapest** score. |
+| **2b** | Zigzag v2 | `zigzag2` | Strokes built from the **pooled** segment set (not per family), so ±slope zigzag legs chain through every apex into true edge-to-edge runs (Tsuzuki Yamagata: 2 strokes instead of 878); drawn family kept per segment for colouring; chains ordered by global NN. |
+| **3b** | Waves v2 | `waves2` | Contour waves exactly as mode 3 builds them, ordered with the robust band-snake / fallback candidates instead of the fragile min-gap pitch. |
+
+Shared v2 rules (owner decisions 2026-07-02):
+- **Hard carry cap** — a back-carry longer than ~1.5× the family's row advance (floor 2 grid units) counts as a thread cut; candidate scores charge `V2_CUT` (30 grid units) per over-cap jump, so orderings that avoid cuts win even at higher total carry.
+- **Traditional family order** when the pattern has no `famOrder`: all horizontals → all verticals → diagonals → curves/mixed (screen-space orientation, iso-aware) — the craft convention (fabric-grain stability, consistent crossing layering) instead of v1's min-jump permutation.
+- **Closed loops assembled from open arcs** enter at a drawn arc **endpoint** (`_rotateClosedEntryV2`) — fixes the mid-arc entries v1's `_rotateClosedEntry` produced (Maru Shippō `midArc=4`).
+- The **gallery viewer** has a view-only routing switcher (`#galRoutingSel`, 🔀 next to ⚙ Advanced) to compare any mode per pattern without saving; the CAD **Routing** dropdown saves any of the eight modes per pattern.
+
 ## The human-makability cost (how we decide between two routings)
 A complete route covers every segment exactly once, as an ordered list of continuous **strokes** with **jumps** (needle re-insertions) between them. We approximately minimise, in strict priority order:
 
@@ -57,9 +74,11 @@ Complete one family/direction entirely (e.g. horizontal), then move to the next 
 
 1. **Movement type** — group by the stroke's turning profile and sweep the groups **straight → zigzag → curve** (Σ|turn| small ⇒ straight; turns keep one sign ⇒ curve; turns alternate ⇒ zigzag). Keeps "similar movements next to each other" (e.g. all zigzags together, alternating down/up).
 2. **Orientation family** — 30° bins within each type.
-3. **Bands + snake** — group by the perpendicular coordinate of the centroid, sweep bands in order, **snake** (reverse alternate bands). The first stroke is oriented to flow into the second, and each subsequent stroke is entered from the end nearest the needle — so a row/column of arches flows like an **S** (and touching arches merge into one stroke via Rule 1). Monotonic progress ⇒ every jump hops into **unstitched** area, never back over finished stitches.
+3. **Bands + snake** — group by the perpendicular coordinate of the centroid, sweep bands in order, **snake** (reverse alternate bands). The first stroke is oriented to flow into the second, and each subsequent stroke is entered from the end nearest the needle — so a row/column of arches flows like an **S** (and touching arches merge into one stroke via Rule 1). Monotonic progress ⇒ jumps hop into **unstitched** area, not back over finished stitches.
 
-**Coordinate space:** routing runs in grid **(u,v)** coordinates. For isometric patterns this means the sweep follows the **iso grid lines** (the lattice is axis-aligned in (u,v)), which is how iso sashiko is actually sewn. The visible square is expressed as a convex region in (u,v); every tiled segment is **clipped** to it so nothing routes off-screen and the whole square is filled.
+> **v1 caveat (measured 2026-07-02):** the live v1 `orderStrokesFamily` implements only step 3, with the stroke's *first point* (not the centroid) and a min-gap pitch that degenerates on float noise / mixed-orientation families — so the monotonicity promise above holds only for coherent single-orientation families. Steps 1–2 and the centroid/robust banding are implemented in the **v2 modes** (`rows2`/`rows2e`, see below); v1 stays untouched because published patterns are pinned to it.
+
+**Coordinate space:** routing runs in grid **(u,v)** coordinates. For isometric patterns this means the sweep follows the **iso grid lines** (the lattice is axis-aligned in (u,v)), which is how iso sashiko is actually sewn. The visible square is expressed as a convex region in (u,v). *(Historical note: tiled segments were once clipped to the square before routing; since commit `f0d6d0b` the router runs on the full unclipped tiling and `filterVisiblePath` trims at render time — `clipSegConvex` is currently unused.)*
 
 Functions: `buildExpPath` (Phase 2), `matchVertex`, `computeExpLayout`/`genTiledSegs`/`clipSegConvex`.
 

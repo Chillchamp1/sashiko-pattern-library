@@ -82,7 +82,7 @@ function _reloadExpWithTiles(){
   const effPat={...curPat,patMacro:_tileCells};
   setupExpCanvas(effPat);
   const expLay=computeExpLayout(effPat);
-  EXP_path=filterVisiblePath(expPathFor(tiledSegsFor(effPat),effPat),expLay);
+  EXP_path=filterVisiblePath(_expPathForView(effPat),expLay);
   TOTAL=EXP_path.length;
   _galStitchCache=null;_galDraftCache=null;
   step=TOTAL;
@@ -211,6 +211,7 @@ function loadPattern(pat){
   if(window.goatcounter?.count) window.goatcounter.count({path:'pattern/'+pat.id,title:pat.name||pat.id,event:true});
 
   if(isEXP){
+    _galResetRouting();   // routing test switcher is per-view, reset on every load
     _tileCells=pat.patMacro||3;
     const lbl=document.getElementById('tileCellsVal');if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
     const effPat={...pat,patMacro:_tileCells};
@@ -219,7 +220,7 @@ function loadPattern(pat){
     // per line is invariant under the gallery tile-count picker (stepTileCells).
     EXP_szRef=computeExpLayout({...pat,patMacro:pat.patMacro||3}).sz;
     const expLay=computeExpLayout(effPat);
-    EXP_path=filterVisiblePath(expPathFor(tiledSegsFor(effPat),effPat),expLay);
+    EXP_path=filterVisiblePath(_expPathForView(effPat),expLay);
     TOTAL=EXP_path.length; PASSES=[];
     const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='';
     const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
