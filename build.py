@@ -52,7 +52,9 @@ def main():
 
     # Build stamp (visible in the About panel) so a deployed version is identifiable —
     # if the live date differs from what a browser shows, that browser is serving a cache.
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    # DATE-ONLY on purpose: a same-day local build and the CI rebuild are then byte-identical,
+    # so CI's "commit built files" step is a no-op (no churn / rebase conflicts on every push).
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     html = html.replace("<!-- INJECT:buildstamp -->", stamp)
 
     for out in OUTPUTS:
