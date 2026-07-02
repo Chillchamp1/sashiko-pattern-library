@@ -107,9 +107,10 @@ function _galPaletteSections(){
 }
 // Flat list of every swatch (for name lookup of the currently-assigned colour).
 function _galAllSwatches(){return _galPaletteSections().reduce((a,s)=>a.concat(s.items),[]);}
-// The fabric-aware default yarn: off-white on dark cloth, dark indigo on a light cloth
-// (so the default stitches never vanish against a natural fabric).
-function _galDefaultYarn(){return _fabricById(galFabric).light?'#20304f':CAD_YARN;}
+// The default yarn is always off-white — the thread keeps its true colour regardless of
+// the cloth, even if that means low contrast on a light fabric (the user picks a darker
+// thread themselves if they want more contrast; we never silently recolour a thread).
+function _galDefaultYarn(){return CAD_YARN;}
 // Legacy name kept for any external caller — returns the flat swatch list.
 function _galPaletteArr(){
   return galPalette==='sashiko'
@@ -2467,8 +2468,8 @@ function _galClosePops(keep){
     const b=document.getElementById(btn);if(b)b.textContent=label+' ▾';
   });
 }
-// ── Colour popover: Fabric + Thread tabs (each with a little preview image) ──
-let galColorMode='fabric';
+// ── Colour popover: Thread + Fabric tabs (each with a little preview image) ──
+let galColorMode='thread';
 window.galToggleColor=function(){
   const c=document.getElementById('galColorPop');
   const open=c.style.display!=='none';
@@ -2487,17 +2488,11 @@ window.galColorTab=function(mode){
   if(mode==='fabric')galBuildFabricUI(); else galBuildColourUI();
   galBuildColorTabs();
 };
-// Little preview icons on the tabs: the current cloth texture, and running-stitch dashes.
+// Fabric tab preview icon = the current cloth texture. (The Thread tab uses the 🧵 spool
+// emoji, set in the HTML.)
 function galBuildColorTabs(){
   const fc=document.getElementById('galTabFabricIco');
   if(fc){const x=fc.getContext('2d');x.clearRect(0,0,20,20);_drawFabric(x,galFabric,20,20);}
-  const tc=document.getElementById('galTabThreadIco');
-  if(tc){const x=tc.getContext('2d');x.clearRect(0,0,20,20);
-    x.fillStyle='#243a5e';x.fillRect(0,0,20,20);
-    x.strokeStyle=galThreadColors[galActiveFam]||_galDefaultYarn();x.lineWidth=2;x.lineCap='round';x.setLineDash([3,2]);
-    for(let i=0;i<3;i++){const y=5+i*5;x.beginPath();x.moveTo(3,y);x.lineTo(17,y);x.stroke();}
-    x.setLineDash([]);
-  }
 }
 window.galToggleAdv=function(){
   const a=document.getElementById('galAdv');
@@ -2526,8 +2521,7 @@ function galBuildFabricUI(){
   _galSetFabName(curFab.name);
 }
 window.galSetFabric=function(id){
-  galFabric=id;
-  _galStitchCache=null;               // default-yarn colour may change with cloth lightness
+  galFabric=id;                        // fabric is just the background; stitch geometry unchanged
   galBuildFabricUI(); galBuildColorTabs(); render(step);
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};

@@ -101,14 +101,10 @@
     <!-- Colour popover: two tabs (Fabric + Thread), each with a little preview image. -->
     <div class="gal-pop gal-colours" id="galColorPop" style="display:none">
       <div class="gal-color-tabs">
-        <button class="gal-color-tab on" id="galTabFabric" onclick="galColorTab('fabric')"><canvas id="galTabFabricIco" class="gal-tab-ico" width="20" height="20"></canvas>Fabric</button>
-        <button class="gal-color-tab" id="galTabThread" onclick="galColorTab('thread')"><canvas id="galTabThreadIco" class="gal-tab-ico" width="20" height="20"></canvas>Thread</button>
+        <button class="gal-color-tab on" id="galTabThread" onclick="galColorTab('thread')"><span class="gal-tab-emoji">🧵</span>Thread</button>
+        <button class="gal-color-tab" id="galTabFabric" onclick="galColorTab('fabric')"><canvas id="galTabFabricIco" class="gal-tab-ico" width="20" height="20"></canvas>Fabric</button>
       </div>
-      <div id="galColorFabric">
-        <div class="gal-fab-swatches" id="galFabSwatches"></div>
-        <div class="gal-sw-name" id="galFabName">Pick a fabric</div>
-      </div>
-      <div id="galColorThread" style="display:none">
+      <div id="galColorThread">
         <div class="gal-pop-head">
           <span>Thread colours</span>
           <button class="gal-pal-reset" onclick="galResetColours()" title="Reset all threads to off-white">↺ All white</button>
@@ -116,6 +112,10 @@
         <div class="gal-fam-chips" id="galFamChips"></div>
         <div class="gal-swatches gal-swatch-sections" id="galSwatches"></div>
         <div class="gal-sw-name" id="galSwName">Pick a thread colour</div>
+      </div>
+      <div id="galColorFabric" style="display:none">
+        <div class="gal-fab-swatches" id="galFabSwatches"></div>
+        <div class="gal-sw-name" id="galFabName">Pick a fabric</div>
       </div>
     </div>
     <div class="gal-pop gal-adv" id="galAdv" style="display:none">
