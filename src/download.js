@@ -279,15 +279,22 @@ function _pdfDotGrid(x,colMain,colSub,rMain,rSub){
     x.beginPath();x.arc(p.x,p.y,onMain?rMain:rSub,0,Math.PI*2);x.fill();
   }
 }
-// Stitch window: fabric + dot grid + the laid stitches (matches the gallery stitch view,
-// including the selected fabric and its fabric-aware default yarn / grid colour).
+// Stitch window — PRINT style: white paper, dark dot grid, and the running stitches drawn
+// as dark ink dashes (no dark fabric fill — the PDF is made to be printed). A family with
+// an assigned thread colour keeps a print-darkened version of it; otherwise dark ink.
 function _pdfStitchWindow(px){
   const {c,x}=_pdfCanvas(px);
-  const fabLight=_fabricById(galFabric).light;
-  _drawFabric(x,galFabric,SIZE,SIZE);
-  _cadDrawStitchGrid(x,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true,fabLight);
+  x.fillStyle='#ffffff';x.fillRect(0,0,SIZE,SIZE);
+  _pdfDotGrid(x,'rgba(60,95,150,0.5)','rgba(60,95,150,0.26)',1.15,0.55);
   const sc=_galStitchScene();
-  for(const s of sc.stitches){if(_famToggles[s.fam]===false)continue;_cadDrawStitch(x,s,sc.w,galThreadColors[s.fam]||_galDefaultYarn());}
+  x.lineCap='round';
+  for(const s of sc.stitches){
+    if(_famToggles[s.fam]===false)continue;
+    const tc=galThreadColors[s.fam];
+    x.strokeStyle=tc?_pdfInk(tc):'rgba(18,42,82,0.95)';
+    x.lineWidth=Math.max(1.1,sc.w*0.62);
+    x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
+  }
   return c;
 }
 // Draw the routed geometry as lines. famOnly>=0 → only that family; else the whole pattern.
@@ -371,7 +378,10 @@ function _buildPDF(){
   const M=40, cw=A4_W-2*M;
   const rawName=(typeof _displayName==='function'?_displayName(curPat.name||'Sashiko pattern'):(curPat.name||'Sashiko pattern'));
   texts.push({x:M,y:A4_H-M-4,size:16,text:_pdfAscii(rawName)});
-  texts.push({x:M,y:A4_H-M-20,size:8.5,text:_pdfAscii('Sashiko Pattern Library  ·  stitching sheet')});
+  texts.push({x:M,y:A4_H-M-20,size:8.5,text:_pdfAscii('Sashiko stitching sheet  ·  sashikolib.org')});
+  // Footer: the site, centred at the bottom (Helvetica ~0.5em average glyph width).
+  const foot='sashikolib.org';
+  texts.push({x:(A4_W-foot.length*8.5*0.5)/2, y:22, size:8.5, text:foot});
 
   if(isE){
     const gap=16, big=(cw-gap)/2;

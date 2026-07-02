@@ -2402,13 +2402,11 @@ function syncGalStitchUI(){
   const l=document.getElementById('galStitchLen');if(l)l.value=galStitchLen;
   const lv=document.getElementById('galStitchLenVal');if(lv)lv.textContent=galStitchLen;
   const r=document.getElementById('galStitchRatio');if(r)r.value=galStitchRatio;
-  const g=document.getElementById('galStitchGrid');if(g)g.checked=galStitchGrid;
-  const dr=document.getElementById('galDraft');if(dr)dr.checked=galDraft;
-  const fp=document.getElementById('galFabricPop');if(fp)fp.style.display='none';
-  const fb=document.getElementById('galFabBtn');if(fb)fb.textContent='🧵 Fabric ▾';
+  _galSyncOverlaySeg();
   _galClosePops(null);   // close all popovers + reset their button captions
   galBuildColourUI();
   galBuildFabricUI();
+  galBuildColorTabs();
 }
 function galBuildColourUI(){
   const chips=document.getElementById('galFamChips');if(!chips)return;
@@ -2462,29 +2460,45 @@ window.galResetColours=function(){galThreadColors={}; galBuildColourUI(); render
 
 // One popover open at a time. `keep` = the id being toggled (others close).
 function _galClosePops(keep){
-  const pops=[['galColours','galColBtn','🎨 Thread colours'],['galFabricPop','galFabBtn','🧵 Fabric'],['galAdv','galAdvBtn','⚙ Advanced']];
+  const pops=[['galColorPop','galColBtn','🎨 Color'],['galAdv','galAdvBtn','⚙ Advanced']];
   pops.forEach(([id,btn,label])=>{
     if(id===keep)return;
     const el=document.getElementById(id);if(el)el.style.display='none';
     const b=document.getElementById(btn);if(b)b.textContent=label+' ▾';
   });
 }
-window.galToggleColours=function(){
-  const c=document.getElementById('galColours');
+// ── Colour popover: Fabric + Thread tabs (each with a little preview image) ──
+let galColorMode='fabric';
+window.galToggleColor=function(){
+  const c=document.getElementById('galColorPop');
   const open=c.style.display!=='none';
-  _galClosePops(open?null:'galColours');
+  _galClosePops(open?null:'galColorPop');
   c.style.display=open?'none':'block';
-  document.getElementById('galColBtn').textContent=open?'🎨 Thread colours ▾':'🎨 Thread colours ▴';
-  if(!open)galBuildColourUI();
+  document.getElementById('galColBtn').textContent=open?'🎨 Color ▾':'🎨 Color ▴';
+  if(!open)galColorTab(galColorMode);
 };
-window.galToggleFabric=function(){
-  const f=document.getElementById('galFabricPop');
-  const open=f.style.display!=='none';
-  _galClosePops(open?null:'galFabricPop');
-  f.style.display=open?'none':'block';
-  document.getElementById('galFabBtn').textContent=open?'🧵 Fabric ▾':'🧵 Fabric ▴';
-  if(!open)galBuildFabricUI();
+window.galColorTab=function(mode){
+  galColorMode=mode;
+  const fab=document.getElementById('galColorFabric'),thr=document.getElementById('galColorThread');
+  if(fab)fab.style.display=mode==='fabric'?'block':'none';
+  if(thr)thr.style.display=mode==='thread'?'block':'none';
+  document.getElementById('galTabFabric')&&document.getElementById('galTabFabric').classList.toggle('on',mode==='fabric');
+  document.getElementById('galTabThread')&&document.getElementById('galTabThread').classList.toggle('on',mode==='thread');
+  if(mode==='fabric')galBuildFabricUI(); else galBuildColourUI();
+  galBuildColorTabs();
 };
+// Little preview icons on the tabs: the current cloth texture, and running-stitch dashes.
+function galBuildColorTabs(){
+  const fc=document.getElementById('galTabFabricIco');
+  if(fc){const x=fc.getContext('2d');x.clearRect(0,0,20,20);_drawFabric(x,galFabric,20,20);}
+  const tc=document.getElementById('galTabThreadIco');
+  if(tc){const x=tc.getContext('2d');x.clearRect(0,0,20,20);
+    x.fillStyle='#243a5e';x.fillRect(0,0,20,20);
+    x.strokeStyle=galThreadColors[galActiveFam]||_galDefaultYarn();x.lineWidth=2;x.lineCap='round';x.setLineDash([3,2]);
+    for(let i=0;i<3;i++){const y=5+i*5;x.beginPath();x.moveTo(3,y);x.lineTo(17,y);x.stroke();}
+    x.setLineDash([]);
+  }
+}
 window.galToggleAdv=function(){
   const a=document.getElementById('galAdv');
   const open=a.style.display!=='none';
@@ -2514,23 +2528,24 @@ function galBuildFabricUI(){
 window.galSetFabric=function(id){
   galFabric=id;
   _galStitchCache=null;               // default-yarn colour may change with cloth lightness
-  galBuildFabricUI(); render(step);
+  galBuildFabricUI(); galBuildColorTabs(); render(step);
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
 // +/− stepper (replaces the old slider); clamp 3–40, default 8.
 window.galStepStitchLen=function(dir){window.galSetStitchLen(Math.max(3,Math.min(40,galStitchLen+dir)));};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
-// Grid and Draft are mutually exclusive: turning one on switches the other off.
-window.galToggleStitchGrid=function(){
-  galStitchGrid=document.getElementById('galStitchGrid').checked;
-  if(galStitchGrid){galDraft=false;const d=document.getElementById('galDraft');if(d)d.checked=false;}
+// Overlay: Off | Grid | Draft — one compact segmented control (mutually exclusive).
+window.galSetOverlay=function(mode){
+  galStitchGrid=(mode==='grid'); galDraft=(mode==='draft');
+  _galSyncOverlaySeg();
   render(step);
 };
-window.galToggleDraft=function(){
-  galDraft=document.getElementById('galDraft').checked;
-  if(galDraft){galStitchGrid=false;const g=document.getElementById('galStitchGrid');if(g)g.checked=false;}
-  render(step);
-};
+function _galSyncOverlaySeg(){
+  const mode=galStitchGrid?'grid':(galDraft?'draft':'none');
+  [['galOvNone','none'],['galOvGrid','grid'],['galOvDraft','draft']].forEach(([id,m])=>{
+    const b=document.getElementById(id);if(b)b.classList.toggle('on',m===mode);
+  });
+}
 window.galSetHubScale=function(v){
   _starHubScale=parseFloat(v)/100;
   const lbl=s=>s&&(s.textContent=_starHubScale.toFixed(2)+'×');

@@ -130,8 +130,8 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
   if(isEXP){
-    // Custom patterns render in stitch view; thread colours live in their own
-    // panel (#galColours), so the jump bar stays empty here.
+    // Custom patterns render in stitch view; colours live in the Color popover
+    // (#galColorPop), so the jump bar stays empty here.
     return;
   }
   if(isPL){

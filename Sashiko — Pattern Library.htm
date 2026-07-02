@@ -345,6 +345,17 @@ button.ctrl.primary:hover{background:#275784}
 .gal-fab-sw{width:34px;height:34px;border-radius:8px;border:2px solid rgba(255,255,255,.2);cursor:pointer;padding:0;box-shadow:inset 0 0 6px rgba(0,0,0,.35)}
 .gal-fab-sw:hover{transform:scale(1.08)}
 .gal-fab-sw.cur{border-color:#fff;box-shadow:0 0 0 2px #6aabff,inset 0 0 6px rgba(0,0,0,.35)}
+/* Colour popover tabs (Fabric / Thread), each with a mini preview image */
+.gal-color-tabs{display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:9px}
+.gal-color-tab{display:inline-flex;align-items:center;gap:7px;background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:8px;padding:5px 12px 5px 6px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit}
+.gal-color-tab.on{background:#214a72;border-color:#3a6ea3;color:#e7eef6}
+.gal-tab-ico{width:20px;height:20px;border-radius:5px;border:1px solid rgba(255,255,255,.22);display:block}
+/* Grid/Draft segmented control (compact, mutually exclusive) */
+.gal-overlay-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel2,#1c3045)}
+.gal-overlay-seg button{background:transparent;border:0;border-left:1px solid var(--line);padding:5px 11px;font-size:11px;color:var(--muted);cursor:pointer;font:inherit}
+.gal-overlay-seg button:first-child{border-left:0}
+.gal-overlay-seg button.on{background:#214a72;color:#e7eef6}
+.gal-overlay-seg button:hover:not(.on){background:#1d3850;color:#cfe0f2}
 /* Live thread-name caption (hover/selected) — keeps the picker compact with 40 named colours */
 .gal-sw-name{margin-top:8px;text-align:center;font-size:12px;color:#cfdcea;min-height:16px;font-weight:600}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
@@ -500,44 +511,32 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
 
   <!-- Stitch-view options (custom patterns render in stitch view by default) -->
   <div class="stitch-view-bar" id="stitchViewBar" style="display:none">
-    <button class="ctrl gal-pop-btn" id="galColBtn" onclick="galToggleColours()">🎨 Thread colours ▾</button>
-    <button class="ctrl gal-pop-btn" id="galFabBtn" onclick="galToggleFabric()">🧵 Fabric ▾</button>
-    <label class="cad-routing-toggle" title="Show the fabric grid" style="margin-left:4px">
-      <input type="checkbox" id="galStitchGrid" onchange="galToggleStitchGrid()"> Grid
-    </label>
-    <label class="cad-routing-toggle" title="Show drafting help lines: the grid, the full pattern geometry, and the full circles for any arcs" style="margin-left:4px">
-      <input type="checkbox" id="galDraft" onchange="galToggleDraft()"> Draft
-    </label>
+    <button class="ctrl gal-pop-btn" id="galColBtn" onclick="galToggleColor()">🎨 Color ▾</button>
+    <span class="gal-overlay-seg" title="Overlay on the stitch view">
+      <button id="galOvNone"  class="on" onclick="galSetOverlay('none')">Off</button>
+      <button id="galOvGrid"  onclick="galSetOverlay('grid')" title="Show the fabric dot grid">Grid</button>
+      <button id="galOvDraft" onclick="galSetOverlay('draft')" title="Drafting help: the grid, the full pattern geometry, and the full circles for any arcs">Draft</button>
+    </span>
     <button class="ctrl gal-pop-btn" id="galAdvBtn" onclick="galToggleAdv()">⚙ Advanced ▾</button>
-    <label class="cad-routing-toggle" title="Test a different stitch routing — view only, never saved to the pattern" style="margin-left:4px">🔀
-      <select id="galRoutingSel" onchange="galSetRouting(this.value)">
-        <option value="" selected>Routing: saved</option>
-        <option value="default">1 · Straight rows</option>
-        <option value="rows2">1b · Rows v2 · ordered</option>
-        <option value="rows2e">1c · Rows v2 · efficient</option>
-        <option value="continuous">2 · Zigzag</option>
-        <option value="zigzag2">2b · Zigzag v2</option>
-        <option value="contour">3 · Waves</option>
-        <option value="waves2">3b · Waves v2</option>
-        <option value="sequential">4 · One by one</option>
-      </select>
-    </label>
-    <!-- Thread-colour preview: keep stitches off-white, or paint each family. One panel,
-         palettes shown as labelled sections (Olympus, Pastel, …) — no tabs. -->
-    <div class="gal-pop gal-colours" id="galColours" style="display:none">
-      <div class="gal-pop-head">
-        <span>Thread colours</span>
-        <button class="gal-pal-reset" onclick="galResetColours()" title="Reset all threads to off-white">↺ All white</button>
+    <!-- Colour popover: two tabs (Fabric + Thread), each with a little preview image. -->
+    <div class="gal-pop gal-colours" id="galColorPop" style="display:none">
+      <div class="gal-color-tabs">
+        <button class="gal-color-tab on" id="galTabFabric" onclick="galColorTab('fabric')"><canvas id="galTabFabricIco" class="gal-tab-ico" width="20" height="20"></canvas>Fabric</button>
+        <button class="gal-color-tab" id="galTabThread" onclick="galColorTab('thread')"><canvas id="galTabThreadIco" class="gal-tab-ico" width="20" height="20"></canvas>Thread</button>
       </div>
-      <div class="gal-fam-chips" id="galFamChips"></div>
-      <div class="gal-swatches gal-swatch-sections" id="galSwatches"></div>
-      <div class="gal-sw-name" id="galSwName">Pick a thread colour</div>
-    </div>
-    <!-- Fabric picker: curated sashiko cloths (indigo, black, natural, …), with texture. -->
-    <div class="gal-pop gal-fabric" id="galFabricPop" style="display:none">
-      <div class="gal-pop-head"><span>Fabric</span></div>
-      <div class="gal-fab-swatches" id="galFabSwatches"></div>
-      <div class="gal-sw-name" id="galFabName">Pick a fabric</div>
+      <div id="galColorFabric">
+        <div class="gal-fab-swatches" id="galFabSwatches"></div>
+        <div class="gal-sw-name" id="galFabName">Pick a fabric</div>
+      </div>
+      <div id="galColorThread" style="display:none">
+        <div class="gal-pop-head">
+          <span>Thread colours</span>
+          <button class="gal-pal-reset" onclick="galResetColours()" title="Reset all threads to off-white">↺ All white</button>
+        </div>
+        <div class="gal-fam-chips" id="galFamChips"></div>
+        <div class="gal-swatches gal-swatch-sections" id="galSwatches"></div>
+        <div class="gal-sw-name" id="galSwName">Pick a thread colour</div>
+      </div>
     </div>
     <div class="gal-pop gal-adv" id="galAdv" style="display:none">
       <span class="cad-panel-stepper">
@@ -5638,8 +5637,8 @@ function markJump(idx){[...document.getElementById('jumpbar').children].forEach(
 function buildJumpBar(){
   const jb=document.getElementById('jumpbar');jb.innerHTML='';
   if(isEXP){
-    // Custom patterns render in stitch view; thread colours live in their own
-    // panel (#galColours), so the jump bar stays empty here.
+    // Custom patterns render in stitch view; colours live in the Color popover
+    // (#galColorPop), so the jump bar stays empty here.
     return;
   }
   if(isPL){
@@ -8720,13 +8719,11 @@ function syncGalStitchUI(){
   const l=document.getElementById('galStitchLen');if(l)l.value=galStitchLen;
   const lv=document.getElementById('galStitchLenVal');if(lv)lv.textContent=galStitchLen;
   const r=document.getElementById('galStitchRatio');if(r)r.value=galStitchRatio;
-  const g=document.getElementById('galStitchGrid');if(g)g.checked=galStitchGrid;
-  const dr=document.getElementById('galDraft');if(dr)dr.checked=galDraft;
-  const fp=document.getElementById('galFabricPop');if(fp)fp.style.display='none';
-  const fb=document.getElementById('galFabBtn');if(fb)fb.textContent='🧵 Fabric ▾';
+  _galSyncOverlaySeg();
   _galClosePops(null);   // close all popovers + reset their button captions
   galBuildColourUI();
   galBuildFabricUI();
+  galBuildColorTabs();
 }
 function galBuildColourUI(){
   const chips=document.getElementById('galFamChips');if(!chips)return;
@@ -8780,29 +8777,45 @@ window.galResetColours=function(){galThreadColors={}; galBuildColourUI(); render
 
 // One popover open at a time. `keep` = the id being toggled (others close).
 function _galClosePops(keep){
-  const pops=[['galColours','galColBtn','🎨 Thread colours'],['galFabricPop','galFabBtn','🧵 Fabric'],['galAdv','galAdvBtn','⚙ Advanced']];
+  const pops=[['galColorPop','galColBtn','🎨 Color'],['galAdv','galAdvBtn','⚙ Advanced']];
   pops.forEach(([id,btn,label])=>{
     if(id===keep)return;
     const el=document.getElementById(id);if(el)el.style.display='none';
     const b=document.getElementById(btn);if(b)b.textContent=label+' ▾';
   });
 }
-window.galToggleColours=function(){
-  const c=document.getElementById('galColours');
+// ── Colour popover: Fabric + Thread tabs (each with a little preview image) ──
+let galColorMode='fabric';
+window.galToggleColor=function(){
+  const c=document.getElementById('galColorPop');
   const open=c.style.display!=='none';
-  _galClosePops(open?null:'galColours');
+  _galClosePops(open?null:'galColorPop');
   c.style.display=open?'none':'block';
-  document.getElementById('galColBtn').textContent=open?'🎨 Thread colours ▾':'🎨 Thread colours ▴';
-  if(!open)galBuildColourUI();
+  document.getElementById('galColBtn').textContent=open?'🎨 Color ▾':'🎨 Color ▴';
+  if(!open)galColorTab(galColorMode);
 };
-window.galToggleFabric=function(){
-  const f=document.getElementById('galFabricPop');
-  const open=f.style.display!=='none';
-  _galClosePops(open?null:'galFabricPop');
-  f.style.display=open?'none':'block';
-  document.getElementById('galFabBtn').textContent=open?'🧵 Fabric ▾':'🧵 Fabric ▴';
-  if(!open)galBuildFabricUI();
+window.galColorTab=function(mode){
+  galColorMode=mode;
+  const fab=document.getElementById('galColorFabric'),thr=document.getElementById('galColorThread');
+  if(fab)fab.style.display=mode==='fabric'?'block':'none';
+  if(thr)thr.style.display=mode==='thread'?'block':'none';
+  document.getElementById('galTabFabric')&&document.getElementById('galTabFabric').classList.toggle('on',mode==='fabric');
+  document.getElementById('galTabThread')&&document.getElementById('galTabThread').classList.toggle('on',mode==='thread');
+  if(mode==='fabric')galBuildFabricUI(); else galBuildColourUI();
+  galBuildColorTabs();
 };
+// Little preview icons on the tabs: the current cloth texture, and running-stitch dashes.
+function galBuildColorTabs(){
+  const fc=document.getElementById('galTabFabricIco');
+  if(fc){const x=fc.getContext('2d');x.clearRect(0,0,20,20);_drawFabric(x,galFabric,20,20);}
+  const tc=document.getElementById('galTabThreadIco');
+  if(tc){const x=tc.getContext('2d');x.clearRect(0,0,20,20);
+    x.fillStyle='#243a5e';x.fillRect(0,0,20,20);
+    x.strokeStyle=galThreadColors[galActiveFam]||_galDefaultYarn();x.lineWidth=2;x.lineCap='round';x.setLineDash([3,2]);
+    for(let i=0;i<3;i++){const y=5+i*5;x.beginPath();x.moveTo(3,y);x.lineTo(17,y);x.stroke();}
+    x.setLineDash([]);
+  }
+}
 window.galToggleAdv=function(){
   const a=document.getElementById('galAdv');
   const open=a.style.display!=='none';
@@ -8832,23 +8845,24 @@ function galBuildFabricUI(){
 window.galSetFabric=function(id){
   galFabric=id;
   _galStitchCache=null;               // default-yarn colour may change with cloth lightness
-  galBuildFabricUI(); render(step);
+  galBuildFabricUI(); galBuildColorTabs(); render(step);
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
 // +/− stepper (replaces the old slider); clamp 3–40, default 8.
 window.galStepStitchLen=function(dir){window.galSetStitchLen(Math.max(3,Math.min(40,galStitchLen+dir)));};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
-// Grid and Draft are mutually exclusive: turning one on switches the other off.
-window.galToggleStitchGrid=function(){
-  galStitchGrid=document.getElementById('galStitchGrid').checked;
-  if(galStitchGrid){galDraft=false;const d=document.getElementById('galDraft');if(d)d.checked=false;}
+// Overlay: Off | Grid | Draft — one compact segmented control (mutually exclusive).
+window.galSetOverlay=function(mode){
+  galStitchGrid=(mode==='grid'); galDraft=(mode==='draft');
+  _galSyncOverlaySeg();
   render(step);
 };
-window.galToggleDraft=function(){
-  galDraft=document.getElementById('galDraft').checked;
-  if(galDraft){galStitchGrid=false;const g=document.getElementById('galStitchGrid');if(g)g.checked=false;}
-  render(step);
-};
+function _galSyncOverlaySeg(){
+  const mode=galStitchGrid?'grid':(galDraft?'draft':'none');
+  [['galOvNone','none'],['galOvGrid','grid'],['galOvDraft','draft']].forEach(([id,m])=>{
+    const b=document.getElementById(id);if(b)b.classList.toggle('on',m===mode);
+  });
+}
 window.galSetHubScale=function(v){
   _starHubScale=parseFloat(v)/100;
   const lbl=s=>s&&(s.textContent=_starHubScale.toFixed(2)+'×');
@@ -11259,15 +11273,22 @@ function _pdfDotGrid(x,colMain,colSub,rMain,rSub){
     x.beginPath();x.arc(p.x,p.y,onMain?rMain:rSub,0,Math.PI*2);x.fill();
   }
 }
-// Stitch window: fabric + dot grid + the laid stitches (matches the gallery stitch view,
-// including the selected fabric and its fabric-aware default yarn / grid colour).
+// Stitch window — PRINT style: white paper, dark dot grid, and the running stitches drawn
+// as dark ink dashes (no dark fabric fill — the PDF is made to be printed). A family with
+// an assigned thread colour keeps a print-darkened version of it; otherwise dark ink.
 function _pdfStitchWindow(px){
   const {c,x}=_pdfCanvas(px);
-  const fabLight=_fabricById(galFabric).light;
-  _drawFabric(x,galFabric,SIZE,SIZE);
-  _cadDrawStitchGrid(x,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true,fabLight);
+  x.fillStyle='#ffffff';x.fillRect(0,0,SIZE,SIZE);
+  _pdfDotGrid(x,'rgba(60,95,150,0.5)','rgba(60,95,150,0.26)',1.15,0.55);
   const sc=_galStitchScene();
-  for(const s of sc.stitches){if(_famToggles[s.fam]===false)continue;_cadDrawStitch(x,s,sc.w,galThreadColors[s.fam]||_galDefaultYarn());}
+  x.lineCap='round';
+  for(const s of sc.stitches){
+    if(_famToggles[s.fam]===false)continue;
+    const tc=galThreadColors[s.fam];
+    x.strokeStyle=tc?_pdfInk(tc):'rgba(18,42,82,0.95)';
+    x.lineWidth=Math.max(1.1,sc.w*0.62);
+    x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
+  }
   return c;
 }
 // Draw the routed geometry as lines. famOnly>=0 → only that family; else the whole pattern.
@@ -11351,7 +11372,10 @@ function _buildPDF(){
   const M=40, cw=A4_W-2*M;
   const rawName=(typeof _displayName==='function'?_displayName(curPat.name||'Sashiko pattern'):(curPat.name||'Sashiko pattern'));
   texts.push({x:M,y:A4_H-M-4,size:16,text:_pdfAscii(rawName)});
-  texts.push({x:M,y:A4_H-M-20,size:8.5,text:_pdfAscii('Sashiko Pattern Library  ·  stitching sheet')});
+  texts.push({x:M,y:A4_H-M-20,size:8.5,text:_pdfAscii('Sashiko stitching sheet  ·  sashikolib.org')});
+  // Footer: the site, centred at the bottom (Helvetica ~0.5em average glyph width).
+  const foot='sashikolib.org';
+  texts.push({x:(A4_W-foot.length*8.5*0.5)/2, y:22, size:8.5, text:foot});
 
   if(isE){
     const gap=16, big=(cw-gap)/2;
