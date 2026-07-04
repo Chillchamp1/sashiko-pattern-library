@@ -657,6 +657,21 @@ function computeExpLayout(pat){
   return{sz,ox,oy,canvasH,g2s,s2g,ptc,iso,dU,dV,corners,planes:convexPlanes(corners),uRange:[minU,maxU],vRange:[minV,maxV]};
 }
 
+// ── Tiles ↔ patMacro ────────────────────────────────────────────────────────
+// The UI speaks in whole "tiles": a tile count N means an N×N repeat of the drawn
+// motif. Internally a pattern still stores patMacro = (micro-units across the
+// canvas)/10, so ALREADY-PUBLISHED patterns render byte-identically (no routing
+// change, no engine fork). `period` = the motif's tile size (max bbox extent); N
+// tiles fill the canvas when ptc = N·period, i.e. patMacro = N·period/10. The two
+// are exact inverses, so opening a pattern shows exactly the N it was saved with.
+function patTilePeriod(pat){
+  const b=(pat&&pat.bbox)?pat.bbox:{minU:0,maxU:10,minV:0,maxV:10};
+  const snap=v=>{const r=Math.round(v);return Math.abs(v-r)<0.005?r:v;};
+  return Math.max(snap(b.maxU-b.minU),snap(b.maxV-b.minV),1);
+}
+function patMacroForTiles(pat,N){ return Math.max(1,N)*patTilePeriod(pat)/10; }
+function tilesForPatMacro(pat){ return Math.max(1,Math.round((((pat&&pat.patMacro)||3)*10)/patTilePeriod(pat))); }
+
 // ── Symmetry family detection ──────────────────────────────────────────────
 // Analyses the unit cell: lines that connect across tile boundaries (and
 // are therefore symmetric counterparts) form one family — routed together as zigzag.
@@ -1194,7 +1209,9 @@ window.editExpPattern=async function(idOrPat){
   cadArcState=0;cadArcCenter=null;cadArcStart=null;
   document.getElementById('cadGridType').value=pat.gridType||'isometric';
   const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
-  const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
+  // Restore the saved draw-grid size (down to 1 — no forced min of 2), but never smaller than
+  // the motif needs. Older patterns have no gridMacro → derive from the bbox.
+  const macroVal=Math.min(12,Math.max(1,Math.ceil(maxDim/CAD_MICRO),pat.gridMacro||0));
   // Center lines in the grid: shift so bbox center lands at grid center
   {const tc=macroVal*CAD_MICRO;
    const cu=(pat.bbox.minU+pat.bbox.maxU)/2, cv=(pat.bbox.minV+pat.bbox.maxV)/2;
@@ -1225,14 +1242,13 @@ window.editExpPattern=async function(idOrPat){
   cadTraditional=!!pat.traditional;
   document.getElementById('cadTraditional').checked=cadTraditional;
   cadRoutingMode=pat.routingMode||'default';
-  cadThumbCells=pat.thumbCells||0;
   // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
   if(cadRoutingMode==='smooth'||cadRoutingMode==='fewer-jumps')cadRoutingMode='default';
   document.getElementById('cadRoutingMode').value=cadRoutingMode;
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
-  document.getElementById('cadGridSize').value=macroVal;
-  document.getElementById('cadPatSize').value=pat.patMacro||3;
+  cadMacro=macroVal;
+  cadPatMacro=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
   document.getElementById('cadPatName').value=pat.name||'';
   cadEditId=pat.id;
   cadIsPublished=pat.published||false;
@@ -2351,7 +2367,7 @@ function _galDraftShapes(){
   if(_galDraftCache&&_galDraftCache.ref===EXP_path)return _galDraftCache;
   const out={ref:EXP_path,lines:[],circles:[]};
   if(!curPat){return(_galDraftCache=out);}
-  const segs=tiledSegsFor({...curPat,patMacro:_tileCells});
+  const segs=tiledSegsFor({...curPat,patMacro:patMacroForTiles(curPat,_tileCells)});
   const byAid=new Map();
   segs.forEach(s=>{
     if(s.aid>=0){if(!byAid.has(s.aid))byAid.set(s.aid,[]);byAid.get(s.aid).push(s);}
@@ -2781,9 +2797,8 @@ window.remixPattern=function(id){
   cadTool='draw';cadArcState=0;cadArcCenter=null;cadArcStart=null;
   document.getElementById('cadGridType').value=pat.gridType||'isometric';
   const maxDim=Math.max(pat.bbox.maxU,pat.bbox.maxV);
-  const macroVal=Math.max(2,Math.min(6,Math.ceil(maxDim/CAD_MICRO)));
-  document.getElementById('cadGridSize').value=macroVal;
-  document.getElementById('cadPatSize').value=pat.patMacro||3;
+  cadMacro=Math.min(12,Math.max(1,Math.ceil(maxDim/CAD_MICRO),pat.gridMacro||0));
+  cadPatMacro=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
@@ -2839,7 +2854,8 @@ window.showCAD=function(){
   document.getElementById('animView').classList.remove('open');
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
-  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';cadThumbCells=0;
+  cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';
+  cadMacro=2;cadPatMacro=3;   // fresh draw-grid + Tiles defaults for a new pattern
   document.getElementById('cadRoutingMode').value='default';
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
   document.getElementById('cadTraditional').checked=false;

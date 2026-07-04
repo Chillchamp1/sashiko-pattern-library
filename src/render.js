@@ -79,7 +79,7 @@ window.seekScrubber=function(v){
 let _tileCells=3;
 function _reloadExpWithTiles(){
   if(!curPat||!isEXP)return;
-  const effPat={...curPat,patMacro:_tileCells};
+  const effPat={...curPat,patMacro:patMacroForTiles(curPat,_tileCells)};
   setupExpCanvas(effPat);
   const expLay=computeExpLayout(effPat);
   EXP_path=filterVisiblePath(_expPathForView(effPat),expLay);
@@ -90,7 +90,7 @@ function _reloadExpWithTiles(){
   const sc=document.getElementById('scrubber');if(sc)sc.value=1000;
 }
 window.stepTileCells=function(dir){
-  _tileCells=Math.max(1,Math.min(8,_tileCells+dir));
+  _tileCells=Math.max(1,Math.min(12,_tileCells+dir));
   const lbl=document.getElementById('tileCellsVal');
   if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
   _reloadExpWithTiles();
@@ -212,9 +212,9 @@ function loadPattern(pat){
 
   if(isEXP){
     _galResetRouting();   // routing test switcher is per-view, reset on every load
-    _tileCells=pat.patMacro||3;
+    _tileCells=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
     const lbl=document.getElementById('tileCellsVal');if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
-    const effPat={...pat,patMacro:_tileCells};
+    const effPat={...pat,patMacro:patMacroForTiles(pat,_tileCells)};
     setupExpCanvas(effPat);
     // Freeze the reference scale at the pattern's natural tile count, so the stitch count
     // per line is invariant under the gallery tile-count picker (stepTileCells).

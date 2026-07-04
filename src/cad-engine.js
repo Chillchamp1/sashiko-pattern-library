@@ -4,7 +4,6 @@ let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
-let cadThumbCells=0;
 // Natural tile count for the stitch-length reference — frozen when a pattern loads (mirrors the
 // gallery's EXP_szRef). Anchoring stitch length to the layout scale at this count makes the CAD
 // stitch view match the gallery (same stitch value → same look) AND keeps the per-line stitch
@@ -15,6 +14,9 @@ const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
 let cadBase=1,cadTileSize,cadOX,cadOY;
 let cadPTile,cadPOX,cadPOY;
+// Live-Tiling span in grid units = cadPatMacro (N) copies of the drawn motif → an N×N tiling.
+// Recomputed from the motif's period whenever the committed geometry / settings change.
+let cadPtc=0,_cadTileSig='';
 let cadDrawing=false,cadStart=null,cadCur=null,cadHover=null;
 let cadRecolorOn=false;  // recolor paint mode
 let cadArcState=0,cadArcCenter=null,cadArcStart=null; // arc tool state
@@ -461,7 +463,7 @@ function cadAutoExtendGrid(){
     }
     if(cadMacro>=12)break;
     cadMacro++;
-    const gs=document.getElementById('cadGridSize');if(gs){gs.value=cadMacro;gs.max=Math.max(6,cadMacro+1);}
+    _cadSyncGridLabel();
     changed=true;
     const nb=cadBBox();if(!nb)break;
     const ntc=cadMacro*CAD_MICRO;
@@ -475,8 +477,7 @@ function cadAutoShrinkGrid(){
   const needed=bbox?Math.max(1,Math.ceil(Math.max(bbox.maxU,bbox.maxV)/CAD_MICRO)):2;
   if(needed>=cadMacro)return;
   cadMacro=needed;
-  const gs=document.getElementById('cadGridSize');
-  if(gs){gs.value=cadMacro;gs.max=Math.max(6,cadMacro);}
+  _cadSyncGridLabel();
   cadUpdateSettings();
 }
 
@@ -503,8 +504,8 @@ function cadBakeRight(){
   cadRightBuf=document.createElement('canvas');cadRightBuf.width=500;cadRightBuf.height=500;
   const rx=cadRightBuf.getContext('2d');
   rx.fillStyle='#1a3a5c';rx.fillRect(0,0,500,500);
-  // ptc = total grid units across the tiling canvas (cadPatMacro × cadMacro × CAD_MICRO).
-  const ptc=cadPatMacro*cadMacro*CAD_MICRO;
+  // ptc = grid units across the tiling canvas = cadPatMacro (N) copies of the drawn motif.
+  const ptc=cadPtc||cadPatMacro*cadMacro*CAD_MICRO;
   // The Live-Tiling grid must be the SAME grid as the Draw canvas (cadBakeLeft), just tiled:
   // a sub-dot at every grid unit, a larger dot at every CAD_MICRO cell point, and a thin grid
   // line at every cell boundary. (Previously it only showed coarse CAD_MICRO dots with lines at
@@ -519,8 +520,8 @@ function cadBakeRight(){
   }
   rx.lineWidth=1.5;rx.strokeStyle='rgba(220,235,255,0.15)';
   // Grid lines at every CAD_MICRO cell boundary (matches the Draw canvas, which draws one line
-  // per cell), across all tiles.
-  const cells=cadPatMacro*cadMacro;
+  // per cell), across the whole tiling span.
+  const cells=Math.ceil(ptc/CAD_MICRO);
   for(let i=0;i<=cells;i++){
     const val=i*CAD_MICRO;
     rx.beginPath();const p1=cadG2S(val,0,cadPOX,cadPOY,cadPTile),p2=cadG2S(val,ptc,cadPOX,cadPOY,cadPTile);rx.moveTo(p1.x,p1.y);rx.lineTo(p2.x,p2.y);rx.stroke();
@@ -746,7 +747,7 @@ function cadDrawPattern(){
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
   const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
-  const ptc=cadPatMacro*cadMacro*CAD_MICRO,ov=ptc;
+  const ptc=cadPtc||cadPatMacro*cadMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
   const g2s=(u,v)=>cadG2S(u,v,cadPOX,cadPOY,cadPTile);
   // Check if a segment/arc is visible on the pattern canvas
@@ -803,6 +804,7 @@ function cadDrawPattern(){
 }
 function cadUpdateAll(){
   cadAutoAssign();
+  _cadRefreshTiling(false);   // rescale/re-bake the Live Tiling when the committed motif changed
   cadDrawWorkspace();cadDrawPattern();
   cadBuildFamBar();
   cadUpdateThumbPreview();
@@ -827,18 +829,17 @@ function cadUpdateThumbPreview(){
   if(!cleanLines.length)return;
   const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
-  const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbCells:cadThumbCells};
+  const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
+  // The thumbnail preview shows the SAME tiling as everything else \u2014 cadPatMacro (N) tiles \u2014
+  // so there's no separate "cells" knob. patMacroForTiles makes computeExpLayout render N tiles;
+  // fitting SIZE\u2192w then just shows that view. (This matches the gallery card via thumbCells=N.)
+  const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbCells:cadPatMacro};
   const lay=computeExpLayout(previewPat);
-  const nCells=Math.round(lay.ptc/Math.max(lay.dU,lay.dV,1));
-  // Concrete cell count (no "auto"): initialise to the natural count, then the \u2212/+ buttons
-  // set it. Always shown as a plain number the user controls.
-  if(cadThumbCells<=0)cadThumbCells=Math.max(1,nCells);
-  const cells=cadThumbCells;
-  const ts=w/SIZE*nCells/cells;
-  const off=w/(2*ts)-SIZE/2;
+  const cells=Math.max(1,Math.round(lay.ptc/Math.max(lay.dU,lay.dV,1)));   // = N tiles
+  const ts=w/SIZE;
   const zl=document.getElementById('cadThumbZoomVal');
-  if(zl)zl.textContent=cells+'\u2009cells';
-  tc.translate(off,off); tc.scale(ts,ts);
+  if(zl)zl.textContent=cells+'\u2009\u00d7\u2009'+cells;
+  tc.scale(ts,ts);
 
   const origCtx=ctx;
   const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
@@ -861,25 +862,6 @@ function cadUpdateThumbPreview(){
   EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;EXP_sz=sEXPsz;EXP_szRef=sEXPszr;
   galStitch=sGS;galStitchLen=sGSl;galStitchRatio=sGSr;galStitchGrid=sGSg;galDraft=sGSd;_galStitchCache=sGSc;
 }
-window.cadThumbZoomStep=function(dir){
-  cadThumbCells=Math.max(1,cadThumbCells+dir);
-  // Auto-grow the live tiling (Tiles) so the thumbnail always has enough tiled cells to fill —
-  // the layout renders round(patMacro·CAD_MICRO/cellDim) cells, so bump patMacro until that ≥ the
-  // requested thumbnail cell count (clamped to the Tiles max of 12).
-  const bbox=cadBBox();
-  if(bbox&&dir>0){
-    const cellDim=Math.max(bbox.maxU-bbox.minU,bbox.maxV-bbox.minV,1);
-    let need=cadPatMacro;
-    while(Math.round(need*CAD_MICRO/cellDim)<cadThumbCells&&need<12)need++;
-    if(need>cadPatMacro){
-      cadPatMacro=need;
-      const inp=document.getElementById('cadPatSize');if(inp)inp.value=cadPatMacro;
-      cadUpdateSettings();   // re-tiles + redraws + refreshes the thumb preview
-      return;
-    }
-  }
-  cadUpdateThumbPreview();
-};
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;
   const pb=document.getElementById('cadPublishBtn');
@@ -919,23 +901,38 @@ function _compactFamilies(families, famOrder){
   const newOrder=famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
   return{families:newFam, famOrder:newOrder};
 }
+// Draw/Tiles readouts. Grid shows the draw-canvas span in grid units — cadMacro cells ×
+// CAD_MICRO units each — as "(N·10)×(N·10)". Tiles shows the live-tiling repeat count as "N×N".
+function _cadSyncGridLabel(){const el=document.getElementById('cadGridSizeVal');if(el){const n=cadMacro*CAD_MICRO;el.textContent=n+'×'+n;}}
+function _cadSyncTilesLabel(){const el=document.getElementById('cadPatSizeVal');if(el)el.textContent=cadPatMacro+'×'+cadPatMacro;}
+// Recompute the Live-Tiling scale so cadPatMacro (N) copies of the drawn motif fill the canvas.
+// period = the motif's tile size (max bbox extent); ptc = N·period → N tiles. Cheap sig-guard so
+// it only re-bakes when the committed geometry / settings actually changed (not on every draw move).
+function _cadRefreshTiling(force){
+  const bb=cadBBox();
+  const sig=(bb?[bb.minU,bb.maxU,bb.minV,bb.maxV].map(v=>v.toFixed(2)).join(','):'e')
+    +'|'+cadPatMacro+'|'+cadMacro+'|'+cadSpacing+'|'+cadGridType;
+  if(!force&&sig===_cadTileSig)return;
+  _cadTileSig=sig;
+  const tc=cadMacro*CAD_MICRO;
+  const snap=v=>{const r=Math.round(v);return Math.abs(v-r)<0.005?r:v;};
+  const period=bb?Math.max(snap(bb.maxU-bb.minU),snap(bb.maxV-bb.minV),1):tc;
+  const ptc=Math.max(1,cadPatMacro*period);
+  cadPtc=ptc;
+  if(cadGridType==='isometric'){cadPTile=500/(2*ptc*CAD_COS30);cadPOX=250;cadPOY=(500-(ptc*2*cadPTile*CAD_SIN30))/2;}
+  else{cadPTile=500/ptc;cadPOX=0;cadPOY=0;}
+  cadBakeRight();
+}
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
-  cadMacro=parseInt(document.getElementById('cadGridSize').value);
-  cadPatMacro=parseInt(document.getElementById('cadPatSize').value);
   cadSpacing=parseInt(document.getElementById('cadSpacing').value);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   cadZoom=1;cadPanX=0;cadPanY=0;
-  // ptc = total grid units across the tiling canvas: cadPatMacro tiles × cadMacro macros × CAD_MICRO units
-  const tc=cadMacro*CAD_MICRO,ptc=cadPatMacro*cadMacro*CAD_MICRO;
-  if(cadGridType==='isometric'){
-    cadBase=460/(2*tc*CAD_COS30);
-    cadPTile=500/(2*ptc*CAD_COS30);cadPOX=250;cadPOY=(500-(ptc*2*cadPTile*CAD_SIN30))/2;
-  }else{
-    cadBase=460/tc;
-    cadPTile=500/ptc;cadPOX=0;cadPOY=0;
-  }
-  cadApplyView();cadBakeLeft();cadBakeRight();cadUpdateAll();
+  _cadSyncGridLabel();_cadSyncTilesLabel();
+  const tc=cadMacro*CAD_MICRO;
+  cadBase=(cadGridType==='isometric')?460/(2*tc*CAD_COS30):460/tc;
+  _cadRefreshTiling(true);
+  cadApplyView();cadBakeLeft();cadUpdateAll();
 };
 window.cadSetTool=function(t){
   cadTool=t;
@@ -971,16 +968,12 @@ window.cadStepSpacing=function(d){
   el.value=v;cadUpdateSettings();
 };
 window.cadStepMacro=function(d){
-  const el=document.getElementById('cadGridSize');
-  let v=parseInt(el.value)||3;
-  v=Math.max(1,Math.min(6,v+d));
-  el.value=v;cadUpdateSettings();
+  cadMacro=Math.max(1,Math.min(12,(cadMacro||3)+d));
+  _cadSyncGridLabel();cadUpdateSettings();
 };
 window.cadStepPatMacro=function(d){
-  const el=document.getElementById('cadPatSize');
-  let v=parseInt(el.value)||5;
-  v=Math.max(1,Math.min(12,v+d));
-  el.value=v;cadUpdateSettings();
+  cadPatMacro=Math.max(1,Math.min(12,(cadPatMacro||3)+d));
+  _cadSyncTilesLabel();cadUpdateSettings();
 };
 window.cadMovePattern=function(du,dv){
   if(!cadLines.length)return;
@@ -1060,7 +1053,8 @@ window.cadSaveToLibrary=function(){
   const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbCells:cadThumbCells,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1108,7 +1102,8 @@ window.cadPublishToLibrary=async function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbCells:cadThumbCells,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -1155,7 +1150,8 @@ window.cadTilePlay=function(){
     const rel=_cadLineToSaved(l, bbox.minU, bbox.minV);
     return rel;
   });
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
+  const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
@@ -1526,8 +1522,9 @@ function _cadStitchScene(){
   const clean=cadLines.filter((_,i)=>!redSet.has(i));
   if(!clean.length){return(_cadStitchCache=empty);}
   const lines=clean.map(l=>_cadLineToSaved(l,bbox.minU,bbox.minV));
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:{minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV},
-    patMacro:cadPatMacro,spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
+  const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,
+    patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
@@ -1554,7 +1551,7 @@ function _cadStitchScene(){
   // the value scale-dependent; anchoring to the draw-canvas cadBase made CAD need ~2× the
   // gallery's value.) The reference is frozen at load, so the per-line stitch count also stays
   // invariant to the live Tiles count. Keep the laid width so the draw width matches the length.
-  const refSz=(computeExpLayout({...pat,patMacro:_cadRefMacro}).sz)||lay.sz;
+  const refSz=(computeExpLayout({...pat,patMacro:patMacroForTiles(pat,_cadRefMacro)}).sz)||lay.sz;
   const r=(lay.sz*sc&&refSz)?lay.sz*sc/refSz:1;
   const L=Math.max(3,cadStitchLen*r);
   const w=Math.max(1.2,Math.min(6,L*0.22));

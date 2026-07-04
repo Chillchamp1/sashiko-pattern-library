@@ -228,7 +228,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <div class="cad-canvas-label">Draw</div>
             <span class="cad-panel-stepper">
               <span class="cad-panel-stepper-label">Grid</span>
-              <input type="number" id="cadGridSize" value="3" min="1" max="12" onchange="cadUpdateSettings()">
+              <span class="cad-stepper-val" id="cadGridSizeVal" title="Draw-canvas size in grid units">30×30</span>
               <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
             </span>
           </div>
@@ -277,7 +277,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             </label>
             <span class="cad-panel-stepper">
               <span class="cad-panel-stepper-label">Tiles</span>
-              <input type="number" id="cadPatSize" value="3" min="1" max="12" onchange="cadUpdateSettings()">
+              <span class="cad-stepper-val" id="cadPatSizeVal" title="Number of tiles across (N×N repeat)">3×3</span>
               <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>
             </span>
             <span class="cad-panel-stepper">
@@ -331,9 +331,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-thumb-preview">
           <div class="cad-thumb-label">Thumbnail Preview</div>
           <div class="cad-thumb-controls">
-            <button class="cad-tool cad-thumb-btn" onclick="cadThumbZoomStep(-1)">−</button>
-            <span class="cad-thumb-zoom" id="cadThumbZoomVal">1.0</span>
-            <button class="cad-tool cad-thumb-btn" onclick="cadThumbZoomStep(1)">+</button>
+            <span class="cad-thumb-zoom" id="cadThumbZoomVal" title="Follows the Tiles setting">3 × 3</span>
           </div>
           <canvas id="cadThumbCanvas" width="120" height="120"></canvas>
         </div>
