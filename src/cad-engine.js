@@ -963,18 +963,24 @@ window.cadToggleBBoxRotate=function(){
   if(btn){btn.classList.toggle('on',cadBBoxRotated);btn.textContent=cadBBoxRotated?'◆ 45°':'◇ 45°';}
   cadUpdateAll();
 };
-window.cadUpdateTraditional=function(){cadTraditional=document.getElementById('cadTraditional').checked;};
+// Traditional and Community are mutually exclusive — checking one clears the other.
+window.cadUpdateTraditional=function(){
+  cadTraditional=document.getElementById('cadTraditional').checked;
+  if(cadTraditional){cadCommunity=false;const cb=document.getElementById('cadCommunity');if(cb)cb.checked=false;_cadSyncCommunityUI();}
+};
 window.cadUpdateCommunity=function(){
   cadCommunity=document.getElementById('cadCommunity').checked;
+  if(cadCommunity){cadTraditional=false;const tb=document.getElementById('cadTraditional');if(tb)tb.checked=false;}
   const nf=document.getElementById('cadCommunityName');
-  if(nf){nf.style.display=cadCommunity?'':'none';if(cadCommunity)nf.focus();}
+  // visibility (not display) → the field keeps its reserved space, so the Save button never shifts.
+  if(nf){nf.style.visibility=cadCommunity?'visible':'hidden';if(cadCommunity)nf.focus();}
 };
 window.cadUpdateCommunityName=function(){cadCommunityName=document.getElementById('cadCommunityName').value.trim();};
 // Reflect cadCommunity/cadCommunityName into the header UI (checkbox + name field visibility).
 function _cadSyncCommunityUI(){
   const cb=document.getElementById('cadCommunity'),nf=document.getElementById('cadCommunityName');
   if(cb)cb.checked=cadCommunity;
-  if(nf){nf.value=cadCommunityName;nf.style.display=cadCommunity?'':'none';}
+  if(nf){nf.value=cadCommunityName;nf.style.visibility=cadCommunity?'visible':'hidden';}
 }
 window.cadStepSpacing=function(d){
   const el=document.getElementById('cadSpacing');

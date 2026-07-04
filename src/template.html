@@ -219,9 +219,13 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <button class="back-btn" onclick="showGalleryFromCAD()">← Patterns</button>
       <h2>CAD Pattern Editor</h2>
       <input id="cadPatName" class="cad-name-input" placeholder="Unnamed pattern" value="">
-      <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
-      <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadCommunity" onchange="cadUpdateCommunity()"> Community</label>
-      <input id="cadCommunityName" class="cad-name-input" placeholder="Your name (optional)" value="" style="display:none;width:150px" oninput="cadUpdateCommunityName()">
+      <div class="cad-flags">
+        <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
+        <div class="cad-flags-row">
+          <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadCommunity" onchange="cadUpdateCommunity()"> Community</label>
+          <input id="cadCommunityName" class="cad-name-input" placeholder="Your name (optional)" value="" style="visibility:hidden;width:150px" oninput="cadUpdateCommunityName()">
+        </div>
+      </div>
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
       <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88" id="cadPublishBtn">📌 Publish (admin)</button>
     </div>

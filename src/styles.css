@@ -295,6 +295,8 @@ button.ctrl.primary:hover{background:#275784}
 .cad-arrow{padding:6px 9px;font-size:14px;line-height:1;min-width:0}
 .cad-name-trad{font-size:12px;color:var(--muted);display:flex;align-items:center}
 .cad-name-trad input{accent-color:#6aabff;cursor:pointer}
+.cad-flags{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.cad-flags-row{display:flex;align-items:center;gap:8px}
 .cad-name-input::placeholder{color:#6b7d92}
 .cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
 .cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
