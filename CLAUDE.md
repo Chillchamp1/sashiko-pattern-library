@@ -276,9 +276,18 @@ Jumps directly to pass boundaries. HM patterns: pass 1 (horizontal) vs. pass 2 (
 
 ## Filter System
 
-Dropdown (`#filtSelect` → `setFilterSelect`): **All (0) · 1 · 2 · 3 · 4 · 5+ (value 5) · Traditional (trad)**.
+Dropdown (`#filtSelect` → `setFilterSelect`): **All (0) · 1 · 2 · 3 · 4 · 5+ (value 5) · Only traditional (trad) · Only community (community)**.
 `filterGallery` matches a card's `data-p` (pass/family count): exact for 1–4, `>=5` for the "5+" bucket;
-`trad` matches `pat.traditional`. (Legacy `data-f` button values map the same way via `setFilter`.)
+`trad` matches `pat.traditional`, `community` matches `pat.community`. (Legacy `data-f` button values map the
+same way via `setFilter`; both share the `_filtKey(v)` string/number parser in gallery.js.)
+
+**Community patterns.** The CAD header has a **Community** checkbox (`#cadCommunity` → `cadUpdateCommunity`)
+next to Traditional; checking it reveals an optional name field (`#cadCommunityName`, `cadUpdateCommunityName`).
+Saved as `community:bool` + `communityName:string` (empty unless community is on) on the pattern (round-trips
+via `_pushToFirestore` spread + the 80-key rule — no rules change). Gallery + sandbox cards show
+`by <name>` in small italic under the pattern name (`.pcard-by`) **only when both `community` and a non-empty
+`communityName` are set** — the name is never mandatory. `editExpPattern`/`remixPattern`/`showCAD` restore or
+reset the fields via `_cadSyncCommunityUI()` (cad-engine.js). Search also matches `communityName`.
 
 **Pass count is automatic.** Each card's `data-p` = number of stitch families ("passes"):
 - Built-in: `pat.passes.length`.

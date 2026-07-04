@@ -58,6 +58,10 @@ function buildGallery(){
     card.appendChild(delBtn2);
     const name=document.createElement('div');name.className='pcard-name';name.textContent=_displayName(pat.name||'Custom');
     card.append(name);
+    if(pat.community&&pat.communityName){
+      const by=document.createElement('div');by.className='pcard-by';by.textContent='by '+pat.communityName;
+      card.append(by);
+    }
     // Like row for exp cards
     const likeRow=document.createElement('div');
     likeRow.className='like-row';likeRow.dataset.id=pat.id;
@@ -82,6 +86,7 @@ window.filterGallery=function(){
       const pv=parseInt(card.dataset.p)||0;   // pass/family count (auto for custom patterns)
       if(activeFilters.has('hm') && type==='generator') mp=true;
       if(activeFilters.has('trad') && pat.traditional===true) mp=true;
+      if(activeFilters.has('community') && pat.community===true) mp=true;
       activeFilters.forEach(f=>{
         if(typeof f!=='number')return;
         if(f>=5){if(pv>=5)mp=true;}          // "5+ passes" bucket
@@ -91,7 +96,7 @@ window.filterGallery=function(){
     let mq=!q;
     if(q){
       if(type==='exp'){
-        mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q);
+        mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q)||(pat.communityName||'').toLowerCase().includes(q);
       }else{
         mq=pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
           (type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
@@ -104,9 +109,10 @@ window.filterGallery=function(){
   if(!nr){nr=document.createElement('div');nr.id='noResults';nr.className='no-results';nr.textContent='No patterns found.';document.getElementById('pgrid').appendChild(nr);}
   nr.style.display=vis===0?'block':'none';
 };
+const _filtKey=v=>(v==='hm'||v==='trad'||v==='community')?v:(v==='0'?0:parseInt(v));
 window.setFilter=function(btn){
   const f=btn.dataset.f;
-  const fv=f==='hm'?'hm':(f==='trad'?'trad':(f==='0'?0:parseInt(f)));
+  const fv=_filtKey(f);
   if(fv===0){
     activeFilters=new Set([0]);
   }else{
@@ -116,13 +122,13 @@ window.setFilter=function(btn){
     if(activeFilters.size===0)activeFilters.add(0);
   }
   document.querySelectorAll('.filt').forEach(b=>{
-    const v=b.dataset.f==='hm'?'hm':(b.dataset.f==='trad'?'trad':(b.dataset.f==='0'?0:parseInt(b.dataset.f)));
+    const v=_filtKey(b.dataset.f);
     b.classList.toggle('on',activeFilters.has(v));
   });
   filterGallery();
 };
 window.setFilterSelect=function(v){
-  const fv=v==='hm'?'hm':(v==='trad'?'trad':(v==='0'?0:parseInt(v)));
+  const fv=_filtKey(v);
   activeFilters=fv===0?new Set([0]):new Set([fv]);
   filterGallery();
 };

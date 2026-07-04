@@ -1247,6 +1247,9 @@ window.editExpPattern=async function(idOrPat){
   cadBBoxRotated=pat.bboxRotated||false;
   cadTraditional=!!pat.traditional;
   document.getElementById('cadTraditional').checked=cadTraditional;
+  cadCommunity=!!pat.community;
+  cadCommunityName=pat.communityName||'';
+  _cadSyncCommunityUI();
   cadRoutingMode=pat.routingMode||'default';
   // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
   if(cadRoutingMode==='smooth'||cadRoutingMode==='fewer-jumps')cadRoutingMode='default';
@@ -2683,7 +2686,8 @@ function expCardHTML(pat){
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${esc(pat.id)}"></canvas>
     <div class="pcard-body">
       <div class="pcard-name">${esc(_displayName(pat.name||'Custom'))}</div>
-      <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
+      ${pat.community&&pat.communityName?`<div class="pcard-by">by ${esc(pat.communityName)}</div>`:''}
+      <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.community?'Community · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>
     <button class="exp-pub-btn" title="Publish to gallery (admin)" onclick="event.stopPropagation();publishExpPattern('${esc(pat.id)}')">📌</button>
@@ -2807,6 +2811,7 @@ window.remixPattern=function(id){
   cadPatMacro=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
+  cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();  // remix = new author; they re-enter their own name
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
   cadBBoxRotated=pat.bboxRotated||false;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
@@ -2865,6 +2870,7 @@ window.showCAD=function(){
   document.getElementById('cadRoutingMode').value='default';
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
   document.getElementById('cadTraditional').checked=false;
+  cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});

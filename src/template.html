@@ -52,7 +52,8 @@
       <option value="4">4 passes</option>
       <option value="5">5+ passes</option>
       <!-- hm option hidden while generator is hidden — re-enable together -->
-      <option value="trad">Traditional</option>
+      <option value="trad">Only traditional</option>
+      <option value="community">Only community</option>
     </select>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
     <button class="filt admin-login-btn" onclick="adminLogin()" title="Sign in with Google to manage the gallery">Admin login</button>
@@ -219,6 +220,8 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <h2>CAD Pattern Editor</h2>
       <input id="cadPatName" class="cad-name-input" placeholder="Unnamed pattern" value="">
       <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
+      <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadCommunity" onchange="cadUpdateCommunity()"> Community</label>
+      <input id="cadCommunityName" class="cad-name-input" placeholder="Your name (optional)" value="" style="display:none;width:150px" oninput="cadUpdateCommunityName()">
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
       <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88" id="cadPublishBtn">📌 Publish (admin)</button>
     </div>

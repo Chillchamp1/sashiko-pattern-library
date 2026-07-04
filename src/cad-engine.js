@@ -4,6 +4,7 @@ let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
+let cadCommunity=false,cadCommunityName='';   // "Community" flag + optional author name ("by …")
 // Natural tile count for the stitch-length reference — frozen when a pattern loads (mirrors the
 // gallery's EXP_szRef). Anchoring stitch length to the layout scale at this count makes the CAD
 // stitch view match the gallery (same stitch value → same look) AND keeps the per-line stitch
@@ -963,6 +964,18 @@ window.cadToggleBBoxRotate=function(){
   cadUpdateAll();
 };
 window.cadUpdateTraditional=function(){cadTraditional=document.getElementById('cadTraditional').checked;};
+window.cadUpdateCommunity=function(){
+  cadCommunity=document.getElementById('cadCommunity').checked;
+  const nf=document.getElementById('cadCommunityName');
+  if(nf){nf.style.display=cadCommunity?'':'none';if(cadCommunity)nf.focus();}
+};
+window.cadUpdateCommunityName=function(){cadCommunityName=document.getElementById('cadCommunityName').value.trim();};
+// Reflect cadCommunity/cadCommunityName into the header UI (checkbox + name field visibility).
+function _cadSyncCommunityUI(){
+  const cb=document.getElementById('cadCommunity'),nf=document.getElementById('cadCommunityName');
+  if(cb)cb.checked=cadCommunity;
+  if(nf){nf.value=cadCommunityName;nf.style.display=cadCommunity?'':'none';}
+}
 window.cadStepSpacing=function(d){
   const el=document.getElementById('cadSpacing');
   let v=parseInt(el.value)||0;
@@ -1056,7 +1069,7 @@ window.cadSaveToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',routingMode:cadRoutingMode,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1105,7 +1118,7 @@ window.cadPublishToLibrary=async function(){
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,routingMode:cadRoutingMode,published:true,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',routingMode:cadRoutingMode,published:true,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
