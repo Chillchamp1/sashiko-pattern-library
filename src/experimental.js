@@ -840,8 +840,14 @@ function genTiledSegs(pat){
       mnP=Math.min(mnP,p1,p2);mxP=Math.max(mxP,p1,p2);
       mnQ=Math.min(mnQ,q1,q2);mxQ=Math.max(mxQ,q1,q2);
     });
-    const sP=Math.max(mxP-mnP+spacing,1), sQ=Math.max(mxQ-mnQ+spacing,1);
-    const base_u=(mnP+mnQ)/2, base_v=(mnP-mnQ)/2;
+    // Diagonal tiling steps by (sP/2,±sP/2) & (sQ/2,∓sQ/2) in grid (u,v). Those offsets land
+    // on the integer fabric grid ONLY when sP,sQ are even; when odd, every "a+b odd" tile is
+    // shifted half a cell off the grid (the 45°-tiling half-grid-shift bug — unstitchable
+    // tiles sitting between the dots). Round each period UP to the next even integer so every
+    // tiled copy is grid-congruent (adds ≤1 unit of diagonal spacing, never overlaps).
+    // Already-even integer periods (e.g. Ajiro sP=12) are unchanged → byte-identical output.
+    const evenUp=x=>2*Math.ceil(x/2);
+    const sP=evenUp(Math.max(mxP-mnP+spacing,1)), sQ=evenUp(Math.max(mxQ-mnQ+spacing,1));
     const pad=sP+sQ;
     const N=Math.ceil((Math.abs(maxU-minU)+Math.abs(maxV-minV)+pad)/Math.min(sP,sQ));
     for(let a=-N;a<=N;a++){

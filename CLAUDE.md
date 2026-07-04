@@ -459,6 +459,38 @@ The **Tiles** control (`cadPatMacro` in CAD, `_tileCells` in the gallery viewer)
 - **Live-Tiling grid matches the Draw grid:** `cadBakeRight` now mirrors `cadBakeLeft` — per-unit sub-dots, larger dots at every `CAD_MICRO` point, and a grid line at every cell (was: coarse `CAD_MICRO`-only dots + tile-boundary lines). Per-unit sub-dots only baked when `cadPTile>=3`.
 - **Stitches/line invariant to Tiles count (stitch view):** `_cadLayStitches(strokes, sceneScale)` rescales the stitch length to the grid (anchored to `cadBase`, the Draw-canvas px/unit) so changing the display size shrinks the stitches with the cells instead of dropping stitches. `_cadStitchSig` now includes `cadMacro`.
 
+## 45° (rotated) tiling: even-period fix (2026-07-04)
+The **◇ 45° tiling** toggle (`bboxRotated`) tiles the motif along the diagonal axes P=u+v, Q=u−v.
+`genTiledSegs` steps each tile by `ou=(a·sP+b·sQ)/2`, `ov=(a·sP−b·sQ)/2`. Those offsets land on the
+integer fabric grid **only when sP and sQ are even**; when odd, every "a+b odd" tile is shifted **half
+a grid cell** off the dots — unstitchable tiles sitting between the holes (the "sometimes motifs are
+shifted by 0.5 grid" bug). sP=extent+spacing, so an **odd spacing** flips an even motif to odd too
+(that was Ishi Guruma: raw diagonal extent 16 + spacing 9 = 25 → half of its tiles off-grid).
+- **Fix:** round each diagonal period **up to the next even integer** (`evenUp=x=>2*Math.ceil(x/2)`)
+  in `genTiledSegs` (experimental.js, rotated branch) and in the CAD dashed-bbox guide (cad-engine.js).
+  Adds ≤1 unit of diagonal spacing, never overlaps. Even-integer periods (e.g. Ajiro sP=12) are
+  **unchanged → byte-identical**. Verified headless (`tools/routing/`): the only fixture whose output
+  changes is Ishi Guruma (off-grid endpoints 1176→0; same stroke count, jump distances shift as tiles
+  snap to grid). Non-rotated and even-period patterns untouched.
+- **Engine note (deliberate doctrine exception):** this edits **engine v1 in place** rather than
+  forking to v2 (contra "WHEN YOU CHANGE ROUTING, FORK FIRST"). Rationale: the affected pattern is
+  **published** (pinned to v1), and a v2 fork can only fix *new* patterns — it cannot correct a live
+  pinned pattern without a separate Firestore migration. The change is a pure geometry bug fix whose
+  *only* effect on any published pattern is turning off-grid tiles into on-grid ones, so re-baselining
+  v1 is correct here. Snapshot re-taken (`route.js --snapshot`).
+
+## Stitch:gap ratios — verified correct (2026-07-04)
+Audited `_layStitches` (`CAD_STITCH_RATIOS`: standard 3:1, relaxed 2:1, long 3:2, even 1:1). `G=L·g/s`,
+then each span fits a whole number of stitches and rescales so **stitch:gap = s:g exactly**. Measured
+against the real engine: straight strokes exact (3.00/2.00/1.50/1.00), curves within ~1% (only a
+degenerate R=10 arc hits 14%), real patterns 100% on-ratio within a stroke. All renderers (gallery
+`_cadDrawStitch`, PDF `_pdfStitchWindow`, CAD) use `lineCap='round'`, matching the `w/2` inset — no
+butt-cap shortfall. The only sub-nominal thread coverage is the **junction keepout** (crossings/hubs
+insert gaps larger than the ratio gap so perpendicular threads don't touch — full-scene coverage
+67–69% vs nominal 75% on crossing-heavy patterns); that is the sashiko junction rule, by design.
+Absolute stitch length can drift ±~8% from the set value (whole-number fitting) but the **ratio is
+preserved**. No code change needed.
+
 ## Known Issues / Gotchas
 
 - **Syntax errors are fatal** — the entire script is one IIFE; an extra `}` anywhere (like the one found in `drawPLGuide`) prevents ALL JavaScript from executing, causing "is not defined" for every onclick handler

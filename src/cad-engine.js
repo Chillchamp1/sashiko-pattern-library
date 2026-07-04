@@ -590,7 +590,9 @@ function cadDrawWorkspace(){
       const epts=[];cadAllSegments(cadLines).forEach(s=>epts.push(s.start,s.end));
       let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
       epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
-      const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
+      // Match genTiledSegs: diagonal tiling period is rounded up to even so tiles stay grid-aligned.
+      const evenUp=x=>2*Math.ceil(x/2);
+      const sP=evenUp(mxP-mnP+cadSpacing),sQ=evenUp(mxQ-mnQ+cadSpacing);
       const midP=(mnP+mxP)/2,midQ=(mnQ+mxQ)/2;
       const g45=(p,q)=>cadG2S((p+q)/2,(p-q)/2,cadOX,cadOY,cadTileSize);
       const ps=[g45(midP-sP/2,midQ-sQ/2),g45(midP+sP/2,midQ-sQ/2),g45(midP+sP/2,midQ+sQ/2),g45(midP-sP/2,midQ+sQ/2)];

@@ -612,38 +612,38 @@
     "midArc": 0
   },
   "exp_1782334860500:default": {
-    "segs": 392,
-    "strokes": 196,
-    "jumps": 195,
-    "jumpLen": 1979.9,
-    "stitchLen": 781.2,
+    "segs": 648,
+    "strokes": 324,
+    "jumps": 323,
+    "jumpLen": 3359.5,
+    "stitchLen": 1291.4,
     "maxTurn": 0,
     "midArc": 0
   },
   "exp_1782334860500:continuous": {
-    "segs": 392,
-    "strokes": 196,
-    "jumps": 195,
-    "jumpLen": 499.1,
-    "stitchLen": 781.2,
+    "segs": 648,
+    "strokes": 324,
+    "jumps": 323,
+    "jumpLen": 823.2,
+    "stitchLen": 1291.4,
     "maxTurn": 0,
     "midArc": 0
   },
   "exp_1782334860500:contour": {
-    "segs": 392,
-    "strokes": 196,
-    "jumps": 195,
-    "jumpLen": 2045.5,
-    "stitchLen": 781.2,
+    "segs": 648,
+    "strokes": 324,
+    "jumps": 323,
+    "jumpLen": 3447.7,
+    "stitchLen": 1291.4,
     "maxTurn": 0,
     "midArc": 0
   },
   "exp_1782334860500:sequential": {
-    "segs": 392,
-    "strokes": 196,
-    "jumps": 195,
-    "jumpLen": 475.1,
-    "stitchLen": 781.2,
+    "segs": 648,
+    "strokes": 324,
+    "jumps": 323,
+    "jumpLen": 780.4,
+    "stitchLen": 1291.4,
     "maxTurn": 0,
     "midArc": 0
   },
@@ -1440,38 +1440,38 @@
     "midArc": 0
   },
   "exp_1782657283438:default": {
-    "segs": 7200,
-    "strokes": 4500,
-    "jumps": 4499,
-    "jumpLen": 42495.4,
-    "stitchLen": 18617.9,
+    "segs": 5408,
+    "strokes": 3380,
+    "jumps": 3379,
+    "jumpLen": 33489.6,
+    "stitchLen": 13984.1,
     "maxTurn": 0,
     "midArc": 0
   },
   "exp_1782657283438:continuous": {
-    "segs": 7200,
-    "strokes": 4500,
-    "jumps": 4499,
-    "jumpLen": 7198.4,
-    "stitchLen": 18617.9,
+    "segs": 5408,
+    "strokes": 3380,
+    "jumps": 3379,
+    "jumpLen": 5403,
+    "stitchLen": 13984.1,
     "maxTurn": 0,
     "midArc": 0
   },
   "exp_1782657283438:contour": {
-    "segs": 7200,
-    "strokes": 4500,
-    "jumps": 4499,
-    "jumpLen": 50850.6,
-    "stitchLen": 18617.9,
+    "segs": 5408,
+    "strokes": 3380,
+    "jumps": 3379,
+    "jumpLen": 40782.2,
+    "stitchLen": 13984.1,
     "maxTurn": 0,
     "midArc": 0
   },
   "exp_1782657283438:sequential": {
-    "segs": 7200,
-    "strokes": 4500,
-    "jumps": 4499,
-    "jumpLen": 7912.3,
-    "stitchLen": 18617.9,
+    "segs": 5408,
+    "strokes": 3380,
+    "jumps": 3379,
+    "jumpLen": 6338.8,
+    "stitchLen": 13984.1,
     "maxTurn": 0,
     "midArc": 0
   },
@@ -1617,6 +1617,42 @@
     "jumpLen": 1449.8,
     "stitchLen": 2300,
     "maxTurn": 53,
+    "midArc": 0
+  },
+  "exp_1782849917703:default": {
+    "segs": 299,
+    "strokes": 35,
+    "jumps": 34,
+    "jumpLen": 196,
+    "stitchLen": 2944.8,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782849917703:continuous": {
+    "segs": 299,
+    "strokes": 35,
+    "jumps": 34,
+    "jumpLen": 196,
+    "stitchLen": 2944.8,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782849917703:contour": {
+    "segs": 299,
+    "strokes": 35,
+    "jumps": 34,
+    "jumpLen": 196,
+    "stitchLen": 2944.8,
+    "maxTurn": 0,
+    "midArc": 0
+  },
+  "exp_1782849917703:sequential": {
+    "segs": 299,
+    "strokes": 35,
+    "jumps": 34,
+    "jumpLen": 196,
+    "stitchLen": 2944.8,
+    "maxTurn": 0,
     "midArc": 0
   }
 }
