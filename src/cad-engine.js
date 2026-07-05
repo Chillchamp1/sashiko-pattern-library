@@ -1399,7 +1399,7 @@ function _ptAlong(d,dist){
   return[pts[lo][0]+(pts[hi][0]-pts[lo][0])*f, pts[lo][1]+(pts[hi][1]-pts[lo][1])*f];
 }
 // Thread width (px) for a given stitch length.
-function _stitchW(len){return Math.max(2,Math.min(6,len*0.28));}
+function _stitchW(len){return Math.max(1,Math.min(6,len*0.28));}
 function _cadStitchW(){return _stitchW(cadStitchLen);}
 // Group a routed path (segments with `jump` flags) into continuous screen-space
 // strokes. T maps a grid point [u,v] → [x,y] screen.
@@ -1434,7 +1434,7 @@ function _segNear(p,q,cx,cy,r){
 // by insetting drawn endpoints by the cap radius.
 function _layStitches(strokes,L,ratioKey,w){
   const ratio=CAD_STITCH_RATIOS[ratioKey]||CAD_STITCH_RATIOS.standard;
-  L=Math.max(3,L);
+  L=Math.max(1,L);
   const G=L*ratio.g/ratio.s, U=L+G;
   const cap=w/2;                              // round-cap radius
   const cCross=Math.max(0.35*L, w*0.9);       // X / T half-clearance → gap ≈ 0.7·L, ≥ thread width
@@ -1624,8 +1624,8 @@ function _cadStitchScene(){
   // invariant to the live Tiles count. Keep the laid width so the draw width matches the length.
   const refSz=(computeExpLayout({...pat,patMacro:patMacroForTiles(pat,_cadRefMacro)}).sz)||lay.sz;
   const r=(lay.sz*sc&&refSz)?lay.sz*sc/refSz:1;
-  const L=Math.max(3,cadStitchLen*r);
-  const w=Math.max(1.2,Math.min(6,L*0.22));
+  const L=Math.max(1,cadStitchLen*r);
+  const w=Math.max(1,Math.min(6,L*0.22));
   return(_cadStitchCache={sig,stitches:_layStitches(strokes,L,cadStitchRatio,w),tf,ur:lay.uRange,vr:lay.vRange,w});
 }
 // Fabric grid overlay (main lines every CAD_MICRO + dot sub-grid), mapped through the stitch-scene transform.
@@ -1720,8 +1720,8 @@ window.cadSetStitchLen=function(v){
   _cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();
 };
-// +/− stepper (replaces the old slider); clamp 3–40, default 8.
-window.cadStepStitchLen=function(dir){window.cadSetStitchLen(Math.max(3,Math.min(40,cadStitchLen+dir)));};
+// +/− stepper (replaces the old slider); clamp 1–40, default 8.
+window.cadStepStitchLen=function(dir){window.cadSetStitchLen(Math.max(1,Math.min(40,cadStitchLen+dir)));};
 window.cadSetStitchRatio=function(v){
   cadStitchRatio=v;_cadStitchCache=null;
   if(!_tpOn)cadDrawPattern();

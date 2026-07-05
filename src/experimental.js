@@ -2628,8 +2628,8 @@ window.galSetFabric=function(id){
   galBuildFabricUI(); galBuildColorTabs(); render(step);
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};
-// +/− stepper (replaces the old slider); clamp 3–40, default 8.
-window.galStepStitchLen=function(dir){window.galSetStitchLen(Math.max(3,Math.min(40,galStitchLen+dir)));};
+// +/− stepper (replaces the old slider); clamp 1–40, default 8.
+window.galStepStitchLen=function(dir){window.galSetStitchLen(Math.max(1,Math.min(40,galStitchLen+dir)));};
 window.galSetStitchRatio=function(v){galStitchRatio=v;_galStitchCache=null;render(step);};
 // Overlay: Off | Grid | Draft — one compact segmented control (mutually exclusive).
 window.galSetOverlay=function(mode){
