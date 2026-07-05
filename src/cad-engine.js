@@ -379,7 +379,14 @@ function cadFlattenArc(arc, nSegs){
   else if(sweep<=-2*Math.PI+0.001)sweep=-2*Math.PI;
   const totalSweep=Math.abs(sweep);
   const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
-  const result=[]; let prev=[...arc.start];
+  const result=[];
+  // Iso full circle → render round (matches the tiled/gallery flatten; see _flattenArc).
+  if(cadGridType==='isometric' && totalSweep>=2*Math.PI-0.001){
+    const pts=_isoRoundCirclePts(arc.center, arc.r, a1, segs);
+    for(let i=1;i<pts.length;i++)result.push({start:pts[i-1],end:pts[i],arc:true});
+    return result;
+  }
+  let prev=[...arc.start];
   for(let i=1;i<=segs;i++){
     const a=a1+sweep*(i/segs);
     const next=[arc.center[0]+arc.r*Math.cos(a),arc.center[1]+arc.r*Math.sin(a)];
@@ -950,6 +957,10 @@ window.cadStepPatMacro=function(d){
 };
 window.cadMovePattern=function(du,dv){
   if(!cadLines.length)return;
+  // In the isometric view the u/v axes run diagonally on screen, so ↑↓←→ with raw (du,dv) moves
+  // the pattern diagonally. Remap the intended screen direction to the on-grid step that moves it
+  // visually up/down/left/right: vertical → (±1,±1), horizontal → (±1,∓1).
+  if(cadGridType==='isometric'){ if(du!==0)dv=-du; else du=dv; }
   cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
   cadLines=cadLines.map(l=>{
     if(l.arc){
@@ -1846,10 +1857,10 @@ window.cadCopyToolbarLayout=function(){
   const json=JSON.stringify(_cadTbCollect());
   const btn=document.getElementById('cadCopyLayoutBtn');
   console.log('CAD toolbar layout:\n'+json);
-  _cadCopyText(json).then(()=>{
-    if(!btn)return; btn.textContent='✓ Copied — commit cad-toolbar.json';
-    setTimeout(()=>{btn.textContent='📋 Copy layout';},2600);
-  }).catch(()=>{ if(btn){btn.textContent='⚠ Copy failed — see console';setTimeout(()=>{btn.textContent='📋 Copy layout';},2600);} });
+  _cadCopyText(json).then(()=>{if(btn){btn.textContent='✓ Copied';setTimeout(()=>{btn.textContent='📋 Copy layout';},2000);}}).catch(()=>{});
+  // Guaranteed path: show the code pre-selected in a prompt so it can always be copied (Ctrl/Cmd+C)
+  // and pasted anywhere — e.g. straight into the chat with Claude, or into cad-toolbar.json.
+  window.prompt('Toolbar layout — copy this (Ctrl/Cmd+C) and paste it to Claude, or into cad-toolbar.json:', json);
 };
 
 // ── Init ───────────────────────────────────────────────────────────────────

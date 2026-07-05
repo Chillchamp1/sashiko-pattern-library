@@ -744,20 +744,39 @@ window.patIsCurved=function patIsCurved(pat){
 };
 
 // Flatten an arc to polyline segments in grid space.
-function _flattenArc(l, nSegs, arcId){
+// Isometric FULL circle → round on screen. The iso projection is anisotropic
+// (x=(u-v)cos30, y=(u+v)sin30), so a plain (u,v) circle projects to a wide ellipse. Placing
+// points at center + invIso(r·(cosφ,sinφ)) makes g2s(pt) trace a TRUE screen circle of radius r
+// (grid units). Only used for full circles — partial arcs keep their (u,v) endpoints so line↔arc
+// and arc↔arc connections don't shift.
+function _isoRoundCirclePts(center, r, a1, segs){
+  const C=_COS30, S=_SIN30, pts=[];
+  for(let i=0;i<=segs;i++){
+    const f=a1+2*Math.PI*(i/segs), dx=r*Math.cos(f), dy=r*Math.sin(f);
+    pts.push([center[0]+(dx/C+dy/S)/2, center[1]+(dy/S-dx/C)/2]);
+  }
+  return pts;
+}
+function _flattenArc(l, nSegs, arcId, iso){
   const a1=l.a1, a2=l.a2;
   let sweep=a2-a1;
   if(sweep>=2*Math.PI-0.001)sweep=2*Math.PI;
   else if(sweep<=-2*Math.PI+0.001)sweep=-2*Math.PI;
   const totalSweep=Math.abs(sweep);
   const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
-  const result=[]; let prev=[...l.start];
+  const result=[];
   // Use the exact center→start radius, not the stored l.r (which may be rounded, e.g.
   // 1.414 vs √2). A rounded radius drifts the computed points off the clean grid by
   // float noise — enough to break arc→arc endpoint merging when tiled (dead-ends, no
   // wave chaining). Recomputing keeps the curve through its real endpoints; arcs whose
   // stored radius is already exact (e.g. r=5) are unaffected.
   const r=Math.hypot(l.start[0]-l.center[0],l.start[1]-l.center[1])||l.r;
+  if(iso && totalSweep>=2*Math.PI-0.001){   // full circle on the iso grid → keep it round
+    const pts=_isoRoundCirclePts(l.center, r, a1, segs);
+    for(let i=1;i<pts.length;i++)result.push({start:pts[i-1],end:pts[i],aid:arcId});
+    return result;
+  }
+  let prev=[...l.start];
   for(let i=1;i<=segs;i++){
     const a=a1+sweep*(i/segs);
     const next=[l.center[0]+r*Math.cos(a),l.center[1]+r*Math.sin(a)];
@@ -829,10 +848,11 @@ function genTiledSegs(pat){
   // Build flat segments: expand arcs to polyline segments, assign unique arc IDs
   const flatSegs=[];
   const flatFamOf=[];
+  const isoGrid=pat.gridType==='isometric';   // iso full circles flatten round (see _flattenArc)
   let arcIdCounter=0;
   rawLines.forEach((l,li)=>{
     if(l.arc){
-      _flattenArc(l, 60, arcIdCounter).forEach(s=>{flatSegs.push(s);flatFamOf.push(famOfLine[li]);});
+      _flattenArc(l, 60, arcIdCounter, isoGrid).forEach(s=>{flatSegs.push(s);flatFamOf.push(famOfLine[li]);});
       arcIdCounter++;
     }else{
       flatSegs.push({start:[...l.start],end:[...l.end],aid:-1});

@@ -541,6 +541,22 @@ unchanged because `.cad-tool-group` and `.cad-toolbar` share `gap:6px`.
   it. (`sashikoToolbarLayout()` is the console equivalent.) No Firestore/rules involved (deliberately simpler than the
   gallery's Firestore order, since this is a single-admin, rarely-changed, global setting).
 
+## Isometric view: round circles + screen-cardinal move arrows (2026-07-05)
+The iso projection is anisotropic (`x=(u−v)cos30`, `y=(u+v)sin30`), which distorted two things:
+- **Full circles rendered as wide ellipses.** Fixed in the arc flatteners: `_isoRoundCirclePts(center,r,a1,segs)`
+  (experimental.js) places points at `center + invIso(r·(cosφ,sinφ))` so `g2s(pt)` traces a TRUE screen circle of
+  radius `r`. `_flattenArc` (gains an `iso` param, passed from `genTiledSegs`) and `cadFlattenArc` (uses `cadGridType`)
+  branch to it **only for iso FULL circles** — partial arcs keep their `(u,v)` endpoints so line↔arc / arc↔arc
+  connections don't shift. Square grids and non-circle iso patterns are byte-identical (`route.js --check` unchanged;
+  no fixture is iso+arc). Verified: iso circle screen-roundness (max/min radius) went 1.7 → 1.0. NB draft-mode circle
+  recovery (`_galDraftShapes` `_circumcircle`) still assumes a `(u,v)` circle — a minor cosmetic gap for iso draft/PDF.
+- **↑↓←→ moved the pattern diagonally.** `cadMovePattern` remaps in iso so the arrows move screen-cardinally with an
+  on-grid step: vertical → `(±1,±1)`, horizontal → `(±1,∓1)` (`if(iso){if(du!==0)dv=-du;else du=dv;}`). Horizontal
+  steps are √3× the vertical (inherent to the lattice); square grid unchanged.
+
+The admin **📋 Copy layout** button now also pops a `window.prompt` pre-filled with the layout JSON (selected, so it
+always copies with Ctrl/Cmd+C even when the async Clipboard API is blocked) — paste it to Claude or into cad-toolbar.json.
+
 ## Known Issues / Gotchas
 
 - **Syntax errors are fatal** — the entire script is one IIFE; an extra `}` anywhere (like the one found in `drawPLGuide`) prevents ALL JavaScript from executing, causing "is not defined" for every onclick handler
