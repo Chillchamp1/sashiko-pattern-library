@@ -26,3 +26,7 @@ Open [`Sashiko — Pattern Library.htm`](Sashiko%20%E2%80%94%20Pattern%20Library
 - `src/` — split source files; `python build.py` assembles them into the deliverable (GitHub Actions does this on every push)
 - `CLAUDE.md` — architecture documentation (rendering engines, color palette, generator internals)
 - `ROUTING.md` — rules for ordering and colouring the stitch animation path
+
+## License
+
+[MIT](LICENSE) — copy, modify, reimagine, or embed parts of it freely. A mention of sashikolib.org as a source is appreciated.
