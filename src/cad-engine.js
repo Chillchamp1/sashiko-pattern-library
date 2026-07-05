@@ -21,6 +21,7 @@ let cadPtc=0,_cadTileSig='';
 let cadDrawing=false,cadStart=null,cadCur=null,cadHover=null;
 let cadRecolorOn=false;  // recolor paint mode
 let cadArcState=0,cadArcCenter=null,cadArcStart=null; // arc tool state
+let cadArcSweep=0,cadArcPrevAng=0; // accumulated sweep angle (state 2) + last mouse angle, for continuous sweep
 let cadLeftBuf=null,cadRightBuf=null;
 let cadInited=false;
 
@@ -430,6 +431,22 @@ function cadGenArc(center,start,end){
   };
 }
 
+// Build an arc from center + start point + an explicit accumulated sweep angle (signed).
+// Unlike cadGenArc (shortest path ≤180°), this lets the arc be ANY size and close a full
+// circle in EITHER direction — the sweep is tracked continuously as the mouse moves in state 2.
+function cadGenArcSweep(center, start, sweep){
+  const r=Math.hypot(start[0]-center[0],start[1]-center[1]);
+  if(r<0.01)return null;
+  const a1=Math.atan2(start[1]-center[1],start[0]-center[0]);
+  let sw=sweep;
+  if(Math.abs(sw)>=2*Math.PI-0.12)sw=(sw>=0?1:-1)*2*Math.PI;   // swept nearly all the way → full circle
+  if(Math.abs(sw)<0.02)return null;                             // no sweep yet
+  const a2=a1+sw;
+  return{arc:true,center:[center[0],center[1]],r,a1,a2,
+    start:[center[0]+r*Math.cos(a1),center[1]+r*Math.sin(a1)],
+    end:[center[0]+r*Math.cos(a2),center[1]+r*Math.sin(a2)]};
+}
+
 // Flatten all arcs in cadLines to segments (for downstream processing).
 // Returns an array of segment objects {start, end, arc:true, ...}.
 function cadAllSegments(lines){
@@ -445,7 +462,7 @@ function cadAllSegments(lines){
 }
 
 function cadArcLabel(){
-  const labels=['Click to place center','Click to set radius','Click to set sweep (click center-start for full circle)'];
+  const labels=['Click to place center','Click to set radius','Move to sweep the arc (either way), click to finish · all the way round = full circle'];
   const el=document.getElementById('cadArcHint');
   if(el)el.textContent=cadArcState<3?labels[cadArcState]:'';
 }
@@ -570,7 +587,7 @@ function cadDrawWorkspace(){
   const all=[...cadLines];
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
   if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur){
-    const prevArc=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+    const prevArc=cadGenArcSweep(cadArcCenter,cadArcStart,cadArcSweep);
     if(prevArc)all.push({...prevArc,preview:true});
   }
 
@@ -650,7 +667,7 @@ function cadDrawWorkspace(){
       x.setLineDash([]);
     }else if(cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur){
       // Arc preview — draw as polyline for accuracy
-      const prevArc=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+      const prevArc=cadGenArcSweep(cadArcCenter,cadArcStart,cadArcSweep);
       if(prevArc){
         x.strokeStyle='rgba(0,255,204,0.5)';x.lineWidth=3;
         _cadDrawLine(x, prevArc, -1, cadOX, cadOY, cadTileSize, g2s);
@@ -751,7 +768,7 @@ function cadDrawPattern(){
   const all=[...cadLines];
   if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur)all.push({start:cadStart,end:cadCur,preview:true});
   if(cadTool==='arc'&&cadArcState===2&&cadArcCenter&&cadArcStart&&cadCur){
-    const prevArc=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+    const prevArc=cadGenArcSweep(cadArcCenter,cadArcStart,cadArcSweep);
     if(prevArc)all.push({...prevArc,preview:true});
   }
   const bbox=cadBBox2(all);if(!bbox)return;
@@ -903,7 +920,7 @@ window.cadSetTool=function(t){
   document.getElementById('cadBtnErase').classList.toggle('on',t==='erase');
   document.getElementById('cadBtnRecolor').classList.toggle('on',t==='recolor');
   cadDrawing=false;cadStart=null;cadHover=null;
-  cadArcState=0;cadArcCenter=null;cadArcStart=null;
+  cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;
   cadRecolorOn=false;
   cadArcLabel();cadUpdateAll();
 };
@@ -1705,13 +1722,16 @@ function cadInit(){
     }
     else if(cadTool==='arc'){
       if(cadArcState===0){cadArcCenter=[...cadCur];cadArcState=1;}
-      else if(cadArcState===1){cadArcStart=[...cadCur];cadArcState=2;}
+      else if(cadArcState===1){
+        cadArcStart=[...cadCur];cadArcState=2;
+        cadArcSweep=0;cadArcPrevAng=Math.atan2(cadArcStart[1]-cadArcCenter[1],cadArcStart[0]-cadArcCenter[0]);
+      }
       else if(cadArcState===2){
         cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
-        const newArc=cadGenArc(cadArcCenter,cadArcStart,cadCur);
+        const newArc=cadGenArcSweep(cadArcCenter,cadArcStart,cadArcSweep);
         if(newArc)cadLines.push(newArc);
         cadFamsLocked=false;cadFamSel=-1;
-        cadArcState=0;cadArcCenter=null;cadArcStart=null;
+        cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;
         cadAutoExtendGrid();
       }
       cadArcLabel();
@@ -1758,6 +1778,13 @@ function cadInit(){
     if(cadPanning){cadPanX+=pos.x-cadPanStart.x;cadPanY+=pos.y-cadPanStart.y;cadPanStart=pos;cadApplyView();cadBakeLeft();cadUpdateAll();return;}
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     if(cadTool==='draw'||cadTool==='arc')cadCur=cadSnapPoint(g.u,g.v);
+    // Arc: after the radius click, accumulate the sweep continuously as the mouse circles the
+    // centre — so the arc can be any size and close a full circle whichever way you go round.
+    if(cadTool==='arc'&&cadArcState===2&&cadArcCenter){
+      const ang=Math.atan2(g.v-cadArcCenter[1],g.u-cadArcCenter[0]);
+      let d=ang-cadArcPrevAng; while(d>Math.PI)d-=2*Math.PI; while(d<=-Math.PI)d+=2*Math.PI;
+      cadArcSweep=Math.max(-2*Math.PI,Math.min(2*Math.PI,cadArcSweep+d)); cadArcPrevAng=ang;
+    }
     else if(cadTool==='recolor'){cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     else{cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     cadUpdateAll();
@@ -1773,7 +1800,7 @@ function cadInit(){
   document.addEventListener('keydown',e=>{
     if(!document.getElementById('cadView').classList.contains('open'))return;
     if(e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
-    if(e.key==='Escape'&&cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcLabel();cadUpdateAll();}
+    if(e.key==='Escape'&&cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;cadArcLabel();cadUpdateAll();}
   });
   if(!_cadResizeBound){_cadResizeBound=true;window.addEventListener('resize',()=>{if(document.getElementById('cadView').classList.contains('open'))cadAlignHeads();});}
   cadAlignHeads();
