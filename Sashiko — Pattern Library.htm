@@ -82,9 +82,7 @@ body .floatingchat-container-wrap,body .floatingchat-container-wrap-mobi{transfo
 .pcard-by{font-size:10.5px;font-style:italic;color:var(--muted);line-height:1.2;margin-top:1px}
 .pcard-badge{font-size:10px;padding:2px 7px;border-radius:5px;background:#1f3548;color:#7aa0be}
 .pcard-badge.gen{background:#1c2e10;color:#8cd46a}
-/* Admin drag-to-reorder handle (hidden unless signed in as admin) */
-.pcard-drag{display:none;position:absolute;top:6px;left:7px;color:#9fbdd8;cursor:grab;line-height:0;z-index:3;padding:2px;border-radius:5px;background:rgba(16,31,44,0.55)}
-body.is-admin .exp-card .pcard-drag{display:block}
+/* Admin drag-to-reorder: whole card is draggable (grab cursor for admins), with drag feedback */
 body.is-admin .exp-card{cursor:grab}
 .pcard.dragging{opacity:.4}
 .pcard.drag-over{outline:2px solid #6aabff;outline-offset:2px}
@@ -394,12 +392,7 @@ button.ctrl.primary:hover{background:#275784}
 .pcard.new-pattern-card:hover{background:#162016;border-color:#3a6a3a}
 .pcard-new-icon{font-size:32px;line-height:1;color:#4a9a4a;font-weight:300}
 /* CAD thumbnail preview */
-.cad-thumb-preview{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px;padding:8px;background:#0a121c;border-radius:8px}
-.cad-thumb-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.cad-thumb-controls{display:flex;align-items:center;gap:6px}
 .cad-thumb-btn{width:22px;height:22px;padding:0;font-size:14px;line-height:1}
-.cad-thumb-zoom{font-size:12px;color:#e7eef6;min-width:32px;text-align:center}
-#cadThumbCanvas{border-radius:6px;background:#1a3a5c;display:block;width:100px;height:100px}
 /* Experimental gallery cards */
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
@@ -778,13 +771,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <span class="cad-stitch-val" id="cadHubScaleVal">1.00×</span>
           </span>
           -->
-        </div>
-        <div class="cad-thumb-preview">
-          <div class="cad-thumb-label">Thumbnail Preview</div>
-          <div class="cad-thumb-controls">
-            <span class="cad-thumb-zoom" id="cadThumbZoomVal" title="Follows the Tiles setting">3 × 3</span>
-          </div>
-          <canvas id="cadThumbCanvas" width="120" height="120"></canvas>
         </div>
   </div>
   <div class="remixes-section" id="remixesSection" style="display:none"></div>
@@ -6227,10 +6213,6 @@ function buildGallery(){
     card.addEventListener('dragover',e=>{if(document.body.classList.contains('is-admin')&&_dragId&&_dragId!==pat.id){e.preventDefault();card.classList.add('drag-over');}});
     card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
     card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');_onExpDrop(pat.id);_dragId=null;});
-    const grip=document.createElement('div');
-    grip.className='pcard-drag';grip.title='Drag to reorder (admin)';
-    grip.innerHTML='<svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor"><circle cx="3" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="3" cy="7" r="1.3"/><circle cx="7" cy="7" r="1.3"/><circle cx="3" cy="11" r="1.3"/><circle cx="7" cy="11" r="1.3"/></svg>';
-    card.appendChild(grip);
     const thumb=document.createElement('canvas');
     thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
     card.appendChild(thumb);
@@ -10101,60 +10083,12 @@ function cadUpdateAll(){
   _cadRefreshTiling(false);   // rescale/re-bake the Live Tiling when the committed motif changed
   cadDrawWorkspace();cadDrawPattern();
   cadBuildFamBar();
-  cadUpdateThumbPreview();
   const el=document.getElementById('cadArcHint');
   if(el){
     const red=cadFindRedundant();
     if(red.length && cadTool!=='arc')el.innerHTML='<span style=\"color:#ff5555\">'+red.length+' redundant line'+(red.length>1?'s':'')+' (red dashed) — excluded when saving</span>';
     else if(cadTool!=='arc')el.textContent='';
   }
-}
-function cadUpdateThumbPreview(){
-  const c=document.getElementById('cadThumbCanvas'); if(!c)return;
-  const TDPR=Math.min(window.devicePixelRatio||1,2);
-  const w=120,pw=w*TDPR; c.width=pw;c.height=pw;
-  c.style.width=w+'px';c.style.height=w+'px';
-  const tc=c.getContext('2d'); tc.scale(TDPR,TDPR);
-  tc.fillStyle='#1a3a5c'; tc.fillRect(0,0,w,w);
-  if(!cadLines.length)return;
-  const bbox=cadBBox(); if(!bbox)return;
-  const redSet=new Set(cadFindRedundant());
-  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
-  if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
-  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
-  const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  // The thumbnail preview shows the SAME tiling as everything else \u2014 cadPatMacro (N) tiles \u2014
-  // so there's no separate "cells" knob. patMacroForTiles makes computeExpLayout render N tiles;
-  // fitting SIZE\u2192w then just shows that view. (This matches the gallery card via thumbCells=N.)
-  const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbCells:cadPatMacro};
-  const lay=computeExpLayout(previewPat);
-  const cells=Math.max(1,Math.round(lay.ptc/Math.max(lay.dU,lay.dV,1)));   // = N tiles
-  const ts=w/SIZE;
-  const zl=document.getElementById('cadThumbZoomVal');
-  if(zl)zl.textContent=cells+'\u2009\u00d7\u2009'+cells;
-  tc.scale(ts,ts);
-
-  const origCtx=ctx;
-  const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
-  const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH,sEXPsz=EXP_sz,sEXPszr=EXP_szRef;
-  // The thumbnail is always the realistic stitch view (it must match the gallery cards,
-  // regardless of the editor's Stitch-view toggle). Force galStitch + stitch params here.
-  const sGS=galStitch,sGSl=galStitchLen,sGSr=galStitchRatio,sGSg=galStitchGrid,sGSd=galDraft,sGSc=_galStitchCache;
-  ctx=tc; curPat=previewPat; playing=false;
-  isEXP=true;isPL=false;isHM=false;
-  galStitch=true; galStitchLen=cadStitchLen; galStitchRatio=cadStitchRatio; galStitchGrid=false; galDraft=false; _galStitchCache=null;
-  try{
-    EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH; EXP_sz=lay.sz; EXP_szRef=lay.sz;
-    EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode,{iso:previewPat.gridType==='isometric'});
-    TOTAL=EXP_path.length;
-    renderExp(TOTAL);
-  }catch(e){console.warn('cadThumbPreview',e);}
-  ctx=origCtx;
-  curPat=sCP;PASSES=sP;TOTAL=sT;step=sSt;playing=sPl;
-  isHM=sHM;isPL=sPL;isEXP=sEX;
-  EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;EXP_sz=sEXPsz;EXP_szRef=sEXPszr;
-  galStitch=sGS;galStitchLen=sGSl;galStitchRatio=sGSr;galStitchGrid=sGSg;galDraft=sGSd;_galStitchCache=sGSc;
 }
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;

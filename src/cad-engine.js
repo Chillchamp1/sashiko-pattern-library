@@ -810,60 +810,12 @@ function cadUpdateAll(){
   _cadRefreshTiling(false);   // rescale/re-bake the Live Tiling when the committed motif changed
   cadDrawWorkspace();cadDrawPattern();
   cadBuildFamBar();
-  cadUpdateThumbPreview();
   const el=document.getElementById('cadArcHint');
   if(el){
     const red=cadFindRedundant();
     if(red.length && cadTool!=='arc')el.innerHTML='<span style=\"color:#ff5555\">'+red.length+' redundant line'+(red.length>1?'s':'')+' (red dashed) — excluded when saving</span>';
     else if(cadTool!=='arc')el.textContent='';
   }
-}
-function cadUpdateThumbPreview(){
-  const c=document.getElementById('cadThumbCanvas'); if(!c)return;
-  const TDPR=Math.min(window.devicePixelRatio||1,2);
-  const w=120,pw=w*TDPR; c.width=pw;c.height=pw;
-  c.style.width=w+'px';c.style.height=w+'px';
-  const tc=c.getContext('2d'); tc.scale(TDPR,TDPR);
-  tc.fillStyle='#1a3a5c'; tc.fillRect(0,0,w,w);
-  if(!cadLines.length)return;
-  const bbox=cadBBox(); if(!bbox)return;
-  const redSet=new Set(cadFindRedundant());
-  const cleanLines=cadLines.filter((_,i)=>!redSet.has(i));
-  if(!cleanLines.length)return;
-  const lines=cleanLines.map(l=>_cadLineToSaved(l, bbox.minU, bbox.minV));
-  const cf=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
-  const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  // The thumbnail preview shows the SAME tiling as everything else \u2014 cadPatMacro (N) tiles \u2014
-  // so there's no separate "cells" knob. patMacroForTiles makes computeExpLayout render N tiles;
-  // fitting SIZE\u2192w then just shows that view. (This matches the gallery card via thumbCells=N.)
-  const previewPat={name:'',type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,families:cf.families,famOrder:cf.famOrder,routingMode:cadRoutingMode,bboxRotated:cadBBoxRotated,thumbCells:cadPatMacro};
-  const lay=computeExpLayout(previewPat);
-  const cells=Math.max(1,Math.round(lay.ptc/Math.max(lay.dU,lay.dV,1)));   // = N tiles
-  const ts=w/SIZE;
-  const zl=document.getElementById('cadThumbZoomVal');
-  if(zl)zl.textContent=cells+'\u2009\u00d7\u2009'+cells;
-  tc.scale(ts,ts);
-
-  const origCtx=ctx;
-  const sCP=curPat,sP=PASSES,sT=TOTAL,sSt=step,sPl=playing,sHM=isHM,sPL=isPL,sEX=isEXP;
-  const sEXPpath=EXP_path,sEXPg2s=EXP_g2s,sEXPh=EXP_canvasH,sEXPsz=EXP_sz,sEXPszr=EXP_szRef;
-  // The thumbnail is always the realistic stitch view (it must match the gallery cards,
-  // regardless of the editor's Stitch-view toggle). Force galStitch + stitch params here.
-  const sGS=galStitch,sGSl=galStitchLen,sGSr=galStitchRatio,sGSg=galStitchGrid,sGSd=galDraft,sGSc=_galStitchCache;
-  ctx=tc; curPat=previewPat; playing=false;
-  isEXP=true;isPL=false;isHM=false;
-  galStitch=true; galStitchLen=cadStitchLen; galStitchRatio=cadStitchRatio; galStitchGrid=false; galDraft=false; _galStitchCache=null;
-  try{
-    EXP_g2s=lay.g2s; EXP_canvasH=lay.canvasH; EXP_sz=lay.sz; EXP_szRef=lay.sz;
-    EXP_path=buildExpPath(genTiledSegs(previewPat),previewPat.famOrder,previewPat.routingMode,{iso:previewPat.gridType==='isometric'});
-    TOTAL=EXP_path.length;
-    renderExp(TOTAL);
-  }catch(e){console.warn('cadThumbPreview',e);}
-  ctx=origCtx;
-  curPat=sCP;PASSES=sP;TOTAL=sT;step=sSt;playing=sPl;
-  isHM=sHM;isPL=sPL;isEXP=sEX;
-  EXP_path=sEXPpath;EXP_g2s=sEXPg2s;EXP_canvasH=sEXPh;EXP_sz=sEXPsz;EXP_szRef=sEXPszr;
-  galStitch=sGS;galStitchLen=sGSl;galStitchRatio=sGSr;galStitchGrid=sGSg;galDraft=sGSd;_galStitchCache=sGSc;
 }
 function cadBuildFamBar(){
   const c=document.getElementById('cadFamSwatches');if(!c)return;

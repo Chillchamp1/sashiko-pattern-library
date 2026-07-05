@@ -59,9 +59,7 @@ body .floatingchat-container-wrap,body .floatingchat-container-wrap-mobi{transfo
 .pcard-by{font-size:10.5px;font-style:italic;color:var(--muted);line-height:1.2;margin-top:1px}
 .pcard-badge{font-size:10px;padding:2px 7px;border-radius:5px;background:#1f3548;color:#7aa0be}
 .pcard-badge.gen{background:#1c2e10;color:#8cd46a}
-/* Admin drag-to-reorder handle (hidden unless signed in as admin) */
-.pcard-drag{display:none;position:absolute;top:6px;left:7px;color:#9fbdd8;cursor:grab;line-height:0;z-index:3;padding:2px;border-radius:5px;background:rgba(16,31,44,0.55)}
-body.is-admin .exp-card .pcard-drag{display:block}
+/* Admin drag-to-reorder: whole card is draggable (grab cursor for admins), with drag feedback */
 body.is-admin .exp-card{cursor:grab}
 .pcard.dragging{opacity:.4}
 .pcard.drag-over{outline:2px solid #6aabff;outline-offset:2px}
@@ -371,12 +369,7 @@ button.ctrl.primary:hover{background:#275784}
 .pcard.new-pattern-card:hover{background:#162016;border-color:#3a6a3a}
 .pcard-new-icon{font-size:32px;line-height:1;color:#4a9a4a;font-weight:300}
 /* CAD thumbnail preview */
-.cad-thumb-preview{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px;padding:8px;background:#0a121c;border-radius:8px}
-.cad-thumb-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.cad-thumb-controls{display:flex;align-items:center;gap:6px}
 .cad-thumb-btn{width:22px;height:22px;padding:0;font-size:14px;line-height:1}
-.cad-thumb-zoom{font-size:12px;color:#e7eef6;min-width:32px;text-align:center}
-#cadThumbCanvas{border-radius:6px;background:#1a3a5c;display:block;width:100px;height:100px}
 /* Experimental gallery cards */
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
