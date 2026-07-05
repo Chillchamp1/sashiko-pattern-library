@@ -5000,6 +5000,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     }
   ]
 }</script>
+<script>const CAD_TOOLBAR_LAYOUT={"cadLeft":["draw","arc","cut","color","sep1","move","sep2","undo","clear","reset"],"cadRight":["play","rsep","stitchview"]}</script>
 <script>
 (()=>{
 // ── patterns.js ──────────────────────────────
@@ -6938,7 +6939,6 @@ function loadExpPatterns(){
   if(_firebaseReady){
     _fetchFromFirestore()
       .then(()=>{
-        _cadFetchToolbarOrder();   // apply the admin-curated CAD toolbar layout (global)
         rebuildMyPatsView();
         // Re-check deep link for exp patterns (Firebase wasn't ready at init time)
         const hash=location.hash.slice(1);
@@ -11062,11 +11062,12 @@ function cadAlignHeads(){
   heads.forEach(h=>{h.style.minHeight=mx+'px';});
 }
 
-// ── Admin toolbar rearrange (drag-and-drop, globally persisted) ──────────────
+// ── Admin toolbar rearrange (drag-and-drop) ──────────────────────────────────
 // Every tool in the CAD toolbars (`.cad-toolbar[data-dragzone]` → its `[data-did]` children)
-// is draggable when signed in as admin; dropping reorders it within its toolbar and saves the
-// order GLOBALLY (Firestore `config/cadToolbar`, admin-write / public-read) so every visitor
-// gets the admin-curated layout. A localStorage cache applies the saved order instantly on load.
+// is draggable when signed in as admin; dropping reorders it within its toolbar. The GLOBAL
+// layout everyone sees lives in the repo (cad-toolbar.json → CAD_TOOLBAR_LAYOUT, baked in at
+// build). An admin's drag persists to a localStorage draft; to publish it for everyone, run
+// sashikoToolbarLayout(), paste into cad-toolbar.json, and push (see _cadSaveToolbarOrder).
 let _cadTbDrag=null;
 function _cadTbZones(){return document.querySelectorAll('.cad-toolbar[data-dragzone]');}
 function _cadTbItems(zone){return zone.querySelectorAll(':scope > [data-did]');}
@@ -11105,25 +11106,20 @@ function _cadInitToolbarDrag(){
   }));
   _cadTbSetDraggable(document.body.classList.contains('is-admin'));
 }
-function _cadSaveToolbarOrder(){
-  const order=_cadTbCollect();
-  try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(order));}catch(_){}
-  if(_db&&_isAdmin())_db.collection('config').doc('cadToolbar').set(Object.assign({updatedAt:Date.now()},order),{merge:true}).catch(e=>console.warn('cadToolbar save',e));
-}
+// The global layout lives in the repo (cad-toolbar.json, baked in at build) — only the owner
+// can push it, everyone sees it. An admin's in-browser drag persists to localStorage as a local
+// draft; to publish it for everyone, run sashikoToolbarLayout() and commit the result to
+// cad-toolbar.json (browsers can't push to GitHub, so publishing is a commit, not a live sync).
+function _cadSaveToolbarOrder(){try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(_cadTbCollect()));}catch(_){}}
 function _cadApplyToolbarCache(){try{const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(c)_cadTbApply(c);}catch(_){}}
-async function _cadFetchToolbarOrder(){
-  if(!_db)return;
-  try{
-    const snap=await _db.collection('config').doc('cadToolbar').get();
-    if(!snap.exists)return;
-    const d=snap.data(), order={};
-    _cadTbZones().forEach(z=>{if(Array.isArray(d[z.dataset.dragzone]))order[z.dataset.dragzone]=d[z.dataset.dragzone];});
-    try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(order));}catch(_){}
-    _cadTbApply(order);
-  }catch(e){console.warn('cadToolbar load',e);}
-}
-window._cadFetchToolbarOrder=_cadFetchToolbarOrder;
 window._cadTbSetDraggable=_cadTbSetDraggable;
+// Admin export: copy the current toolbar layout to paste into cad-toolbar.json (→ global on push).
+window.sashikoToolbarLayout=function(){
+  const o=_cadTbCollect(), json=JSON.stringify(o);
+  try{if(navigator.clipboard)navigator.clipboard.writeText(json);}catch(_){}
+  console.log('CAD toolbar layout — copied. Paste into cad-toolbar.json and push to publish for everyone:\n'+json);
+  return o;
+};
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.getElementById('cadView').classList.remove('open');
@@ -11133,7 +11129,8 @@ document.getElementById('galleryView').style.display='block';
 initGenUI();
 initAnimZoom();
 _cadInitToolbarDrag();
-_cadApplyToolbarCache();
+if(typeof CAD_TOOLBAR_LAYOUT!=='undefined')_cadTbApply(CAD_TOOLBAR_LAYOUT);   // committed global layout (everyone)
+_cadApplyToolbarCache();                                                      // admin's local draft overrides
 loadExpPatterns();
 buildGallery();
 if(location.hash){

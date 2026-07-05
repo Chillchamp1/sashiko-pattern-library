@@ -529,14 +529,15 @@ unchanged because `.cad-tool-group` and `.cad-toolbar` share `gap:6px`.
 - **Drag-reorder is admin-only.** When `body.is-admin`, every `[data-did]` becomes `draggable`; dropping reorders
   it **within its own zone** (`_cadInitToolbarDrag`, insert-before/after by cursor half). `_updateAdminUI` live-toggles
   `draggable` via `_cadTbSetDraggable`. Non-admins can't drag; clicks still work (drag only starts on movement).
-- **Order persists GLOBALLY.** `_cadSaveToolbarOrder` writes `{cadLeft:[dids],cadRight:[dids],updatedAt}` to Firestore
-  `config/cadToolbar` (admin only) **and** a localStorage cache. On load, `_cadApplyToolbarCache` applies the cache
-  instantly and `_cadFetchToolbarOrder` (called from `loadExpPatterns`' post-fetch `.then`) applies the authoritative
-  Firestore copy — so **every visitor sees the admin-curated layout**. `_cadTbApply` reorders each zone's children to
-  the saved `did` order (unknown/new dids keep their natural position).
-- **Needs a one-time `firestore.rules` deploy.** A new `match /config/{id}` block (public read, `isAdmin()` write)
-  was added — deploy it (Console paste or `firebase deploy --only firestore:rules`) or the global save is denied and
-  the layout only persists in the admin's own browser (localStorage). The like/pattern collections are unaffected.
+- **Global layout lives in the repo, NOT Firebase.** The committed `cad-toolbar.json` (`{cadLeft:[dids],cadRight:[dids]}`)
+  is baked into the build (`<!-- INJECT:cad-toolbar.json -->` → `const CAD_TOOLBAR_LAYOUT`, mirrors `backup-patterns.json`)
+  and applied on load via `_cadTbApply(CAD_TOOLBAR_LAYOUT)` — so **every visitor gets it** and only the repo owner can
+  change it (a push). `_cadTbApply` reorders each zone's children to the saved `did` order (unknown/new dids keep their
+  natural position). An admin's in-browser drag persists to a **localStorage draft** (`sashiko_cadtoolbar`, applied on
+  top of the committed layout **for that admin only**). **Publishing is a commit, not a live sync** (browsers can't push
+  to GitHub): the admin arranges, runs `sashikoToolbarLayout()` (copies the JSON to clipboard), pastes it into
+  `cad-toolbar.json`, and pushes → CI rebuilds → everyone sees it. No Firestore/rules involved (deliberately simpler
+  than the gallery's Firestore order, since this is a single-admin, rarely-changed, global setting).
 
 ## Known Issues / Gotchas
 

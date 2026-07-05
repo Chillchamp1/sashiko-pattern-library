@@ -50,6 +50,10 @@ def main():
     backup_json = read("backup-patterns.json")
     html = html.replace("<!-- INJECT:backup.json -->", backup_json)
 
+    # Inject the admin-curated CAD toolbar layout (committed config; global for everyone).
+    cad_toolbar = read("cad-toolbar.json").strip()
+    html = html.replace("<!-- INJECT:cad-toolbar.json -->", cad_toolbar)
+
     # Build stamp (visible in the About panel) so a deployed version is identifiable —
     # if the live date differs from what a browser shows, that browser is serving a cache.
     # DATE-ONLY on purpose: a same-day local build and the CI rebuild are then byte-identical,

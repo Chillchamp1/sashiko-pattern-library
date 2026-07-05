@@ -566,7 +566,6 @@ function loadExpPatterns(){
   if(_firebaseReady){
     _fetchFromFirestore()
       .then(()=>{
-        _cadFetchToolbarOrder();   // apply the admin-curated CAD toolbar layout (global)
         rebuildMyPatsView();
         // Re-check deep link for exp patterns (Firebase wasn't ready at init time)
         const hash=location.hash.slice(1);
