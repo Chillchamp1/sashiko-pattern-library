@@ -276,10 +276,26 @@ Jumps directly to pass boundaries. HM patterns: pass 1 (horizontal) vs. pass 2 (
 
 ## Filter System
 
-Dropdown (`#filtSelect` → `setFilterSelect`): **All (0) · 1 · 2 · 3 · 4 · 5+ (value 5) · Only traditional (trad) · Only community (community)**.
-`filterGallery` matches a card's `data-p` (pass/family count): exact for 1–4, `>=5` for the "5+" bucket;
-`trad` matches `pat.traditional`, `community` matches `pat.community`. (Legacy `data-f` button values map the
-same way via `setFilter`; both share the `_filtKey(v)` string/number parser in gallery.js.)
+Dropdown (`#filtSelect` → `setFilterSelect`): **All (0) · Only traditional (trad) · Only community (community) · Only curved (curved) · Only angular (angular)**.
+`filterGallery` matches: `trad`→`pat.traditional`, `community`→`pat.community`, `curved`→`window.patIsCurved(pat)`,
+`angular`→exp pattern with no arcs. (Legacy `data-f` buttons map the same way via `setFilter`; both share the
+`_filtKey(v)` parser in gallery.js.) The **pass-count filter (1–5+) was removed** — too niche for browsers; the
+`data-p` family count is still computed (badge/other uses) but no longer a filter option.
+
+**Shape = curved vs angular (auto-derived, no tagging).** `window.patIsCurved(pat)` = `pat.lines.some(l=>l.arc)`
+(experimental.js). The published set splits cleanly — arc-fraction is ~1 or ~0, never ambiguous — so a pattern
+with any arc reads "curved/round", everything else "angular". Search also matches the shape words.
+
+**Admin gallery ordering (drag-to-reorder).** Published exp cards carry a numeric `pat.order` (lower = earlier).
+`buildGallery` sorts the published set by `_expGalleryOrder` (order asc, then `createdAt` desc for any pattern
+without one — the old newest-first default). When signed in as **admin** the cards become `draggable` (a grip
+handle `.pcard-drag` shows via `body.is-admin`; `_updateAdminUI` live-toggles `draggable` so no thumbnail rebuild
+on sign-in). Dropping runs `_onExpDrop` → renumbers the whole published set to dense indices and `_pushToFirestore`s
+each pattern whose `order` actually changed (first curation = one write per pattern; later drags = a few). `order`
+rides the field-spread + 80-key rule (no rules change) and — like all published-pattern writes — is **admin-gated
+by the Firestore rules**: a non-admin can't drag (not `draggable`) and even a forced write is rejected server-side.
+The admin-curated order is also the answer to "most popular / featured first" (the like system is per-device
+`localStorage` only, never aggregated, so there is no global popularity signal to sort by).
 
 **Community patterns.** The CAD header stacks a **Community** checkbox (`#cadCommunity` → `cadUpdateCommunity`)
 **below** Traditional (`.cad-flags` column); checking it reveals an optional name field (`#cadCommunityName`,

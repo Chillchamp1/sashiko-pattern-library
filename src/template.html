@@ -46,14 +46,10 @@
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
     <select class="filt-select" id="filtSelect" onchange="setFilterSelect(this.value)">
       <option value="0">All patterns</option>
-      <option value="1">1 pass</option>
-      <option value="2">2 passes</option>
-      <option value="3">3 passes</option>
-      <option value="4">4 passes</option>
-      <option value="5">5+ passes</option>
-      <!-- hm option hidden while generator is hidden — re-enable together -->
       <option value="trad">Only traditional</option>
       <option value="community">Only community</option>
+      <option value="curved">Only curved</option>
+      <option value="angular">Only angular</option>
     </select>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
     <button class="filt admin-login-btn" onclick="adminLogin()" title="Sign in with Google to manage the gallery">Admin login</button>

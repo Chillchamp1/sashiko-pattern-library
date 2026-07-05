@@ -82,6 +82,12 @@ body .floatingchat-container-wrap,body .floatingchat-container-wrap-mobi{transfo
 .pcard-by{font-size:10.5px;font-style:italic;color:var(--muted);line-height:1.2;margin-top:1px}
 .pcard-badge{font-size:10px;padding:2px 7px;border-radius:5px;background:#1f3548;color:#7aa0be}
 .pcard-badge.gen{background:#1c2e10;color:#8cd46a}
+/* Admin drag-to-reorder handle (hidden unless signed in as admin) */
+.pcard-drag{display:none;position:absolute;top:6px;left:7px;color:#9fbdd8;cursor:grab;line-height:0;z-index:3;padding:2px;border-radius:5px;background:rgba(16,31,44,0.55)}
+body.is-admin .exp-card .pcard-drag{display:block}
+body.is-admin .exp-card{cursor:grab}
+.pcard.dragging{opacity:.4}
+.pcard.drag-over{outline:2px solid #6aabff;outline-offset:2px}
 .pcard.hidden{display:none}
 .no-results{font-size:13px;color:var(--muted);padding:20px 0;grid-column:1/-1}
 
@@ -465,21 +471,17 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p>A free, <a class="about-link" href="https://github.com/Chillchamp1/sashiko-pattern-library" target="_blank" rel="noopener">open-source</a> space for the crafting and visible mending community.</p>
       <p>This library is built with love to keep traditional patterns alive and to support sustainable crafting and mindful garment repair.</p>
       <p>If you love what’s being built here, a small <a class="about-link" href="https://ko-fi.com/chillchamp" target="_blank" rel="noopener">donation</a> keeps the servers running and the stitches flowing❤️</p>
-      <p class="build-stamp">sashikolib.org · build 2026-07-04</p>
+      <p class="build-stamp">sashikolib.org · build 2026-07-05</p>
     </div>
   </div>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
     <select class="filt-select" id="filtSelect" onchange="setFilterSelect(this.value)">
       <option value="0">All patterns</option>
-      <option value="1">1 pass</option>
-      <option value="2">2 passes</option>
-      <option value="3">3 passes</option>
-      <option value="4">4 passes</option>
-      <option value="5">5+ passes</option>
-      <!-- hm option hidden while generator is hidden — re-enable together -->
       <option value="trad">Only traditional</option>
       <option value="community">Only community</option>
+      <option value="curved">Only curved</option>
+      <option value="angular">Only angular</option>
     </select>
     <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
     <button class="filt admin-login-btn" onclick="adminLogin()" title="Sign in with Google to manage the gallery">Admin login</button>
@@ -6211,12 +6213,24 @@ function buildGallery(){
     grid.appendChild(card);
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
-  // Published custom patterns
-  EXP_PATTERNS.filter(p=>p.published&&!deleted.includes(p.id)).forEach(pat=>{
+  // Published custom patterns — gallery order = admin-curated `order` (drag-to-reorder),
+  // falling back to newest-first for any pattern without an explicit order yet.
+  EXP_PATTERNS.filter(p=>p.published&&!deleted.includes(p.id)).slice().sort(_expGalleryOrder).forEach(pat=>{
     const card=document.createElement('button');
     card.className='pcard exp-card';
-    // data-p = number of stitch families (passes), derived automatically — drives the pass filter.
+    // data-p = number of stitch families (passes), derived automatically.
     card.dataset.id=pat.id;card.dataset.p=String(expFamilyCount(pat));card.dataset.type='exp';
+    // Admin drag-to-reorder (draggable only while signed in as admin; drop persists the order).
+    card.draggable=document.body.classList.contains('is-admin');
+    card.addEventListener('dragstart',e=>{if(!document.body.classList.contains('is-admin')){e.preventDefault();return;}_dragId=pat.id;e.dataTransfer.effectAllowed='move';card.classList.add('dragging');});
+    card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+    card.addEventListener('dragover',e=>{if(document.body.classList.contains('is-admin')&&_dragId&&_dragId!==pat.id){e.preventDefault();card.classList.add('drag-over');}});
+    card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+    card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');_onExpDrop(pat.id);_dragId=null;});
+    const grip=document.createElement('div');
+    grip.className='pcard-drag';grip.title='Drag to reorder (admin)';
+    grip.innerHTML='<svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor"><circle cx="3" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="3" cy="7" r="1.3"/><circle cx="7" cy="7" r="1.3"/><circle cx="3" cy="11" r="1.3"/><circle cx="7" cy="11" r="1.3"/></svg>';
+    card.appendChild(grip);
     const thumb=document.createElement('canvas');
     thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
     card.appendChild(thumb);
@@ -6244,6 +6258,35 @@ function buildGallery(){
     setTimeout(()=>renderThumb(thumb,pat),0);
   });
 }
+// ── Admin gallery ordering ───────────────────────────────────────────────────
+// `pat.order` is an admin-set sort key (lower = earlier). Patterns without one sort
+// last, newest-first (the previous default). Drag-to-reorder (admin) renumbers the
+// published set and persists each changed pattern to Firestore.
+let _dragId=null;
+function _expGalleryOrder(a,b){
+  const ao=(typeof a.order==='number')?a.order:1e9, bo=(typeof b.order==='number')?b.order:1e9;
+  if(ao!==bo)return ao-bo;
+  return (b.createdAt||0)-(a.createdAt||0);
+}
+function _expOrderedIds(){
+  const del=_getDeleted();
+  return EXP_PATTERNS.filter(p=>p.published&&!del.includes(p.id)).slice().sort(_expGalleryOrder).map(p=>p.id);
+}
+function _onExpDrop(targetId){
+  if(!document.body.classList.contains('is-admin')||!_dragId||_dragId===targetId)return;
+  const ids=_expOrderedIds();
+  const from=ids.indexOf(_dragId);
+  if(from<0)return;
+  ids.splice(from,1);
+  const to=ids.indexOf(targetId);
+  ids.splice(to<0?ids.length:to,0,_dragId);   // insert dragged just before the drop target
+  let changed=false;
+  ids.forEach((id,i)=>{
+    const pat=EXP_PATTERNS.find(p=>p.id===id);
+    if(pat&&pat.order!==i){pat.order=i;changed=true;if(_firebaseReady)_pushToFirestore(pat);}
+  });
+  if(changed){_saveLocal();buildGallery();filterGallery();}
+}
 window.filterGallery=function(){
   const q=document.getElementById('searchInput').value.toLowerCase().trim();
   let vis=0;
@@ -6255,20 +6298,17 @@ window.filterGallery=function(){
     let mp=true;
     if(!activeFilters.has(0)){
       mp=false;
-      const pv=parseInt(card.dataset.p)||0;   // pass/family count (auto for custom patterns)
       if(activeFilters.has('hm') && type==='generator') mp=true;
       if(activeFilters.has('trad') && pat.traditional===true) mp=true;
       if(activeFilters.has('community') && pat.community===true) mp=true;
-      activeFilters.forEach(f=>{
-        if(typeof f!=='number')return;
-        if(f>=5){if(pv>=5)mp=true;}          // "5+ passes" bucket
-        else if(pv===f)mp=true;              // exact 1/2/3/4
-      });
+      if(activeFilters.has('curved') && window.patIsCurved(pat)) mp=true;
+      if(activeFilters.has('angular') && type==='exp' && !window.patIsCurved(pat)) mp=true;
     }
     let mq=!q;
     if(q){
       if(type==='exp'){
-        mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q)||(pat.communityName||'').toLowerCase().includes(q);
+        mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q)||(pat.communityName||'').toLowerCase().includes(q)||
+          (window.patIsCurved(pat)?'curved round':'angular geometric straight').includes(q);
       }else{
         mq=pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
           (type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
@@ -6281,7 +6321,7 @@ window.filterGallery=function(){
   if(!nr){nr=document.createElement('div');nr.id='noResults';nr.className='no-results';nr.textContent='No patterns found.';document.getElementById('pgrid').appendChild(nr);}
   nr.style.display=vis===0?'block':'none';
 };
-const _filtKey=v=>(v==='hm'||v==='trad'||v==='community')?v:(v==='0'?0:parseInt(v));
+const _filtKey=v=>(v==='hm'||v==='trad'||v==='community'||v==='curved'||v==='angular')?v:(v==='0'?0:parseInt(v));
 window.setFilter=function(btn){
   const f=btn.dataset.f;
   const fv=_filtKey(f);
@@ -6522,6 +6562,8 @@ function _isAdmin(){return !!_adminUser && _adminVerified;}
 function _updateAdminUI(){
   const on=_isAdmin();
   if(document.body)document.body.classList.toggle('is-admin',on);
+  // Admin gallery reordering: cards become draggable live on sign-in/out (no thumbnail rebuild).
+  document.querySelectorAll('#pgrid .exp-card').forEach(c=>{c.draggable=on;});
   document.querySelectorAll('.admin-login-btn').forEach(b=>{
     b.textContent=on?('✓ Admin — sign out'):'Admin login';
     b.classList.toggle('on',on);
@@ -7082,6 +7124,12 @@ window.expFamilyCount=function expFamilyCount(pat){
   if(!fams||!fams.length){try{fams=detectSymmetryFamilies(pat);}catch(e){fams=null;}}
   if(!fams||!fams.length)return 0;
   return Array.isArray(fams[0])?fams.length:new Set(fams.filter(f=>f>=0)).size;
+};
+// Shape class for the gallery filter, auto-derived from geometry (no manual tagging):
+// a pattern is "curved" (round) if it contains any arc, else "angular" (straight lines only).
+// The published set splits cleanly this way — arc-fraction is ~1 or ~0, never ambiguous.
+window.patIsCurved=function patIsCurved(pat){
+  return !!(pat&&pat.lines&&pat.lines.some(l=>l&&l.arc));
 };
 
 // Flatten an arc to polyline segments in grid space.

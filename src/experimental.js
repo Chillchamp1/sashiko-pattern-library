@@ -171,6 +171,8 @@ function _isAdmin(){return !!_adminUser && _adminVerified;}
 function _updateAdminUI(){
   const on=_isAdmin();
   if(document.body)document.body.classList.toggle('is-admin',on);
+  // Admin gallery reordering: cards become draggable live on sign-in/out (no thumbnail rebuild).
+  document.querySelectorAll('#pgrid .exp-card').forEach(c=>{c.draggable=on;});
   document.querySelectorAll('.admin-login-btn').forEach(b=>{
     b.textContent=on?('✓ Admin — sign out'):'Admin login';
     b.classList.toggle('on',on);
@@ -731,6 +733,12 @@ window.expFamilyCount=function expFamilyCount(pat){
   if(!fams||!fams.length){try{fams=detectSymmetryFamilies(pat);}catch(e){fams=null;}}
   if(!fams||!fams.length)return 0;
   return Array.isArray(fams[0])?fams.length:new Set(fams.filter(f=>f>=0)).size;
+};
+// Shape class for the gallery filter, auto-derived from geometry (no manual tagging):
+// a pattern is "curved" (round) if it contains any arc, else "angular" (straight lines only).
+// The published set splits cleanly this way — arc-fraction is ~1 or ~0, never ambiguous.
+window.patIsCurved=function patIsCurved(pat){
+  return !!(pat&&pat.lines&&pat.lines.some(l=>l&&l.arc));
 };
 
 // Flatten an arc to polyline segments in grid space.
