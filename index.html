@@ -7632,6 +7632,12 @@ window.editExpPattern=async function(idOrPat){
   cadCommunity=!!pat.community;
   cadCommunityName=pat.communityName||'';
   _cadSyncCommunityUI();
+  // Restore saved stitch params so re-editing keeps them (else a save overwrites with defaults).
+  cadStitchLen=pat.stitchLen||8;
+  cadStitchRatio=pat.stitchRatio||'standard';
+  cadStitchView=!!pat.stitchView;
+  cadStitchGrid=!!pat.stitchGrid;
+  _cadSyncStitchUI();
   cadRoutingMode=pat.routingMode||'default';
   // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
   if(cadRoutingMode==='smooth'||cadRoutingMode==='fewer-jumps')cadRoutingMode='default';
@@ -9194,6 +9200,8 @@ window.remixPattern=function(id){
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
   cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();  // remix = new author; they re-enter their own name
+  // Carry the parent's stitch params into the remix so it starts from the same look.
+  cadStitchLen=pat.stitchLen||8;cadStitchRatio=pat.stitchRatio||'standard';cadStitchView=!!pat.stitchView;cadStitchGrid=!!pat.stitchGrid;_cadSyncStitchUI();
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
   cadBBoxRotated=pat.bboxRotated||false;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
@@ -9253,6 +9261,7 @@ window.showCAD=function(){
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
   document.getElementById('cadTraditional').checked=false;
   cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();
+  cadStitchLen=8;cadStitchRatio='standard';cadStitchView=false;cadStitchGrid=false;_cadSyncStitchUI();  // fresh stitch defaults
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -10914,6 +10923,15 @@ window.cadToggleStitchGrid=function(){
   cadStitchGrid=document.getElementById('cadStitchGrid').checked;
   if(!_tpOn)cadDrawPattern();else _renderTileFrame();
 };
+// Reflect the current stitch params (view/len/ratio) into the stitch-view controls. Called by the
+// load/reset paths (editExpPattern/remixPattern/showCAD) so a pattern's saved stitch settings are
+// restored in the editor — otherwise re-editing resets them to defaults and a save overwrites them.
+function _cadSyncStitchUI(){
+  const t=document.getElementById('cadStitchToggle'); if(t)t.checked=cadStitchView;
+  const sc=document.getElementById('cadStitchControls'); if(sc)sc.style.display=cadStitchView?'flex':'none';
+  const lv=document.getElementById('cadStitchLenVal'); if(lv)lv.textContent=cadStitchLen;
+  const r=document.getElementById('cadStitchRatio'); if(r)r.value=cadStitchRatio;
+}
 window.cadSetSpeed=function(v){_cadSpeedV=parseInt(v)||0;};
 
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}

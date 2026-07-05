@@ -1258,6 +1258,12 @@ window.editExpPattern=async function(idOrPat){
   cadCommunity=!!pat.community;
   cadCommunityName=pat.communityName||'';
   _cadSyncCommunityUI();
+  // Restore saved stitch params so re-editing keeps them (else a save overwrites with defaults).
+  cadStitchLen=pat.stitchLen||8;
+  cadStitchRatio=pat.stitchRatio||'standard';
+  cadStitchView=!!pat.stitchView;
+  cadStitchGrid=!!pat.stitchGrid;
+  _cadSyncStitchUI();
   cadRoutingMode=pat.routingMode||'default';
   // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
   if(cadRoutingMode==='smooth'||cadRoutingMode==='fewer-jumps')cadRoutingMode='default';
@@ -2820,6 +2826,8 @@ window.remixPattern=function(id){
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
   cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();  // remix = new author; they re-enter their own name
+  // Carry the parent's stitch params into the remix so it starts from the same look.
+  cadStitchLen=pat.stitchLen||8;cadStitchRatio=pat.stitchRatio||'standard';cadStitchView=!!pat.stitchView;cadStitchGrid=!!pat.stitchGrid;_cadSyncStitchUI();
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
   cadBBoxRotated=pat.bboxRotated||false;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
@@ -2879,6 +2887,7 @@ window.showCAD=function(){
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
   document.getElementById('cadTraditional').checked=false;
   cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();
+  cadStitchLen=8;cadStitchRatio='standard';cadStitchView=false;cadStitchGrid=false;_cadSyncStitchUI();  // fresh stitch defaults
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});

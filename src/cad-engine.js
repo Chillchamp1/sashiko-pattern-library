@@ -1640,6 +1640,15 @@ window.cadToggleStitchGrid=function(){
   cadStitchGrid=document.getElementById('cadStitchGrid').checked;
   if(!_tpOn)cadDrawPattern();else _renderTileFrame();
 };
+// Reflect the current stitch params (view/len/ratio) into the stitch-view controls. Called by the
+// load/reset paths (editExpPattern/remixPattern/showCAD) so a pattern's saved stitch settings are
+// restored in the editor — otherwise re-editing resets them to defaults and a save overwrites them.
+function _cadSyncStitchUI(){
+  const t=document.getElementById('cadStitchToggle'); if(t)t.checked=cadStitchView;
+  const sc=document.getElementById('cadStitchControls'); if(sc)sc.style.display=cadStitchView?'flex':'none';
+  const lv=document.getElementById('cadStitchLenVal'); if(lv)lv.textContent=cadStitchLen;
+  const r=document.getElementById('cadStitchRatio'); if(r)r.value=cadStitchRatio;
+}
 window.cadSetSpeed=function(v){_cadSpeedV=parseInt(v)||0;};
 
 function cadGetPos(e,cv){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*500/r.width,y:(e.clientY-r.top)*500/r.height};}
