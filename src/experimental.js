@@ -173,6 +173,8 @@ function _updateAdminUI(){
   if(document.body)document.body.classList.toggle('is-admin',on);
   // Admin gallery reordering: cards become draggable live on sign-in/out (no thumbnail rebuild).
   document.querySelectorAll('#pgrid .exp-card').forEach(c=>{c.draggable=on;});
+  // Admin CAD toolbar rearrange: tools become draggable live on sign-in/out.
+  if(window._cadTbSetDraggable)_cadTbSetDraggable(on);
   document.querySelectorAll('.admin-login-btn').forEach(b=>{
     b.textContent=on?('✓ Admin — sign out'):'Admin login';
     b.classList.toggle('on',on);
@@ -564,6 +566,7 @@ function loadExpPatterns(){
   if(_firebaseReady){
     _fetchFromFirestore()
       .then(()=>{
+        _cadFetchToolbarOrder();   // apply the admin-curated CAD toolbar layout (global)
         rebuildMyPatsView();
         // Re-check deep link for exp patterns (Firebase wasn't ready at init time)
         const hash=location.hash.slice(1);

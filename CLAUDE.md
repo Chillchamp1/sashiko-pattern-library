@@ -520,6 +520,24 @@ insert gaps larger than the ratio gap so perpendicular threads don't touch — f
 Absolute stitch length can drift ±~8% from the set value (whole-number fitting) but the **ratio is
 preserved**. No code change needed.
 
+## Admin CAD toolbar rearrange (2026-07-05)
+The CAD editor toolbars are **flattened** into two flat drag zones — `.cad-toolbar[data-dragzone="cadLeft"]`
+(Draw/Arc/Cut/Color · separators · the Move cluster as one unit · Undo/Clear/Reset) and `[data-dragzone="cadRight"]`
+(Play+speed cluster · Stitch-view toggle). Each tool is a direct child with a stable `data-did`. The group-wrapper
+`<span>`s were removed except the compound clusters (Move/Play/Stitch stay single draggable units); spacing is
+unchanged because `.cad-tool-group` and `.cad-toolbar` share `gap:6px`.
+- **Drag-reorder is admin-only.** When `body.is-admin`, every `[data-did]` becomes `draggable`; dropping reorders
+  it **within its own zone** (`_cadInitToolbarDrag`, insert-before/after by cursor half). `_updateAdminUI` live-toggles
+  `draggable` via `_cadTbSetDraggable`. Non-admins can't drag; clicks still work (drag only starts on movement).
+- **Order persists GLOBALLY.** `_cadSaveToolbarOrder` writes `{cadLeft:[dids],cadRight:[dids],updatedAt}` to Firestore
+  `config/cadToolbar` (admin only) **and** a localStorage cache. On load, `_cadApplyToolbarCache` applies the cache
+  instantly and `_cadFetchToolbarOrder` (called from `loadExpPatterns`' post-fetch `.then`) applies the authoritative
+  Firestore copy — so **every visitor sees the admin-curated layout**. `_cadTbApply` reorders each zone's children to
+  the saved `did` order (unknown/new dids keep their natural position).
+- **Needs a one-time `firestore.rules` deploy.** A new `match /config/{id}` block (public read, `isAdmin()` write)
+  was added — deploy it (Console paste or `firebase deploy --only firestore:rules`) or the global save is denied and
+  the layout only persists in the admin's own browser (localStorage). The like/pattern collections are unaffected.
+
 ## Known Issues / Gotchas
 
 - **Syntax errors are fatal** — the entire script is one IIFE; an extra `}` anywhere (like the one found in `drawPLGuide`) prevents ALL JavaScript from executing, causing "is not defined" for every onclick handler

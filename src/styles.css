@@ -295,6 +295,10 @@ button.ctrl.primary:hover{background:#275784}
 /* Grouped CAD tools: draw tools · move+transform · actions, divided by separators */
 .cad-tool-group{display:inline-flex;align-items:center;gap:6px}
 .cad-tool-sep{width:1px;align-self:stretch;background:var(--line);margin:2px 3px}
+/* Admin toolbar rearrange (drag-and-drop) — affordance + drag feedback, admin only */
+body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
+.cad-toolbar [data-did].cad-tb-dragging{opacity:.4}
+.cad-toolbar [data-did].cad-tb-over{outline:2px solid #6aabff;outline-offset:1px;border-radius:7px}
 .cad-move-inline .cad-move-label{margin-right:2px}
 .cad-arrow{padding:6px 9px;font-size:14px;line-height:1;min-width:0}
 .cad-name-trad{font-size:12px;color:var(--muted);display:flex;align-items:center}

@@ -252,15 +252,13 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
             </span>
           </div>
-          <div class="cad-toolbar">
-            <span class="cad-tool-group">
-              <button id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
-              <button id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
-              <button id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
-              <button id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
-            </span>
-            <span class="cad-tool-sep"></span>
-            <span class="cad-tool-group cad-move-inline" title="Move whole pattern">
+          <div class="cad-toolbar" data-dragzone="cadLeft">
+            <button data-did="draw" id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
+            <button data-did="arc" id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
+            <button data-did="cut" id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
+            <button data-did="color" id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
+            <span data-did="sep1" class="cad-tool-sep"></span>
+            <span data-did="move" class="cad-tool-group cad-move-inline" title="Move whole pattern">
               <span class="cad-move-label">Move</span>
               <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
               <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,1)" title="Move down">↓</button>
@@ -269,12 +267,10 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
               <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
             </span>
-            <span class="cad-tool-sep"></span>
-            <span class="cad-tool-group">
-              <button class="cad-tool" onclick="cadUndo()">↩ Undo</button>
-              <button class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
-              <button class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
-            </span>
+            <span data-did="sep2" class="cad-tool-sep"></span>
+            <button data-did="undo" class="cad-tool" onclick="cadUndo()">↩ Undo</button>
+            <button data-did="clear" class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
+            <button data-did="reset" class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
@@ -306,8 +302,8 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
             </span>
           </div>
-          <div class="cad-toolbar">
-            <span class="cad-tool-group">
+          <div class="cad-toolbar" data-dragzone="cadRight">
+            <span data-did="play" class="cad-tool-group">
               <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
               <span class="speed-slider" title="Animation speed">
                 <span aria-hidden="true">🐢</span>
@@ -315,14 +311,12 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
                 <span aria-hidden="true">⚡</span>
               </span>
             </span>
-            <span class="cad-tool-sep"></span>
-            <span class="cad-tool-group">
-              <label class="cad-switch" title="Switch between coloured and realistic denim + thread view">
-                <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
-                <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
-                <span class="cad-switch-text">🪡 Stitch view</span>
-              </label>
-            </span>
+            <span data-did="rsep" class="cad-tool-sep"></span>
+            <label data-did="stitchview" class="cad-switch" title="Switch between coloured and realistic denim + thread view">
+              <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
+              <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
+              <span class="cad-switch-text">🪡 Stitch view</span>
+            </label>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>

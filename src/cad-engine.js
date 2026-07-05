@@ -1778,6 +1778,69 @@ function cadAlignHeads(){
   heads.forEach(h=>{h.style.minHeight=mx+'px';});
 }
 
+// ── Admin toolbar rearrange (drag-and-drop, globally persisted) ──────────────
+// Every tool in the CAD toolbars (`.cad-toolbar[data-dragzone]` → its `[data-did]` children)
+// is draggable when signed in as admin; dropping reorders it within its toolbar and saves the
+// order GLOBALLY (Firestore `config/cadToolbar`, admin-write / public-read) so every visitor
+// gets the admin-curated layout. A localStorage cache applies the saved order instantly on load.
+let _cadTbDrag=null;
+function _cadTbZones(){return document.querySelectorAll('.cad-toolbar[data-dragzone]');}
+function _cadTbItems(zone){return zone.querySelectorAll(':scope > [data-did]');}
+function _cadTbCollect(){const o={};_cadTbZones().forEach(z=>{o[z.dataset.dragzone]=[..._cadTbItems(z)].map(el=>el.dataset.did);});return o;}
+function _cadTbApply(order){
+  if(!order)return;
+  _cadTbZones().forEach(z=>{
+    const dids=order[z.dataset.dragzone]; if(!Array.isArray(dids)||!dids.length)return;
+    dids.forEach(did=>{const el=z.querySelector(':scope > [data-did="'+did+'"]'); if(el)z.appendChild(el);});
+  });
+}
+function _cadTbSetDraggable(on){_cadTbZones().forEach(z=>_cadTbItems(z).forEach(el=>{el.draggable=!!on;}));}
+function _cadInitToolbarDrag(){
+  _cadTbZones().forEach(z=>_cadTbItems(z).forEach(item=>{
+    if(item._tbw)return; item._tbw=true;
+    item.addEventListener('dragstart',e=>{
+      if(!document.body.classList.contains('is-admin')){e.preventDefault();return;}
+      _cadTbDrag=item; e.dataTransfer.effectAllowed='move';
+      try{e.dataTransfer.setData('text/plain',item.dataset.did);}catch(_){}
+      item.classList.add('cad-tb-dragging');
+    });
+    item.addEventListener('dragend',()=>{item.classList.remove('cad-tb-dragging');document.querySelectorAll('.cad-tb-over').forEach(el=>el.classList.remove('cad-tb-over'));_cadTbDrag=null;});
+    item.addEventListener('dragover',e=>{
+      if(!document.body.classList.contains('is-admin')||!_cadTbDrag||_cadTbDrag===item||_cadTbDrag.parentNode!==item.parentNode)return;
+      e.preventDefault(); item.classList.add('cad-tb-over');
+    });
+    item.addEventListener('dragleave',()=>item.classList.remove('cad-tb-over'));
+    item.addEventListener('drop',e=>{
+      item.classList.remove('cad-tb-over');
+      if(!document.body.classList.contains('is-admin')||!_cadTbDrag||_cadTbDrag===item||_cadTbDrag.parentNode!==item.parentNode){_cadTbDrag=null;return;}
+      e.preventDefault();
+      const r=item.getBoundingClientRect(), after=(e.clientX-r.left)>r.width/2;
+      item.parentNode.insertBefore(_cadTbDrag, after?item.nextSibling:item);
+      _cadTbDrag=null; _cadSaveToolbarOrder();
+    });
+  }));
+  _cadTbSetDraggable(document.body.classList.contains('is-admin'));
+}
+function _cadSaveToolbarOrder(){
+  const order=_cadTbCollect();
+  try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(order));}catch(_){}
+  if(_db&&_isAdmin())_db.collection('config').doc('cadToolbar').set(Object.assign({updatedAt:Date.now()},order),{merge:true}).catch(e=>console.warn('cadToolbar save',e));
+}
+function _cadApplyToolbarCache(){try{const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(c)_cadTbApply(c);}catch(_){}}
+async function _cadFetchToolbarOrder(){
+  if(!_db)return;
+  try{
+    const snap=await _db.collection('config').doc('cadToolbar').get();
+    if(!snap.exists)return;
+    const d=snap.data(), order={};
+    _cadTbZones().forEach(z=>{if(Array.isArray(d[z.dataset.dragzone]))order[z.dataset.dragzone]=d[z.dataset.dragzone];});
+    try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(order));}catch(_){}
+    _cadTbApply(order);
+  }catch(e){console.warn('cadToolbar load',e);}
+}
+window._cadFetchToolbarOrder=_cadFetchToolbarOrder;
+window._cadTbSetDraggable=_cadTbSetDraggable;
+
 // ── Init ───────────────────────────────────────────────────────────────────
 document.getElementById('cadView').classList.remove('open');
 document.getElementById('animView').classList.remove('open');
@@ -1785,6 +1848,8 @@ document.getElementById('myPatsView').classList.remove('open');
 document.getElementById('galleryView').style.display='block';
 initGenUI();
 initAnimZoom();
+_cadInitToolbarDrag();
+_cadApplyToolbarCache();
 loadExpPatterns();
 buildGallery();
 if(location.hash){
