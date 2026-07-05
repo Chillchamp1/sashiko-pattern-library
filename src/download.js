@@ -334,7 +334,10 @@ function _pdfDraftWindow(px){
   const NS=72;
   circles.forEach(cc=>{
     x.beginPath();
-    for(let k=0;k<=NS;k++){const a=k/NS*2*Math.PI;const p=EXP_g2s([cc.c[0]+cc.r*Math.cos(a),cc.c[1]+cc.r*Math.sin(a)]);if(k===0)x.moveTo(p.x,p.y);else x.lineTo(p.x,p.y);}
+    // Iso circles are recovered as round-on-screen (see _galDraftShapes); draw them the same way.
+    const gp=cc.iso?_isoRoundArcPts(cc.c,cc.r,0,2*Math.PI,NS)
+                   :Array.from({length:NS+1},(_,k)=>{const a=k/NS*2*Math.PI;return[cc.c[0]+cc.r*Math.cos(a),cc.c[1]+cc.r*Math.sin(a)];});
+    gp.forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)x.moveTo(p.x,p.y);else x.lineTo(p.x,p.y);});
     x.stroke();
   });
   // The stitch-path lines highlighted on top.

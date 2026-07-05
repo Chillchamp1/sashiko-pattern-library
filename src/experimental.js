@@ -594,6 +594,10 @@ async function saveExpPatterns(pat){
 
 // ── EXP layout & animation helpers ───────────────────────────────────────────
 const _COS30=Math.cos(Math.PI/6), _SIN30=Math.sin(Math.PI/6);
+// Iso "screen-shape" transform (offset/scale dropped): an iso arc is a TRUE round circle here,
+// so fitting / recovering circles for iso must be done in this space (see _galDraftShapes).
+const _expG2I=p=>[(p[0]-p[1])*_COS30,(p[0]+p[1])*_SIN30];
+const _expI2G=q=>[(q[1]/_SIN30+q[0]/_COS30)/2,(q[1]/_SIN30-q[0]/_COS30)/2];
 
 // Inward half-planes {n,c} for a convex polygon; a point X is inside ⟺ n·X ≤ c for all.
 function convexPlanes(poly){
@@ -2425,6 +2429,7 @@ function _galDraftShapes(){
   if(_galDraftCache&&_galDraftCache.ref===EXP_path)return _galDraftCache;
   const out={ref:EXP_path,lines:[],circles:[]};
   if(!curPat){return(_galDraftCache=out);}
+  const iso=curPat.gridType==='isometric';
   const segs=tiledSegsFor({...curPat,patMacro:patMacroForTiles(curPat,_tileCells)});
   const byAid=new Map();
   segs.forEach(s=>{
@@ -2434,7 +2439,17 @@ function _galDraftShapes(){
   byAid.forEach(group=>{
     const pts=[group[0].start];group.forEach(s=>pts.push(s.end));
     if(pts.length<3)return;
-    const cc=_circumcircle(pts[0],pts[Math.floor(pts.length/3)],pts[Math.floor(2*pts.length/3)]);
+    const p3=[pts[0],pts[Math.floor(pts.length/3)],pts[Math.floor(2*pts.length/3)]];
+    // Iso arcs are round on SCREEN (ellipse in grid), so fit the circle in screen-shape space
+    // and keep the recovered grid centre + shape radius to redraw it round (drawn via
+    // _isoRoundArcPts). A grid-space fit would recover the ellipse and draw an ellipse.
+    let cc;
+    if(iso){
+      const s3=p3.map(_expG2I), c2=_circumcircle(s3[0],s3[1],s3[2]);
+      if(c2)cc={c:_expI2G(c2.c),r:c2.r,iso:true};
+    }else{
+      cc=_circumcircle(p3[0],p3[1],p3[2]);
+    }
     if(cc&&isFinite(cc.r)&&cc.r>0)out.circles.push(cc);
   });
   return(_galDraftCache=out);
@@ -2478,11 +2493,10 @@ function _galDrawDraft(){
   const NS=72;
   circles.forEach(cc=>{
     ctx.beginPath();
-    for(let k=0;k<=NS;k++){
-      const a=k/NS*2*Math.PI;
-      const p=EXP_g2s([cc.c[0]+cc.r*Math.cos(a),cc.c[1]+cc.r*Math.sin(a)]);
-      if(k===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
-    }
+    // Iso: draw the recovered circle round on screen (same path arcs render with); square: plain grid circle.
+    const gp=cc.iso?_isoRoundArcPts(cc.c,cc.r,0,2*Math.PI,NS)
+                   :Array.from({length:NS+1},(_,k)=>{const a=k/NS*2*Math.PI;return[cc.c[0]+cc.r*Math.cos(a),cc.c[1]+cc.r*Math.sin(a)];});
+    gp.forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});
     ctx.stroke();
   });
   ctx.restore();
