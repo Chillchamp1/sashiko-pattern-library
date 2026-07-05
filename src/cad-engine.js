@@ -93,9 +93,50 @@ function cadLineInter(p1,p2,p3,p4){
   return null;
 }
 
+// ── Isometric arc geometry ──────────────────────────────────────────────────
+// The iso projection (x=(u−v)cos30, y=(u+v)sin30) turns a plain (u,v) circle into an
+// ellipse, but the renderer (_isoRoundArcPts) draws every arc as a TRUE round circle of
+// radius r in this "screen-shape" space (offset/scale dropped). So all arc hit-testing /
+// intersection math for iso is done here — where arcs are genuine circles of radius r and
+// straight lines stay straight — then mapped back to (u,v). Grid angles stay monotonic
+// with screen order (the projection preserves orientation), so the returned grid `angle`
+// still sorts correctly along the sweep and the erase handler reconstructs sub-arcs cleanly.
+const _isoG2I=p=>[(p[0]-p[1])*CAD_COS30,(p[0]+p[1])*CAD_SIN30];
+const _isoI2G=q=>[(q[1]/CAD_SIN30+q[0]/CAD_COS30)/2,(q[1]/CAD_SIN30-q[0]/CAD_COS30)/2];
+const _isoSAng=a=>Math.atan2((Math.cos(a)+Math.sin(a))*CAD_SIN30,(Math.cos(a)-Math.sin(a))*CAD_COS30);
+function _isoScreenSweep(arc){
+  const a1=arc.a1,a2=arc.a2,uvSweep=a2-a1,full=Math.abs(uvSweep)>=2*Math.PI-0.001;
+  const f1=_isoSAng(a1); let sw;
+  if(full){sw=(uvSweep>=0?1:-1)*2*Math.PI;}
+  else{sw=_isoSAng(a2)-f1; while(sw>Math.PI)sw-=2*Math.PI; while(sw<=-Math.PI)sw+=2*Math.PI;
+       if(uvSweep>0&&sw<0)sw+=2*Math.PI; else if(uvSweep<0&&sw>0)sw-=2*Math.PI;}
+  return{f1,sw};
+}
+function _isoFInSweep(f,f1,sw){
+  if(Math.abs(sw)>=2*Math.PI-0.001)return true;
+  let d=f-f1;
+  if(sw>=0){while(d<-1e-9)d+=2*Math.PI;while(d>2*Math.PI)d-=2*Math.PI;return d<=sw+1e-6;}
+  while(d>1e-9)d-=2*Math.PI; while(d<-2*Math.PI)d+=2*Math.PI; return d>=sw-1e-6;
+}
+
 // Distance from point p to an arc curve. Returns {dist, angle} where angle is
 // the radian parameter along the arc (in [a1,a2] for positive sweep / [a2,a1] for negative).
 function cadDistToArc(p, arc){
+  if(cadGridType==='isometric'){
+    const sc=_isoG2I(arc.center), P=_isoG2I(p);
+    const dx=P[0]-sc[0], dy=P[1]-sc[1], rr=Math.hypot(dx,dy);
+    const {f1,sw}=_isoScreenSweep(arc), fh=Math.atan2(dy,dx);
+    if(_isoFInSweep(fh,f1,sw)){
+      const uv=_isoI2G([sc[0]+arc.r*Math.cos(fh),sc[1]+arc.r*Math.sin(fh)]);
+      return{dist:Math.abs(rr-arc.r), angle:Math.atan2(uv[1]-arc.center[1],uv[0]-arc.center[0])};
+    }
+    let bestA=arc.a1,bd=Infinity;
+    for(const a of [arc.a1,arc.a2]){
+      const qx=sc[0]+arc.r*Math.cos(_isoSAng(a)), qy=sc[1]+arc.r*Math.sin(_isoSAng(a));
+      const d=Math.hypot(P[0]-qx,P[1]-qy); if(d<bd){bd=d;bestA=a;}
+    }
+    return{dist:bd, angle:bestA};
+  }
   const dx=p[0]-arc.center[0], dy=p[1]-arc.center[1];
   let ang=Math.atan2(dy,dx);
   if(ang<0)ang+=2*Math.PI;
@@ -146,6 +187,24 @@ function cadAngleInArc(a, arc){
 
 // Intersect a line segment (p1→p2) with an arc. Returns array of {p:[u,v], t:lineParam, angle:arcAngle}.
 function cadLineArcIntersections(p1,p2,arc){
+  if(cadGridType==='isometric'){
+    const sc=_isoG2I(arc.center), A=_isoG2I(p1), B=_isoG2I(p2), r=arc.r;
+    const dx=B[0]-A[0], dy=B[1]-A[1], fx=A[0]-sc[0], fy=A[1]-sc[1];
+    const aa=dx*dx+dy*dy, bb=2*(fx*dx+fy*dy), cc=fx*fx+fy*fy-r*r, disc=bb*bb-4*aa*cc;
+    if(disc<0)return[];
+    const sd=Math.sqrt(disc), {f1,sw}=_isoScreenSweep(arc), out=[];
+    for(const t of [(-bb-sd)/(2*aa),(-bb+sd)/(2*aa)]){
+      if(t>0.001&&t<0.999){
+        const qx=A[0]+t*dx, qy=A[1]+t*dy, f=Math.atan2(qy-sc[1],qx-sc[0]);
+        if(_isoFInSweep(f,f1,sw)){
+          const uv=_isoI2G([qx,qy]);
+          out.push({p:uv,t,angle:Math.atan2(uv[1]-arc.center[1],uv[0]-arc.center[0])});
+        }
+      }
+    }
+    if(out.length>1&&Math.hypot(out[0].p[0]-out[1].p[0],out[0].p[1]-out[1].p[1])<0.01)out.length=1;
+    return out;
+  }
   const cx=arc.center[0], cy=arc.center[1], r=arc.r;
   const dx=p2[0]-p1[0], dy=p2[1]-p1[1];
   const fx=p1[0]-cx, fy=p1[1]-cy;
@@ -168,6 +227,24 @@ function cadLineArcIntersections(p1,p2,arc){
 
 // Intersect two arcs. Returns array of {p:[u,v], angleA, angleB}.
 function cadArcArcIntersections(arcA, arcB){
+  if(cadGridType==='isometric'){
+    const c1=_isoG2I(arcA.center), c2=_isoG2I(arcB.center), r1=arcA.r, r2=arcB.r;
+    const dx=c2[0]-c1[0], dy=c2[1]-c1[1], d=Math.hypot(dx,dy);
+    if(d<0.001||d>r1+r2+0.001||d<Math.abs(r1-r2)-0.001)return[];
+    const a=(r1*r1-r2*r2+d*d)/(2*d), h=Math.sqrt(Math.max(0,r1*r1-a*a));
+    const px=c1[0]+a*dx/d, py=c1[1]+a*dy/d;
+    const sA=_isoScreenSweep(arcA), sB=_isoScreenSweep(arcB), out=[];
+    for(const sign of [-1,1]){
+      const ix=px+sign*h*(-dy/d), iy=py+sign*h*(dx/d);
+      const fA=Math.atan2(iy-c1[1],ix-c1[0]), fB=Math.atan2(iy-c2[1],ix-c2[0]);
+      if(_isoFInSweep(fA,sA.f1,sA.sw)&&_isoFInSweep(fB,sB.f1,sB.sw)){
+        const uv=_isoI2G([ix,iy]);
+        out.push({p:uv,angleA:Math.atan2(uv[1]-arcA.center[1],uv[0]-arcA.center[0]),angleB:Math.atan2(uv[1]-arcB.center[1],uv[0]-arcB.center[0])});
+      }
+    }
+    if(out.length>1&&Math.hypot(out[0].p[0]-out[1].p[0],out[0].p[1]-out[1].p[1])<0.01)out.length=1;
+    return out;
+  }
   const cx1=arcA.center[0], cy1=arcA.center[1], r1=arcA.r;
   const cx2=arcB.center[0], cy2=arcB.center[1], r2=arcB.r;
   const dx=cx2-cx1, dy=cy2-cy1;
