@@ -10094,29 +10094,22 @@ function cadDrawWorkspace(){
       const all=cadHover.all;
       if(ci>=0&&ci<all.length-1){
         const t0=all[ci].t, t1=all[ci+1].t;
-        const segs=Math.max(4,Math.round(30*(t1-t0)));
-        // Glow
-        x.lineWidth=8;x.lineCap='round';x.strokeStyle='rgba(255,80,80,0.35)';
-        x.beginPath();
-        let first=true;
-        for(let k=0;k<=segs;k++){
-          const tk=t0+(t1-t0)*(k/segs);
-          const ang=a1+sweepDir*tk*totalSweep;
-          const p=g2s(arc.center[0]+arc.r*Math.cos(ang),arc.center[1]+arc.r*Math.sin(ang));
-          if(first){x.moveTo(p.x,p.y);first=false;}else x.lineTo(p.x,p.y);
-        }
-        x.stroke();
-        // Core highlight
-        x.lineWidth=3;x.strokeStyle='#ff6060';
-        x.beginPath();
-        first=true;
-        for(let k=0;k<=segs;k++){
-          const tk=t0+(t1-t0)*(k/segs);
-          const ang=a1+sweepDir*tk*totalSweep;
-          const p=g2s(arc.center[0]+arc.r*Math.cos(ang),arc.center[1]+arc.r*Math.sin(ang));
-          if(first){x.moveTo(p.x,p.y);first=false;}else x.lineTo(p.x,p.y);
-        }
-        x.stroke();
+        // Build the hovered sub-arc and flatten it via cadFlattenArc, so iso arcs trace
+        // the true round screen curve (grid-circle points would project to the ellipse).
+        const ang0=a1+sweepDir*t0*totalSweep, ang1=a1+sweepDir*t1*totalSweep;
+        const subArc={arc:true,center:arc.center,r:arc.r,a1:ang0,a2:ang1,
+          start:[arc.center[0]+arc.r*Math.cos(ang0),arc.center[1]+arc.r*Math.sin(ang0)],
+          end:[arc.center[0]+arc.r*Math.cos(ang1),arc.center[1]+arc.r*Math.sin(ang1)]};
+        const segs=cadFlattenArc(subArc, 120);
+        const trace=()=>{
+          x.beginPath();
+          const p0=g2s(segs[0].start[0],segs[0].start[1]);x.moveTo(p0.x,p0.y);
+          for(const s of segs){const p=g2s(s.end[0],s.end[1]);x.lineTo(p.x,p.y);}
+          x.stroke();
+        };
+        x.lineCap='round';
+        x.lineWidth=8;x.strokeStyle='rgba(255,80,80,0.35)';trace();  // glow
+        x.lineWidth=3;x.strokeStyle='#ff6060';trace();               // core
       }
     }else{
       const p1=g2s(cadHover.start.u,cadHover.start.v),p2=g2s(cadHover.end.u,cadHover.end.v);
