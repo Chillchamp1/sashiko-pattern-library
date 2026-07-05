@@ -744,15 +744,28 @@ window.patIsCurved=function patIsCurved(pat){
 };
 
 // Flatten an arc to polyline segments in grid space.
-// Isometric FULL circle → round on screen. The iso projection is anisotropic
-// (x=(u-v)cos30, y=(u+v)sin30), so a plain (u,v) circle projects to a wide ellipse. Placing
-// points at center + invIso(r·(cosφ,sinφ)) makes g2s(pt) trace a TRUE screen circle of radius r
-// (grid units). Only used for full circles — partial arcs keep their (u,v) endpoints so line↔arc
-// and arc↔arc connections don't shift.
-function _isoRoundCirclePts(center, r, a1, segs){
-  const C=_COS30, S=_SIN30, pts=[];
+// Isometric arc → round on screen. The iso projection is anisotropic (x=(u-v)cos30, y=(u+v)sin30),
+// so a plain (u,v) arc projects to an ellipse. Placing points at center + invIso(r·(cosφ,sinφ)),
+// swept between the projected screen-angles of the arc's endpoints (in the drawn direction), makes
+// g2s(pt) trace a TRUE round screen arc of radius r. Full circles and partial arcs both round.
+// (Partial-arc endpoints land on the round circle, so they shift slightly off the (u,v) ellipse —
+// fine for standalone arcs; a connected arc endpoint would move.)
+function _isoRoundArcPts(center, r, a1, a2, segs){
+  const C=_COS30, S=_SIN30;
+  const uvSweep=a2-a1, full=Math.abs(uvSweep)>=2*Math.PI-0.001;
+  const sAng=a=>{const dx=r*Math.cos(a), dy=r*Math.sin(a); return Math.atan2((dx+dy)*S,(dx-dy)*C);};
+  const f1=sAng(a1);
+  let sw;
+  if(full){ sw=(uvSweep>=0?1:-1)*2*Math.PI; }
+  else{
+    sw=sAng(a2)-f1;
+    while(sw>Math.PI)sw-=2*Math.PI;
+    while(sw<=-Math.PI)sw+=2*Math.PI;
+    if(uvSweep>0&&sw<0)sw+=2*Math.PI; else if(uvSweep<0&&sw>0)sw-=2*Math.PI;
+  }
+  const pts=[];
   for(let i=0;i<=segs;i++){
-    const f=a1+2*Math.PI*(i/segs), dx=r*Math.cos(f), dy=r*Math.sin(f);
+    const f=f1+sw*(i/segs), dx=r*Math.cos(f), dy=r*Math.sin(f);
     pts.push([center[0]+(dx/C+dy/S)/2, center[1]+(dy/S-dx/C)/2]);
   }
   return pts;
@@ -771,8 +784,8 @@ function _flattenArc(l, nSegs, arcId, iso){
   // wave chaining). Recomputing keeps the curve through its real endpoints; arcs whose
   // stored radius is already exact (e.g. r=5) are unaffected.
   const r=Math.hypot(l.start[0]-l.center[0],l.start[1]-l.center[1])||l.r;
-  if(iso && totalSweep>=2*Math.PI-0.001){   // full circle on the iso grid → keep it round
-    const pts=_isoRoundCirclePts(l.center, r, a1, segs);
+  if(iso){   // iso arc (full or partial) → keep it round on screen
+    const pts=_isoRoundArcPts(l.center, r, a1, a2, segs);
     for(let i=1;i<pts.length;i++)result.push({start:pts[i-1],end:pts[i],aid:arcId});
     return result;
   }

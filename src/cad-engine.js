@@ -380,9 +380,9 @@ function cadFlattenArc(arc, nSegs){
   const totalSweep=Math.abs(sweep);
   const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
   const result=[];
-  // Iso full circle → render round (matches the tiled/gallery flatten; see _flattenArc).
-  if(cadGridType==='isometric' && totalSweep>=2*Math.PI-0.001){
-    const pts=_isoRoundCirclePts(arc.center, arc.r, a1, segs);
+  // Iso arc (full or partial) → render round (matches the tiled/gallery flatten; see _flattenArc).
+  if(cadGridType==='isometric'){
+    const pts=_isoRoundArcPts(arc.center, arc.r, a1, a2, segs);
     for(let i=1;i<pts.length;i++)result.push({start:pts[i-1],end:pts[i],arc:true});
     return result;
   }

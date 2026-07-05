@@ -526,6 +526,10 @@ The CAD editor toolbars are **flattened** into two flat drag zones — `.cad-too
 (Play+speed cluster · Stitch-view toggle). Each tool is a direct child with a stable `data-did`. The group-wrapper
 `<span>`s were removed except the compound clusters (Move/Play/Stitch stay single draggable units); spacing is
 unchanged because `.cad-tool-group` and `.cad-toolbar` share `gap:6px`.
+- **Row break item.** `sep2` is a `.cad-tool-break` (full-width `flex-basis:100%`) instead of a thin divider, so
+  everything after it wraps to a new toolbar row at any width/zoom (the committed layout puts it before `cut`, pinning
+  cut→undo to the last row). CAD tool padding/gap were trimmed (`6px 9px` / gap 5) so those 5 buttons fit one row in
+  the ~424px panel. Browser zoom scales uniformly, so wrapping is zoom-invariant.
 - **Drag-reorder is admin-only.** When `body.is-admin`, every `[data-did]` becomes `draggable`; dropping reorders
   it **within its own zone** (`_cadInitToolbarDrag`, insert-before/after by cursor half). `_updateAdminUI` live-toggles
   `draggable` via `_cadTbSetDraggable`. Non-admins can't drag; clicks still work (drag only starts on movement).
@@ -543,13 +547,15 @@ unchanged because `.cad-tool-group` and `.cad-toolbar` share `gap:6px`.
 
 ## Isometric view: round circles + screen-cardinal move arrows (2026-07-05)
 The iso projection is anisotropic (`x=(u−v)cos30`, `y=(u+v)sin30`), which distorted two things:
-- **Full circles rendered as wide ellipses.** Fixed in the arc flatteners: `_isoRoundCirclePts(center,r,a1,segs)`
-  (experimental.js) places points at `center + invIso(r·(cosφ,sinφ))` so `g2s(pt)` traces a TRUE screen circle of
-  radius `r`. `_flattenArc` (gains an `iso` param, passed from `genTiledSegs`) and `cadFlattenArc` (uses `cadGridType`)
-  branch to it **only for iso FULL circles** — partial arcs keep their `(u,v)` endpoints so line↔arc / arc↔arc
-  connections don't shift. Square grids and non-circle iso patterns are byte-identical (`route.js --check` unchanged;
-  no fixture is iso+arc). Verified: iso circle screen-roundness (max/min radius) went 1.7 → 1.0. NB draft-mode circle
-  recovery (`_galDraftShapes` `_circumcircle`) still assumes a `(u,v)` circle — a minor cosmetic gap for iso draft/PDF.
+- **Arcs rendered as ellipses.** Fixed in the arc flatteners: `_isoRoundArcPts(center,r,a1,a2,segs)`
+  (experimental.js) places points at `center + invIso(r·(cosφ,sinφ))`, swept between the projected screen-angles of the
+  arc's endpoints in the drawn direction, so `g2s(pt)` traces a TRUE round screen arc of radius `r`. `_flattenArc`
+  (gains an `iso` param, passed from `genTiledSegs`) and `cadFlattenArc` (uses `cadGridType`) branch to it for **all iso
+  arcs — full circles AND partial arcs** (2026-07-05: partial arcs added). A partial arc's endpoints land on the round
+  circle (radius `r`), so they shift slightly off the `(u,v)` ellipse — fine for standalone arcs; a *connected* arc
+  endpoint would move. Square grids and non-arc iso patterns are byte-identical (`route.js --check` unchanged; no
+  fixture is iso+arc). Verified: iso circle + half-arc screen-roundness went 1.7 → 1.0. NB draft-mode circle recovery
+  (`_galDraftShapes` `_circumcircle`) still assumes a `(u,v)` circle — a minor cosmetic gap for iso draft/PDF.
 - **↑↓←→ moved the pattern diagonally.** `cadMovePattern` remaps in iso so the arrows move screen-cardinally with an
   on-grid step: vertical → `(±1,±1)`, horizontal → `(±1,∓1)` (`if(iso){if(du!==0)dv=-du;else du=dv;}`). Horizontal
   steps are √3× the vertical (inherent to the lattice); square grid unchanged.
