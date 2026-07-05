@@ -295,6 +295,9 @@ button.ctrl.primary:hover{background:#275784}
 /* Grouped CAD tools: draw tools · move+transform · actions, divided by separators */
 .cad-tool-group{display:inline-flex;align-items:center;gap:6px}
 .cad-tool-sep{width:1px;align-self:stretch;background:var(--line);margin:2px 3px}
+/* Admin-only header tools (e.g. Copy layout) */
+.cad-admin-tool{display:none}
+body.is-admin .cad-admin-tool{display:inline-flex}
 /* Admin toolbar rearrange (drag-and-drop) — affordance + drag feedback, admin only */
 body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-toolbar [data-did].cad-tb-dragging{opacity:.4}

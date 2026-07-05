@@ -318,6 +318,9 @@ button.ctrl.primary:hover{background:#275784}
 /* Grouped CAD tools: draw tools · move+transform · actions, divided by separators */
 .cad-tool-group{display:inline-flex;align-items:center;gap:6px}
 .cad-tool-sep{width:1px;align-self:stretch;background:var(--line);margin:2px 3px}
+/* Admin-only header tools (e.g. Copy layout) */
+.cad-admin-tool{display:none}
+body.is-admin .cad-admin-tool{display:inline-flex}
 /* Admin toolbar rearrange (drag-and-drop) — affordance + drag feedback, admin only */
 body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-toolbar [data-did].cad-tb-dragging{opacity:.4}
@@ -654,6 +657,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       </div>
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
       <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88" id="cadPublishBtn">📌 Publish (admin)</button>
+      <button class="cad-save-btn cad-admin-tool" id="cadCopyLayoutBtn" onclick="cadCopyToolbarLayout()" title="Copy the current toolbar arrangement — paste into cad-toolbar.json and push to make it everyone's default">📋 Copy layout</button>
     </div>
     <div class="cad-settings-bar">
       <label>Grid:
@@ -11113,12 +11117,27 @@ function _cadInitToolbarDrag(){
 function _cadSaveToolbarOrder(){try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(_cadTbCollect()));}catch(_){}}
 function _cadApplyToolbarCache(){try{const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(c)_cadTbApply(c);}catch(_){}}
 window._cadTbSetDraggable=_cadTbSetDraggable;
+function _cadCopyText(text){
+  const legacy=()=>new Promise((res,rej)=>{try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);ok?res():rej();}catch(e){rej(e);}});
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(text).catch(legacy);
+  return legacy();
+}
 // Admin export: copy the current toolbar layout to paste into cad-toolbar.json (→ global on push).
 window.sashikoToolbarLayout=function(){
   const o=_cadTbCollect(), json=JSON.stringify(o);
-  try{if(navigator.clipboard)navigator.clipboard.writeText(json);}catch(_){}
+  _cadCopyText(json).catch(()=>{});
   console.log('CAD toolbar layout — copied. Paste into cad-toolbar.json and push to publish for everyone:\n'+json);
   return o;
+};
+// Admin-only header button: copy the current toolbar layout, with feedback on the button itself.
+window.cadCopyToolbarLayout=function(){
+  const json=JSON.stringify(_cadTbCollect());
+  const btn=document.getElementById('cadCopyLayoutBtn');
+  console.log('CAD toolbar layout:\n'+json);
+  _cadCopyText(json).then(()=>{
+    if(!btn)return; btn.textContent='✓ Copied — commit cad-toolbar.json';
+    setTimeout(()=>{btn.textContent='📋 Copy layout';},2600);
+  }).catch(()=>{ if(btn){btn.textContent='⚠ Copy failed — see console';setTimeout(()=>{btn.textContent='📋 Copy layout';},2600);} });
 };
 
 // ── Init ───────────────────────────────────────────────────────────────────

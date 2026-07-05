@@ -535,9 +535,11 @@ unchanged because `.cad-tool-group` and `.cad-toolbar` share `gap:6px`.
   change it (a push). `_cadTbApply` reorders each zone's children to the saved `did` order (unknown/new dids keep their
   natural position). An admin's in-browser drag persists to a **localStorage draft** (`sashiko_cadtoolbar`, applied on
   top of the committed layout **for that admin only**). **Publishing is a commit, not a live sync** (browsers can't push
-  to GitHub): the admin arranges, runs `sashikoToolbarLayout()` (copies the JSON to clipboard), pastes it into
-  `cad-toolbar.json`, and pushes → CI rebuilds → everyone sees it. No Firestore/rules involved (deliberately simpler
-  than the gallery's Firestore order, since this is a single-admin, rarely-changed, global setting).
+  to GitHub): the admin arranges, then clicks the admin-only **📋 Copy layout** header button (`#cadCopyLayoutBtn`,
+  `.cad-admin-tool`, shown via `body.is-admin`; handler `cadCopyToolbarLayout` → `_cadCopyText` clipboard-with-execCommand
+  fallback + always console-logs the JSON), pastes it into `cad-toolbar.json`, and pushes → CI rebuilds → everyone sees
+  it. (`sashikoToolbarLayout()` is the console equivalent.) No Firestore/rules involved (deliberately simpler than the
+  gallery's Firestore order, since this is a single-admin, rarely-changed, global setting).
 
 ## Known Issues / Gotchas
 

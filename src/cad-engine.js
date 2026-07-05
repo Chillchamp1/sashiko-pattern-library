@@ -1829,12 +1829,27 @@ function _cadInitToolbarDrag(){
 function _cadSaveToolbarOrder(){try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(_cadTbCollect()));}catch(_){}}
 function _cadApplyToolbarCache(){try{const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(c)_cadTbApply(c);}catch(_){}}
 window._cadTbSetDraggable=_cadTbSetDraggable;
+function _cadCopyText(text){
+  const legacy=()=>new Promise((res,rej)=>{try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);ok?res():rej();}catch(e){rej(e);}});
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(text).catch(legacy);
+  return legacy();
+}
 // Admin export: copy the current toolbar layout to paste into cad-toolbar.json (→ global on push).
 window.sashikoToolbarLayout=function(){
   const o=_cadTbCollect(), json=JSON.stringify(o);
-  try{if(navigator.clipboard)navigator.clipboard.writeText(json);}catch(_){}
+  _cadCopyText(json).catch(()=>{});
   console.log('CAD toolbar layout — copied. Paste into cad-toolbar.json and push to publish for everyone:\n'+json);
   return o;
+};
+// Admin-only header button: copy the current toolbar layout, with feedback on the button itself.
+window.cadCopyToolbarLayout=function(){
+  const json=JSON.stringify(_cadTbCollect());
+  const btn=document.getElementById('cadCopyLayoutBtn');
+  console.log('CAD toolbar layout:\n'+json);
+  _cadCopyText(json).then(()=>{
+    if(!btn)return; btn.textContent='✓ Copied — commit cad-toolbar.json';
+    setTimeout(()=>{btn.textContent='📋 Copy layout';},2600);
+  }).catch(()=>{ if(btn){btn.textContent='⚠ Copy failed — see console';setTimeout(()=>{btn.textContent='📋 Copy layout';},2600);} });
 };
 
 // ── Init ───────────────────────────────────────────────────────────────────
