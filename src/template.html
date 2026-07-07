@@ -43,16 +43,28 @@
       <p class="build-stamp">sashikolib.org · build <!-- INJECT:buildstamp --></p>
     </div>
   </div>
+  <div class="gal-tabs" role="tablist">
+    <button class="gal-tab on" id="galTabTrad" role="tab" onclick="galSetTab('traditional')">
+      <span class="gal-tab-title">Traditional</span>
+      <span class="gal-tab-sub">the classics<span class="gal-tab-count" id="galCountTrad"></span></span>
+    </button>
+    <button class="gal-tab" id="galTabCommunity" role="tab" onclick="galSetTab('community')">
+      <span class="gal-tab-title">Community</span>
+      <span class="gal-tab-sub">by makers<span class="gal-tab-count" id="galCountCommunity"></span></span>
+    </button>
+    <button class="gal-tab" id="galTabSandbox" role="tab" onclick="galSetTab('sandbox')">
+      <span class="gal-tab-title">Sandbox</span>
+      <span class="gal-tab-sub">drafts &amp; experiments<span class="gal-tab-count" id="galCountSandbox"></span></span>
+    </button>
+  </div>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
-    <select class="filt-select" id="filtSelect" onchange="setFilterSelect(this.value)">
-      <option value="0">All patterns</option>
-      <option value="trad">Only traditional</option>
-      <option value="community">Only community</option>
-      <option value="curved">Only curved</option>
-      <option value="angular">Only angular</option>
+    <select class="filt-select" id="shapeSelect" onchange="setShapeFilter(this.value)">
+      <option value="all">All shapes</option>
+      <option value="curved">Curved</option>
+      <option value="angular">Angular</option>
     </select>
-    <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
+    <button class="cad-save-btn gal-new-btn" id="galNewBtn" onclick="showCAD()" style="display:none">+ New Pattern</button>
     <button class="filt admin-login-btn" onclick="adminLogin()" title="Sign in with Google to manage the gallery">Admin login</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>

@@ -11,41 +11,22 @@ function _displayName(n){
   return s;
 }
 window._displayName=_displayName;
-let activeFilters=new Set([0]);
+let activeFilters=new Set([0]);   // legacy (kept for setFilter compat); tabs now drive category
+let _galTab='traditional';         // active register-card tab: 'traditional' | 'community' | 'sandbox'
+let _shapeFilter='all';            // shape filter within a tab: 'all' | 'curved' | 'angular'
 let _galleryDirty=false;
-function buildGallery(){
-  const grid=document.getElementById('pgrid');grid.innerHTML='';
-  const deleted=_getDeleted();
-  PATTERNS.forEach(pat=>{
-    if(deleted.includes(pat.id))return;
-    // Hitomezashi Generator hidden for now — NOT removed; the generator engine + preset
-    // UI are kept intact and may be re-enabled in a future version (just drop this guard).
-    if(pat.id==='generator')return;
-    const card=document.createElement('button');
-    card.className='pcard'+(pat.type==='generator'?' gen-card':'');
-    card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
-    const thumb=document.createElement('canvas');
-    thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
-    card.appendChild(thumb);
-    const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
-    const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
-    card.append(name,jp);
-    // Delete button for all cards
-    const delBtn=document.createElement('button');
-    delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
-    delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
-    card.appendChild(delBtn);
-    card.onclick=()=>openPattern(pat);
-    grid.appendChild(card);
-    setTimeout(()=>renderThumb(thumb,pat),0);
-  });
-  // Published custom patterns — gallery order = admin-curated `order` (drag-to-reorder),
-  // falling back to newest-first for any pattern without an explicit order yet.
-  EXP_PATTERNS.filter(p=>p.published&&!deleted.includes(p.id)).slice().sort(_expGalleryOrder).forEach(pat=>{
-    const card=document.createElement('button');
-    card.className='pcard exp-card';
-    // data-p = number of stitch families (passes), derived automatically.
-    card.dataset.id=pat.id;card.dataset.p=String(expFamilyCount(pat));card.dataset.type='exp';
+// A published custom pattern belongs to "Community" only when explicitly flagged; everything else
+// published (traditional-flagged or unflagged) lives under the standard "Traditional" tab.
+function _expTradList(deleted){return EXP_PATTERNS.filter(p=>p.published&&!p.community&&!deleted.includes(p.id)).slice().sort(_expGalleryOrder);}
+function _expCommunityList(deleted){return EXP_PATTERNS.filter(p=>p.published&&p.community&&!deleted.includes(p.id)).slice().sort(_expGalleryOrder);}
+function _expSandboxList(deleted){return EXP_PATTERNS.filter(p=>!p.published&&!deleted.includes(p.id)).slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));}
+// Build one custom-pattern card. `sandbox` cards get a Publish button and aren't drag-reorderable;
+// published cards are admin-drag-reorderable within the gallery.
+function _buildExpCard(pat,sandbox){
+  const card=document.createElement('button');
+  card.className='pcard exp-card';
+  card.dataset.id=pat.id;card.dataset.p=String(expFamilyCount(pat));card.dataset.type='exp';
+  if(!sandbox){
     // Admin drag-to-reorder (draggable only while signed in as admin; drop persists the order).
     card.draggable=document.body.classList.contains('is-admin');
     card.addEventListener('dragstart',e=>{if(!document.body.classList.contains('is-admin')){e.preventDefault();return;}_dragId=pat.id;e.dataTransfer.effectAllowed='move';card.classList.add('dragging');});
@@ -53,33 +34,91 @@ function buildGallery(){
     card.addEventListener('dragover',e=>{if(document.body.classList.contains('is-admin')&&_dragId&&_dragId!==pat.id){e.preventDefault();card.classList.add('drag-over');}});
     card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
     card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');_onExpDrop(pat.id);_dragId=null;});
-    const thumb=document.createElement('canvas');
-    thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
-    card.appendChild(thumb);
-    const editBtn=document.createElement('button');
-    editBtn.className='exp-edit-btn';editBtn.title='Edit (admin)';editBtn.textContent='✎';
-    editBtn.onclick=e=>{e.stopPropagation();_cadSource='gallery';editExpPattern(pat);};
-    card.appendChild(editBtn);
-    const delBtn2=document.createElement('button');
-    delBtn2.className='exp-del-btn';delBtn2.title='Delete (admin)';delBtn2.textContent='✕';
-    delBtn2.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
-    card.appendChild(delBtn2);
-    const name=document.createElement('div');name.className='pcard-name';name.textContent=_displayName(pat.name||'Custom');
-    card.append(name);
-    if(pat.community&&pat.communityName){
-      const by=document.createElement('div');by.className='pcard-by';by.textContent='by '+pat.communityName;
-      card.append(by);
-    }
-    // Like row for exp cards
-    const likeRow=document.createElement('div');
-    likeRow.className='like-row';likeRow.dataset.id=pat.id;
-    card.appendChild(likeRow);
-    setTimeout(()=>renderLikeButtons(pat.id),0);
-    card.onclick=()=>openExpPattern(pat);
-    grid.appendChild(card);
-    setTimeout(()=>renderThumb(thumb,pat),0);
-  });
+  }
+  const thumb=document.createElement('canvas');
+  thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
+  card.appendChild(thumb);
+  if(sandbox){
+    const pubBtn=document.createElement('button');
+    pubBtn.className='exp-pub-btn';pubBtn.title='Publish to gallery (admin)';pubBtn.textContent='📌';
+    pubBtn.onclick=e=>{e.stopPropagation();publishExpPattern(pat.id);};
+    card.appendChild(pubBtn);
+  }
+  const editBtn=document.createElement('button');
+  editBtn.className='exp-edit-btn';editBtn.title='Edit';editBtn.textContent='✎';
+  editBtn.onclick=e=>{e.stopPropagation();_cadSource=sandbox?'sandbox':'gallery';editExpPattern(pat);};
+  card.appendChild(editBtn);
+  const delBtn=document.createElement('button');
+  delBtn.className='exp-del-btn';delBtn.title='Delete';delBtn.textContent='✕';
+  delBtn.onclick=e=>{e.stopPropagation();sandbox?removeExpPattern(pat.id):deletePattern(pat.id);};
+  card.appendChild(delBtn);
+  const name=document.createElement('div');name.className='pcard-name';name.textContent=_displayName(pat.name||'Custom');
+  card.append(name);
+  if(pat.community&&pat.communityName){
+    const by=document.createElement('div');by.className='pcard-by';by.textContent='by '+pat.communityName;
+    card.append(by);
+  }
+  const likeRow=document.createElement('div');
+  likeRow.className='like-row';likeRow.dataset.id=pat.id;
+  card.appendChild(likeRow);
+  setTimeout(()=>renderLikeButtons(pat.id),0);
+  card.onclick=()=>openExpPattern(pat);
+  setTimeout(()=>renderThumb(thumb,pat),0);
+  return card;
 }
+function buildGallery(){
+  const grid=document.getElementById('pgrid');if(!grid)return;grid.innerHTML='';
+  const deleted=_getDeleted();
+  // Register-card counts (all tabs).
+  const setCount=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=String(n);};
+  const nBuiltIn=PATTERNS.filter(p=>p.id!=='generator'&&!deleted.includes(p.id)).length;
+  setCount('galCountTrad',nBuiltIn+_expTradList(deleted).length);
+  setCount('galCountCommunity',_expCommunityList(deleted).length);
+  setCount('galCountSandbox',_expSandboxList(deleted).length);
+  if(_galTab==='traditional'){
+    PATTERNS.forEach(pat=>{
+      if(deleted.includes(pat.id))return;
+      // Hitomezashi Generator hidden for now — NOT removed; the generator engine + preset
+      // UI are kept intact and may be re-enabled in a future version (just drop this guard).
+      if(pat.id==='generator')return;
+      const card=document.createElement('button');
+      card.className='pcard'+(pat.type==='generator'?' gen-card':'');
+      card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
+      const thumb=document.createElement('canvas');
+      thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
+      card.appendChild(thumb);
+      const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
+      const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
+      card.append(name,jp);
+      const delBtn=document.createElement('button');
+      delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
+      delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
+      card.appendChild(delBtn);
+      card.onclick=()=>openPattern(pat);
+      grid.appendChild(card);
+      setTimeout(()=>renderThumb(thumb,pat),0);
+    });
+    _expTradList(deleted).forEach(pat=>grid.appendChild(_buildExpCard(pat,false)));
+  }else if(_galTab==='community'){
+    _expCommunityList(deleted).forEach(pat=>grid.appendChild(_buildExpCard(pat,false)));
+  }else{ // sandbox
+    _expSandboxList(deleted).forEach(pat=>grid.appendChild(_buildExpCard(pat,true)));
+  }
+  const empty=grid.children.length===0;
+  if(empty&&_galTab==='sandbox'){
+    grid.innerHTML='<p class="no-results" style="display:block;margin:24px auto">No saved patterns yet — hit <b>+ New Pattern</b> to draw one in the CAD editor.</p>';
+  }
+}
+// Switch register-card tab. Traditional is the standard/default.
+window.galSetTab=function(tab){
+  _galTab=(tab==='community'||tab==='sandbox')?tab:'traditional';
+  ['traditional','community','sandbox'].forEach(t=>{
+    const b=document.getElementById(t==='traditional'?'galTabTrad':(t==='community'?'galTabCommunity':'galTabSandbox'));
+    if(b)b.classList.toggle('on',t===_galTab);
+  });
+  const nb=document.getElementById('galNewBtn');if(nb)nb.style.display=_galTab==='sandbox'?'':'none';
+  buildGallery();filterGallery();
+};
 // ── Admin gallery ordering ───────────────────────────────────────────────────
 // `pat.order` is an admin-set sort key (lower = earlier). Patterns without one sort
 // last, newest-first (the previous default). Drag-to-reorder (admin) renumbers the
@@ -109,61 +148,40 @@ function _onExpDrop(targetId){
   });
   if(changed){_saveLocal();buildGallery();filterGallery();}
 }
+// Search + shape filter, applied within the active register-card tab (category is handled by the
+// tab / buildGallery, so this only narrows the already-rendered cards).
 window.filterGallery=function(){
-  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const si=document.getElementById('searchInput');
+  const q=si?si.value.toLowerCase().trim():'';
   let vis=0;
   document.querySelectorAll('#pgrid .pcard').forEach(card=>{
     const id=card.dataset.id, type=card.dataset.type||'';
     let pat=PATTERNS.find(p=>p.id===id);
     if(!pat)pat=EXP_PATTERNS.find(p=>p.id===id);
     if(!pat)return;
-    let mp=true;
-    if(!activeFilters.has(0)){
-      mp=false;
-      if(activeFilters.has('hm') && type==='generator') mp=true;
-      if(activeFilters.has('trad') && pat.traditional===true) mp=true;
-      if(activeFilters.has('community') && pat.community===true) mp=true;
-      if(activeFilters.has('curved') && window.patIsCurved(pat)) mp=true;
-      if(activeFilters.has('angular') && type==='exp' && !window.patIsCurved(pat)) mp=true;
-    }
+    const curved=window.patIsCurved(pat);
+    let ms=(_shapeFilter==='all')||(_shapeFilter==='curved'&&curved)||(_shapeFilter==='angular'&&!curved);
     let mq=!q;
     if(q){
       if(type==='exp'){
         mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q)||(pat.communityName||'').toLowerCase().includes(q)||
-          (window.patIsCurved(pat)?'curved round':'angular geometric straight').includes(q);
+          (curved?'curved round':'angular geometric straight').includes(q);
       }else{
         mq=pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
           (type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
           (type==='polyline'&&'yamagata mountain continuous'.includes(q));
       }
     }
-    const show=mp&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
+    const show=ms&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
   });
+  const grid=document.getElementById('pgrid');
   let nr=document.getElementById('noResults');
-  if(!nr){nr=document.createElement('div');nr.id='noResults';nr.className='no-results';nr.textContent='No patterns found.';document.getElementById('pgrid').appendChild(nr);}
-  nr.style.display=vis===0?'block':'none';
+  if(!nr&&grid){nr=document.createElement('div');nr.id='noResults';nr.className='no-results';nr.textContent='No patterns found.';grid.appendChild(nr);}
+  // Don't show the "no results" line over the sandbox empty-state message.
+  if(nr)nr.style.display=(vis===0&&grid&&!grid.querySelector('.no-results:not(#noResults)'))?'block':'none';
 };
-const _filtKey=v=>(v==='hm'||v==='trad'||v==='community'||v==='curved'||v==='angular')?v:(v==='0'?0:parseInt(v));
-window.setFilter=function(btn){
-  const f=btn.dataset.f;
-  const fv=_filtKey(f);
-  if(fv===0){
-    activeFilters=new Set([0]);
-  }else{
-    activeFilters.delete(0);
-    if(activeFilters.has(fv))activeFilters.delete(fv);
-    else activeFilters.add(fv);
-    if(activeFilters.size===0)activeFilters.add(0);
-  }
-  document.querySelectorAll('.filt').forEach(b=>{
-    const v=_filtKey(b.dataset.f);
-    b.classList.toggle('on',activeFilters.has(v));
-  });
-  filterGallery();
-};
-window.setFilterSelect=function(v){
-  const fv=_filtKey(v);
-  activeFilters=fv===0?new Set([0]):new Set([fv]);
+window.setShapeFilter=function(v){
+  _shapeFilter=(v==='curved'||v==='angular')?v:'all';
   filterGallery();
 };
 
@@ -177,16 +195,14 @@ function openPattern(pat){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 window.showGallery=function(){
-  if(_animSource==='sandbox'){
-    document.getElementById('animView').classList.remove('open');
-    document.getElementById('myPatsView').classList.add('open');
-    rebuildMyPatsView();
-  }else{
-    if(playing)pause();
-    document.getElementById('animView').classList.remove('open');
-    document.getElementById('galleryView').style.display='block';
-    if(_galleryDirty){_galleryDirty=false;buildGallery();}
-  }
+  if(playing)pause();
+  document.getElementById('animView').classList.remove('open');
+  // Sandbox is now a register-card tab in the main gallery — a pattern opened from it returns to
+  // the gallery on that tab (galSetTab rebuilds), everything else to whatever tab was active.
+  if(_animSource==='sandbox')_galTab='sandbox';
+  document.getElementById('galleryView').style.display='block';
+  galSetTab(_galTab);
+  _galleryDirty=false;
   history.replaceState(null,'',location.pathname);
 };
 

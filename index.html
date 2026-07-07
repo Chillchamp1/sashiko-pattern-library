@@ -52,6 +52,19 @@ body .floatingchat-container-wrap,body .floatingchat-container-wrap-mobi{transfo
   border-radius:10px;padding:12px 16px;max-width:560px;font-size:13px;color:#cfdcea;line-height:1.65}
 .about-body p{margin:0 0 8px}
 .about-body p:last-child{margin:0}
+/* ── Register-card tabs (Traditional · Community · Sandbox) — prominent but not dominant ── */
+.gal-tabs{display:flex;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.gal-tab{flex:1 1 0;min-width:120px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;
+  background:var(--panel);border:1px solid var(--line);border-bottom-width:2px;border-radius:10px;
+  padding:8px 14px;cursor:pointer;color:var(--muted);text-align:left;transition:.15s;font:inherit}
+.gal-tab:hover{border-color:#33557a;color:#cfdcea}
+.gal-tab.on{background:var(--panel2);border-color:#2e638f;border-bottom-color:var(--accent-v);color:#eaf2fb}
+.gal-tab-title{font-size:14px;font-weight:600;letter-spacing:-.2px}
+.gal-tab-sub{font-size:10.5px;color:var(--muted);opacity:.85}
+.gal-tab.on .gal-tab-sub{color:#a9c1da}
+.gal-tab-count{margin-left:5px;opacity:.8}
+.gal-tab-count:not(:empty):before{content:"· "}
+.gal-new-btn{padding:6px 12px;font-size:12px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 .search{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;padding:8px 14px;color:#e7eef6;font-size:13px;outline:none}
@@ -478,16 +491,28 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p class="build-stamp">sashikolib.org · build 2026-07-07</p>
     </div>
   </div>
+  <div class="gal-tabs" role="tablist">
+    <button class="gal-tab on" id="galTabTrad" role="tab" onclick="galSetTab('traditional')">
+      <span class="gal-tab-title">Traditional</span>
+      <span class="gal-tab-sub">the classics<span class="gal-tab-count" id="galCountTrad"></span></span>
+    </button>
+    <button class="gal-tab" id="galTabCommunity" role="tab" onclick="galSetTab('community')">
+      <span class="gal-tab-title">Community</span>
+      <span class="gal-tab-sub">by makers<span class="gal-tab-count" id="galCountCommunity"></span></span>
+    </button>
+    <button class="gal-tab" id="galTabSandbox" role="tab" onclick="galSetTab('sandbox')">
+      <span class="gal-tab-title">Sandbox</span>
+      <span class="gal-tab-sub">drafts &amp; experiments<span class="gal-tab-count" id="galCountSandbox"></span></span>
+    </button>
+  </div>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
-    <select class="filt-select" id="filtSelect" onchange="setFilterSelect(this.value)">
-      <option value="0">All patterns</option>
-      <option value="trad">Only traditional</option>
-      <option value="community">Only community</option>
-      <option value="curved">Only curved</option>
-      <option value="angular">Only angular</option>
+    <select class="filt-select" id="shapeSelect" onchange="setShapeFilter(this.value)">
+      <option value="all">All shapes</option>
+      <option value="curved">Curved</option>
+      <option value="angular">Angular</option>
     </select>
-    <button class="filt mypats-btn" onclick="showMyPatterns()">Custom Patterns (Sandbox) →</button>
+    <button class="cad-save-btn gal-new-btn" id="galNewBtn" onclick="showCAD()" style="display:none">+ New Pattern</button>
     <button class="filt admin-login-btn" onclick="adminLogin()" title="Sign in with Google to manage the gallery">Admin login</button>
   </div>
   <div class="pgrid" id="pgrid"><button class="pcard gen-card" data-id="generator" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Hitomezashi</div><div class="pcard-jp">一目刺し</div><div class="pcard-badge gen">Kōshi · Kaki no Hana · Snowflake</div></button><button class="pcard" data-id="juji" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Jūji-zashi</div><div class="pcard-jp">十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="naname" data-p="2"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Naname Jūji-zashi</div><div class="pcard-jp">斜め十字刺し</div><div class="pcard-badge">2 passes</div></button><button class="pcard" data-id="komesashi" data-p="4"><canvas style="width: 64px; height: 64px; border-radius: 7px;" width="80" height="80"></canvas><div class="pcard-name">Komesashi</div><div class="pcard-jp">米刺し</div><div class="pcard-badge">4 passes</div></button></div>
@@ -6178,41 +6203,22 @@ function _displayName(n){
   return s;
 }
 window._displayName=_displayName;
-let activeFilters=new Set([0]);
+let activeFilters=new Set([0]);   // legacy (kept for setFilter compat); tabs now drive category
+let _galTab='traditional';         // active register-card tab: 'traditional' | 'community' | 'sandbox'
+let _shapeFilter='all';            // shape filter within a tab: 'all' | 'curved' | 'angular'
 let _galleryDirty=false;
-function buildGallery(){
-  const grid=document.getElementById('pgrid');grid.innerHTML='';
-  const deleted=_getDeleted();
-  PATTERNS.forEach(pat=>{
-    if(deleted.includes(pat.id))return;
-    // Hitomezashi Generator hidden for now — NOT removed; the generator engine + preset
-    // UI are kept intact and may be re-enabled in a future version (just drop this guard).
-    if(pat.id==='generator')return;
-    const card=document.createElement('button');
-    card.className='pcard'+(pat.type==='generator'?' gen-card':'');
-    card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
-    const thumb=document.createElement('canvas');
-    thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
-    card.appendChild(thumb);
-    const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
-    const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
-    card.append(name,jp);
-    // Delete button for all cards
-    const delBtn=document.createElement('button');
-    delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
-    delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
-    card.appendChild(delBtn);
-    card.onclick=()=>openPattern(pat);
-    grid.appendChild(card);
-    setTimeout(()=>renderThumb(thumb,pat),0);
-  });
-  // Published custom patterns — gallery order = admin-curated `order` (drag-to-reorder),
-  // falling back to newest-first for any pattern without an explicit order yet.
-  EXP_PATTERNS.filter(p=>p.published&&!deleted.includes(p.id)).slice().sort(_expGalleryOrder).forEach(pat=>{
-    const card=document.createElement('button');
-    card.className='pcard exp-card';
-    // data-p = number of stitch families (passes), derived automatically.
-    card.dataset.id=pat.id;card.dataset.p=String(expFamilyCount(pat));card.dataset.type='exp';
+// A published custom pattern belongs to "Community" only when explicitly flagged; everything else
+// published (traditional-flagged or unflagged) lives under the standard "Traditional" tab.
+function _expTradList(deleted){return EXP_PATTERNS.filter(p=>p.published&&!p.community&&!deleted.includes(p.id)).slice().sort(_expGalleryOrder);}
+function _expCommunityList(deleted){return EXP_PATTERNS.filter(p=>p.published&&p.community&&!deleted.includes(p.id)).slice().sort(_expGalleryOrder);}
+function _expSandboxList(deleted){return EXP_PATTERNS.filter(p=>!p.published&&!deleted.includes(p.id)).slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));}
+// Build one custom-pattern card. `sandbox` cards get a Publish button and aren't drag-reorderable;
+// published cards are admin-drag-reorderable within the gallery.
+function _buildExpCard(pat,sandbox){
+  const card=document.createElement('button');
+  card.className='pcard exp-card';
+  card.dataset.id=pat.id;card.dataset.p=String(expFamilyCount(pat));card.dataset.type='exp';
+  if(!sandbox){
     // Admin drag-to-reorder (draggable only while signed in as admin; drop persists the order).
     card.draggable=document.body.classList.contains('is-admin');
     card.addEventListener('dragstart',e=>{if(!document.body.classList.contains('is-admin')){e.preventDefault();return;}_dragId=pat.id;e.dataTransfer.effectAllowed='move';card.classList.add('dragging');});
@@ -6220,33 +6226,91 @@ function buildGallery(){
     card.addEventListener('dragover',e=>{if(document.body.classList.contains('is-admin')&&_dragId&&_dragId!==pat.id){e.preventDefault();card.classList.add('drag-over');}});
     card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
     card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');_onExpDrop(pat.id);_dragId=null;});
-    const thumb=document.createElement('canvas');
-    thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
-    card.appendChild(thumb);
-    const editBtn=document.createElement('button');
-    editBtn.className='exp-edit-btn';editBtn.title='Edit (admin)';editBtn.textContent='✎';
-    editBtn.onclick=e=>{e.stopPropagation();_cadSource='gallery';editExpPattern(pat);};
-    card.appendChild(editBtn);
-    const delBtn2=document.createElement('button');
-    delBtn2.className='exp-del-btn';delBtn2.title='Delete (admin)';delBtn2.textContent='✕';
-    delBtn2.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
-    card.appendChild(delBtn2);
-    const name=document.createElement('div');name.className='pcard-name';name.textContent=_displayName(pat.name||'Custom');
-    card.append(name);
-    if(pat.community&&pat.communityName){
-      const by=document.createElement('div');by.className='pcard-by';by.textContent='by '+pat.communityName;
-      card.append(by);
-    }
-    // Like row for exp cards
-    const likeRow=document.createElement('div');
-    likeRow.className='like-row';likeRow.dataset.id=pat.id;
-    card.appendChild(likeRow);
-    setTimeout(()=>renderLikeButtons(pat.id),0);
-    card.onclick=()=>openExpPattern(pat);
-    grid.appendChild(card);
-    setTimeout(()=>renderThumb(thumb,pat),0);
-  });
+  }
+  const thumb=document.createElement('canvas');
+  thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
+  card.appendChild(thumb);
+  if(sandbox){
+    const pubBtn=document.createElement('button');
+    pubBtn.className='exp-pub-btn';pubBtn.title='Publish to gallery (admin)';pubBtn.textContent='📌';
+    pubBtn.onclick=e=>{e.stopPropagation();publishExpPattern(pat.id);};
+    card.appendChild(pubBtn);
+  }
+  const editBtn=document.createElement('button');
+  editBtn.className='exp-edit-btn';editBtn.title='Edit';editBtn.textContent='✎';
+  editBtn.onclick=e=>{e.stopPropagation();_cadSource=sandbox?'sandbox':'gallery';editExpPattern(pat);};
+  card.appendChild(editBtn);
+  const delBtn=document.createElement('button');
+  delBtn.className='exp-del-btn';delBtn.title='Delete';delBtn.textContent='✕';
+  delBtn.onclick=e=>{e.stopPropagation();sandbox?removeExpPattern(pat.id):deletePattern(pat.id);};
+  card.appendChild(delBtn);
+  const name=document.createElement('div');name.className='pcard-name';name.textContent=_displayName(pat.name||'Custom');
+  card.append(name);
+  if(pat.community&&pat.communityName){
+    const by=document.createElement('div');by.className='pcard-by';by.textContent='by '+pat.communityName;
+    card.append(by);
+  }
+  const likeRow=document.createElement('div');
+  likeRow.className='like-row';likeRow.dataset.id=pat.id;
+  card.appendChild(likeRow);
+  setTimeout(()=>renderLikeButtons(pat.id),0);
+  card.onclick=()=>openExpPattern(pat);
+  setTimeout(()=>renderThumb(thumb,pat),0);
+  return card;
 }
+function buildGallery(){
+  const grid=document.getElementById('pgrid');if(!grid)return;grid.innerHTML='';
+  const deleted=_getDeleted();
+  // Register-card counts (all tabs).
+  const setCount=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=String(n);};
+  const nBuiltIn=PATTERNS.filter(p=>p.id!=='generator'&&!deleted.includes(p.id)).length;
+  setCount('galCountTrad',nBuiltIn+_expTradList(deleted).length);
+  setCount('galCountCommunity',_expCommunityList(deleted).length);
+  setCount('galCountSandbox',_expSandboxList(deleted).length);
+  if(_galTab==='traditional'){
+    PATTERNS.forEach(pat=>{
+      if(deleted.includes(pat.id))return;
+      // Hitomezashi Generator hidden for now — NOT removed; the generator engine + preset
+      // UI are kept intact and may be re-enabled in a future version (just drop this guard).
+      if(pat.id==='generator')return;
+      const card=document.createElement('button');
+      card.className='pcard'+(pat.type==='generator'?' gen-card':'');
+      card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
+      const thumb=document.createElement('canvas');
+      thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
+      card.appendChild(thumb);
+      const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
+      const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
+      card.append(name,jp);
+      const delBtn=document.createElement('button');
+      delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
+      delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
+      card.appendChild(delBtn);
+      card.onclick=()=>openPattern(pat);
+      grid.appendChild(card);
+      setTimeout(()=>renderThumb(thumb,pat),0);
+    });
+    _expTradList(deleted).forEach(pat=>grid.appendChild(_buildExpCard(pat,false)));
+  }else if(_galTab==='community'){
+    _expCommunityList(deleted).forEach(pat=>grid.appendChild(_buildExpCard(pat,false)));
+  }else{ // sandbox
+    _expSandboxList(deleted).forEach(pat=>grid.appendChild(_buildExpCard(pat,true)));
+  }
+  const empty=grid.children.length===0;
+  if(empty&&_galTab==='sandbox'){
+    grid.innerHTML='<p class="no-results" style="display:block;margin:24px auto">No saved patterns yet — hit <b>+ New Pattern</b> to draw one in the CAD editor.</p>';
+  }
+}
+// Switch register-card tab. Traditional is the standard/default.
+window.galSetTab=function(tab){
+  _galTab=(tab==='community'||tab==='sandbox')?tab:'traditional';
+  ['traditional','community','sandbox'].forEach(t=>{
+    const b=document.getElementById(t==='traditional'?'galTabTrad':(t==='community'?'galTabCommunity':'galTabSandbox'));
+    if(b)b.classList.toggle('on',t===_galTab);
+  });
+  const nb=document.getElementById('galNewBtn');if(nb)nb.style.display=_galTab==='sandbox'?'':'none';
+  buildGallery();filterGallery();
+};
 // ── Admin gallery ordering ───────────────────────────────────────────────────
 // `pat.order` is an admin-set sort key (lower = earlier). Patterns without one sort
 // last, newest-first (the previous default). Drag-to-reorder (admin) renumbers the
@@ -6276,61 +6340,40 @@ function _onExpDrop(targetId){
   });
   if(changed){_saveLocal();buildGallery();filterGallery();}
 }
+// Search + shape filter, applied within the active register-card tab (category is handled by the
+// tab / buildGallery, so this only narrows the already-rendered cards).
 window.filterGallery=function(){
-  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const si=document.getElementById('searchInput');
+  const q=si?si.value.toLowerCase().trim():'';
   let vis=0;
   document.querySelectorAll('#pgrid .pcard').forEach(card=>{
     const id=card.dataset.id, type=card.dataset.type||'';
     let pat=PATTERNS.find(p=>p.id===id);
     if(!pat)pat=EXP_PATTERNS.find(p=>p.id===id);
     if(!pat)return;
-    let mp=true;
-    if(!activeFilters.has(0)){
-      mp=false;
-      if(activeFilters.has('hm') && type==='generator') mp=true;
-      if(activeFilters.has('trad') && pat.traditional===true) mp=true;
-      if(activeFilters.has('community') && pat.community===true) mp=true;
-      if(activeFilters.has('curved') && window.patIsCurved(pat)) mp=true;
-      if(activeFilters.has('angular') && type==='exp' && !window.patIsCurved(pat)) mp=true;
-    }
+    const curved=window.patIsCurved(pat);
+    let ms=(_shapeFilter==='all')||(_shapeFilter==='curved'&&curved)||(_shapeFilter==='angular'&&!curved);
     let mq=!q;
     if(q){
       if(type==='exp'){
         mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q)||(pat.communityName||'').toLowerCase().includes(q)||
-          (window.patIsCurved(pat)?'curved round':'angular geometric straight').includes(q);
+          (curved?'curved round':'angular geometric straight').includes(q);
       }else{
         mq=pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
           (type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
           (type==='polyline'&&'yamagata mountain continuous'.includes(q));
       }
     }
-    const show=mp&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
+    const show=ms&&mq;card.classList.toggle('hidden',!show);if(show)vis++;
   });
+  const grid=document.getElementById('pgrid');
   let nr=document.getElementById('noResults');
-  if(!nr){nr=document.createElement('div');nr.id='noResults';nr.className='no-results';nr.textContent='No patterns found.';document.getElementById('pgrid').appendChild(nr);}
-  nr.style.display=vis===0?'block':'none';
+  if(!nr&&grid){nr=document.createElement('div');nr.id='noResults';nr.className='no-results';nr.textContent='No patterns found.';grid.appendChild(nr);}
+  // Don't show the "no results" line over the sandbox empty-state message.
+  if(nr)nr.style.display=(vis===0&&grid&&!grid.querySelector('.no-results:not(#noResults)'))?'block':'none';
 };
-const _filtKey=v=>(v==='hm'||v==='trad'||v==='community'||v==='curved'||v==='angular')?v:(v==='0'?0:parseInt(v));
-window.setFilter=function(btn){
-  const f=btn.dataset.f;
-  const fv=_filtKey(f);
-  if(fv===0){
-    activeFilters=new Set([0]);
-  }else{
-    activeFilters.delete(0);
-    if(activeFilters.has(fv))activeFilters.delete(fv);
-    else activeFilters.add(fv);
-    if(activeFilters.size===0)activeFilters.add(0);
-  }
-  document.querySelectorAll('.filt').forEach(b=>{
-    const v=_filtKey(b.dataset.f);
-    b.classList.toggle('on',activeFilters.has(v));
-  });
-  filterGallery();
-};
-window.setFilterSelect=function(v){
-  const fv=_filtKey(v);
-  activeFilters=fv===0?new Set([0]):new Set([fv]);
+window.setShapeFilter=function(v){
+  _shapeFilter=(v==='curved'||v==='angular')?v:'all';
   filterGallery();
 };
 
@@ -6344,16 +6387,14 @@ function openPattern(pat){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 window.showGallery=function(){
-  if(_animSource==='sandbox'){
-    document.getElementById('animView').classList.remove('open');
-    document.getElementById('myPatsView').classList.add('open');
-    rebuildMyPatsView();
-  }else{
-    if(playing)pause();
-    document.getElementById('animView').classList.remove('open');
-    document.getElementById('galleryView').style.display='block';
-    if(_galleryDirty){_galleryDirty=false;buildGallery();}
-  }
+  if(playing)pause();
+  document.getElementById('animView').classList.remove('open');
+  // Sandbox is now a register-card tab in the main gallery — a pattern opened from it returns to
+  // the gallery on that tab (galSetTab rebuilds), everything else to whatever tab was active.
+  if(_animSource==='sandbox')_galTab='sandbox';
+  document.getElementById('galleryView').style.display='block';
+  galSetTab(_galTab);
+  _galleryDirty=false;
   history.replaceState(null,'',location.pathname);
 };
 
@@ -9112,10 +9153,10 @@ function renderExp(step){
 window.openExpPattern=function openExpPattern(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
-  // Track source: if gallery is visible we came from there, otherwise sandbox
-  _animSource=document.getElementById('myPatsView').classList.contains('open')?'sandbox':'gallery';
+  // Track source: opened from the Sandbox tab → return there; otherwise a normal gallery tab.
+  _animSource=(_galTab==='sandbox')?'sandbox':'gallery';
   history.replaceState(null,'','#'+pat.id);
-  document.getElementById('myPatsView').classList.remove('open');
+  document.getElementById('galleryView').style.display='none';
   document.getElementById('animView').classList.add('open');
   loadPattern(pat);
   window.scrollTo({top:0,behavior:'smooth'});
@@ -9169,23 +9210,10 @@ function expCardHTML(pat){
   </div>`;
 }
 
-function rebuildMyPatsView(){
-  const grid=document.getElementById('myPatsGrid');
-  if(!grid)return;
-  grid.innerHTML='';
-  const unpub=EXP_PATTERNS.filter(p=>!p.published);
-  if(!unpub.length){
-    const offline=!_firebaseReady?' (offline — patterns sync when Firebase is configured)':'';
-    grid.innerHTML=`<p class="no-results" style="display:block;margin:24px auto">No saved patterns yet — use the CAD Editor to draw one.${offline}</p>`;
-  }else{
-    unpub.forEach(pat=>{
-      grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
-      const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
-      if(thumb)setTimeout(()=>renderThumb(thumb,pat),0);
-      setTimeout(()=>renderLikeButtons(pat.id),0);
-    });
-  }
-}
+// The old standalone "My Patterns" view is retired — the Sandbox is now a register-card tab in the
+// main gallery. This shim keeps every existing caller (save/publish/delete flows) working: it just
+// rebuilds the gallery grid (which renders the sandbox list when that tab is active) and re-filters.
+function rebuildMyPatsView(){ buildGallery(); if(window.filterGallery)filterGallery(); }
 
 function rebuildExpGallery(){rebuildMyPatsView();}
 
@@ -9218,19 +9246,16 @@ window.removeExpPattern=async function removeExpPattern(id){
   rebuildMyPatsView();
 };
 
+// Kept for back-compat (deep links / any old caller): open the gallery on the Sandbox tab.
 window.showMyPatterns=function(){
-  document.getElementById('galleryView').style.display='none';
   document.getElementById('cadView').classList.remove('open');
-  document.getElementById('myPatsView').classList.add('open');
-  // Always refresh from Firestore when opening the view
-  if(_firebaseReady){_fetchFromFirestore().then(()=>rebuildMyPatsView());}
-  else{rebuildMyPatsView();}
+  document.getElementById('animView').classList.remove('open');
+  document.getElementById('galleryView').style.display='block';
+  galSetTab('sandbox');
+  if(_firebaseReady){_fetchFromFirestore().then(()=>{if(_galTab==='sandbox')buildGallery();});}
   window.scrollTo({top:0,behavior:'smooth'});
 };
-window.showGalleryFromMyPats=function(){
-  document.getElementById('myPatsView').classList.remove('open');
-  document.getElementById('galleryView').style.display='block';
-};
+window.showGalleryFromMyPats=function(){galSetTab('sandbox');document.getElementById('galleryView').style.display='block';};
 
 // ── Likes & Remix ────────────────────────────────────────────────────────────
 function _getLikes(){try{return JSON.parse(localStorage.getItem('sashiko_likes')||'{}');}catch(e){return{};}}
@@ -9355,13 +9380,10 @@ window.showGalleryFromCAD=function(){
   if(_tpOn)_stopTilePlay();   // stop + reset the tile-play animation when leaving the editor
   cadEditId=null;
   document.getElementById('cadView').classList.remove('open');
-  if(_cadSource==='gallery'){
-    document.getElementById('galleryView').style.display='block';
-    buildGallery();
-  }else{
-    document.getElementById('myPatsView').classList.add('open');
-    rebuildMyPatsView();
-  }
+  document.getElementById('galleryView').style.display='block';
+  // Return to the tab we came from: gallery editing → the pattern's own tab, else the Sandbox tab.
+  if(_cadSource!=='gallery')_galTab='sandbox';
+  galSetTab(_galTab);
 };
 
 

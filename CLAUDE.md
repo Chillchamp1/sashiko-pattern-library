@@ -274,17 +274,37 @@ Jumps directly to pass boundaries. HM patterns: pass 1 (horizontal) vs. pass 2 (
 
 ---
 
-## Filter System
+## Register-card tabs + Filter System (2026-07-07)
 
-Dropdown (`#filtSelect` → `setFilterSelect`): **All (0) · Only traditional (trad) · Only community (community) · Only curved (curved) · Only angular (angular)**.
-`filterGallery` matches: `trad`→`pat.traditional`, `community`→`pat.community`, `curved`→`window.patIsCurved(pat)`,
-`angular`→exp pattern with no arcs. (Legacy `data-f` buttons map the same way via `setFilter`; both share the
-`_filtKey(v)` parser in gallery.js.) The **pass-count filter (1–5+) was removed** — too niche for browsers; the
-`data-p` family count is still computed (badge/other uses) but no longer a filter option.
+The gallery front page is organised by **three register-card tabs** (`.gal-tabs`/`.gal-tab` in template.html,
+`galSetTab` in gallery.js) — the old category dropdown (`#filtSelect`/`setFilterSelect`) is **gone**:
+- **Traditional** (the standard, default-active tab) = built-in `PATTERNS` + published exp patterns that are **not**
+  `community` (traditional-flagged OR unflagged — it's the catch-all so no published pattern hides).
+- **Community** = published exp with `community===true`.
+- **Sandbox** = **unpublished** exp patterns — the old full-screen `#myPatsView` overlay is **retired** and folded in
+  here (its DOM stays in template.html but is never shown; the stray `getElementById('myPatsView')…remove('open')`
+  calls are harmless no-ops). The **+ New Pattern** button (`#galNewBtn`) appears **only** on this tab.
+
+`_galTab` (gallery.js, default `'traditional'`) drives `buildGallery`, which renders that tab's list — helpers
+`_expTradList`/`_expCommunityList`/`_expSandboxList` (all skip `_getDeleted`), and `_buildExpCard(pat,sandbox)`
+(one card builder for both — sandbox cards add the 📌 Publish button + use `removeExpPattern`, published cards are
+admin drag-reorderable). Tab labels carry live counts (`#galCountTrad` etc.). The register cards are deliberately
+**prominent but not dominant** (compact, bottom-border accent on the active one). `rebuildMyPatsView()` is now a thin
+shim → `buildGallery()`+`filterGallery()`, so every old save/publish/delete caller still works.
+
+**Nav round-trips restored to the right tab:** `openExpPattern` sets `_animSource` from `_galTab` (sandbox vs not);
+`showGallery` re-shows `#galleryView` and calls `galSetTab(_galTab)` (sandbox source → sandbox tab); `showCAD` /
+`showGalleryFromCAD` return to the pattern's tab (gallery source) or the Sandbox tab (`_cadSource!=='gallery'`).
+
+**Within a tab: search + shape filter.** The toolbar keeps the search box (`#searchInput` → `filterGallery`) and a
+**shape** dropdown (`#shapeSelect` → `setShapeFilter`, values `all`/`curved`/`angular`, state `_shapeFilter`).
+`filterGallery` now only narrows the already-rendered tab by search text + shape (category is the tab's job).
+The old `activeFilters`/`setFilter`/`_filtKey`/pass-count machinery is removed.
 
 **Shape = curved vs angular (auto-derived, no tagging).** `window.patIsCurved(pat)` = `pat.lines.some(l=>l.arc)`
-(experimental.js). The published set splits cleanly — arc-fraction is ~1 or ~0, never ambiguous — so a pattern
-with any arc reads "curved/round", everything else "angular". Search also matches the shape words.
+(experimental.js; safely `false` for built-ins with no `.lines`). The published set splits cleanly — arc-fraction is
+~1 or ~0, never ambiguous — so a pattern with any arc reads "curved/round", everything else "angular". Search also
+matches the shape words.
 
 **Admin gallery ordering (drag-to-reorder).** Published exp cards carry a numeric `pat.order` (lower = earlier).
 `buildGallery` sorts the published set by `_expGalleryOrder` (order asc, then `createdAt` desc for any pattern

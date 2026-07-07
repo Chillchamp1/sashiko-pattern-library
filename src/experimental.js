@@ -2732,10 +2732,10 @@ function renderExp(step){
 window.openExpPattern=function openExpPattern(idOrPat){
   const pat=typeof idOrPat==='string'?EXP_PATTERNS.find(p=>p.id===idOrPat):idOrPat;
   if(!pat)return;
-  // Track source: if gallery is visible we came from there, otherwise sandbox
-  _animSource=document.getElementById('myPatsView').classList.contains('open')?'sandbox':'gallery';
+  // Track source: opened from the Sandbox tab → return there; otherwise a normal gallery tab.
+  _animSource=(_galTab==='sandbox')?'sandbox':'gallery';
   history.replaceState(null,'','#'+pat.id);
-  document.getElementById('myPatsView').classList.remove('open');
+  document.getElementById('galleryView').style.display='none';
   document.getElementById('animView').classList.add('open');
   loadPattern(pat);
   window.scrollTo({top:0,behavior:'smooth'});
@@ -2789,23 +2789,10 @@ function expCardHTML(pat){
   </div>`;
 }
 
-function rebuildMyPatsView(){
-  const grid=document.getElementById('myPatsGrid');
-  if(!grid)return;
-  grid.innerHTML='';
-  const unpub=EXP_PATTERNS.filter(p=>!p.published);
-  if(!unpub.length){
-    const offline=!_firebaseReady?' (offline — patterns sync when Firebase is configured)':'';
-    grid.innerHTML=`<p class="no-results" style="display:block;margin:24px auto">No saved patterns yet — use the CAD Editor to draw one.${offline}</p>`;
-  }else{
-    unpub.forEach(pat=>{
-      grid.insertAdjacentHTML('beforeend',expCardHTML(pat));
-      const thumb=grid.querySelector(`[data-expid="${pat.id}"]`);
-      if(thumb)setTimeout(()=>renderThumb(thumb,pat),0);
-      setTimeout(()=>renderLikeButtons(pat.id),0);
-    });
-  }
-}
+// The old standalone "My Patterns" view is retired — the Sandbox is now a register-card tab in the
+// main gallery. This shim keeps every existing caller (save/publish/delete flows) working: it just
+// rebuilds the gallery grid (which renders the sandbox list when that tab is active) and re-filters.
+function rebuildMyPatsView(){ buildGallery(); if(window.filterGallery)filterGallery(); }
 
 function rebuildExpGallery(){rebuildMyPatsView();}
 
@@ -2838,19 +2825,16 @@ window.removeExpPattern=async function removeExpPattern(id){
   rebuildMyPatsView();
 };
 
+// Kept for back-compat (deep links / any old caller): open the gallery on the Sandbox tab.
 window.showMyPatterns=function(){
-  document.getElementById('galleryView').style.display='none';
   document.getElementById('cadView').classList.remove('open');
-  document.getElementById('myPatsView').classList.add('open');
-  // Always refresh from Firestore when opening the view
-  if(_firebaseReady){_fetchFromFirestore().then(()=>rebuildMyPatsView());}
-  else{rebuildMyPatsView();}
+  document.getElementById('animView').classList.remove('open');
+  document.getElementById('galleryView').style.display='block';
+  galSetTab('sandbox');
+  if(_firebaseReady){_fetchFromFirestore().then(()=>{if(_galTab==='sandbox')buildGallery();});}
   window.scrollTo({top:0,behavior:'smooth'});
 };
-window.showGalleryFromMyPats=function(){
-  document.getElementById('myPatsView').classList.remove('open');
-  document.getElementById('galleryView').style.display='block';
-};
+window.showGalleryFromMyPats=function(){galSetTab('sandbox');document.getElementById('galleryView').style.display='block';};
 
 // ── Likes & Remix ────────────────────────────────────────────────────────────
 function _getLikes(){try{return JSON.parse(localStorage.getItem('sashiko_likes')||'{}');}catch(e){return{};}}
@@ -2975,11 +2959,8 @@ window.showGalleryFromCAD=function(){
   if(_tpOn)_stopTilePlay();   // stop + reset the tile-play animation when leaving the editor
   cadEditId=null;
   document.getElementById('cadView').classList.remove('open');
-  if(_cadSource==='gallery'){
-    document.getElementById('galleryView').style.display='block';
-    buildGallery();
-  }else{
-    document.getElementById('myPatsView').classList.add('open');
-    rebuildMyPatsView();
-  }
+  document.getElementById('galleryView').style.display='block';
+  // Return to the tab we came from: gallery editing → the pattern's own tab, else the Sandbox tab.
+  if(_cadSource!=='gallery')_galTab='sandbox';
+  galSetTab(_galTab);
 };
