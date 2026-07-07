@@ -564,6 +564,25 @@ The iso projection is anisotropic (`x=(u−v)cos30`, `y=(u+v)sin30`), which dist
 The admin **📋 Copy layout** button now also pops a `window.prompt` pre-filled with the layout JSON (selected, so it
 always copies with Ctrl/Cmd+C even when the async Clipboard API is blocked) — paste it to Claude or into cad-toolbar.json.
 
+## Gallery grid phase — off-grid rotated motifs (2026-07-06)
+A motif drawn then rotated (e.g. **Ishi Guruma**, via `cadRotate45`) stores **fractional (√2) coordinates**, so its
+stitch vertices sit at a constant non-integer offset from the fabric grid. The **CAD editor** re-centres the bbox on an
+integer grid point when it loads (`editExpPattern`: shift `gc−bboxCentre`, `gc=macroVal·CAD_MICRO/2` always integer),
+which lands those vertices back on the dots — so it reads as **on-grid** there. The **gallery** anchored the dot grid at
+plain integers (`u=0`), so the same vertices fell **between** dots — the pattern looked "shifted off the grid" even
+though the geometry was identical.
+- **Fix (display-only):** the gallery dot grid registers to the motif's own **grid phase**. `_galGridPhase(pat)`
+  (experimental.js, after `computeExpLayout`) finds, per axis, the fractional offset the most stitch vertices share
+  (clustered), gated so it only returns non-zero when a clear majority beats the integer grid — **integer-coordinate
+  patterns and arc-noise patterns stay phase 0 (byte-identical)**. `renderExp` passes `{phaseU,phaseV}` into
+  `_cadDrawStitchGrid`, whose dot loop shifts the lattice by that phase (main-dot test `round(u−phU)%M===0`). For Ishi
+  the computed phase (0.657) equals the editor's `bboxCentre mod 1`, so **gallery now matches the editor exactly**.
+- **NOT a geometry change** — `genTiledSegs`/`buildExpPath`/`computeExpLayout` untouched; nothing re-routes, no
+  published pattern's stitches move (only where the *dots* are drawn under them). Only `_cadDrawStitchGrid` (gallery
+  dotsOnly path) and the new helper. The CAD-editor grid (`_cadEditorGrid`) and PDF are unaffected. Verified live:
+  Ishi Guruma on-grid, Yotsukumi Hishi (integer) unchanged. (`route.js --check` shows only pre-existing fixture drift,
+  identical with/without this change.)
+
 ## Known Issues / Gotchas
 
 - **Syntax errors are fatal** — the entire script is one IIFE; an extra `}` anywhere (like the one found in `drawPLGuide`) prevents ALL JavaScript from executing, causing "is not defined" for every onclick handler

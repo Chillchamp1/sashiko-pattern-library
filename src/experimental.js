@@ -665,6 +665,36 @@ function computeExpLayout(pat){
   return{sz,ox,oy,canvasH,g2s,s2g,ptc,iso,dU,dV,corners,planes:convexPlanes(corners),uRange:[minU,maxU],vRange:[minV,maxV]};
 }
 
+// Fabric-dot grid phase for the gallery viewer. Most patterns are drawn on the integer grid
+// (phase 0). A few — e.g. a 45°-rotated motif (Ishi Guruma) whose stitch vertices land on √2
+// coordinates — sit at a constant fractional offset from the integers. The CAD editor re-centres
+// such a motif's bbox on an integer grid point when it loads, which lands those vertices back on
+// the dots; the gallery (anchored at u=0) draws plain-integer dots, so the same vertices fall
+// between dots and the pattern reads as "shifted off the grid". This finds the fractional offset
+// that the most vertices share (per axis, clustered) so the gallery dot grid can register to the
+// motif exactly like the editor does. Returns {u,v} in [0,1); 0 = plain integer grid.
+function _galGridPhase(pat){
+  if(!pat||!pat.lines||!pat.lines.length)return{u:0,v:0};
+  const fr=x=>((x%1)+1)%1;
+  function axis(vals){
+    const fs=vals.map(fr); if(!fs.length)return 0;
+    let best={ph:0,n:0};
+    for(const c of fs){                       // each frac is a candidate cluster centre
+      let n=0,sum=0;
+      for(const f of fs){let d=((f-c+0.5)%1+1)%1-0.5; if(Math.abs(d)<0.06){n++;sum+=d;}}
+      if(n>best.n)best={ph:fr(c+sum/n),n};
+    }
+    const on0=fs.filter(f=>f<0.06||f>0.94).length;   // vertices already on the integer grid
+    // Only shift when a clear majority of vertices share a non-integer phase (beats phase 0 by a
+    // real margin) — so integer patterns and arc-noise patterns stay on the plain integer grid.
+    if(best.ph>0.02&&best.ph<0.98&&best.n>=on0+Math.max(2,0.25*fs.length))return best.ph;
+    return 0;
+  }
+  const us=[],vs=[];
+  for(const l of pat.lines){ if(l.start){us.push(l.start[0]);vs.push(l.start[1]);} if(l.end){us.push(l.end[0]);vs.push(l.end[1]);} }
+  return{u:axis(us),v:axis(vs)};
+}
+
 // ── Tiles ↔ patMacro ────────────────────────────────────────────────────────
 // The UI speaks in whole "tiles": a tile count N means an N×N repeat of the drawn
 // motif. Internally a pattern still stores patMacro = (micro-units across the
@@ -2659,7 +2689,7 @@ function renderExp(step){
     _drawFabric(ctx,galFabric,SIZE,ch);
     // Draft mode brings the grid along (drafting needs both), so either toggle shows the dot grid.
     const overlay=galStitchGrid||galDraft;
-    if(overlay)_cadDrawStitchGrid(ctx,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange},true,fabLight);
+    if(overlay){const gp=_galGridPhase(curPat);_cadDrawStitchGrid(ctx,{tf:{g2s:EXP_g2s,ox:0,oy:0,sc:1},ur:EXP_uRange,vr:EXP_vRange,phaseU:gp.u,phaseV:gp.v},true,fabLight);}
     if(!EXP_path.length)return;
     const sc=_galStitchScene(),N=sc.stitches.length;
     const shown=step>=TOTAL?N:Math.round(N*step/Math.max(1,TOTAL));

@@ -1652,8 +1652,15 @@ function _cadDrawStitchGrid(x,scene,dotsOnly,dark){
   const colMain=dotsOnly?(dark?'rgba(28,40,66,0.9)':'rgba(255,255,255,0.95)'):'rgba(200,220,255,0.40)';
   const colSub =dotsOnly?(dark?'rgba(28,40,66,0.6)':'rgba(255,255,255,0.6)'):'rgba(180,205,255,0.20)';
   const rMain=dotsOnly?1.25:2.5, rSub=dotsOnly?0.6:1.2;
-  for(let u=u0;u<=u1;u+=sub){for(let v=v0;v<=v1;v+=sub){
-    const onMain=(u%M===0)&&(v%M===0);
+  // Grid phase: shift the dot lattice by the pattern's own grid phase (scene.phaseU/V, default
+  // 0) so a motif whose vertices sit at a fractional offset (e.g. a 45°-rotated stone-wheel with
+  // √2 coordinates) lands on the dots exactly as it does in the CAD editor — which re-centres the
+  // bbox on an integer grid point. phase 0 (every integer-coordinate pattern) → integer grid,
+  // byte-identical to before.
+  const phU=scene.phaseU||0, phV=scene.phaseV||0;
+  const su0=phU+Math.floor((u0-phU)/sub)*sub, sv0=phV+Math.floor((v0-phV)/sub)*sub;
+  for(let u=su0;u<=u1;u+=sub){for(let v=sv0;v<=v1;v+=sub){
+    const onMain=(Math.round(u-phU)%M===0)&&(Math.round(v-phV)%M===0);
     const p=S(u,v);
     x.fillStyle=onMain?colMain:colSub;
     x.beginPath();x.arc(p[0],p[1],onMain?rMain:rSub,0,Math.PI*2);x.fill();
