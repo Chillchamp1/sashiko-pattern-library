@@ -488,7 +488,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p>This library is built with love to keep traditional patterns alive and to support sustainable crafting and mindful garment repair.</p>
       <p>Feel free to copy, mod or reimagine this project. If you do so, please mention sashikolib.org as a source.</p>
       <p>If you love what’s being built here, a small <a class="about-link" href="https://ko-fi.com/chillchamp" target="_blank" rel="noopener">donation</a> keeps the servers running and the stitches flowing❤️</p>
-      <p class="build-stamp">sashikolib.org · build 2026-07-07</p>
+      <p class="build-stamp">sashikolib.org · build 2026-07-08</p>
     </div>
   </div>
   <div class="gal-tabs" role="tablist">
@@ -11176,7 +11176,17 @@ function cadInit(){
         const hit=cadHoveredSeg(g.u,g.v);
         if(hit&&hit.li>=0&&cadFamSel<cadFamOrder.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadFamilies[hit.li]=cadFamOrder[cadFamSel];cadFamsLocked=true;cadUpdateAll();return;}
       }
-      cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];
+      // Click-move-click (like the arc tool): first click sets the start, second click commits the line.
+      if(!cadDrawing){
+        cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];
+      }else{
+        if(cadStart&&cadCur&&(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1])){
+          cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+          cadLines.push({start:cadStart,end:cadCur});
+          cadFamsLocked=false;cadFamSel=-1;cadAutoExtendGrid();
+        }
+        cadDrawing=false;cadStart=null;
+      }
     }
     else if(cadTool==='recolor'){
       // Paint mode: click on a line to assign selected color
@@ -11258,16 +11268,18 @@ function cadInit(){
   });
   cv.addEventListener('pointerup',e=>{
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
-    if(cadTool==='draw'&&cadDrawing&&cadStart&&cadCur){
-      if(cadStart[0]!==cadCur[0]||cadStart[1]!==cadCur[1]){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadLines.push({start:cadStart,end:cadCur});cadFamsLocked=false;cadFamSel=-1;cadAutoExtendGrid();}
-    }
-    cadDrawing=false;cadStart=null;cv.releasePointerCapture(e.pointerId);cadUpdateAll();
+    // Draw is now click-move-click (committed on the second pointerdown), so pointerup no longer
+    // finishes a line — it only releases the pointer capture.
+    cv.releasePointerCapture(e.pointerId);
   });
-  cv.addEventListener('pointerleave',()=>{cadDrawing=false;cadStart=null;cadCur=null;cadHover=null;cadUpdateAll();});
+  // Keep an in-progress draw/arc alive when the cursor leaves the canvas (matches the arc tool):
+  // only clear the live preview point + hover, not the pending start.
+  cv.addEventListener('pointerleave',()=>{cadCur=null;cadHover=null;cadUpdateAll();});
   document.addEventListener('keydown',e=>{
     if(!document.getElementById('cadView').classList.contains('open'))return;
     if(e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
     if(e.key==='Escape'&&cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;cadArcLabel();cadUpdateAll();}
+    if(e.key==='Escape'&&cadTool==='draw'){cadDrawing=false;cadStart=null;cadUpdateAll();}
   });
   if(!_cadResizeBound){_cadResizeBound=true;window.addEventListener('resize',()=>{if(document.getElementById('cadView').classList.contains('open'))cadAlignHeads();});}
   cadAlignHeads();
