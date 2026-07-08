@@ -190,6 +190,9 @@ document.getElementById('bReset').onclick=()=>{pause();step=0;render(step);};
  if(sl){sl.value=_animSpeedV;sl.oninput=()=>{_animSpeedV=parseInt(sl.value);updateSpeed();};}}
 window.addEventListener('keydown',e=>{
   if(!document.getElementById('animView').classList.contains('open'))return;
+  // Don't hijack Space / arrows while the user is typing in a field (e.g. the comment box).
+  const t=e.target, tag=t&&t.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||(t&&t.isContentEditable))return;
   if(e.code==='Space'){e.preventDefault();playing?pause():play();}
   else if(e.code==='ArrowRight'){pause();step=Math.min(TOTAL,step+1);render(step);}
   else if(e.code==='ArrowLeft'){pause();step=Math.max(0,step-1);render(step);}
