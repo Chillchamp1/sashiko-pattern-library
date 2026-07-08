@@ -454,6 +454,22 @@ async function _saveCommentToFirestore(patternId, handle, text){
   await _db.collection('patterns').doc(patternId).collection('comments').doc(id).set(doc);
   return doc;
 }
+async function _deleteCommentFromFirestore(patternId, cid){
+  if(!_db)throw new Error('offline');
+  await _awaitAuth();
+  // Hard delete is fine for comments (unlike patterns, they aren't cached+re-pushed
+  // locally, so there's no tombstone/resurrection problem). Rules enforce author-or-admin.
+  await _db.collection('patterns').doc(patternId).collection('comments').doc(cid).delete();
+}
+window.deleteComment=async function(cid){
+  if(!curPat||!curPat.id||!cid)return;
+  if(!confirm('Delete your comment? This removes it for everyone.'))return;
+  try{
+    await _deleteCommentFromFirestore(curPat.id, cid);
+    if(curPat.id in _commentCounts)delete _commentCounts[curPat.id];  // force a fresh count
+    await _loadComments();
+  }catch(e){console.warn('Comment delete failed:',e);alert('Could not delete the comment (only your own comments can be removed).');}
+};
 // Per-pattern comment counts for the gallery-card 💬 badge. Cached so switching tabs
 // doesn't re-query. A plain .count() aggregation (Firestore ≥9.11) bills 1 read regardless
 // of how many comments exist; falls back to a full fetch if .count() is unavailable.
@@ -487,10 +503,14 @@ function _cmWhen(ts){
 function renderCommentList(comments){
   const list=document.getElementById('cmList');if(!list)return;
   if(!comments.length){list.innerHTML='<div class="cm-empty">No comments yet — be the first.</div>';return;}
-  list.innerHTML=comments.map(c=>
-    '<div class="cm-item"><div><span class="cm-h">'+_cmEsc(c.handle||'anon')+'</span>'+
-    '<span class="cm-when">'+_cmWhen(c.created)+'</span></div>'+
-    '<div class="cm-body">'+_cmEsc(c.text||'')+'</div></div>').join('');
+  list.innerHTML=comments.map(c=>{
+    // You can delete a comment you wrote (matched by your auth uid) — admin can delete any.
+    const mine=c.uid&&(c.uid===_authUid||_isAdmin());
+    const del=mine?'<button class="cm-del" title="Delete your comment" onclick="deleteComment(\''+_cmEsc(c.id)+'\')">✕</button>':'';
+    return '<div class="cm-item"><div class="cm-item-head"><span class="cm-h">'+_cmEsc(c.handle||'anon')+'</span>'+
+      '<span class="cm-when">'+_cmWhen(c.created)+'</span>'+del+'</div>'+
+      '<div class="cm-body">'+_cmEsc(c.text||'')+'</div></div>';
+  }).join('');
 }
 // Reflect the current pattern's comment count on the detail Comments button label.
 function _setCommentBtnLabel(n){

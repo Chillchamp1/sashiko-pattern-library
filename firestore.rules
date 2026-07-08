@@ -77,7 +77,10 @@ service cloud.firestore {
                       && request.resource.data.text.size() <= 500
                       && request.resource.data.handle is string
                       && request.resource.data.handle.size() <= 40;
-        allow update, delete: if isAdmin();
+        allow update: if isAdmin();
+        // A user may delete a comment they wrote (matched by their auth uid); admin can delete any.
+        allow delete: if isAdmin()
+                      || (request.auth != null && request.auth.uid == resource.data.uid);
       }
     }
   }
