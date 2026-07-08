@@ -175,6 +175,7 @@ function loadPattern(pat){
   }
 
   curPat=pat;
+  if(typeof _resetCommentBar==='function')_resetCommentBar();
   isEXP=pat.type==='exp';
   const isGen=pat.type==='generator';
   isHM=isGen||pat.type==='hitomezashi';

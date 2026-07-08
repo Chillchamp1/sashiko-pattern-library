@@ -431,6 +431,94 @@ async function _voteProfile(patternId, profileId, delta){
   }catch(e){console.warn('Vote failed:',e);}
 }
 ══════ END PROFILES COMMENTED ══════ */
+
+// ── Comments (per-pattern, text only) ────────────────────────────────────────
+// Subcollection: patterns/{patternId}/comments/{cid} = {id,handle,text,created,uid}
+// TEXT ONLY BY DESIGN. Photo upload would need Firebase Storage, which requires the
+// paid Blaze plan (billing enabled) — the free Spark plan no longer provisions a
+// Storage bucket, and stuffing images into Firestore docs (1 MB limit) is impractical.
+// So comments are wired to Firestore now; photos are deferred until Storage is enabled.
+async function _fetchCommentsFromFirestore(patternId){
+  if(!_db)return[];
+  try{
+    const snap=await _db.collection('patterns').doc(patternId).collection('comments')
+      .orderBy('created','asc').get();
+    return snap.docs.map(d=>d.data());
+  }catch(e){console.warn('Comment fetch failed:',e);return[];}
+}
+async function _saveCommentToFirestore(patternId, handle, text){
+  if(!_db)throw new Error('offline');
+  await _awaitAuth();
+  const id='cm_'+Date.now();
+  const doc={id, handle, text, created:Date.now(), uid:_authUid||_getUserId()};
+  await _db.collection('patterns').doc(patternId).collection('comments').doc(id).set(doc);
+  return doc;
+}
+function _cmEsc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function _cmWhen(ts){
+  const d=Date.now()-ts, m=60000, h=3600000, day=86400000;
+  if(!ts||d<0)return'';
+  if(d<m)return'just now';
+  if(d<h)return Math.floor(d/m)+'m ago';
+  if(d<day)return Math.floor(d/h)+'h ago';
+  if(d<7*day)return Math.floor(d/day)+'d ago';
+  return new Date(ts).toLocaleDateString();
+}
+function renderCommentList(comments){
+  const list=document.getElementById('cmList');if(!list)return;
+  if(!comments.length){list.innerHTML='<div class="cm-empty">No comments yet — be the first.</div>';return;}
+  list.innerHTML=comments.map(c=>
+    '<div class="cm-item"><div><span class="cm-h">'+_cmEsc(c.handle||'anon')+'</span>'+
+    '<span class="cm-when">'+_cmWhen(c.created)+'</span></div>'+
+    '<div class="cm-body">'+_cmEsc(c.text||'')+'</div></div>').join('');
+}
+async function _loadComments(){
+  const list=document.getElementById('cmList');
+  if(!curPat||!curPat.id){if(list)list.innerHTML='<div class="cm-empty">Open a pattern to comment.</div>';return;}
+  if(!_firebaseReady){if(list)list.innerHTML='<div class="cm-empty">Comments are offline right now.</div>';return;}
+  if(list)list.innerHTML='<div class="cm-empty">Loading…</div>';
+  const comments=await _fetchCommentsFromFirestore(curPat.id);
+  renderCommentList(comments);
+}
+window.toggleCommentMenu=function(){
+  const m=document.getElementById('cmMenu');if(!m)return;
+  const opening=m.style.display==='none';
+  m.style.display=opening?'flex':'none';
+  if(opening){
+    const h=document.getElementById('cmHandle');
+    if(h&&!h.value)h.value=localStorage.getItem('sashiko_handle')||'';
+    _loadComments();
+  }
+};
+window.postComment=async function(){
+  if(!curPat||!curPat.id)return;
+  const hEl=document.getElementById('cmHandle'), tEl=document.getElementById('cmText'),
+        btn=document.getElementById('cmPost');
+  const handle=(hEl.value||'').trim(), text=(tEl.value||'').trim();
+  if(!handle){alert('Please enter a handle.');hEl.focus();return;}
+  if(!text){alert('Please write a comment.');tEl.focus();return;}
+  localStorage.setItem('sashiko_handle',handle);
+  btn.disabled=true;
+  try{
+    await _saveCommentToFirestore(curPat.id, handle.slice(0,40), text.slice(0,500));
+    tEl.value='';
+    await _loadComments();
+  }catch(e){console.warn('Comment post failed:',e);alert('Could not post your comment (offline?). Please try again.');}
+  btn.disabled=false;
+};
+// Close the comment menu on an outside click (mirrors the download menu).
+document.addEventListener('pointerdown',e=>{
+  const bar=document.getElementById('commentBar'),m=document.getElementById('cmMenu');
+  if(!bar||!m||m.style.display==='none')return;
+  if(!bar.contains(e.target))m.style.display='none';
+},true);
+// Reset the comment bar when a different pattern is opened (called from loadPattern).
+function _resetCommentBar(){
+  const m=document.getElementById('cmMenu');if(m)m.style.display='none';
+  const t=document.getElementById('cmText');if(t)t.value='';
+  const list=document.getElementById('cmList');if(list)list.innerHTML='';
+}
+
 // Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit)
 async function _pushToFirestore(pat){
   if(!_db)return;

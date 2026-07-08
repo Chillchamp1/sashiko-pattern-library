@@ -201,6 +201,19 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     </div>
   </div>
 
+  <!-- Comments dropdown (below Download) — text-only; photo upload needs Firebase Storage (paid) -->
+  <div class="comment-bar" id="commentBar">
+    <button class="ctrl gal-pop-btn" id="commentBtn" onclick="toggleCommentMenu()">💬 Comments <span class="dl-caret">▾</span></button>
+    <div class="cm-menu" id="cmMenu" style="display:none">
+      <div class="cm-list" id="cmList"></div>
+      <div class="cm-form">
+        <input id="cmHandle" class="cm-handle" maxlength="40" placeholder="Your handle" autocomplete="off">
+        <textarea id="cmText" class="cm-text" maxlength="500" placeholder="Write a comment…"></textarea>
+        <div class="cm-formbtns"><button class="cm-post" id="cmPost" onclick="postComment()">Post</button></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Stitching Order Settings + community profiles — commented out for later reuse, DO NOT DELETE -->
   <!--
   <div id="stitchSettings" style="display:none">
