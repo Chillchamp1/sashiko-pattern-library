@@ -62,6 +62,7 @@ function _buildExpCard(pat,sandbox){
   likeRow.className='like-row';likeRow.dataset.id=pat.id;
   card.appendChild(likeRow);
   setTimeout(()=>renderLikeButtons(pat.id),0);
+  setTimeout(()=>{if(window._renderCommentBadge)_renderCommentBadge(pat.id);},0);
   card.onclick=()=>openExpPattern(pat);
   setTimeout(()=>renderThumb(thumb,pat),0);
   return card;

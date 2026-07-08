@@ -223,13 +223,15 @@ button.ctrl.primary:hover{background:#275784}
 .dl-item span{font-size:13px}
 .dl-item small{font-size:10.5px;color:var(--muted)}
 .dl-item.busy{opacity:.6;cursor:default}
-/* ── Comments dropdown (pattern viewer) ── */
-.comment-bar{position:relative;display:flex;justify-content:center;margin-top:6px}
-.cm-menu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+/* ── Bottom action bar (Download · Remix · Heart · Comments) ── */
+.action-bar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.action-bar .download-bar{margin-top:0}
+.action-bar .like-row{margin-left:0}
+/* ── Comments panel — inline, expands below the action bar ── */
+.cm-panel{width:300px;max-width:92vw;margin:8px auto 0;
   background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;
-  display:flex;flex-direction:column;gap:8px;width:300px;max-width:90vw;z-index:20;
-  box-shadow:0 8px 30px rgba(0,0,0,.5)}
-.cm-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;text-align:left}
+  display:flex;flex-direction:column;gap:8px}
+.cm-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;text-align:left}
 .cm-item{border-bottom:1px solid var(--line);padding-bottom:7px}
 .cm-item:last-child{border-bottom:none;padding-bottom:0}
 .cm-item .cm-h{font-size:12px;font-weight:700;color:#9cc2e8}
@@ -472,6 +474,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
 .filt-select:focus{border-color:#33557a}
 /* Read-only heart count on gallery cards */
 .like-heart-count{font-size:11px;color:#e09090;padding:1px 4px;pointer-events:none}
+.cm-count{font-size:11px;color:#9cc2e8;padding:1px 4px;pointer-events:none}
 /* My Patterns view overlay */
 #myPatsView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
 #myPatsView.open{display:block}
@@ -551,7 +554,6 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
   <div class="back-row">
     <button class="back-btn" onclick="showGallery()">← Patterns</button>
     <h2 class="anim-title" id="animTitle">Hitomezashi<span class="jp">一目刺し · Snowflake</span></h2>
-    <div class="like-row" id="likeRow" data-id="" style="display:none"></div>
   </div>
   <div class="anim-body" id="animBody">
     <div class="hm-frame" id="hmFrame">
@@ -665,26 +667,29 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
 sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element
 palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
 
-  <!-- Download dropdown (bottom of the pattern viewer) -->
-  <div class="download-bar" id="downloadBar">
-    <button class="ctrl gal-pop-btn" id="downloadBtn" onclick="toggleDownloadMenu()">⬇ Download <span class="dl-caret">▾</span></button>
-    <div class="dl-menu" id="dlMenu" style="display:none">
-      <button class="dl-item" onclick="downloadGIF()"><span>🎞 Animated GIF</span><small>this pattern’s stitch animation</small></button>
-      <button class="dl-item" onclick="downloadPDF()"><span>📄 PDF</span><small>printable stitching sheet (A4)</small></button>
-      <button class="dl-item" onclick="downloadSTL()"><span>🧩 STL template</span><small>for 3D printing · coming soon</small></button>
+  <!-- Bottom action bar: Download · Remix · Heart · Comments (single row) -->
+  <div class="action-bar" id="actionBar">
+    <div class="download-bar" id="downloadBar">
+      <button class="ctrl gal-pop-btn" id="downloadBtn" onclick="toggleDownloadMenu()">⬇ Download <span class="dl-caret">▾</span></button>
+      <div class="dl-menu" id="dlMenu" style="display:none">
+        <button class="dl-item" onclick="downloadGIF()"><span>🎞 Animated GIF</span><small>this pattern’s stitch animation</small></button>
+        <button class="dl-item" onclick="downloadPDF()"><span>📄 PDF</span><small>printable stitching sheet (A4)</small></button>
+        <button class="dl-item" onclick="downloadSTL()"><span>🧩 STL template</span><small>for 3D printing · coming soon</small></button>
+      </div>
     </div>
+    <!-- Remix + Heart are injected here by renderLikeButtons (#likeRow) -->
+    <div class="like-row" id="likeRow" data-id="" style="display:none"></div>
+    <button class="ctrl gal-pop-btn" id="commentBtn" onclick="toggleCommentMenu()">💬 <span id="cmBtnLabel">Comments</span> <span class="dl-caret" id="cmCaret">▾</span></button>
   </div>
 
-  <!-- Comments dropdown (below Download) — text-only; photo upload needs Firebase Storage (paid) -->
-  <div class="comment-bar" id="commentBar">
-    <button class="ctrl gal-pop-btn" id="commentBtn" onclick="toggleCommentMenu()">💬 Comments <span class="dl-caret">▾</span></button>
-    <div class="cm-menu" id="cmMenu" style="display:none">
-      <div class="cm-list" id="cmList"></div>
-      <div class="cm-form">
-        <input id="cmHandle" class="cm-handle" maxlength="40" placeholder="Your handle" autocomplete="off">
-        <textarea id="cmText" class="cm-text" maxlength="500" placeholder="Write a comment…"></textarea>
-        <div class="cm-formbtns"><button class="cm-post" id="cmPost" onclick="postComment()">Post</button></div>
-      </div>
+  <!-- Comments panel — expands inline BELOW the action bar (not a popover). Text only;
+       photo upload needs Firebase Storage (paid Blaze plan), so it's deferred. -->
+  <div class="cm-panel" id="cmPanel" style="display:none">
+    <div class="cm-list" id="cmList"></div>
+    <div class="cm-form">
+      <input id="cmHandle" class="cm-handle" maxlength="40" placeholder="Your handle" autocomplete="off">
+      <textarea id="cmText" class="cm-text" maxlength="500" placeholder="Write a comment…"></textarea>
+      <div class="cm-formbtns"><button class="cm-post" id="cmPost" onclick="postComment()">Post</button></div>
     </div>
   </div>
 
@@ -6297,6 +6302,7 @@ function _buildExpCard(pat,sandbox){
   likeRow.className='like-row';likeRow.dataset.id=pat.id;
   card.appendChild(likeRow);
   setTimeout(()=>renderLikeButtons(pat.id),0);
+  setTimeout(()=>{if(window._renderCommentBadge)_renderCommentBadge(pat.id);},0);
   card.onclick=()=>openExpPattern(pat);
   setTimeout(()=>renderThumb(thumb,pat),0);
   return card;
@@ -6918,6 +6924,26 @@ async function _saveCommentToFirestore(patternId, handle, text){
   await _db.collection('patterns').doc(patternId).collection('comments').doc(id).set(doc);
   return doc;
 }
+// Per-pattern comment counts for the gallery-card 💬 badge. Cached so switching tabs
+// doesn't re-query. A plain .count() aggregation (Firestore ≥9.11) bills 1 read regardless
+// of how many comments exist; falls back to a full fetch if .count() is unavailable.
+let _commentCounts={};
+async function _fetchCommentCount(id){
+  if(id in _commentCounts)return _commentCounts[id];
+  if(!_db||!_firebaseReady)return 0;
+  try{
+    const col=_db.collection('patterns').doc(id).collection('comments');
+    let n;
+    if(typeof col.count==='function'){const s=await col.count().get();n=s.data().count;}
+    else{const s=await col.get();n=s.size;}
+    _commentCounts[id]=n;return n;
+  }catch(e){return 0;}
+}
+// Fetch (or read cached) the count for a card and refresh its 💬 badge.
+window._renderCommentBadge=async function(id){
+  await _fetchCommentCount(id);
+  renderLikeButtons(id);   // re-renders the card's like-row incl. the comment badge
+};
 function _cmEsc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function _cmWhen(ts){
   const d=Date.now()-ts, m=60000, h=3600000, day=86400000;
@@ -6936,6 +6962,11 @@ function renderCommentList(comments){
     '<span class="cm-when">'+_cmWhen(c.created)+'</span></div>'+
     '<div class="cm-body">'+_cmEsc(c.text||'')+'</div></div>').join('');
 }
+// Reflect the current pattern's comment count on the detail Comments button label.
+function _setCommentBtnLabel(n){
+  const lab=document.getElementById('cmBtnLabel');if(!lab)return;
+  lab.textContent=(n>0)?('Comments ('+n+')'):'Comments';
+}
 async function _loadComments(){
   const list=document.getElementById('cmList');
   if(!curPat||!curPat.id){if(list)list.innerHTML='<div class="cm-empty">Open a pattern to comment.</div>';return;}
@@ -6943,15 +6974,22 @@ async function _loadComments(){
   if(list)list.innerHTML='<div class="cm-empty">Loading…</div>';
   const comments=await _fetchCommentsFromFirestore(curPat.id);
   renderCommentList(comments);
+  // We now know the exact count — refresh the cache, the button label and any card badge.
+  _commentCounts[curPat.id]=comments.length;
+  _setCommentBtnLabel(comments.length);
+  renderLikeButtons(curPat.id);
 }
+// Comments now expand INLINE below the action bar (#cmPanel), not as a popover.
 window.toggleCommentMenu=function(){
-  const m=document.getElementById('cmMenu');if(!m)return;
-  const opening=m.style.display==='none';
-  m.style.display=opening?'flex':'none';
+  const p=document.getElementById('cmPanel');if(!p)return;
+  const opening=p.style.display==='none';
+  p.style.display=opening?'flex':'none';
+  const car=document.getElementById('cmCaret');if(car)car.textContent=opening?'▴':'▾';
   if(opening){
     const h=document.getElementById('cmHandle');
     if(h&&!h.value)h.value=localStorage.getItem('sashiko_handle')||'';
     _loadComments();
+    p.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
 };
 window.postComment=async function(){
@@ -6966,21 +7004,21 @@ window.postComment=async function(){
   try{
     await _saveCommentToFirestore(curPat.id, handle.slice(0,40), text.slice(0,500));
     tEl.value='';
+    if(curPat.id in _commentCounts)delete _commentCounts[curPat.id];  // force a fresh count
     await _loadComments();
   }catch(e){console.warn('Comment post failed:',e);alert('Could not post your comment (offline?). Please try again.');}
   btn.disabled=false;
 };
-// Close the comment menu on an outside click (mirrors the download menu).
-document.addEventListener('pointerdown',e=>{
-  const bar=document.getElementById('commentBar'),m=document.getElementById('cmMenu');
-  if(!bar||!m||m.style.display==='none')return;
-  if(!bar.contains(e.target))m.style.display='none';
-},true);
-// Reset the comment bar when a different pattern is opened (called from loadPattern).
+// Reset the comment panel when a different pattern is opened (called from loadPattern).
 function _resetCommentBar(){
-  const m=document.getElementById('cmMenu');if(m)m.style.display='none';
+  const p=document.getElementById('cmPanel');if(p)p.style.display='none';
+  const car=document.getElementById('cmCaret');if(car)car.textContent='▾';
   const t=document.getElementById('cmText');if(t)t.value='';
   const list=document.getElementById('cmList');if(list)list.innerHTML='';
+  const id=curPat&&curPat.id;
+  _setCommentBtnLabel(id?(_commentCounts[id]||0):0);
+  // Show the count on the button even before the panel is opened (1 cheap read, cached).
+  if(id)_fetchCommentCount(id).then(n=>{if(curPat&&curPat.id===id)_setCommentBtnLabel(n);});
 }
 
 // Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit)
@@ -9411,13 +9449,17 @@ function renderLikeButtons(id){
   document.querySelectorAll(`.like-row[data-id="${id}"]`).forEach(el=>{
     const isDetail=el.id==='likeRow';
     if(isDetail){
-      // Detail view: clickable heart + remix button
+      // Detail action bar: Remix, then clickable heart (Download sits before, Comments after).
       el.innerHTML=
-        `<button class="like-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`+
-        `<button class="like-btn remix" onclick="remixPattern('${id}')" title="Remix">↗ Remix</button>`;
+        `<button class="like-btn remix" onclick="remixPattern('${id}')" title="Remix">↗ Remix</button>`+
+        `<button class="like-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`;
     }else{
-      // Gallery card: read-only heart count
-      el.innerHTML=hearts>0?`<span class="like-heart-count">♥ ${hearts}</span>`:'';
+      // Gallery card: read-only heart + comment counts
+      const cc=_commentCounts[id]||0;
+      let html='';
+      if(hearts>0)html+=`<span class="like-heart-count">♥ ${hearts}</span>`;
+      if(cc>0)html+=`<span class="cm-count">💬 ${cc}</span>`;
+      el.innerHTML=html;
     }
   });
 }

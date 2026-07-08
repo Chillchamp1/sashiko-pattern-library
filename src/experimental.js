@@ -454,6 +454,26 @@ async function _saveCommentToFirestore(patternId, handle, text){
   await _db.collection('patterns').doc(patternId).collection('comments').doc(id).set(doc);
   return doc;
 }
+// Per-pattern comment counts for the gallery-card 💬 badge. Cached so switching tabs
+// doesn't re-query. A plain .count() aggregation (Firestore ≥9.11) bills 1 read regardless
+// of how many comments exist; falls back to a full fetch if .count() is unavailable.
+let _commentCounts={};
+async function _fetchCommentCount(id){
+  if(id in _commentCounts)return _commentCounts[id];
+  if(!_db||!_firebaseReady)return 0;
+  try{
+    const col=_db.collection('patterns').doc(id).collection('comments');
+    let n;
+    if(typeof col.count==='function'){const s=await col.count().get();n=s.data().count;}
+    else{const s=await col.get();n=s.size;}
+    _commentCounts[id]=n;return n;
+  }catch(e){return 0;}
+}
+// Fetch (or read cached) the count for a card and refresh its 💬 badge.
+window._renderCommentBadge=async function(id){
+  await _fetchCommentCount(id);
+  renderLikeButtons(id);   // re-renders the card's like-row incl. the comment badge
+};
 function _cmEsc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function _cmWhen(ts){
   const d=Date.now()-ts, m=60000, h=3600000, day=86400000;
@@ -472,6 +492,11 @@ function renderCommentList(comments){
     '<span class="cm-when">'+_cmWhen(c.created)+'</span></div>'+
     '<div class="cm-body">'+_cmEsc(c.text||'')+'</div></div>').join('');
 }
+// Reflect the current pattern's comment count on the detail Comments button label.
+function _setCommentBtnLabel(n){
+  const lab=document.getElementById('cmBtnLabel');if(!lab)return;
+  lab.textContent=(n>0)?('Comments ('+n+')'):'Comments';
+}
 async function _loadComments(){
   const list=document.getElementById('cmList');
   if(!curPat||!curPat.id){if(list)list.innerHTML='<div class="cm-empty">Open a pattern to comment.</div>';return;}
@@ -479,15 +504,22 @@ async function _loadComments(){
   if(list)list.innerHTML='<div class="cm-empty">Loading…</div>';
   const comments=await _fetchCommentsFromFirestore(curPat.id);
   renderCommentList(comments);
+  // We now know the exact count — refresh the cache, the button label and any card badge.
+  _commentCounts[curPat.id]=comments.length;
+  _setCommentBtnLabel(comments.length);
+  renderLikeButtons(curPat.id);
 }
+// Comments now expand INLINE below the action bar (#cmPanel), not as a popover.
 window.toggleCommentMenu=function(){
-  const m=document.getElementById('cmMenu');if(!m)return;
-  const opening=m.style.display==='none';
-  m.style.display=opening?'flex':'none';
+  const p=document.getElementById('cmPanel');if(!p)return;
+  const opening=p.style.display==='none';
+  p.style.display=opening?'flex':'none';
+  const car=document.getElementById('cmCaret');if(car)car.textContent=opening?'▴':'▾';
   if(opening){
     const h=document.getElementById('cmHandle');
     if(h&&!h.value)h.value=localStorage.getItem('sashiko_handle')||'';
     _loadComments();
+    p.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
 };
 window.postComment=async function(){
@@ -502,21 +534,21 @@ window.postComment=async function(){
   try{
     await _saveCommentToFirestore(curPat.id, handle.slice(0,40), text.slice(0,500));
     tEl.value='';
+    if(curPat.id in _commentCounts)delete _commentCounts[curPat.id];  // force a fresh count
     await _loadComments();
   }catch(e){console.warn('Comment post failed:',e);alert('Could not post your comment (offline?). Please try again.');}
   btn.disabled=false;
 };
-// Close the comment menu on an outside click (mirrors the download menu).
-document.addEventListener('pointerdown',e=>{
-  const bar=document.getElementById('commentBar'),m=document.getElementById('cmMenu');
-  if(!bar||!m||m.style.display==='none')return;
-  if(!bar.contains(e.target))m.style.display='none';
-},true);
-// Reset the comment bar when a different pattern is opened (called from loadPattern).
+// Reset the comment panel when a different pattern is opened (called from loadPattern).
 function _resetCommentBar(){
-  const m=document.getElementById('cmMenu');if(m)m.style.display='none';
+  const p=document.getElementById('cmPanel');if(p)p.style.display='none';
+  const car=document.getElementById('cmCaret');if(car)car.textContent='▾';
   const t=document.getElementById('cmText');if(t)t.value='';
   const list=document.getElementById('cmList');if(list)list.innerHTML='';
+  const id=curPat&&curPat.id;
+  _setCommentBtnLabel(id?(_commentCounts[id]||0):0);
+  // Show the count on the button even before the panel is opened (1 cheap read, cached).
+  if(id)_fetchCommentCount(id).then(n=>{if(curPat&&curPat.id===id)_setCommentBtnLabel(n);});
 }
 
 // Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit)
@@ -2947,13 +2979,17 @@ function renderLikeButtons(id){
   document.querySelectorAll(`.like-row[data-id="${id}"]`).forEach(el=>{
     const isDetail=el.id==='likeRow';
     if(isDetail){
-      // Detail view: clickable heart + remix button
+      // Detail action bar: Remix, then clickable heart (Download sits before, Comments after).
       el.innerHTML=
-        `<button class="like-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`+
-        `<button class="like-btn remix" onclick="remixPattern('${id}')" title="Remix">↗ Remix</button>`;
+        `<button class="like-btn remix" onclick="remixPattern('${id}')" title="Remix">↗ Remix</button>`+
+        `<button class="like-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`;
     }else{
-      // Gallery card: read-only heart count
-      el.innerHTML=hearts>0?`<span class="like-heart-count">♥ ${hearts}</span>`:'';
+      // Gallery card: read-only heart + comment counts
+      const cc=_commentCounts[id]||0;
+      let html='';
+      if(hearts>0)html+=`<span class="like-heart-count">♥ ${hearts}</span>`;
+      if(cc>0)html+=`<span class="cm-count">💬 ${cc}</span>`;
+      el.innerHTML=html;
     }
   });
 }

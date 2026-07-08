@@ -200,13 +200,15 @@ button.ctrl.primary:hover{background:#275784}
 .dl-item span{font-size:13px}
 .dl-item small{font-size:10.5px;color:var(--muted)}
 .dl-item.busy{opacity:.6;cursor:default}
-/* ── Comments dropdown (pattern viewer) ── */
-.comment-bar{position:relative;display:flex;justify-content:center;margin-top:6px}
-.cm-menu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+/* ── Bottom action bar (Download · Remix · Heart · Comments) ── */
+.action-bar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.action-bar .download-bar{margin-top:0}
+.action-bar .like-row{margin-left:0}
+/* ── Comments panel — inline, expands below the action bar ── */
+.cm-panel{width:300px;max-width:92vw;margin:8px auto 0;
   background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;
-  display:flex;flex-direction:column;gap:8px;width:300px;max-width:90vw;z-index:20;
-  box-shadow:0 8px 30px rgba(0,0,0,.5)}
-.cm-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;text-align:left}
+  display:flex;flex-direction:column;gap:8px}
+.cm-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;text-align:left}
 .cm-item{border-bottom:1px solid var(--line);padding-bottom:7px}
 .cm-item:last-child{border-bottom:none;padding-bottom:0}
 .cm-item .cm-h{font-size:12px;font-weight:700;color:#9cc2e8}
@@ -449,6 +451,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
 .filt-select:focus{border-color:#33557a}
 /* Read-only heart count on gallery cards */
 .like-heart-count{font-size:11px;color:#e09090;padding:1px 4px;pointer-events:none}
+.cm-count{font-size:11px;color:#9cc2e8;padding:1px 4px;pointer-events:none}
 /* My Patterns view overlay */
 #myPatsView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
 #myPatsView.open{display:block}

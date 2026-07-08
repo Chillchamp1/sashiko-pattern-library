@@ -77,7 +77,6 @@
   <div class="back-row">
     <button class="back-btn" onclick="showGallery()">← Patterns</button>
     <h2 class="anim-title" id="animTitle">Hitomezashi<span class="jp">一目刺し · Snowflake</span></h2>
-    <div class="like-row" id="likeRow" data-id="" style="display:none"></div>
   </div>
   <div class="anim-body" id="animBody">
     <div class="hm-frame" id="hmFrame">
@@ -191,26 +190,29 @@
 sequence = 4th binary Fibonacci string "01001010" mirrored → 16-element
 palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
 
-  <!-- Download dropdown (bottom of the pattern viewer) -->
-  <div class="download-bar" id="downloadBar">
-    <button class="ctrl gal-pop-btn" id="downloadBtn" onclick="toggleDownloadMenu()">⬇ Download <span class="dl-caret">▾</span></button>
-    <div class="dl-menu" id="dlMenu" style="display:none">
-      <button class="dl-item" onclick="downloadGIF()"><span>🎞 Animated GIF</span><small>this pattern’s stitch animation</small></button>
-      <button class="dl-item" onclick="downloadPDF()"><span>📄 PDF</span><small>printable stitching sheet (A4)</small></button>
-      <button class="dl-item" onclick="downloadSTL()"><span>🧩 STL template</span><small>for 3D printing · coming soon</small></button>
+  <!-- Bottom action bar: Download · Remix · Heart · Comments (single row) -->
+  <div class="action-bar" id="actionBar">
+    <div class="download-bar" id="downloadBar">
+      <button class="ctrl gal-pop-btn" id="downloadBtn" onclick="toggleDownloadMenu()">⬇ Download <span class="dl-caret">▾</span></button>
+      <div class="dl-menu" id="dlMenu" style="display:none">
+        <button class="dl-item" onclick="downloadGIF()"><span>🎞 Animated GIF</span><small>this pattern’s stitch animation</small></button>
+        <button class="dl-item" onclick="downloadPDF()"><span>📄 PDF</span><small>printable stitching sheet (A4)</small></button>
+        <button class="dl-item" onclick="downloadSTL()"><span>🧩 STL template</span><small>for 3D printing · coming soon</small></button>
+      </div>
     </div>
+    <!-- Remix + Heart are injected here by renderLikeButtons (#likeRow) -->
+    <div class="like-row" id="likeRow" data-id="" style="display:none"></div>
+    <button class="ctrl gal-pop-btn" id="commentBtn" onclick="toggleCommentMenu()">💬 <span id="cmBtnLabel">Comments</span> <span class="dl-caret" id="cmCaret">▾</span></button>
   </div>
 
-  <!-- Comments dropdown (below Download) — text-only; photo upload needs Firebase Storage (paid) -->
-  <div class="comment-bar" id="commentBar">
-    <button class="ctrl gal-pop-btn" id="commentBtn" onclick="toggleCommentMenu()">💬 Comments <span class="dl-caret">▾</span></button>
-    <div class="cm-menu" id="cmMenu" style="display:none">
-      <div class="cm-list" id="cmList"></div>
-      <div class="cm-form">
-        <input id="cmHandle" class="cm-handle" maxlength="40" placeholder="Your handle" autocomplete="off">
-        <textarea id="cmText" class="cm-text" maxlength="500" placeholder="Write a comment…"></textarea>
-        <div class="cm-formbtns"><button class="cm-post" id="cmPost" onclick="postComment()">Post</button></div>
-      </div>
+  <!-- Comments panel — expands inline BELOW the action bar (not a popover). Text only;
+       photo upload needs Firebase Storage (paid Blaze plan), so it's deferred. -->
+  <div class="cm-panel" id="cmPanel" style="display:none">
+    <div class="cm-list" id="cmList"></div>
+    <div class="cm-form">
+      <input id="cmHandle" class="cm-handle" maxlength="40" placeholder="Your handle" autocomplete="off">
+      <textarea id="cmText" class="cm-text" maxlength="500" placeholder="Write a comment…"></textarea>
+      <div class="cm-formbtns"><button class="cm-post" id="cmPost" onclick="postComment()">Post</button></div>
     </div>
   </div>
 
