@@ -293,9 +293,13 @@ function _clampPan(){
   if(_zoom<=1){_panX=0;_panY=0;return;}
   const ch=EXP_canvasH||SIZE;
   const minVis=60;
+  // Viewport (the frame) is SIZE×ch in its own untransformed coordinates; the
+  // scaled/panned content occupies screen-x [_panX, _panX+SIZE*_zoom] (and
+  // analogous for y). Clamp so at least minVis px of overlap with the
+  // viewport always remains — on both edges, not just the top-left one.
   const maxPX=SIZE*_zoom-minVis, maxPY=ch*_zoom-minVis;
-  _panX=Math.max(-maxPX,Math.min(minVis*_zoom,_panX));
-  _panY=Math.max(-maxPY,Math.min(minVis*_zoom,_panY));
+  _panX=Math.max(-maxPX,Math.min(SIZE-minVis,_panX));
+  _panY=Math.max(-maxPY,Math.min(ch-minVis,_panY));
 }
 let _panning=false,_panStartX=0,_panStartY=0,_panOrigX=0,_panOrigY=0;
 function initAnimZoom(){
@@ -332,6 +336,7 @@ function initAnimZoom(){
     _panX=_panOrigX+(e.clientX-_panStartX);
     _panY=_panOrigY+(e.clientY-_panStartY);
     _clampPan();_setupCanvasSize(SIZE,EXP_canvasH||SIZE);
+    render(step);
   });
   cv.addEventListener('pointerup',e=>{
     if(_panning){_panning=false;cv.style.cursor='';cv.releasePointerCapture(e.pointerId);}
@@ -340,5 +345,12 @@ function initAnimZoom(){
     if(_panning){_panning=false;cv.style.cursor='';}
   });
   cv.addEventListener('contextmenu',e=>e.preventDefault());
+  // Double-click/tap anchors the view back to the default 1× centered position.
+  cv.addEventListener('dblclick',e=>{
+    if(!document.getElementById('animView').classList.contains('open'))return;
+    e.preventDefault();
+    _resetZoom();
+    render(step);
+  });
 }
 
