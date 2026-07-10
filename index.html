@@ -521,7 +521,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p>This library is built with love to keep traditional patterns alive and to support sustainable crafting and mindful garment repair.</p>
       <p>Feel free to copy, mod or reimagine this project. If you do so, please mention sashikolib.org as a source.</p>
       <p>If you love what’s being built here, a small <a class="about-link" href="https://ko-fi.com/chillchamp" target="_blank" rel="noopener">donation</a> keeps the servers running and the stitches flowing❤️</p>
-      <p class="build-stamp">sashikolib.org · build 2026-07-08</p>
+      <p class="build-stamp">sashikolib.org · build 2026-07-10</p>
     </div>
   </div>
   <div class="gal-tabs" role="tablist">
@@ -6491,7 +6491,10 @@ const FIREBASE_CONFIG = {
 // sashikoAdminHash() in the console and paste the printed hash below.
 // While left as the placeholder it's "not configured" → any Google sign-in shows the admin
 // UI (rules still enforce real power), so you can't lock yourself out before setting it.
-const ADMIN_EMAIL_HASHES=['10f67e4ab1ba318f34f1f133726ad885cb3e5edc9ce86731468156774ad39620'];
+const ADMIN_EMAIL_HASHES=[
+  '10f67e4ab1ba318f34f1f133726ad885cb3e5edc9ce86731468156774ad39620',
+  'cf60c57fa299dbddc216e8c6e9e17039b8b5087f0d4efac9951d99601f9391f8'   // g.rexford.t@gmail.com
+];
 let _adminVerified=false;
 async function _sha256hex(s){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(s).trim().toLowerCase()));
