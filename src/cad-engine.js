@@ -5,6 +5,11 @@ let cadGridType='isometric',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
 let cadCommunity=false,cadCommunityName='';   // "Community" flag + optional author name ("by …")
+// "Embroidery" (community-only sub-flag): the drawing is a single standalone motif, never
+// tiled/repeated — the Live Tiling / Play / gallery views show exactly one instance.
+let cadEmbroidery=false;
+// Effective tile count for every Live-Tiling surface: embroidery = always a single instance.
+function _cadTiles(){return cadEmbroidery?1:cadPatMacro;}
 // Natural tile count for the stitch-length reference — frozen when a pattern loads (mirrors the
 // gallery's EXP_szRef). Anchoring stitch length to the layout scale at this count makes the CAD
 // stitch view match the gallery (same stitch value → same look) AND keeps the per-line stitch
@@ -885,7 +890,9 @@ function cadDrawPattern(){
       }
     }
   });};
-  if(!cadBBoxRotated){
+  if(cadEmbroidery){
+    _renderAt(0,0);   // embroidery = single standalone motif, no repeats
+  }else if(!cadBBoxRotated){
     for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){_renderAt(ou,ov2);}}
   }else{
     const epts=[];cadAllSegments(all.filter(l=>!l.preview)).forEach(s=>epts.push(s.start,s.end));
@@ -953,20 +960,26 @@ function _compactFamilies(families, famOrder){
 // Draw/Tiles readouts. Grid shows the draw-canvas span in grid units — cadMacro cells ×
 // CAD_MICRO units each — as "(N·10)×(N·10)". Tiles shows the live-tiling repeat count as "N×N".
 function _cadSyncGridLabel(){const el=document.getElementById('cadGridSizeVal');if(el){const n=cadMacro*CAD_MICRO;el.textContent=n+'×'+n;}}
-function _cadSyncTilesLabel(){const el=document.getElementById('cadPatSizeVal');if(el)el.textContent=cadPatMacro+'×'+cadPatMacro;}
+function _cadSyncTilesLabel(){
+  const el=document.getElementById('cadPatSizeVal');
+  if(el)el.textContent=cadEmbroidery?'1×1':(cadPatMacro+'×'+cadPatMacro);
+  // Embroidery = single motif, so the Tiles stepper is inert (greyed out) while it's on.
+  const ctl=document.getElementById('cadTilesCtl');
+  if(ctl){ctl.style.opacity=cadEmbroidery?'0.4':'';ctl.style.pointerEvents=cadEmbroidery?'none':'';}
+}
 // Recompute the Live-Tiling scale so cadPatMacro (N) copies of the drawn motif fill the canvas.
 // period = the motif's tile size (max bbox extent); ptc = N·period → N tiles. Cheap sig-guard so
 // it only re-bakes when the committed geometry / settings actually changed (not on every draw move).
 function _cadRefreshTiling(force){
   const bb=cadBBox();
   const sig=(bb?[bb.minU,bb.maxU,bb.minV,bb.maxV].map(v=>v.toFixed(2)).join(','):'e')
-    +'|'+cadPatMacro+'|'+cadMacro+'|'+cadSpacing+'|'+cadGridType;
+    +'|'+_cadTiles()+'|'+cadEmbroidery+'|'+cadMacro+'|'+cadSpacing+'|'+cadGridType;
   if(!force&&sig===_cadTileSig)return;
   _cadTileSig=sig;
   const tc=cadMacro*CAD_MICRO;
   const snap=v=>{const r=Math.round(v);return Math.abs(v-r)<0.005?r:v;};
   const period=bb?Math.max(snap(bb.maxU-bb.minU),snap(bb.maxV-bb.minV),1):tc;
-  const ptc=Math.max(1,cadPatMacro*period);
+  const ptc=Math.max(1,_cadTiles()*period);
   cadPtc=ptc;
   if(cadGridType==='isometric'){cadPTile=500/(2*ptc*CAD_COS30);cadPOX=250;cadPOY=(500-(ptc*2*cadPTile*CAD_SIN30))/2;}
   else{cadPTile=500/ptc;cadPOX=0;cadPOY=0;}
@@ -1012,21 +1025,42 @@ window.cadToggleBBoxRotate=function(){
 // Traditional and Community are mutually exclusive — checking one clears the other.
 window.cadUpdateTraditional=function(){
   cadTraditional=document.getElementById('cadTraditional').checked;
-  if(cadTraditional){cadCommunity=false;const cb=document.getElementById('cadCommunity');if(cb)cb.checked=false;_cadSyncCommunityUI();}
+  if(cadTraditional){
+    cadCommunity=false;const cb=document.getElementById('cadCommunity');if(cb)cb.checked=false;
+    const wasEmb=cadEmbroidery;cadEmbroidery=false;
+    _cadSyncCommunityUI();
+    if(wasEmb){_cadSyncTilesLabel();_cadRefreshTiling(true);cadUpdateAll();}
+  }
 };
 window.cadUpdateCommunity=function(){
   cadCommunity=document.getElementById('cadCommunity').checked;
   if(cadCommunity){cadTraditional=false;const tb=document.getElementById('cadTraditional');if(tb)tb.checked=false;}
+  // Unchecking Community also drops the Embroidery sub-flag (it only exists for community patterns).
+  const wasEmb=cadEmbroidery;
+  if(!cadCommunity)cadEmbroidery=false;
   const nf=document.getElementById('cadCommunityName');
   // visibility (not display) → the field keeps its reserved space, so the Save button never shifts.
   if(nf){nf.style.visibility=cadCommunity?'visible':'hidden';if(cadCommunity)nf.focus();}
+  _cadSyncCommunityUI();
+  if(wasEmb!==cadEmbroidery){_cadSyncTilesLabel();_cadRefreshTiling(true);cadUpdateAll();}
 };
 window.cadUpdateCommunityName=function(){cadCommunityName=document.getElementById('cadCommunityName').value.trim();};
-// Reflect cadCommunity/cadCommunityName into the header UI (checkbox + name field visibility).
+// Embroidery = single-motif mode: the Live Tiling / Play / stitch views show exactly one
+// instance of the drawing (no repeats); the Tiles stepper is inert while it's on.
+window.cadUpdateEmbroidery=function(){
+  cadEmbroidery=document.getElementById('cadEmbroidery').checked;
+  _cadSyncTilesLabel();_cadRefreshTiling(true);cadUpdateAll();
+};
+// Reflect cadCommunity/cadCommunityName/cadEmbroidery into the header UI
+// (checkboxes + name-field / embroidery visibility).
 function _cadSyncCommunityUI(){
   const cb=document.getElementById('cadCommunity'),nf=document.getElementById('cadCommunityName');
   if(cb)cb.checked=cadCommunity;
   if(nf){nf.value=cadCommunityName;nf.style.visibility=cadCommunity?'visible':'hidden';}
+  const eb=document.getElementById('cadEmbroidery'),ew=document.getElementById('cadEmbroideryWrap');
+  if(eb)eb.checked=cadEmbroidery;
+  if(ew)ew.style.visibility=cadCommunity?'visible':'hidden';
+  _cadSyncTilesLabel();
 }
 window.cadStepSpacing=function(d){
   const el=document.getElementById('cadSpacing');
@@ -1125,7 +1159,7 @@ window.cadSaveToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',routingMode:cadRoutingMode,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1174,7 +1208,7 @@ window.cadPublishToLibrary=async function(){
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',routingMode:cadRoutingMode,published:true,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -1222,7 +1256,7 @@ window.cadTilePlay=function(){
     return rel;
   });
   const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
@@ -1296,7 +1330,7 @@ function _tpLoop(t){
 // ── Realistic stitch scene ───────────────────────────────────────────────────
 function _cadStitchSig(){
   return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+_cadRefMacro+'|'+cadSpacing+'|'+
-    cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio;
+    cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio+'|'+cadEmbroidery;
 }
 // Bake the indigo-denim background once (base wash + twill diagonal + speckle).
 function _cadBakeDenim(){
@@ -1595,7 +1629,7 @@ function _cadStitchScene(){
   const lines=clean.map(l=>_cadLineToSaved(l,bbox.minU,bbox.minV));
   const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
   const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,
-    patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
+    patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});

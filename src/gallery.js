@@ -13,7 +13,10 @@ function _displayName(n){
 window._displayName=_displayName;
 let activeFilters=new Set([0]);   // legacy (kept for setFilter compat); tabs now drive category
 let _galTab='traditional';         // active register-card tab: 'traditional' | 'community' | 'sandbox'
-let _shapeFilter='all';            // shape filter within a tab: 'all' | 'curved' | 'angular'
+// Checkbox filters within a tab, all on by default (= show everything). Shape (angled/curved)
+// applies on every tab; technique (sashiko/embroidery) only on the Community tab, where the
+// checkboxes are visible — traditional patterns are all sashiko by definition.
+let _galFilters={sashiko:true,embroidery:true,angular:true,curved:true};
 let _galleryDirty=false;
 // A published custom pattern belongs to "Community" only when explicitly flagged; everything else
 // published (traditional-flagged or unflagged) lives under the standard "Traditional" tab.
@@ -118,6 +121,9 @@ window.galSetTab=function(tab){
     if(b)b.classList.toggle('on',t===_galTab);
   });
   const nb=document.getElementById('galNewBtn');if(nb)nb.style.display=_galTab==='sandbox'?'':'none';
+  // Technique filters (Sashiko/Embroidery) only exist on the Community tab; shape is on every tab.
+  const tech=_galTab==='community';
+  ['fcSashiko','fcEmbroidery'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=tech?'':'none';});
   buildGallery();filterGallery();
 };
 // ── Admin gallery ordering ───────────────────────────────────────────────────
@@ -161,12 +167,15 @@ window.filterGallery=function(){
     if(!pat)pat=EXP_PATTERNS.find(p=>p.id===id);
     if(!pat)return;
     const curved=window.patIsCurved(pat);
-    let ms=(_shapeFilter==='all')||(_shapeFilter==='curved'&&curved)||(_shapeFilter==='angular'&&!curved);
+    let ms=curved?_galFilters.curved:_galFilters.angular;
+    // Technique filter only narrows the Community tab (its checkboxes are hidden elsewhere).
+    if(_galTab==='community')ms=ms&&(pat.embroidery?_galFilters.embroidery:_galFilters.sashiko);
     let mq=!q;
     if(q){
       if(type==='exp'){
         mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q)||(pat.communityName||'').toLowerCase().includes(q)||
-          (curved?'curved round':'angular geometric straight').includes(q);
+          (curved?'curved round':'angular geometric straight').includes(q)||
+          (!!pat.embroidery&&'embroidery'.includes(q));
       }else{
         mq=pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
           (type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
@@ -181,8 +190,10 @@ window.filterGallery=function(){
   // Don't show the "no results" line over the sandbox empty-state message.
   if(nr)nr.style.display=(vis===0&&grid&&!grid.querySelector('.no-results:not(#noResults)'))?'block':'none';
 };
-window.setShapeFilter=function(v){
-  _shapeFilter=(v==='curved'||v==='angular')?v:'all';
+// Read the toolbar filter checkboxes into state (multiple can be on at once; all on = default).
+window.setGalFilters=function(){
+  const rd=id=>{const e=document.getElementById(id);return e?e.checked:true;};
+  _galFilters={sashiko:rd('filtSashiko'),embroidery:rd('filtEmbroidery'),angular:rd('filtAngular'),curved:rd('filtCurved')};
   filterGallery();
 };
 

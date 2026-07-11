@@ -472,10 +472,11 @@ body.is-admin #cadPublishBtn{display:inline-flex}
 /* Sandbox "publish to gallery" button — admin only (normal users just save to sandbox) */
 .exp-pub-btn{position:absolute;top:5px;left:27px;width:18px;height:18px;border-radius:50%;background:rgba(210,140,40,.92);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
 body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:center;justify-content:center}
-/* Filter dropdown */
-.filt-select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;padding-right:22px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238aa3bd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
-.filt-select:hover{border-color:#33557a;color:#e7eef6}
-.filt-select:focus{border-color:#33557a}
+/* Toolbar filter checkboxes (shape on every tab; Sashiko/Embroidery technique only on Community) */
+.filt-checks{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.filt-check{display:flex;align-items:center;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none;transition:.15s}
+.filt-check:hover{border-color:#33557a;color:#e7eef6}
+.filt-check input{accent-color:#6aabff;cursor:pointer;margin:0}
 /* Read-only heart count on gallery cards */
 .like-heart-count{font-size:11px;color:#e09090;padding:1px 4px;pointer-events:none}
 .cm-count{font-size:11px;color:#9cc2e8;padding:1px 4px;pointer-events:none}
@@ -521,7 +522,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p>This library is built with love to keep traditional patterns alive and to support sustainable crafting and mindful garment repair.</p>
       <p>Feel free to copy, mod or reimagine this project. If you do so, please mention sashikolib.org as a source.</p>
       <p>If you love what’s being built here, a small <a class="about-link" href="https://ko-fi.com/chillchamp" target="_blank" rel="noopener">donation</a> keeps the servers running and the stitches flowing❤️</p>
-      <p class="build-stamp">sashikolib.org · build 2026-07-10</p>
+      <p class="build-stamp">sashikolib.org · build 2026-07-11</p>
     </div>
   </div>
   <div class="gal-tabs" role="tablist">
@@ -540,11 +541,12 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
   </div>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
-    <select class="filt-select" id="shapeSelect" onchange="setShapeFilter(this.value)">
-      <option value="all">All shapes</option>
-      <option value="curved">Curved</option>
-      <option value="angular">Angular</option>
-    </select>
+    <span class="filt-checks" id="filtChecks">
+      <label class="filt-check" id="fcSashiko" style="display:none"><input type="checkbox" id="filtSashiko" checked onchange="setGalFilters()"> Sashiko</label>
+      <label class="filt-check" id="fcEmbroidery" style="display:none"><input type="checkbox" id="filtEmbroidery" checked onchange="setGalFilters()"> Embroidery</label>
+      <label class="filt-check"><input type="checkbox" id="filtAngular" checked onchange="setGalFilters()"> Angled</label>
+      <label class="filt-check"><input type="checkbox" id="filtCurved" checked onchange="setGalFilters()"> Curved</label>
+    </span>
     <button class="cad-save-btn gal-new-btn" id="galNewBtn" onclick="showCAD()" style="display:none">+ New Pattern</button>
     <button class="filt admin-login-btn" onclick="adminLogin()" title="Sign in with Google to manage the gallery">Admin login</button>
   </div>
@@ -730,6 +732,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-flags-row">
           <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadCommunity" onchange="cadUpdateCommunity()"> Community</label>
           <input id="cadCommunityName" class="cad-name-input" placeholder="Your name (optional)" value="" style="visibility:hidden;width:150px" oninput="cadUpdateCommunityName()">
+          <label class="cad-name-trad" id="cadEmbroideryWrap" style="gap:5px;visibility:hidden" title="A single embroidery motif — shown once, never tiled/repeated"><input type="checkbox" id="cadEmbroidery" onchange="cadUpdateEmbroidery()"> Embroidery</label>
         </div>
       </div>
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
@@ -801,7 +804,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
                 <option value="sequential">4 · One by one (motifs)</option>
               </select>
             </label>
-            <span class="cad-panel-stepper">
+            <span class="cad-panel-stepper" id="cadTilesCtl">
               <span class="cad-panel-stepper-label">Tiles</span>
               <span class="cad-stepper-val" id="cadPatSizeVal" title="Number of tiles across (N×N repeat)">3×3</span>
               <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>
@@ -5817,7 +5820,8 @@ function loadPattern(pat){
 
   if(isEXP){
     _galResetRouting();   // routing test switcher is per-view, reset on every load
-    _tileCells=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
+    // Embroidery patterns are single motifs — always one instance, tile picker hidden.
+    _tileCells=pat.embroidery?1:Math.max(1,Math.min(12,tilesForPatMacro(pat)));
     const lbl=document.getElementById('tileCellsVal');if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
     const effPat={...pat,patMacro:patMacroForTiles(pat,_tileCells)};
     setupExpCanvas(effPat);
@@ -5827,7 +5831,7 @@ function loadPattern(pat){
     const expLay=computeExpLayout(effPat);
     EXP_path=filterVisiblePath(_expPathForView(effPat),expLay);
     TOTAL=EXP_path.length; PASSES=[];
-    const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='';
+    const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display=pat.embroidery?'none':'';
     const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
     document.getElementById('animTitle').innerHTML=_displayName(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';
@@ -6270,7 +6274,10 @@ function _displayName(n){
 window._displayName=_displayName;
 let activeFilters=new Set([0]);   // legacy (kept for setFilter compat); tabs now drive category
 let _galTab='traditional';         // active register-card tab: 'traditional' | 'community' | 'sandbox'
-let _shapeFilter='all';            // shape filter within a tab: 'all' | 'curved' | 'angular'
+// Checkbox filters within a tab, all on by default (= show everything). Shape (angled/curved)
+// applies on every tab; technique (sashiko/embroidery) only on the Community tab, where the
+// checkboxes are visible — traditional patterns are all sashiko by definition.
+let _galFilters={sashiko:true,embroidery:true,angular:true,curved:true};
 let _galleryDirty=false;
 // A published custom pattern belongs to "Community" only when explicitly flagged; everything else
 // published (traditional-flagged or unflagged) lives under the standard "Traditional" tab.
@@ -6375,6 +6382,9 @@ window.galSetTab=function(tab){
     if(b)b.classList.toggle('on',t===_galTab);
   });
   const nb=document.getElementById('galNewBtn');if(nb)nb.style.display=_galTab==='sandbox'?'':'none';
+  // Technique filters (Sashiko/Embroidery) only exist on the Community tab; shape is on every tab.
+  const tech=_galTab==='community';
+  ['fcSashiko','fcEmbroidery'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=tech?'':'none';});
   buildGallery();filterGallery();
 };
 // ── Admin gallery ordering ───────────────────────────────────────────────────
@@ -6418,12 +6428,15 @@ window.filterGallery=function(){
     if(!pat)pat=EXP_PATTERNS.find(p=>p.id===id);
     if(!pat)return;
     const curved=window.patIsCurved(pat);
-    let ms=(_shapeFilter==='all')||(_shapeFilter==='curved'&&curved)||(_shapeFilter==='angular'&&!curved);
+    let ms=curved?_galFilters.curved:_galFilters.angular;
+    // Technique filter only narrows the Community tab (its checkboxes are hidden elsewhere).
+    if(_galTab==='community')ms=ms&&(pat.embroidery?_galFilters.embroidery:_galFilters.sashiko);
     let mq=!q;
     if(q){
       if(type==='exp'){
         mq=(pat.name||'').toLowerCase().includes(q)||pat.id.includes(q)||(pat.communityName||'').toLowerCase().includes(q)||
-          (curved?'curved round':'angular geometric straight').includes(q);
+          (curved?'curved round':'angular geometric straight').includes(q)||
+          (!!pat.embroidery&&'embroidery'.includes(q));
       }else{
         mq=pat.name.toLowerCase().includes(q)||pat.jp.includes(q)||pat.en.toLowerCase().includes(q)||pat.id.includes(q)||
           (type==='generator'&&'koshi kaki persimmon snowflake hitomezashi lattice'.includes(q))||
@@ -6438,8 +6451,10 @@ window.filterGallery=function(){
   // Don't show the "no results" line over the sandbox empty-state message.
   if(nr)nr.style.display=(vis===0&&grid&&!grid.querySelector('.no-results:not(#noResults)'))?'block':'none';
 };
-window.setShapeFilter=function(v){
-  _shapeFilter=(v==='curved'||v==='angular')?v:'all';
+// Read the toolbar filter checkboxes into state (multiple can be on at once; all on = default).
+window.setGalFilters=function(){
+  const rd=id=>{const e=document.getElementById(id);return e?e.checked:true;};
+  _galFilters={sashiko:rd('filtSashiko'),embroidery:rd('filtEmbroidery'),angular:rd('filtAngular'),curved:rd('filtCurved')};
   filterGallery();
 };
 
@@ -7539,6 +7554,15 @@ function genTiledSegs(pat){
   const spacing=pat.spacing||0;
   const segs=[];
   let tileAid=arcIdCounter;  // running counter for tiled copies
+  // Embroidery patterns are single standalone motifs — emit exactly ONE instance, no tiling.
+  // Additive: no pre-existing pattern carries the flag, so tiled output is byte-identical for
+  // everything else (same reasoning as the v2 routing modes — no engine fork needed).
+  if(pat.embroidery){
+    flatSegs.forEach((l,fi)=>{
+      segs.push({start:[...l.start],end:[...l.end],fam:flatFamOf[fi],aid:l.aid});
+    });
+    return segs;
+  }
   if(pat.bboxRotated){
     let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
     flatSegs.forEach(l=>{
@@ -7956,6 +7980,7 @@ window.editExpPattern=async function(idOrPat){
   document.getElementById('cadTraditional').checked=cadTraditional;
   cadCommunity=!!pat.community;
   cadCommunityName=pat.communityName||'';
+  cadEmbroidery=!!pat.embroidery;
   _cadSyncCommunityUI();
   // Restore saved stitch params so re-editing keeps them (else a save overwrites with defaults).
   cadStitchLen=pat.stitchLen||8;
@@ -9522,7 +9547,10 @@ window.remixPattern=function(id){
   cadPatMacro=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
-  cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();  // remix = new author; they re-enter their own name
+  // remix = new author; they re-enter their own name. Embroidery (single-motif display) is
+  // carried over — it re-applies once the remixer re-checks Community, and keeps the editor
+  // showing the motif un-tiled meanwhile.
+  cadCommunity=false;cadCommunityName='';cadEmbroidery=!!pat.embroidery;_cadSyncCommunityUI();
   // Carry the parent's stitch params into the remix so it starts from the same look.
   cadStitchLen=pat.stitchLen||8;cadStitchRatio=pat.stitchRatio||'standard';cadStitchView=!!pat.stitchView;cadStitchGrid=!!pat.stitchGrid;_cadSyncStitchUI();
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
@@ -9583,7 +9611,7 @@ window.showCAD=function(){
   document.getElementById('cadRoutingMode').value='default';
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
   document.getElementById('cadTraditional').checked=false;
-  cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();
+  cadCommunity=false;cadCommunityName='';cadEmbroidery=false;_cadSyncCommunityUI();
   cadStitchLen=8;cadStitchRatio='standard';cadStitchView=false;cadStitchGrid=false;_cadSyncStitchUI();  // fresh stitch defaults
   cadInited=false;
   cadInit();
@@ -9608,6 +9636,11 @@ let cadGridType='isometric',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 let cadTraditional=false;
 let cadCommunity=false,cadCommunityName='';   // "Community" flag + optional author name ("by …")
+// "Embroidery" (community-only sub-flag): the drawing is a single standalone motif, never
+// tiled/repeated — the Live Tiling / Play / gallery views show exactly one instance.
+let cadEmbroidery=false;
+// Effective tile count for every Live-Tiling surface: embroidery = always a single instance.
+function _cadTiles(){return cadEmbroidery?1:cadPatMacro;}
 // Natural tile count for the stitch-length reference — frozen when a pattern loads (mirrors the
 // gallery's EXP_szRef). Anchoring stitch length to the layout scale at this count makes the CAD
 // stitch view match the gallery (same stitch value → same look) AND keeps the per-line stitch
@@ -10488,7 +10521,9 @@ function cadDrawPattern(){
       }
     }
   });};
-  if(!cadBBoxRotated){
+  if(cadEmbroidery){
+    _renderAt(0,0);   // embroidery = single standalone motif, no repeats
+  }else if(!cadBBoxRotated){
     for(let ou=-ov;ou<=ptc+ov;ou+=stepU){for(let ov2=-ov;ov2<=ptc+ov;ov2+=stepV){_renderAt(ou,ov2);}}
   }else{
     const epts=[];cadAllSegments(all.filter(l=>!l.preview)).forEach(s=>epts.push(s.start,s.end));
@@ -10556,20 +10591,26 @@ function _compactFamilies(families, famOrder){
 // Draw/Tiles readouts. Grid shows the draw-canvas span in grid units — cadMacro cells ×
 // CAD_MICRO units each — as "(N·10)×(N·10)". Tiles shows the live-tiling repeat count as "N×N".
 function _cadSyncGridLabel(){const el=document.getElementById('cadGridSizeVal');if(el){const n=cadMacro*CAD_MICRO;el.textContent=n+'×'+n;}}
-function _cadSyncTilesLabel(){const el=document.getElementById('cadPatSizeVal');if(el)el.textContent=cadPatMacro+'×'+cadPatMacro;}
+function _cadSyncTilesLabel(){
+  const el=document.getElementById('cadPatSizeVal');
+  if(el)el.textContent=cadEmbroidery?'1×1':(cadPatMacro+'×'+cadPatMacro);
+  // Embroidery = single motif, so the Tiles stepper is inert (greyed out) while it's on.
+  const ctl=document.getElementById('cadTilesCtl');
+  if(ctl){ctl.style.opacity=cadEmbroidery?'0.4':'';ctl.style.pointerEvents=cadEmbroidery?'none':'';}
+}
 // Recompute the Live-Tiling scale so cadPatMacro (N) copies of the drawn motif fill the canvas.
 // period = the motif's tile size (max bbox extent); ptc = N·period → N tiles. Cheap sig-guard so
 // it only re-bakes when the committed geometry / settings actually changed (not on every draw move).
 function _cadRefreshTiling(force){
   const bb=cadBBox();
   const sig=(bb?[bb.minU,bb.maxU,bb.minV,bb.maxV].map(v=>v.toFixed(2)).join(','):'e')
-    +'|'+cadPatMacro+'|'+cadMacro+'|'+cadSpacing+'|'+cadGridType;
+    +'|'+_cadTiles()+'|'+cadEmbroidery+'|'+cadMacro+'|'+cadSpacing+'|'+cadGridType;
   if(!force&&sig===_cadTileSig)return;
   _cadTileSig=sig;
   const tc=cadMacro*CAD_MICRO;
   const snap=v=>{const r=Math.round(v);return Math.abs(v-r)<0.005?r:v;};
   const period=bb?Math.max(snap(bb.maxU-bb.minU),snap(bb.maxV-bb.minV),1):tc;
-  const ptc=Math.max(1,cadPatMacro*period);
+  const ptc=Math.max(1,_cadTiles()*period);
   cadPtc=ptc;
   if(cadGridType==='isometric'){cadPTile=500/(2*ptc*CAD_COS30);cadPOX=250;cadPOY=(500-(ptc*2*cadPTile*CAD_SIN30))/2;}
   else{cadPTile=500/ptc;cadPOX=0;cadPOY=0;}
@@ -10615,21 +10656,42 @@ window.cadToggleBBoxRotate=function(){
 // Traditional and Community are mutually exclusive — checking one clears the other.
 window.cadUpdateTraditional=function(){
   cadTraditional=document.getElementById('cadTraditional').checked;
-  if(cadTraditional){cadCommunity=false;const cb=document.getElementById('cadCommunity');if(cb)cb.checked=false;_cadSyncCommunityUI();}
+  if(cadTraditional){
+    cadCommunity=false;const cb=document.getElementById('cadCommunity');if(cb)cb.checked=false;
+    const wasEmb=cadEmbroidery;cadEmbroidery=false;
+    _cadSyncCommunityUI();
+    if(wasEmb){_cadSyncTilesLabel();_cadRefreshTiling(true);cadUpdateAll();}
+  }
 };
 window.cadUpdateCommunity=function(){
   cadCommunity=document.getElementById('cadCommunity').checked;
   if(cadCommunity){cadTraditional=false;const tb=document.getElementById('cadTraditional');if(tb)tb.checked=false;}
+  // Unchecking Community also drops the Embroidery sub-flag (it only exists for community patterns).
+  const wasEmb=cadEmbroidery;
+  if(!cadCommunity)cadEmbroidery=false;
   const nf=document.getElementById('cadCommunityName');
   // visibility (not display) → the field keeps its reserved space, so the Save button never shifts.
   if(nf){nf.style.visibility=cadCommunity?'visible':'hidden';if(cadCommunity)nf.focus();}
+  _cadSyncCommunityUI();
+  if(wasEmb!==cadEmbroidery){_cadSyncTilesLabel();_cadRefreshTiling(true);cadUpdateAll();}
 };
 window.cadUpdateCommunityName=function(){cadCommunityName=document.getElementById('cadCommunityName').value.trim();};
-// Reflect cadCommunity/cadCommunityName into the header UI (checkbox + name field visibility).
+// Embroidery = single-motif mode: the Live Tiling / Play / stitch views show exactly one
+// instance of the drawing (no repeats); the Tiles stepper is inert while it's on.
+window.cadUpdateEmbroidery=function(){
+  cadEmbroidery=document.getElementById('cadEmbroidery').checked;
+  _cadSyncTilesLabel();_cadRefreshTiling(true);cadUpdateAll();
+};
+// Reflect cadCommunity/cadCommunityName/cadEmbroidery into the header UI
+// (checkboxes + name-field / embroidery visibility).
 function _cadSyncCommunityUI(){
   const cb=document.getElementById('cadCommunity'),nf=document.getElementById('cadCommunityName');
   if(cb)cb.checked=cadCommunity;
   if(nf){nf.value=cadCommunityName;nf.style.visibility=cadCommunity?'visible':'hidden';}
+  const eb=document.getElementById('cadEmbroidery'),ew=document.getElementById('cadEmbroideryWrap');
+  if(eb)eb.checked=cadEmbroidery;
+  if(ew)ew.style.visibility=cadCommunity?'visible':'hidden';
+  _cadSyncTilesLabel();
 }
 window.cadStepSpacing=function(d){
   const el=document.getElementById('cadSpacing');
@@ -10728,7 +10790,7 @@ window.cadSaveToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',routingMode:cadRoutingMode,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -10777,7 +10839,7 @@ window.cadPublishToLibrary=async function(){
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},cadPatMacro),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',routingMode:cadRoutingMode,published:true,thumbCells:cadPatMacro,stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -10825,7 +10887,7 @@ window.cadTilePlay=function(){
     return rel;
   });
   const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
@@ -10899,7 +10961,7 @@ function _tpLoop(t){
 // ── Realistic stitch scene ───────────────────────────────────────────────────
 function _cadStitchSig(){
   return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+_cadRefMacro+'|'+cadSpacing+'|'+
-    cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio;
+    cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio+'|'+cadEmbroidery;
 }
 // Bake the indigo-denim background once (base wash + twill diagonal + speckle).
 function _cadBakeDenim(){
@@ -11198,7 +11260,7 @@ function _cadStitchScene(){
   const lines=clean.map(l=>_cadLineToSaved(l,bbox.minU,bbox.minV));
   const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
   const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,
-    patMacro:patMacroForTiles({bbox:pbb},cadPatMacro),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode};
+    patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});

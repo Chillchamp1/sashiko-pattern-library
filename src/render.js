@@ -213,7 +213,8 @@ function loadPattern(pat){
 
   if(isEXP){
     _galResetRouting();   // routing test switcher is per-view, reset on every load
-    _tileCells=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
+    // Embroidery patterns are single motifs — always one instance, tile picker hidden.
+    _tileCells=pat.embroidery?1:Math.max(1,Math.min(12,tilesForPatMacro(pat)));
     const lbl=document.getElementById('tileCellsVal');if(lbl)lbl.textContent=_tileCells+'×'+_tileCells;
     const effPat={...pat,patMacro:patMacroForTiles(pat,_tileCells)};
     setupExpCanvas(effPat);
@@ -223,7 +224,7 @@ function loadPattern(pat){
     const expLay=computeExpLayout(effPat);
     EXP_path=filterVisiblePath(_expPathForView(effPat),expLay);
     TOTAL=EXP_path.length; PASSES=[];
-    const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display='';
+    const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display=pat.embroidery?'none':'';
     const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
     document.getElementById('animTitle').innerHTML=_displayName(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
     document.getElementById('animTip').textContent='';

@@ -1052,6 +1052,15 @@ function genTiledSegs(pat){
   const spacing=pat.spacing||0;
   const segs=[];
   let tileAid=arcIdCounter;  // running counter for tiled copies
+  // Embroidery patterns are single standalone motifs — emit exactly ONE instance, no tiling.
+  // Additive: no pre-existing pattern carries the flag, so tiled output is byte-identical for
+  // everything else (same reasoning as the v2 routing modes — no engine fork needed).
+  if(pat.embroidery){
+    flatSegs.forEach((l,fi)=>{
+      segs.push({start:[...l.start],end:[...l.end],fam:flatFamOf[fi],aid:l.aid});
+    });
+    return segs;
+  }
   if(pat.bboxRotated){
     let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
     flatSegs.forEach(l=>{
@@ -1469,6 +1478,7 @@ window.editExpPattern=async function(idOrPat){
   document.getElementById('cadTraditional').checked=cadTraditional;
   cadCommunity=!!pat.community;
   cadCommunityName=pat.communityName||'';
+  cadEmbroidery=!!pat.embroidery;
   _cadSyncCommunityUI();
   // Restore saved stitch params so re-editing keeps them (else a save overwrites with defaults).
   cadStitchLen=pat.stitchLen||8;
@@ -3035,7 +3045,10 @@ window.remixPattern=function(id){
   cadPatMacro=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
   document.getElementById('cadPatName').value=(pat.name||'Custom')+' Remix';
   document.getElementById('cadTraditional').checked=false;cadTraditional=false;
-  cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();  // remix = new author; they re-enter their own name
+  // remix = new author; they re-enter their own name. Embroidery (single-motif display) is
+  // carried over — it re-applies once the remixer re-checks Community, and keeps the editor
+  // showing the motif un-tiled meanwhile.
+  cadCommunity=false;cadCommunityName='';cadEmbroidery=!!pat.embroidery;_cadSyncCommunityUI();
   // Carry the parent's stitch params into the remix so it starts from the same look.
   cadStitchLen=pat.stitchLen||8;cadStitchRatio=pat.stitchRatio||'standard';cadStitchView=!!pat.stitchView;cadStitchGrid=!!pat.stitchGrid;_cadSyncStitchUI();
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
@@ -3096,7 +3109,7 @@ window.showCAD=function(){
   document.getElementById('cadRoutingMode').value='default';
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
   document.getElementById('cadTraditional').checked=false;
-  cadCommunity=false;cadCommunityName='';_cadSyncCommunityUI();
+  cadCommunity=false;cadCommunityName='';cadEmbroidery=false;_cadSyncCommunityUI();
   cadStitchLen=8;cadStitchRatio='standard';cadStitchView=false;cadStitchGrid=false;_cadSyncStitchUI();  // fresh stitch defaults
   cadInited=false;
   cadInit();

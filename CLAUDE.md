@@ -296,10 +296,16 @@ shim → `buildGallery()`+`filterGallery()`, so every old save/publish/delete ca
 `showGallery` re-shows `#galleryView` and calls `galSetTab(_galTab)` (sandbox source → sandbox tab); `showCAD` /
 `showGalleryFromCAD` return to the pattern's tab (gallery source) or the Sandbox tab (`_cadSource!=='gallery'`).
 
-**Within a tab: search + shape filter.** The toolbar keeps the search box (`#searchInput` → `filterGallery`) and a
-**shape** dropdown (`#shapeSelect` → `setShapeFilter`, values `all`/`curved`/`angular`, state `_shapeFilter`).
-`filterGallery` now only narrows the already-rendered tab by search text + shape (category is the tab's job).
-The old `activeFilters`/`setFilter`/`_filtKey`/pass-count machinery is removed.
+**Within a tab: search + checkbox filters (2026-07-11).** The toolbar keeps the search box (`#searchInput` →
+`filterGallery`) plus a row of **filter checkboxes** (`.filt-checks` in template.html, state `_galFilters`
+in gallery.js, all **checked by default** = show everything; handler `setGalFilters` reads them). Two groups:
+- **Shape** — `Angled` (`#filtAngular`) / `Curved` (`#filtCurved`), visible on **every** tab.
+- **Technique** — `Sashiko` (`#filtSashiko`) / `Embroidery` (`#filtEmbroidery`), visible **only on the
+  Community tab** (`galSetTab` toggles `#fcSashiko`/`#fcEmbroidery` display; Traditional/Sandbox show only the
+  shape pair). Technique = `pat.embroidery` (true → embroidery, else sashiko); it only narrows the Community tab.
+Multiple boxes can be on at once; a card shows when its shape's box AND (on Community) its technique's box are
+checked. The old shape dropdown (`#shapeSelect`/`setShapeFilter`/`_shapeFilter`) is replaced; the old
+`activeFilters`/`setFilter`/`_filtKey`/pass-count machinery was already removed.
 
 **Shape = curved vs angular (auto-derived, no tagging).** `window.patIsCurved(pat)` = `pat.lines.some(l=>l.arc)`
 (experimental.js; safely `false` for built-ins with no `.lines`). The published set splits cleanly — arc-fraction is
@@ -326,7 +332,27 @@ checking one clears the other (in both `cadUpdateTraditional`/`cadUpdateCommunit
 the 80-key rule — no rules change). Gallery + sandbox cards show `by <name>` in small italic under the pattern
 name (`.pcard-by`) **only when both `community` and a non-empty `communityName` are set** — the name is never
 mandatory. `editExpPattern`/`remixPattern`/`showCAD` restore or reset the fields via `_cadSyncCommunityUI()`
-(cad-engine.js). Search also matches `communityName`.
+(cad-engine.js). Search also matches `communityName` (and `embroidery` for embroidery-flagged patterns).
+
+**Embroidery = community-only single-motif flag (2026-07-11).** Checking Community also reveals an optional
+**Embroidery** checkbox (`#cadEmbroidery` in `#cadEmbroideryWrap`, `visibility`-toggled like the name field;
+state `cadEmbroidery`, handler `cadUpdateEmbroidery`, synced/restored via `_cadSyncCommunityUI`). Meaning: the
+drawing is a **standalone motif, never tiled/repeated** — every surface shows exactly ONE instance:
+- **CAD editor:** `_cadTiles()` (cad-engine.js) = `cadEmbroidery?1:cadPatMacro` drives `_cadRefreshTiling`,
+  `_cadStitchScene` and `cadTilePlay`; the colored `cadDrawPattern` renders a single `_renderAt(0,0)` (no
+  offset loops, so no iso diamond-corner spillover either). The Tiles stepper (`#cadTilesCtl`) shows `1×1`
+  and is greyed/inert (`_cadSyncTilesLabel`) while embroidery is on. Unchecking Community (or checking
+  Traditional) clears the flag and restores tiling.
+- **Routing/geometry:** `genTiledSegs` (experimental.js) has an additive `pat.embroidery` branch that emits
+  exactly one untiled instance. No pre-existing pattern carries the flag, so tiled output is byte-identical
+  for everything else — same additive reasoning as the v2 routing modes, **no engine fork** (`route.js --check`
+  verified unchanged).
+- **Gallery viewer:** `loadPattern` (render.js) forces `_tileCells=1` and hides the tile-count picker
+  (`#tileCellsCtrl`) for embroidery patterns.
+- **Saved as** `embroidery:cadCommunity&&cadEmbroidery`; `patMacro`/`thumbCells` are stamped at 1 tile
+  (`_cadTiles()`) so thumbnails/layout open at natural single-motif scale. Round-trips via the field spread +
+  80-key rule (no Firestore rules change). `remixPattern` carries the parent's flag (re-applies once the
+  remixer re-checks Community); `showCAD` resets it.
 
 **Pass count is automatic.** Each card's `data-p` = number of stitch families ("passes"):
 - Built-in: `pat.passes.length`.

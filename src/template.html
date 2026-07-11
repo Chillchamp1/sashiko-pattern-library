@@ -59,11 +59,12 @@
   </div>
   <div class="toolbar">
     <input class="search" id="searchInput" type="search" placeholder="Search…" oninput="filterGallery()">
-    <select class="filt-select" id="shapeSelect" onchange="setShapeFilter(this.value)">
-      <option value="all">All shapes</option>
-      <option value="curved">Curved</option>
-      <option value="angular">Angular</option>
-    </select>
+    <span class="filt-checks" id="filtChecks">
+      <label class="filt-check" id="fcSashiko" style="display:none"><input type="checkbox" id="filtSashiko" checked onchange="setGalFilters()"> Sashiko</label>
+      <label class="filt-check" id="fcEmbroidery" style="display:none"><input type="checkbox" id="filtEmbroidery" checked onchange="setGalFilters()"> Embroidery</label>
+      <label class="filt-check"><input type="checkbox" id="filtAngular" checked onchange="setGalFilters()"> Angled</label>
+      <label class="filt-check"><input type="checkbox" id="filtCurved" checked onchange="setGalFilters()"> Curved</label>
+    </span>
     <button class="cad-save-btn gal-new-btn" id="galNewBtn" onclick="showCAD()" style="display:none">+ New Pattern</button>
     <button class="filt admin-login-btn" onclick="adminLogin()" title="Sign in with Google to manage the gallery">Admin login</button>
   </div>
@@ -249,6 +250,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-flags-row">
           <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadCommunity" onchange="cadUpdateCommunity()"> Community</label>
           <input id="cadCommunityName" class="cad-name-input" placeholder="Your name (optional)" value="" style="visibility:hidden;width:150px" oninput="cadUpdateCommunityName()">
+          <label class="cad-name-trad" id="cadEmbroideryWrap" style="gap:5px;visibility:hidden" title="A single embroidery motif — shown once, never tiled/repeated"><input type="checkbox" id="cadEmbroidery" onchange="cadUpdateEmbroidery()"> Embroidery</label>
         </div>
       </div>
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
@@ -320,7 +322,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
                 <option value="sequential">4 · One by one (motifs)</option>
               </select>
             </label>
-            <span class="cad-panel-stepper">
+            <span class="cad-panel-stepper" id="cadTilesCtl">
               <span class="cad-panel-stepper-label">Tiles</span>
               <span class="cad-stepper-val" id="cadPatSizeVal" title="Number of tiles across (N×N repeat)">3×3</span>
               <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>

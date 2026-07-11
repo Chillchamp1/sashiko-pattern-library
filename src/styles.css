@@ -449,10 +449,11 @@ body.is-admin #cadPublishBtn{display:inline-flex}
 /* Sandbox "publish to gallery" button — admin only (normal users just save to sandbox) */
 .exp-pub-btn{position:absolute;top:5px;left:27px;width:18px;height:18px;border-radius:50%;background:rgba(210,140,40,.92);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
 body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:center;justify-content:center}
-/* Filter dropdown */
-.filt-select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;padding-right:22px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238aa3bd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
-.filt-select:hover{border-color:#33557a;color:#e7eef6}
-.filt-select:focus{border-color:#33557a}
+/* Toolbar filter checkboxes (shape on every tab; Sashiko/Embroidery technique only on Community) */
+.filt-checks{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.filt-check{display:flex;align-items:center;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none;transition:.15s}
+.filt-check:hover{border-color:#33557a;color:#e7eef6}
+.filt-check input{accent-color:#6aabff;cursor:pointer;margin:0}
 /* Read-only heart count on gallery cards */
 .like-heart-count{font-size:11px;color:#e09090;padding:1px 4px;pointer-events:none}
 .cm-count{font-size:11px;color:#9cc2e8;padding:1px 4px;pointer-events:none}
