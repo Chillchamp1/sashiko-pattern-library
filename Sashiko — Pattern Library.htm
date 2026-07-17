@@ -522,7 +522,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p>This library is built with love to keep traditional patterns alive and to support sustainable crafting and mindful garment repair.</p>
       <p>Feel free to copy, mod or reimagine this project. If you do so, please mention sashikolib.org as a source.</p>
       <p>If you love what’s being built here, a small <a class="about-link" href="https://ko-fi.com/chillchamp" target="_blank" rel="noopener">donation</a> keeps the servers running and the stitches flowing❤️</p>
-      <p class="build-stamp">sashikolib.org · build 2026-07-11</p>
+      <p class="build-stamp">sashikolib.org · build 2026-07-17</p>
     </div>
   </div>
   <div class="gal-tabs" role="tablist">
@@ -779,6 +779,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <button class="cad-tool cad-arrow" onclick="cadMovePattern(1,0)" title="Move right">→</button>
               <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
               <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
+              <button id="cadBtnDiamond" class="cad-tool" onclick="cadDiamondCut()" title="Re-cut the motif into a diamond repeat: half-shifted copies are cut at the tile edges so plain tiling shows a diamond grid (square grid only)">◆ Diamond</button>
             </span>
             <span data-did="sep2" class="cad-tool-break" title="Row break"></span>
             <button data-did="undo" class="cad-tool" onclick="cadUndo()">↩ Undo</button>
@@ -10620,6 +10621,9 @@ window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
   cadSpacing=parseInt(document.getElementById('cadSpacing').value);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
+  // Diamond re-cut is square-grid only — hide the button on isometric.
+  const db=document.getElementById('cadBtnDiamond');
+  if(db)db.style.display=(cadGridType==='isometric')?'none':'';
   cadZoom=1;cadPanX=0;cadPanY=0;
   _cadSyncGridLabel();_cadSyncTilesLabel();
   const tc=cadMacro*CAD_MICRO;
@@ -10751,6 +10755,136 @@ window.cadRotate45=function(){
     }
     return{...l,start:[l.start[0]+du,l.start[1]+dv],end:[l.end[0]+du,l.end[1]+dv]};
   });
+  cadUpdateAll();
+};
+
+// ── Diamond re-cut ("kitties" cut) ─────────────────────────────────────────
+// Re-partition the drawn motif so PLAIN rectangular tiling shows a diamond
+// (centered / half-drop) arrangement: the motif stays whole in the middle of
+// its tile, and four copies shifted by half the tile period are added at the
+// corners, each CUT at the tile boundary — like the traditional cat-face
+// patterns, where the unit cell carries the face cut through the middle and
+// the tiled cloth shows whole faces on a diamond grid. The four corner offsets
+// differ by exactly one tile period, so adjacent tiles reassemble the cut
+// pieces into one whole extra motif at every tile corner. One-shot transform
+// (Undo restores); square grid only (the button is hidden on isometric).
+
+// Liang-Barsky clip of a straight segment to rect rc, null if outside/degenerate.
+function _dcClipSeg(p0,p1,rc){
+  const dx=p1[0]-p0[0], dy=p1[1]-p0[1];
+  const p=[-dx,dx,-dy,dy], q=[p0[0]-rc.x0,rc.x1-p0[0],p0[1]-rc.y0,rc.y1-p0[1]];
+  let t0=0,t1=1;
+  for(let i=0;i<4;i++){
+    if(Math.abs(p[i])<1e-12){ if(q[i]<-1e-9)return null; }
+    else{ const t=q[i]/p[i]; if(p[i]<0){if(t>t0)t0=t;}else if(t<t1)t1=t; }
+  }
+  if(t1-t0<1e-9)return null;
+  const r6=v=>Math.round(v*1e6)/1e6;
+  const a=[r6(p0[0]+t0*dx),r6(p0[1]+t0*dy)], b=[r6(p0[0]+t1*dx),r6(p0[1]+t1*dy)];
+  if(Math.hypot(b[0]-a[0],b[1]-a[1])<0.01)return null;
+  return{start:a,end:b};
+}
+// Cut an arc at the rect boundary, keep the inside sub-arcs (0..n pieces).
+// Cuts at every crossing of the four INFINITE boundary lines — between two
+// consecutive cuts the arc crosses no boundary line, so one midpoint test
+// decides the whole sub-arc.
+function _dcClipArc(arc,rc){
+  const cx=arc.center[0], cy=arc.center[1], r=arc.r;
+  const a1=arc.a1, sweep=arc.a2-arc.a1;
+  if(Math.abs(sweep)<1e-9||r<1e-9)return[];
+  const ts=[0,1];
+  const addA=a=>{ // absolute angle → every t∈(0,1) with a1+t·sweep ≡ a (mod 2π)
+    for(let k=-2;k<=2;k++){
+      const t=((a-a1)+k*2*Math.PI)/sweep;
+      if(t>1e-6&&t<1-1e-6)ts.push(t);
+    }
+  };
+  for(const X of[rc.x0,rc.x1]){const d=(X-cx)/r;if(Math.abs(d)<=1){const a=Math.acos(Math.max(-1,Math.min(1,d)));addA(a);addA(-a);}}
+  for(const Y of[rc.y0,rc.y1]){const d=(Y-cy)/r;if(Math.abs(d)<=1){const a=Math.asin(Math.max(-1,Math.min(1,d)));addA(a);addA(Math.PI-a);}}
+  ts.sort((x,y)=>x-y);
+  const TOL=1e-4, out=[];
+  const inside=(x,y)=>x>=rc.x0-TOL&&x<=rc.x1+TOL&&y>=rc.y0-TOL&&y<=rc.y1+TOL;
+  for(let i=0;i<ts.length-1;i++){
+    if(ts[i+1]-ts[i]<1e-6)continue;
+    const am=a1+sweep*(ts[i]+ts[i+1])/2;
+    if(!inside(cx+r*Math.cos(am),cy+r*Math.sin(am)))continue;
+    const b1=a1+sweep*ts[i], b2=a1+sweep*ts[i+1];
+    const prev=out[out.length-1];
+    if(prev&&Math.abs(prev.a2-b1)<1e-9){prev.a2=b2;continue;} // tangent touch → merge
+    out.push({arc:true,center:[cx,cy],r,a1:b1,a2:b2});
+  }
+  return out.filter(s=>Math.abs(s.a2-s.a1)*r>=0.01).map(s=>({...s,
+    start:[cx+r*Math.cos(s.a1),cy+r*Math.sin(s.a1)],
+    end:[cx+r*Math.cos(s.a2),cy+r*Math.sin(s.a2)]}));
+}
+// Is straight piece p fully contained in an existing straight line of list?
+function _dcContainedSeg(p,list){
+  const dx=p.end[0]-p.start[0], dy=p.end[1]-p.start[1];
+  const len=Math.hypot(dx,dy); if(len<1e-9)return true;
+  for(const l of list){
+    if(l.arc)continue;
+    const ldx=l.end[0]-l.start[0], ldy=l.end[1]-l.start[1];
+    const ll=Math.hypot(ldx,ldy); if(ll<1e-9)continue;
+    if(Math.abs(ldx*dy-ldy*dx)/(ll*len)>1e-4)continue;                 // not parallel
+    const vx=p.start[0]-l.start[0], vy=p.start[1]-l.start[1];
+    if(Math.abs(vx*ldy-vy*ldx)/ll>0.01)continue;                       // not collinear
+    const t0=(vx*ldx+vy*ldy)/(ll*ll);
+    const t1=((p.end[0]-l.start[0])*ldx+(p.end[1]-l.start[1])*ldy)/(ll*ll);
+    if(Math.min(t0,t1)>=-1e-6&&Math.max(t0,t1)<=1+1e-6)return true;    // interval inside
+  }
+  return false;
+}
+// Is arc piece p fully contained in an existing arc of list (same circle, sub-sweep)?
+function _dcContainedArc(p,list){
+  for(const l of list){
+    if(!l.arc)continue;
+    if(Math.abs(l.center[0]-p.center[0])>1e-3||Math.abs(l.center[1]-p.center[1])>1e-3
+       ||Math.abs(l.r-p.r)>1e-3)continue;
+    const am=(p.a1+p.a2)/2;
+    if(cadAngleInArc(p.a1,l)!==null&&cadAngleInArc(am,l)!==null&&cadAngleInArc(p.a2,l)!==null)return true;
+  }
+  return false;
+}
+window.cadDiamondCut=function(){
+  if(cadGridType==='isometric')return;          // square grid only
+  if(!cadLines.length)return;
+  const bb=cadBBox();if(!bb)return;
+  const snap=v=>{const r=Math.round(v);return Math.abs(v-r)<0.005?r:v;};
+  const W=snap(bb.maxU-bb.minU), H=snap(bb.maxV-bb.minV);
+  if(W<2||H<2){alert('Motif too small for a diamond repeat (needs at least 2×2 grid units).');return;}
+  const rc={x0:bb.minU,x1:bb.minU+W,y0:bb.minV,y1:bb.minV+H};
+  const h=Math.round(W/2), k=Math.round(H/2);   // integer half-period → pieces stay on-grid
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
+  const pieces=[];
+  for(const[ox,oy]of[[h,k],[h-W,k],[h,k-H],[h-W,k-H]]){
+    for(const l of cadLines){
+      if(l.arc){
+        pieces.push(..._dcClipArc({...l,center:[l.center[0]+ox,l.center[1]+oy]},rc));
+      }else{
+        const c=_dcClipSeg([l.start[0]+ox,l.start[1]+oy],[l.end[0]+ox,l.end[1]+oy],rc);
+        if(c)pieces.push(c);
+      }
+    }
+  }
+  // A piece lying exactly ON a max edge re-appears at the min edge from the sibling offset
+  // (and would double up with the next tile) — keep only the min-edge copy.
+  const onMax=l=>!l.arc&&((Math.abs(l.start[0]-rc.x1)<1e-6&&Math.abs(l.end[0]-rc.x1)<1e-6)
+                        ||(Math.abs(l.start[1]-rc.y1)<1e-6&&Math.abs(l.end[1]-rc.y1)<1e-6));
+  // A piece fully CONTAINED in existing geometry is redundant — a motif line parallel to the
+  // half-period offset overlaps its own shifted copy (e.g. centre diagonals), and keeping the
+  // piece would make cadFindRedundant drop BOTH at save time, losing the line entirely.
+  for(const p of pieces){
+    if(onMax(p))continue;
+    if(p.arc?_dcContainedArc(p,cadLines):_dcContainedSeg(p,cadLines))continue;
+    cadLines.push(p);
+  }
+  // The ◇ 45° tiling would diamond the diamond — the cut replaces it, so switch it off.
+  if(cadBBoxRotated){
+    cadBBoxRotated=false;
+    const btn=document.getElementById('cadBtnBBoxRot');
+    if(btn){btn.classList.remove('on');btn.textContent='◇ 45°';}
+  }
+  cadFamsLocked=false;cadFamSel=-1;
   cadUpdateAll();
 };
 

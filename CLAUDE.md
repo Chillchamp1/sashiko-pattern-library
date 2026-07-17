@@ -595,6 +595,26 @@ unchanged because `.cad-tool-group` and `.cad-toolbar` share `gap:6px`.
   it. (`sashikoToolbarLayout()` is the console equivalent.) No Firestore/rules involved (deliberately simpler than the
   gallery's Firestore order, since this is a single-admin, rarely-changed, global setting).
 
+## ◆ Diamond re-cut ("kitties" cut) — square grid only (2026-07-17)
+`cadDiamondCut()` (cad-engine.js, button `#cadBtnDiamond` in the Move cluster) re-partitions the drawn
+motif so PLAIN rectangular tiling shows a **diamond (centered / half-drop) arrangement** — the reliable
+alternative to the ◇ 45° tiling for "motif on a diamond grid" (like the traditional cat-face patterns:
+draw the face whole, the unit cell carries it cut through the middle). One-shot geometry transform
+(Undo restores), applied to `cadLines`:
+- Keeps the motif whole; adds four copies shifted by the **integer half-period** `(round(W/2),round(H/2))`
+  and its period-siblings `(h−W,k)`, `(h,k−H)`, `(h−W,k−H)`, each **clipped to the tile bbox**
+  (`_dcClipSeg` Liang-Barsky; `_dcClipArc` cuts arcs at the four infinite boundary lines and keeps
+  inside sub-arcs — tested incl. negative sweeps, corner circles, tangent merge). The four offsets
+  differ by exactly one period, so adjacent tiles reassemble the pieces into a whole motif at every
+  tile corner. bbox/period unchanged; everything stays on-grid (integer h,k).
+- **Containment skip** (`_dcContainedSeg`/`_dcContainedArc`): a piece fully inside existing geometry is
+  dropped — a motif line parallel to the half-period offset (e.g. centre diagonals) overlaps its own
+  shifted copy, and keeping it would make `cadFindRedundant` drop BOTH at save time.
+- A piece lying wholly ON a max edge is dropped (its congruent twin exists at the min edge).
+- Applying it switches ◇ 45° tiling OFF (it would diamond the diamond).
+- Square grid only: `cadUpdateSettings` hides the button on isometric; the function also guards.
+- Purely a CAD-editor authoring action — no routing-engine change (`route.js --check` unchanged).
+
 ## Isometric view: round circles + screen-cardinal move arrows (2026-07-05)
 The iso projection is anisotropic (`x=(u−v)cos30`, `y=(u+v)sin30`), which distorted two things:
 - **Arcs rendered as ellipses.** Fixed in the arc flatteners: `_isoRoundArcPts(center,r,a1,a2,segs)`
