@@ -596,23 +596,28 @@ unchanged because `.cad-tool-group` and `.cad-toolbar` share `gap:6px`.
   gallery's Firestore order, since this is a single-admin, rarely-changed, global setting).
 
 ## ◆ Diamond re-cut ("kitties" cut) — square grid only (2026-07-17)
-`cadDiamondCut()` (cad-engine.js, button `#cadBtnDiamond` in the Move cluster) re-partitions the drawn
-motif so PLAIN rectangular tiling shows a **diamond (centered / half-drop) arrangement** — the reliable
-alternative to the ◇ 45° tiling for "motif on a diamond grid" (like the traditional cat-face patterns:
-draw the face whole, the unit cell carries it cut through the middle). One-shot geometry transform
-(Undo restores), applied to `cadLines`:
-- Keeps the motif whole; adds four copies shifted by the **integer half-period** `(round(W/2),round(H/2))`
-  and its period-siblings `(h−W,k)`, `(h,k−H)`, `(h−W,k−H)`, each **clipped to the tile bbox**
-  (`_dcClipSeg` Liang-Barsky; `_dcClipArc` cuts arcs at the four infinite boundary lines and keeps
-  inside sub-arcs — tested incl. negative sweeps, corner circles, tangent merge). The four offsets
-  differ by exactly one period, so adjacent tiles reassemble the pieces into a whole motif at every
-  tile corner. bbox/period unchanged; everything stays on-grid (integer h,k).
-- **Containment skip** (`_dcContainedSeg`/`_dcContainedArc`): a piece fully inside existing geometry is
-  dropped — a motif line parallel to the half-period offset (e.g. centre diagonals) overlaps its own
-  shifted copy, and keeping it would make `cadFindRedundant` drop BOTH at save time.
+`cadDiamondCut()` (cad-engine.js, button `#cadBtnDiamond` in the Move cluster) **REPLACES** the drawn
+motif with its boundary-cut version: a copy shifted by the **integer half-period**
+`(h,k)=(round(W/2),round(H/2))` is cut at the tile edges and lands in the corners; the original is
+**removed** (user decision 2026-07-17 — the freed middle is for drawing the ALTERNATE motif of the
+diamond arrangement; drawing the same motif back in the middle gives the classic one-motif diamond).
+Like the traditional cat-face patterns: draw the face whole, the unit cell carries it cut through the
+middle. One-shot geometry transform (Undo restores), applied to `cadLines`:
+- Emits the four period-sibling offsets `(h,k)`, `(h−W,k)`, `(h,k−H)`, `(h−W,k−H)`, each **clipped to
+  the tile bbox** (`_dcClipSeg` Liang-Barsky; `_dcClipArc` cuts arcs at the four infinite boundary
+  lines and keeps inside sub-arcs — tested incl. negative sweeps, corner circles, tangent merge). The
+  offsets differ by exactly one period, so adjacent tiles reassemble the pieces into a whole motif at
+  every tile corner. Everything stays on-grid (integer h,k). NB a line parallel to the offset (e.g. a
+  centre diagonal) maps onto its own line and visibly "stays" — correct, it's wrap-invariant.
+- **Containment skip** (`_dcContainedSeg`/`_dcContainedArc`): a piece fully inside an already-kept
+  piece is dropped (symmetric motifs map two source lines onto the same piece; keeping both would
+  make `cadFindRedundant` drop BOTH at save time).
 - A piece lying wholly ON a max edge is dropped (its congruent twin exists at the min edge).
 - Applying it switches ◇ 45° tiling OFF (it would diamond the diamond).
 - Square grid only: `cadUpdateSettings` hides the button on isometric; the function also guards.
+- Caveat: if the pieces don't reach the old bbox edges (motif content invariant-free around the
+  half-period lines, e.g. bars only at x=0 and x=W), the bbox — and thus the tiling period — shrinks.
+  Rare; Undo restores.
 - Purely a CAD-editor authoring action — no routing-engine change (`route.js --check` unchanged).
 
 ## Isometric view: round circles + screen-cardinal move arrows (2026-07-05)

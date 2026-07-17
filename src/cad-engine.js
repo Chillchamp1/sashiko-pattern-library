@@ -1222,7 +1222,6 @@ window.cadDiamondCut=function(){
   if(W<2||H<2){alert('Motif too small for a diamond repeat (needs at least 2×2 grid units).');return;}
   const rc={x0:bb.minU,x1:bb.minU+W,y0:bb.minV,y1:bb.minV+H};
   const h=Math.round(W/2), k=Math.round(H/2);   // integer half-period → pieces stay on-grid
-  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
   const pieces=[];
   for(const[ox,oy]of[[h,k],[h-W,k],[h,k-H],[h-W,k-H]]){
     for(const l of cadLines){
@@ -1238,14 +1237,22 @@ window.cadDiamondCut=function(){
   // (and would double up with the next tile) — keep only the min-edge copy.
   const onMax=l=>!l.arc&&((Math.abs(l.start[0]-rc.x1)<1e-6&&Math.abs(l.end[0]-rc.x1)<1e-6)
                         ||(Math.abs(l.start[1]-rc.y1)<1e-6&&Math.abs(l.end[1]-rc.y1)<1e-6));
-  // A piece fully CONTAINED in existing geometry is redundant — a motif line parallel to the
-  // half-period offset overlaps its own shifted copy (e.g. centre diagonals), and keeping the
-  // piece would make cadFindRedundant drop BOTH at save time, losing the line entirely.
+  // Drop pieces fully CONTAINED in an already-kept piece (symmetric motifs can map two
+  // source lines onto the same piece) — keeping both would make cadFindRedundant drop
+  // BOTH at save time, losing the line entirely.
+  const kept=[];
   for(const p of pieces){
     if(onMax(p))continue;
-    if(p.arc?_dcContainedArc(p,cadLines):_dcContainedSeg(p,cadLines))continue;
-    cadLines.push(p);
+    if(p.arc?_dcContainedArc(p,kept):_dcContainedSeg(p,kept))continue;
+    kept.push(p);
   }
+  if(!kept.length)return;
+  cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
+  // REPLACE the motif with its boundary-cut version: the original is removed; only the
+  // corner pieces remain, and the freed middle is for drawing the alternate motif of the
+  // diamond arrangement. (A line parallel to the half-period offset — e.g. a centre
+  // diagonal — maps onto its own line, so it visibly "stays"; that is correct.)
+  cadLines=kept;
   // The ◇ 45° tiling would diamond the diamond — the cut replaces it, so switch it off.
   if(cadBBoxRotated){
     cadBBoxRotated=false;
