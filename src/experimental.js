@@ -1447,16 +1447,25 @@ window.editExpPattern=async function(idOrPat){
   // Restore the saved draw-grid size (down to 1 — no forced min of 2), but never smaller than
   // the motif needs. Older patterns have no gridMacro → derive from the bbox.
   const macroVal=Math.min(12,Math.max(1,Math.ceil(maxDim/CAD_MICRO),pat.gridMacro||0));
-  // Center lines in the grid: shift so bbox center lands at grid center
+  // Center lines in the grid: shift so bbox center lands at grid center.
+  // Phase-aware (2026-07-22): the raw shift gc−centre is a HALF-integer whenever the
+  // bbox extent is odd — that pushed every endpoint 0.5 off the dots ("pattern jumps
+  // half a grid after saving"). Snap the shift so the motif's own majority endpoint
+  // phase φ (_cadGridPhaseOf) lands ON the integer grid: s = round(b+φ)−φ.
+  //   φ=0 (normal integer motifs)      → integer shift, bug fixed;
+  //   constant φ (45°-rotated, Ishi)   → identical to the old behaviour (on the dots);
+  //   φ=0.5 (stale half-shifted saves) → healed on load.
   {const tc=macroVal*CAD_MICRO;
    const cu=(pat.bbox.minU+pat.bbox.maxU)/2, cv=(pat.bbox.minV+pat.bbox.maxV)/2;
    const gc=tc/2;
+   const[phU,phV]=_cadGridPhaseOf(pat.lines);
+   const su=Math.round(gc-cu+phU)-phU, sv=Math.round(gc-cv+phV)-phV;
    cadLines=pat.lines.map(l=>{
      if(l.arc&&l.center!==undefined){
-       const nc=[l.center[0]+gc-cu,l.center[1]+gc-cv];
-       return{arc:true,center:nc,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]+gc-cu,l.start[1]+gc-cv],end:[l.end[0]+gc-cu,l.end[1]+gc-cv]};
+       const nc=[l.center[0]+su,l.center[1]+sv];
+       return{arc:true,center:nc,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]+su,l.start[1]+sv],end:[l.end[0]+su,l.end[1]+sv]};
      }
-     return{start:[l.start[0]+gc-cu,l.start[1]+gc-cv],end:[l.end[0]+gc-cu,l.end[1]+gc-cv],...(l.arc?{arc:true}:{})};
+     return{start:[l.start[0]+su,l.start[1]+sv],end:[l.end[0]+su,l.end[1]+sv],...(l.arc?{arc:true}:{})};
    });
   }
   // Restore families and order from saved pattern

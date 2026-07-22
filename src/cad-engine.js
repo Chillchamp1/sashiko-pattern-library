@@ -1134,12 +1134,37 @@ window.cadStepPatMacro=function(d){
   cadPatMacro=Math.max(1,Math.min(12,(cadPatMacro||3)+d));
   _cadSyncTilesLabel();cadUpdateSettings();
 };
+// Majority fractional offset of the drawn endpoints from the integer grid, per axis.
+// A phase is only non-zero when a clear majority (≥50%) of the endpoints shares it
+// (same gating idea as _galGridPhase) — 45°-rotated motifs with MIXED fractions
+// report 0, so nothing arbitrary happens to them. A constant offset (e.g. the 0.5
+// a stale buggy save left behind, or Ishi Guruma's √2 phase) is detected exactly.
+function _cadGridPhaseOf(lines){
+  const phase=ci=>{
+    const cnt=new Map();let tot=0;
+    lines.forEach(l=>{[l.start,l.end].forEach(p=>{
+      const f=((p[ci]%1)+1)%1;
+      const k=Math.round(f*1000)%1000;   // cluster to 1e-3, wraps 0.9996→0
+      cnt.set(k,(cnt.get(k)||0)+1);tot++;
+    });});
+    if(!tot)return 0;
+    let bk=0,bc=-1;cnt.forEach((c,k)=>{if(c>bc){bc=c;bk=k;}});
+    return bc/tot>=0.5?bk/1000:0;
+  };
+  return[phase(0),phase(1)];
+}
 window.cadMovePattern=function(du,dv){
   if(!cadLines.length)return;
   // In the isometric view the u/v axes run diagonally on screen, so ↑↓←→ with raw (du,dv) moves
   // the pattern diagonally. Remap the intended screen direction to the on-grid step that moves it
   // visually up/down/left/right: vertical → (±1,±1), horizontal → (±1,∓1).
   if(cadGridType==='isometric'){ if(du!==0)dv=-du; else du=dv; }
+  // Grid re-snap: if the whole motif sits a constant fraction off the integer grid
+  // (typically 0.5, left behind by the old load-centring bug), the arrow press also
+  // cancels that offset — one keypress puts a stale off-grid pattern back on the dots.
+  {const[pu,pv]=_cadGridPhaseOf(cadLines);
+   du+=pu?(pu>0.5?1-pu:-pu):0;
+   dv+=pv?(pv>0.5?1-pv:-pv):0;}
   cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies],o:[...cadFamOrder]});
   cadLines=cadLines.map(l=>{
     if(l.arc){
