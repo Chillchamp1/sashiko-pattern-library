@@ -478,9 +478,9 @@ body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 /* Experimental gallery cards */
 .pcard.exp-card{border-color:#2a3060;background:#141828;position:relative}
 .pcard.exp-card:hover{background:#1a2040;border-color:#3a4a8a}
-.exp-del-btn{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
+.exp-del-btn{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;background:rgba(200,50,50,.8);border:none;color:#fff;cursor:pointer;display:none;padding:0;font:inherit;font-size:15px;line-height:1}
 .pcard:hover .exp-del-btn{display:flex;align-items:center;justify-content:center}
-.exp-edit-btn{position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:50%;background:rgba(80,140,200,.8);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
+.exp-edit-btn{position:absolute;top:5px;left:5px;width:26px;height:26px;border-radius:50%;background:rgba(80,140,200,.8);border:none;color:#fff;cursor:pointer;display:none;padding:0;font:inherit;font-size:14px;line-height:1}
 .pcard.exp-card:hover .exp-edit-btn{display:flex;align-items:center;justify-content:center}
 /* My Patterns button in toolbar */
 .filt.mypats-btn{background:#141828;border-color:#2a3060;color:#9090d4}
@@ -497,7 +497,8 @@ body.is-admin #pgrid .pcard.exp-card:hover .exp-edit-btn{display:flex!important}
 #cadPublishBtn{display:none}
 body.is-admin #cadPublishBtn{display:inline-flex}
 /* Sandbox "publish to gallery" button — admin only (normal users just save to sandbox) */
-.exp-pub-btn{position:absolute;top:5px;left:27px;width:18px;height:18px;border-radius:50%;background:rgba(210,140,40,.92);border:none;color:#fff;font-size:10px;line-height:1;cursor:pointer;display:none;padding:0;font:inherit}
+/* Publish sits right of the (now bigger) edit button; same size so the corner trio matches. */
+.exp-pub-btn{position:absolute;top:5px;left:35px;width:26px;height:26px;border-radius:50%;background:rgba(210,140,40,.92);border:none;color:#fff;cursor:pointer;display:none;padding:0;font:inherit;font-size:14px;line-height:1}
 body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:center;justify-content:center}
 /* Toolbar filter checkboxes (shape on every tab; Sashiko/Embroidery technique only on Community) */
 .filt-checks{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
