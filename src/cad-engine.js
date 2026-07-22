@@ -1129,8 +1129,9 @@ window.cadUpdateTraditional=function(){
     cadCommunity=false;const cb=document.getElementById('cadCommunity');if(cb)cb.checked=false;
     const wasEmb=cadEmbroidery;cadEmbroidery=false;
     _cadSyncCommunityUI();
+    const nf=document.getElementById('cadCommunityName');if(nf)nf.focus();
     if(wasEmb){_cadSyncTilesLabel();_cadRefreshTiling(true);cadUpdateAll();}
-  }
+  }else{_cadSyncCommunityUI();}
 };
 window.cadUpdateCommunity=function(){
   cadCommunity=document.getElementById('cadCommunity').checked;
@@ -1138,10 +1139,8 @@ window.cadUpdateCommunity=function(){
   // Unchecking Community also drops the Embroidery sub-flag (it only exists for community patterns).
   const wasEmb=cadEmbroidery;
   if(!cadCommunity)cadEmbroidery=false;
-  const nf=document.getElementById('cadCommunityName');
-  // visibility (not display) → the field keeps its reserved space, so the Save button never shifts.
-  if(nf){nf.style.visibility=cadCommunity?'visible':'hidden';if(cadCommunity)nf.focus();}
   _cadSyncCommunityUI();
+  if(cadCommunity){const nf=document.getElementById('cadCommunityName');if(nf)nf.focus();}
   if(wasEmb!==cadEmbroidery){_cadSyncTilesLabel();_cadRefreshTiling(true);cadUpdateAll();}
 };
 window.cadUpdateCommunityName=function(){cadCommunityName=document.getElementById('cadCommunityName').value.trim();};
@@ -1156,7 +1155,9 @@ window.cadUpdateEmbroidery=function(){
 function _cadSyncCommunityUI(){
   const cb=document.getElementById('cadCommunity'),nf=document.getElementById('cadCommunityName');
   if(cb)cb.checked=cadCommunity;
-  if(nf){nf.value=cadCommunityName;nf.style.visibility=cadCommunity?'visible':'hidden';}
+  // Name field shows for Community ("by …") AND Traditional ("added by: …") patterns.
+  // visibility (not display) → the field keeps its reserved space, so the Save button never shifts.
+  if(nf){nf.value=cadCommunityName;nf.style.visibility=(cadCommunity||cadTraditional)?'visible':'hidden';}
   const eb=document.getElementById('cadEmbroidery'),ew=document.getElementById('cadEmbroideryWrap');
   if(eb)eb.checked=cadEmbroidery;
   if(ew)ew.style.visibility=cadCommunity?'visible':'hidden';
@@ -1421,7 +1422,7 @@ window.cadSaveToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1470,7 +1471,7 @@ window.cadPublishToLibrary=async function(){
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){

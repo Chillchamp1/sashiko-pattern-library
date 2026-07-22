@@ -330,10 +330,12 @@ The admin-curated order is also the answer to "most popular / featured first" (t
 `cadUpdateCommunityName`) in the space beside it. The field toggles **`visibility`** (not `display`) so it keeps
 its reserved width and the Save button never shifts. **Traditional and Community are mutually exclusive** —
 checking one clears the other (in both `cadUpdateTraditional`/`cadUpdateCommunity`). Saved as `community:bool` +
-`communityName:string` (empty unless community is on) on the pattern (round-trips via `_pushToFirestore` spread +
-the 80-key rule — no rules change). Gallery + sandbox cards show `by <name>` in small italic under the pattern
-name (`.pcard-by`) **only when both `community` and a non-empty `communityName` are set** — the name is never
-mandatory. `editExpPattern`/`remixPattern`/`showCAD` restore or reset the fields via `_cadSyncCommunityUI()`
+`communityName:string` on the pattern (round-trips via `_pushToFirestore` spread +
+the 80-key rule — no rules change). **The name field also shows for Traditional patterns (2026-07-22):**
+`_cadSyncCommunityUI` reveals `#cadCommunityName` when `cadCommunity||cadTraditional`; saves keep the name
+under the same `communityName` key for either flag (empty when neither is set). Gallery + sandbox cards
+(`.pcard-by` in `_buildExpCard` + `expCardHTML`) show `by <name>` for community patterns and
+`added by: <name>` for traditional ones — only with a non-empty name; the name is never mandatory. `editExpPattern`/`remixPattern`/`showCAD` restore or reset the fields via `_cadSyncCommunityUI()`
 (cad-engine.js). Search also matches `communityName` (and `embroidery` for embroidery-flagged patterns).
 
 **Embroidery = community-only single-motif flag (2026-07-11).** Checking Community also reveals an optional
