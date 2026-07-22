@@ -1,0 +1,168 @@
+{
+  "bbox": {
+    "maxU": 4,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "createdAt": 1782945737294,
+  "creatorId": "uq9c875443t",
+  "famOrder": [
+    0,
+    1
+  ],
+  "families": [
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0
+  ],
+  "gridType": "isometric",
+  "id": "exp_1782945737294",
+  "lines": [
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        0,
+        4
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        3,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        3,
+        3
+      ]
+    }
+  ],
+  "name": "Diamond Blue Waves",
+  "order": 3,
+  "patMacro": 1,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": true,
+  "thumbCells": 3,
+  "traditional": true,
+  "type": "exp",
+  "updatedAt": 1784724455668
+}

@@ -1,0 +1,51 @@
+{
+  "bbox": {
+    "maxU": 0,
+    "maxV": 10,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1784726414272,
+  "creatorId": "uwpod63ttdj",
+  "deleted": true,
+  "deletedAt": 1784726442517,
+  "embroidery": false,
+  "famOrder": [
+    0
+  ],
+  "famRouting": {},
+  "families": [
+    0
+  ],
+  "gridMacro": 3,
+  "gridType": "isometric",
+  "id": "exp_1784726414272",
+  "lines": [
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        10
+      ]
+    }
+  ],
+  "name": "ZZ-mergetest-B",
+  "patMacro": 3,
+  "remixOf": "exp_1784726391845",
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784726431181
+}

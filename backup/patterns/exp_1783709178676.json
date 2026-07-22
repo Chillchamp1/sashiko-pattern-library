@@ -1,0 +1,219 @@
+{
+  "bbox": {
+    "maxU": 7.777999999999999,
+    "maxV": 7.777999999999999,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "AntiqueWish",
+  "createdAt": 1783709178676,
+  "creatorId": "u8pyswthw4v",
+  "embroidery": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "families": [
+    4,
+    0,
+    2,
+    2,
+    2,
+    4,
+    0,
+    2,
+    2,
+    4,
+    3,
+    1,
+    0,
+    2,
+    4,
+    0
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1783709178676",
+  "lines": [
+    {
+      "end": [
+        7.778,
+        1.414
+      ],
+      "start": [
+        6.364,
+        1.414
+      ]
+    },
+    {
+      "end": [
+        6.364,
+        0
+      ],
+      "start": [
+        6.364,
+        1.414
+      ]
+    },
+    {
+      "end": [
+        5.657,
+        0.707
+      ],
+      "start": [
+        6.364,
+        0
+      ]
+    },
+    {
+      "end": [
+        7.071,
+        2.121
+      ],
+      "start": [
+        7.778,
+        1.414
+      ]
+    },
+    {
+      "end": [
+        6.364,
+        2.828
+      ],
+      "start": [
+        7.071,
+        2.121
+      ]
+    },
+    {
+      "end": [
+        4.95,
+        2.828
+      ],
+      "start": [
+        6.364,
+        2.828
+      ]
+    },
+    {
+      "end": [
+        4.95,
+        1.414
+      ],
+      "start": [
+        4.95,
+        2.828
+      ]
+    },
+    {
+      "end": [
+        5.657,
+        0.707
+      ],
+      "start": [
+        4.95,
+        1.414
+      ]
+    },
+    {
+      "end": [
+        1.414,
+        6.364
+      ],
+      "start": [
+        4.95,
+        2.828
+      ]
+    },
+    {
+      "end": [
+        2.828,
+        6.364
+      ],
+      "start": [
+        1.414,
+        6.364
+      ]
+    },
+    {
+      "end": [
+        0,
+        7.778
+      ],
+      "start": [
+        2.828,
+        6.364
+      ]
+    },
+    {
+      "end": [
+        1.414,
+        4.95
+      ],
+      "start": [
+        0,
+        7.778
+      ]
+    },
+    {
+      "end": [
+        1.414,
+        6.364
+      ],
+      "start": [
+        1.414,
+        4.95
+      ]
+    },
+    {
+      "end": [
+        4.95,
+        2.828
+      ],
+      "start": [
+        6.364,
+        1.414
+      ]
+    },
+    {
+      "end": [
+        5.657,
+        2.121
+      ],
+      "start": [
+        7.071,
+        2.121
+      ]
+    },
+    {
+      "end": [
+        5.657,
+        0.707
+      ],
+      "start": [
+        5.657,
+        2.121
+      ]
+    }
+  ],
+  "name": "Arrows",
+  "order": 38,
+  "patMacro": 2.3333999999999997,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 1,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784727594498
+}

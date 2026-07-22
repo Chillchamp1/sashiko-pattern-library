@@ -1,0 +1,307 @@
+{
+  "bbox": {
+    "maxU": 12,
+    "maxV": 18,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "AntiqueWish (remix version)",
+  "createdAt": 1782964254541,
+  "creatorId": "uconggef72r",
+  "embroidery": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "families": [
+    0,
+    4,
+    0,
+    5,
+    2,
+    0,
+    3,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1782964254541",
+  "lines": [
+    {
+      "end": [
+        10,
+        0
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        8,
+        4
+      ],
+      "start": [
+        10,
+        0
+      ]
+    },
+    {
+      "end": [
+        12,
+        4
+      ],
+      "start": [
+        8,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        18
+      ],
+      "start": [
+        12,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        7
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        0,
+        7
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        2,
+        18
+      ]
+    },
+    {
+      "end": [
+        10,
+        4
+      ],
+      "start": [
+        10,
+        0
+      ]
+    },
+    {
+      "end": [
+        9,
+        4
+      ],
+      "start": [
+        9,
+        2
+      ]
+    },
+    {
+      "end": [
+        11,
+        4
+      ],
+      "start": [
+        11,
+        0
+      ]
+    },
+    {
+      "end": [
+        10,
+        7
+      ],
+      "start": [
+        10,
+        18
+      ]
+    },
+    {
+      "end": [
+        9,
+        18
+      ],
+      "start": [
+        9,
+        8
+      ]
+    },
+    {
+      "end": [
+        8,
+        10
+      ],
+      "start": [
+        8,
+        18
+      ]
+    },
+    {
+      "end": [
+        7,
+        18
+      ],
+      "start": [
+        7,
+        11
+      ]
+    },
+    {
+      "end": [
+        6,
+        13
+      ],
+      "start": [
+        6,
+        18
+      ]
+    },
+    {
+      "end": [
+        5,
+        14
+      ],
+      "start": [
+        5,
+        18
+      ]
+    },
+    {
+      "end": [
+        4,
+        15
+      ],
+      "start": [
+        4,
+        18
+      ]
+    },
+    {
+      "end": [
+        3,
+        17
+      ],
+      "start": [
+        3,
+        18
+      ]
+    },
+    {
+      "end": [
+        2,
+        7
+      ],
+      "start": [
+        2,
+        18
+      ]
+    },
+    {
+      "end": [
+        3,
+        14
+      ],
+      "start": [
+        3,
+        7
+      ]
+    },
+    {
+      "end": [
+        4,
+        11
+      ],
+      "start": [
+        4,
+        7
+      ]
+    },
+    {
+      "end": [
+        1,
+        18
+      ],
+      "start": [
+        1,
+        7
+      ]
+    },
+    {
+      "end": [
+        12,
+        18
+      ],
+      "start": [
+        12,
+        0
+      ]
+    },
+    {
+      "end": [
+        11,
+        18
+      ],
+      "start": [
+        11,
+        5.4
+      ]
+    }
+  ],
+  "name": "Lightning bolt 1 Remix",
+  "patMacro": 3.6,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 2,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784514446526
+}

@@ -1,0 +1,341 @@
+{
+  "bbox": {
+    "maxU": 8,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "Cherry Blossom",
+  "createdAt": 1784018562794,
+  "creatorId": "uuqxh5yyn7w",
+  "embroidery": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "families": [
+    3,
+    0,
+    5,
+    4,
+    1,
+    2,
+    4,
+    5,
+    2,
+    1,
+    4,
+    2,
+    5,
+    0,
+    3,
+    1,
+    2,
+    4,
+    0,
+    1,
+    5,
+    3,
+    3,
+    0,
+    3,
+    0,
+    3
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1784018562794",
+  "lines": [
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        5,
+        2
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        0
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        5,
+        2
+      ],
+      "start": [
+        6,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        0
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        6,
+        4
+      ],
+      "start": [
+        5,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        6,
+        4
+      ]
+    },
+    {
+      "end": [
+        7,
+        2
+      ],
+      "start": [
+        6,
+        4
+      ]
+    },
+    {
+      "end": [
+        6,
+        0
+      ],
+      "start": [
+        7,
+        2
+      ]
+    },
+    {
+      "end": [
+        8,
+        3
+      ],
+      "start": [
+        6,
+        4
+      ]
+    },
+    {
+      "end": [
+        8,
+        2
+      ],
+      "start": [
+        7,
+        2
+      ]
+    },
+    {
+      "end": [
+        8,
+        1
+      ],
+      "start": [
+        8,
+        3
+      ]
+    },
+    {
+      "end": [
+        8,
+        1
+      ],
+      "start": [
+        6,
+        0
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        0,
+        3
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        6,
+        4
+      ],
+      "start": [
+        6,
+        3
+      ]
+    },
+    {
+      "end": [
+        6,
+        0
+      ],
+      "start": [
+        6,
+        1
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        7,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        3
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        3,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        2,
+        0
+      ]
+    }
+  ],
+  "name": "Hydrangea",
+  "order": 32,
+  "patMacro": 2.4,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": true,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784727594498
+}

@@ -1,0 +1,58 @@
+{
+  "bbox": {
+    "maxU": 4,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "createdAt": 1782336864528,
+  "creatorId": "uq9c875443t",
+  "famOrder": [
+    0,
+    1
+  ],
+  "families": [
+    1,
+    0
+  ],
+  "gridType": "square",
+  "id": "exp_1782336864528",
+  "lines": [
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        0,
+        0
+      ]
+    }
+  ],
+  "name": "Naname Sugi-zashi (Diagonal Cross Stitch))",
+  "order": 25,
+  "patMacro": 5,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 4,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 12,
+  "traditional": true,
+  "type": "exp",
+  "updatedAt": 1784727523710
+}

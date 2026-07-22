@@ -1,0 +1,263 @@
+{
+  "bbox": {
+    "maxU": 20,
+    "maxV": 20,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "",
+  "createdAt": 1784280253871,
+  "creatorId": "uuqxh5yyn7w",
+  "embroidery": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "families": [
+    7,
+    3,
+    7,
+    3,
+    4,
+    0,
+    4,
+    0,
+    2,
+    6,
+    2,
+    6,
+    6,
+    2,
+    6,
+    2,
+    1,
+    5,
+    1,
+    5
+  ],
+  "gridMacro": 3,
+  "gridType": "square",
+  "id": "exp_1784280253871",
+  "lines": [
+    {
+      "end": [
+        10,
+        7
+      ],
+      "start": [
+        7,
+        10
+      ]
+    },
+    {
+      "end": [
+        13,
+        10
+      ],
+      "start": [
+        10,
+        7
+      ]
+    },
+    {
+      "end": [
+        10,
+        13
+      ],
+      "start": [
+        13,
+        10
+      ]
+    },
+    {
+      "end": [
+        7,
+        10
+      ],
+      "start": [
+        10,
+        13
+      ]
+    },
+    {
+      "end": [
+        7,
+        7
+      ],
+      "start": [
+        7,
+        13
+      ]
+    },
+    {
+      "end": [
+        13,
+        7
+      ],
+      "start": [
+        7,
+        7
+      ]
+    },
+    {
+      "end": [
+        13,
+        13
+      ],
+      "start": [
+        13,
+        7
+      ]
+    },
+    {
+      "end": [
+        7,
+        13
+      ],
+      "start": [
+        13,
+        13
+      ]
+    },
+    {
+      "end": [
+        11.8,
+        15.4
+      ],
+      "start": [
+        7,
+        13
+      ]
+    },
+    {
+      "end": [
+        11.8,
+        15.4
+      ],
+      "start": [
+        13,
+        13
+      ]
+    },
+    {
+      "end": [
+        15.4,
+        8.2
+      ],
+      "start": [
+        13,
+        7
+      ]
+    },
+    {
+      "end": [
+        8.2,
+        4.6
+      ],
+      "start": [
+        7,
+        7
+      ]
+    },
+    {
+      "end": [
+        15.4,
+        8.2
+      ],
+      "start": [
+        13,
+        13
+      ]
+    },
+    {
+      "end": [
+        4.6,
+        11.8
+      ],
+      "start": [
+        7,
+        13
+      ]
+    },
+    {
+      "end": [
+        4.6,
+        11.8
+      ],
+      "start": [
+        7,
+        7
+      ]
+    },
+    {
+      "end": [
+        8.2,
+        4.6
+      ],
+      "start": [
+        13,
+        7
+      ]
+    },
+    {
+      "end": [
+        20,
+        7
+      ],
+      "start": [
+        8.2,
+        4.6
+      ]
+    },
+    {
+      "end": [
+        13,
+        20
+      ],
+      "start": [
+        15.4,
+        8.2
+      ]
+    },
+    {
+      "end": [
+        0,
+        13
+      ],
+      "start": [
+        11.8,
+        15.4
+      ]
+    },
+    {
+      "end": [
+        7,
+        0
+      ],
+      "start": [
+        4.6,
+        11.8
+      ]
+    }
+  ],
+  "name": "My Pattern",
+  "patMacro": 6,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784682409464
+}

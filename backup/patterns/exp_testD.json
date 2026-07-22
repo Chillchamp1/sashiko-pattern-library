@@ -1,0 +1,53 @@
+{
+  "bbox": {
+    "maxU": 10,
+    "maxV": 10,
+    "minU": 0,
+    "minV": 0
+  },
+  "community": true,
+  "communityName": "Aiko",
+  "createdAt": 1783199311249,
+  "creatorId": "uhz8yiifblg",
+  "deleted": true,
+  "deletedAt": 1783199505227,
+  "famOrder": [
+    0,
+    1
+  ],
+  "families": [
+    0,
+    1
+  ],
+  "gridType": "square",
+  "id": "exp_testD",
+  "lines": [
+    {
+      "end": [
+        10,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        10,
+        10
+      ],
+      "start": [
+        10,
+        0
+      ]
+    }
+  ],
+  "name": "Sandbox Community D",
+  "patMacro": 1,
+  "published": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "type": "exp",
+  "updatedAt": 1783199326792
+}

@@ -1,0 +1,257 @@
+{
+  "bbox": {
+    "maxU": 4,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "createdAt": 1783025229356,
+  "creatorId": "uq9c875443t",
+  "deleted": true,
+  "deletedAt": 1783025427433,
+  "famOrder": [
+    0,
+    1
+  ],
+  "families": [
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1
+  ],
+  "gridType": "isometric",
+  "id": "exp_1783025229356",
+  "lines": [
+    {
+      "end": [
+        0,
+        3
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        1,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        4
+      ],
+      "start": [
+        1,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        3,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        3
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        2,
+        3
+      ]
+    },
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        0
+      ],
+      "start": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        1
+      ]
+    }
+  ],
+  "name": "Higaki (Wooden fence)",
+  "patMacro": 1,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 3,
+  "stitchRatio": "standard",
+  "stitchView": true,
+  "thumbCells": 2,
+  "traditional": true,
+  "type": "exp",
+  "updatedAt": 1783025230223
+}

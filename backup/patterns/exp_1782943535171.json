@@ -1,0 +1,115 @@
+{
+  "bbox": {
+    "maxU": 4,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1782943535171,
+  "creatorId": "uq9c875443t",
+  "famOrder": [
+    0,
+    1
+  ],
+  "families": [
+    1,
+    1,
+    0,
+    0
+  ],
+  "gridMacro": 1,
+  "gridType": "square",
+  "id": "exp_1782943535171",
+  "lines": [
+    {
+      "a1": 3.141593,
+      "a2": 6.283185,
+      "arc": true,
+      "center": [
+        1,
+        2
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1,
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "a1": 0,
+      "a2": 3.141593,
+      "arc": true,
+      "center": [
+        3,
+        2
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1,
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "a1": -1.570796,
+      "a2": 1.570796,
+      "arc": true,
+      "center": [
+        2,
+        1
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1,
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "a1": 1.570796,
+      "a2": 4.712389,
+      "arc": true,
+      "center": [
+        2,
+        3
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1,
+      "start": [
+        2,
+        4
+      ]
+    }
+  ],
+  "name": "Chidori Tsunagi / Pinwheels",
+  "order": 9,
+  "patMacro": 2,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "contour",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 5,
+  "traditional": true,
+  "type": "exp",
+  "updatedAt": 1784724887803
+}

@@ -1,0 +1,242 @@
+{
+  "bbox": {
+    "maxU": 7,
+    "maxV": 7,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "AntiqueWish",
+  "createdAt": 1783540867257,
+  "creatorId": "uconggef72r",
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "families": [
+    2,
+    4,
+    2,
+    4,
+    4,
+    2,
+    4,
+    2,
+    5,
+    3,
+    6,
+    0,
+    3,
+    1,
+    5,
+    0,
+    6,
+    1
+  ],
+  "gridMacro": 2,
+  "gridType": "isometric",
+  "id": "exp_1783540867257",
+  "lines": [
+    {
+      "end": [
+        5,
+        6
+      ],
+      "start": [
+        7,
+        7
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        5,
+        6
+      ]
+    },
+    {
+      "end": [
+        6,
+        5
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        7,
+        7
+      ],
+      "start": [
+        6,
+        5
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        3
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        2,
+        3
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        5,
+        2
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        5,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        5
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        3
+      ],
+      "start": [
+        2,
+        5
+      ]
+    },
+    {
+      "end": [
+        2,
+        3
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        3,
+        7
+      ],
+      "start": [
+        3,
+        5
+      ]
+    },
+    {
+      "end": [
+        5,
+        6
+      ],
+      "start": [
+        3,
+        7
+      ]
+    },
+    {
+      "end": [
+        7,
+        3
+      ],
+      "start": [
+        6,
+        5
+      ]
+    },
+    {
+      "end": [
+        5,
+        3
+      ],
+      "start": [
+        7,
+        3
+      ]
+    }
+  ],
+  "name": "Isometric Lotus",
+  "order": 49,
+  "patMacro": 2.1,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 2,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784727610412
+}

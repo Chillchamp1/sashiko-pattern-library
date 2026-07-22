@@ -1,0 +1,49 @@
+{
+  "bbox": {
+    "maxU": 4,
+    "maxV": 5,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "Chillchamp",
+  "createdAt": 1783863940045,
+  "creatorId": "uuqxh5yyn7w",
+  "deleted": true,
+  "deletedAt": 1783863948964,
+  "embroidery": false,
+  "famOrder": [
+    0
+  ],
+  "families": [
+    0
+  ],
+  "gridMacro": 2,
+  "gridType": "isometric",
+  "id": "exp_1783863940045",
+  "lines": [
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        0,
+        5
+      ]
+    }
+  ],
+  "name": "test",
+  "patMacro": 1.5,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1783863940049
+}

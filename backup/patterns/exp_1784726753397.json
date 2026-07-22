@@ -1,0 +1,50 @@
+{
+  "bbox": {
+    "maxU": 0,
+    "maxV": 10,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "Benjamin",
+  "createdAt": 1784726753397,
+  "creatorId": "uwpod63ttdj",
+  "deleted": true,
+  "deletedAt": 1784726777599,
+  "embroidery": false,
+  "famOrder": [
+    0
+  ],
+  "famRouting": {},
+  "families": [
+    0
+  ],
+  "gridMacro": 3,
+  "gridType": "isometric",
+  "id": "exp_1784726753397",
+  "lines": [
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        10
+      ]
+    }
+  ],
+  "name": "ZZ-addedby-test",
+  "patMacro": 3,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": true,
+  "type": "exp",
+  "updatedAt": 1784726753422
+}

@@ -670,6 +670,17 @@ though the geometry was identical.
 
 **🖼 Image** button in the left toolbar (`data-did="bgimg"`, → hidden `#cadBgFile` input) loads a picture behind the Draw canvas for tracing contours. State in cad-engine.js: `cadBgImg` + position/size in **grid units** (`cadBgU/V/W`), so the image pans/zooms with the grid; drawn in `cadDrawWorkspace` right after the baked grid at low alpha (`cadBgAlpha`, default 0.22 — deliberately pale, pattern lines render at full contrast on top). **Moving:** Alt+drag on the canvas (free/fractional, `cadBgDrag` in the pointer handlers) or the nudge arrows in `#cadBgControls` below the canvas (0.5-unit steps); the controls row also has size −/+ (`cadBgZoom`), an opacity slider (`cadBgSetAlpha`, 5–60%) and ✕ remove. **Session-only**: never saved with the pattern, cleared by `showCAD` (New Pattern); the 🖼 button tints amber while an image is loaded (`_cadBgSyncUI`).
 
+## Monthly Firestore backup → git (2026-07-22)
+
+`tools/backup/backup-firestore.js` (public-read REST, no auth) snapshots every pattern doc **including
+tombstones** into `backup/patterns/<id>.json` and each pattern's comments (anonymous `uid` stripped) into
+`backup/comments/<id>.json`; deterministic output (sorted keys, no timestamps) so unchanged data = empty
+diff. `.github/workflows/backup.yml` runs it on the **1st of every month** (+ manual `workflow_dispatch`)
+and commits only on change — the git history is the backup timeline. No secrets involved; the collection is
+public-read by design, and the backup carries no private data (see `tools/backup/README.md`, incl. manual
+restore notes). NB GitHub auto-disables cron workflows after ~60 days without repo activity — re-enable via
+the Actions tab if the repo ever goes quiet that long.
+
 ## Editor load centring is phase-aware (2026-07-22)
 
 `editExpPattern` centres the motif with shift `s = round(gc−centre+φ)−φ` where φ = `_cadGridPhaseOf(pat.lines)` (cad-engine.js: majority fractional endpoint offset per axis, ≥50%-share gate). The old raw shift `gc−centre` was a **half-integer whenever the bbox extent was odd**, pushing the whole motif 0.5 off the dots on every editor open (19 of 85 live patterns affected). φ-aware snapping keeps 45°-rotated constant-phase motifs (Ishi Guruma) landing on the dots exactly as before, gives integer motifs an integer shift, and **auto-heals patterns that were saved half-shifted** by the old bug (the next save persists the healed coords). `cadMovePattern` (arrow keys) also cancels a detected constant off-grid phase along with the move — manual one-keypress fix for stale motifs; on-grid patterns are untouched.

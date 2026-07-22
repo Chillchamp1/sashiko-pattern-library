@@ -1,0 +1,110 @@
+{
+  "bbox": {
+    "maxU": 4,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "createdAt": 1782943534545,
+  "creatorId": "ubv38qfe752",
+  "deleted": true,
+  "deletedAt": 1782943619381,
+  "famOrder": [
+    0
+  ],
+  "families": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "gridType": "square",
+  "id": "exp_1782943534545",
+  "lines": [
+    {
+      "a1": 3.141593,
+      "a2": 6.283185,
+      "arc": true,
+      "center": [
+        1,
+        2
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1,
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "a1": 0,
+      "a2": 3.141593,
+      "arc": true,
+      "center": [
+        3,
+        2
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1,
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "a1": -1.570796,
+      "a2": 1.570796,
+      "arc": true,
+      "center": [
+        2,
+        1
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1,
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "a1": 1.570796,
+      "a2": 4.712389,
+      "arc": true,
+      "center": [
+        2,
+        3
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1,
+      "start": [
+        2,
+        4
+      ]
+    }
+  ],
+  "name": "Pinwheels",
+  "patMacro": 2,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 5,
+  "stitchRatio": "standard",
+  "stitchView": true,
+  "thumbCells": 5,
+  "traditional": true,
+  "type": "exp",
+  "updatedAt": 1782943534546
+}

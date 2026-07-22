@@ -1,0 +1,160 @@
+{
+  "bbox": {
+    "maxU": 8,
+    "maxV": 8,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1784290930734,
+  "creatorId": "unn58gle2ke",
+  "deleted": true,
+  "deletedAt": 1784291314497,
+  "embroidery": false,
+  "famOrder": [
+    0,
+    1,
+    2
+  ],
+  "families": [
+    0,
+    1,
+    2,
+    0,
+    2,
+    1,
+    2,
+    2
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1784290930734",
+  "lines": [
+    {
+      "end": [
+        8,
+        4
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        4,
+        8
+      ]
+    },
+    {
+      "a1": 3.141593,
+      "a2": 4.712389,
+      "arc": true,
+      "center": [
+        8,
+        8
+      ],
+      "end": [
+        8,
+        6
+      ],
+      "r": 2,
+      "start": [
+        6,
+        8
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "a1": 4.712389,
+      "a2": 6.283185,
+      "arc": true,
+      "center": [
+        0,
+        8
+      ],
+      "end": [
+        2,
+        8
+      ],
+      "r": 2,
+      "start": [
+        0,
+        6
+      ]
+    },
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "a1": 1.570796,
+      "a2": 3.141593,
+      "arc": true,
+      "center": [
+        8,
+        0
+      ],
+      "end": [
+        6,
+        0
+      ],
+      "r": 2,
+      "start": [
+        8,
+        2
+      ]
+    },
+    {
+      "a1": 0,
+      "a2": 1.570796,
+      "arc": true,
+      "center": [
+        0,
+        0
+      ],
+      "end": [
+        0,
+        2
+      ],
+      "r": 2,
+      "start": [
+        2,
+        0
+      ]
+    }
+  ],
+  "name": "__diamond_test2__",
+  "patMacro": 2.4,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784290930739
+}

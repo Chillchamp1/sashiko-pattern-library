@@ -1,0 +1,429 @@
+{
+  "bbox": {
+    "maxU": 5,
+    "maxV": 5,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "AntiqueWish",
+  "createdAt": 1783646251599,
+  "creatorId": "uconggef72r",
+  "embroidery": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "families": [
+    0,
+    2,
+    3,
+    4,
+    3,
+    2,
+    4,
+    0,
+    3,
+    5,
+    3,
+    1,
+    5,
+    4,
+    3,
+    5,
+    3,
+    4,
+    1,
+    3,
+    5,
+    5,
+    1,
+    1,
+    3,
+    5,
+    3,
+    4,
+    5,
+    5,
+    1,
+    1,
+    2,
+    1,
+    4
+  ],
+  "gridMacro": 1,
+  "gridType": "isometric",
+  "id": "exp_1783646251601",
+  "lines": [
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        0,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        3
+      ],
+      "start": [
+        0,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        1,
+        3
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        3,
+        1
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        1,
+        3
+      ]
+    },
+    {
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        3,
+        1
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "end": [
+        5,
+        3
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        5,
+        3
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        5,
+        5
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        5,
+        5
+      ]
+    },
+    {
+      "end": [
+        3,
+        5
+      ],
+      "start": [
+        4,
+        5
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        3,
+        5
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        1,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        0,
+        2
+      ]
+    }
+  ],
+  "name": "Bushy Rose",
+  "order": 47,
+  "patMacro": 1,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 2,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 2,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784727606840
+}

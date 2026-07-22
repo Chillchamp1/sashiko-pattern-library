@@ -1,0 +1,117 @@
+{
+  "bbox": {
+    "maxU": 12,
+    "maxV": 18,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "ChillChamp",
+  "createdAt": 1782068642173,
+  "creatorId": "uconggef72r",
+  "embroidery": false,
+  "famOrder": [
+    2,
+    0,
+    1
+  ],
+  "families": [
+    2,
+    0,
+    2,
+    0,
+    1,
+    2,
+    1
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1782068642158",
+  "lines": [
+    {
+      "end": [
+        10,
+        0
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        8,
+        4
+      ],
+      "start": [
+        10,
+        0
+      ]
+    },
+    {
+      "end": [
+        12,
+        4
+      ],
+      "start": [
+        8,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        18
+      ],
+      "start": [
+        12,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        7
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        0,
+        7
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        2,
+        18
+      ]
+    }
+  ],
+  "name": "Lightning bolt 1",
+  "patMacro": 5.4,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784513600338
+}

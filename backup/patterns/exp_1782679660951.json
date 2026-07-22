@@ -1,0 +1,409 @@
+{
+  "bbox": {
+    "maxU": 32,
+    "maxV": 10,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "",
+  "createdAt": 1782679660951,
+  "creatorId": "uuqxh5yyn7w",
+  "embroidery": false,
+  "famOrder": [
+    1,
+    0,
+    2
+  ],
+  "famRouting": {
+    "0": "zigzag2",
+    "1": "default",
+    "2": "default"
+  },
+  "families": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    1,
+    1,
+    0,
+    2,
+    2,
+    1,
+    0,
+    1,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    0,
+    0
+  ],
+  "gridMacro": 4,
+  "gridType": "square",
+  "id": "exp_1782679660951",
+  "lines": [
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        5,
+        2
+      ]
+    },
+    {
+      "end": [
+        8,
+        5
+      ],
+      "start": [
+        8,
+        4
+      ]
+    },
+    {
+      "end": [
+        15,
+        2
+      ],
+      "start": [
+        12,
+        2
+      ]
+    },
+    {
+      "end": [
+        16,
+        2
+      ],
+      "start": [
+        15,
+        2
+      ]
+    },
+    {
+      "end": [
+        16,
+        3
+      ],
+      "start": [
+        12,
+        3
+      ]
+    },
+    {
+      "end": [
+        16,
+        4
+      ],
+      "start": [
+        12,
+        4
+      ]
+    },
+    {
+      "end": [
+        11,
+        4
+      ],
+      "start": [
+        11,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        9
+      ],
+      "start": [
+        2,
+        5
+      ]
+    },
+    {
+      "end": [
+        5,
+        8
+      ],
+      "start": [
+        2,
+        5
+      ]
+    },
+    {
+      "end": [
+        14,
+        5
+      ],
+      "start": [
+        11,
+        8
+      ]
+    },
+    {
+      "end": [
+        14,
+        9
+      ],
+      "start": [
+        14,
+        5
+      ]
+    },
+    {
+      "end": [
+        20,
+        7
+      ],
+      "start": [
+        16,
+        7
+      ]
+    },
+    {
+      "end": [
+        20,
+        8
+      ],
+      "start": [
+        16,
+        8
+      ]
+    },
+    {
+      "end": [
+        20,
+        9
+      ],
+      "start": [
+        16,
+        9
+      ]
+    },
+    {
+      "end": [
+        14,
+        10
+      ],
+      "start": [
+        14,
+        9
+      ]
+    },
+    {
+      "end": [
+        18,
+        0
+      ],
+      "start": [
+        18,
+        6
+      ]
+    },
+    {
+      "end": [
+        21,
+        3
+      ],
+      "start": [
+        18,
+        0
+      ]
+    },
+    {
+      "end": [
+        21,
+        9
+      ],
+      "start": [
+        21,
+        7
+      ]
+    },
+    {
+      "end": [
+        24,
+        10
+      ],
+      "start": [
+        24,
+        9
+      ]
+    },
+    {
+      "end": [
+        2,
+        10
+      ],
+      "start": [
+        2,
+        9
+      ]
+    },
+    {
+      "end": [
+        30,
+        0
+      ],
+      "start": [
+        27,
+        3
+      ]
+    },
+    {
+      "end": [
+        30,
+        6
+      ],
+      "start": [
+        30,
+        0
+      ]
+    },
+    {
+      "end": [
+        27,
+        7
+      ],
+      "start": [
+        27,
+        9
+      ]
+    },
+    {
+      "end": [
+        32,
+        7
+      ],
+      "start": [
+        28,
+        7
+      ]
+    },
+    {
+      "end": [
+        32,
+        8
+      ],
+      "start": [
+        28,
+        8
+      ]
+    },
+    {
+      "end": [
+        32,
+        9
+      ],
+      "start": [
+        28,
+        9
+      ]
+    },
+    {
+      "end": [
+        14,
+        1
+      ],
+      "start": [
+        14,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        11,
+        8
+      ],
+      "start": [
+        5,
+        8
+      ]
+    },
+    {
+      "end": [
+        27,
+        3
+      ],
+      "start": [
+        21,
+        3
+      ]
+    }
+  ],
+  "name": "Kitties",
+  "order": 14,
+  "patMacro": 6.4,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "continuous",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 2,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784727523709
+}

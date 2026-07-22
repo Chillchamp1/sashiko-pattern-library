@@ -1,0 +1,45 @@
+{
+  "bbox": {
+    "maxU": 9,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "createdAt": 1782849917703,
+  "creatorId": "ubv38qfe752",
+  "deleted": true,
+  "deletedAt": 1782849937741,
+  "famOrder": [
+    0
+  ],
+  "families": [
+    0
+  ],
+  "gridType": "isometric",
+  "id": "exp_1782849917703",
+  "lines": [
+    {
+      "end": [
+        9,
+        0
+      ],
+      "start": [
+        0,
+        4
+      ]
+    }
+  ],
+  "name": "test",
+  "patMacro": 3,
+  "published": true,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp"
+}
