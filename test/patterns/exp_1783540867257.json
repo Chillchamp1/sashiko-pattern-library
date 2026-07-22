@@ -1,33 +1,11 @@
 {
-  "traditional": false,
-  "spacing": 2,
-  "bbox": {
-    "maxV": 7,
-    "minU": 0,
-    "minV": 0,
-    "maxU": 7
-  },
+  "patMacro": 2.1,
+  "routingEngine": 1,
   "creatorId": "uconggef72r",
-  "stitchLen": 8,
   "gridMacro": 2,
-  "community": true,
-  "type": "exp",
-  "published": true,
-  "createdAt": 1783540867257,
   "bboxRotated": false,
-  "famOrder": [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6
-  ],
+  "type": "exp",
   "stitchGrid": false,
-  "stitchRatio": "standard",
-  "communityName": "AntiqueWish",
-  "routingMode": "default",
   "lines": [
     {
       "end": [
@@ -40,23 +18,23 @@
       ]
     },
     {
+      "end": [
+        4,
+        4
+      ],
       "start": [
         5,
         6
-      ],
-      "end": [
-        4,
-        4
       ]
     },
     {
-      "end": [
-        6,
-        5
-      ],
       "start": [
         4,
         4
+      ],
+      "end": [
+        6,
+        5
       ]
     },
     {
@@ -90,13 +68,13 @@
       ]
     },
     {
+      "end": [
+        2,
+        3
+      ],
       "start": [
         1,
         1
-      ],
-      "end": [
-        2,
-        3
       ]
     },
     {
@@ -130,33 +108,33 @@
       ]
     },
     {
+      "end": [
+        4,
+        4
+      ],
       "start": [
         5,
         2
-      ],
+      ]
+    },
+    {
       "end": [
+        2,
+        5
+      ],
+      "start": [
         4,
         4
       ]
     },
     {
       "start": [
-        4,
-        4
-      ],
-      "end": [
         2,
         5
-      ]
-    },
-    {
+      ],
       "end": [
         0,
         3
-      ],
-      "start": [
-        2,
-        5
       ]
     },
     {
@@ -170,23 +148,23 @@
       ]
     },
     {
-      "start": [
-        3,
-        5
-      ],
       "end": [
         3,
         7
+      ],
+      "start": [
+        3,
+        5
       ]
     },
     {
+      "start": [
+        3,
+        7
+      ],
       "end": [
         5,
         6
-      ],
-      "start": [
-        3,
-        7
       ]
     },
     {
@@ -210,8 +188,15 @@
       ]
     }
   ],
-  "gridType": "isometric",
-  "id": "exp_1783540867257",
+  "updatedAt": 1784714507602,
+  "stitchView": false,
+  "traditional": false,
+  "bbox": {
+    "maxU": 7,
+    "maxV": 7,
+    "minV": 0,
+    "minU": 0
+  },
   "families": [
     2,
     4,
@@ -232,11 +217,26 @@
     6,
     1
   ],
-  "updatedAt": 1784714507602,
   "thumbCells": 3,
-  "patMacro": 2.1,
-  "routingEngine": 1,
-  "order": 49,
+  "spacing": 2,
+  "communityName": "AntiqueWish",
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "stitchRatio": "standard",
+  "community": true,
+  "routingMode": "default",
+  "createdAt": 1783540867257,
   "name": "Isometric Lotus",
-  "stitchView": false
+  "stitchLen": 8,
+  "id": "exp_1783540867257",
+  "gridType": "isometric",
+  "order": 49,
+  "published": true
 }

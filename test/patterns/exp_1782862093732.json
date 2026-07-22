@@ -1,20 +1,12 @@
 {
-  "type": "exp",
-  "createdAt": 1782862093732,
-  "published": true,
-  "bboxRotated": false,
-  "spacing": 0,
-  "bbox": {
-    "maxU": 4,
-    "maxV": 4,
-    "minV": 0,
-    "minU": 0
-  },
-  "traditional": true,
-  "community": false,
-  "gridMacro": 1,
-  "creatorId": "uq9c875443t",
-  "stitchLen": 6,
+  "stitchRatio": "standard",
+  "communityName": "",
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
   "families": [
     1,
     2,
@@ -33,6 +25,17 @@
     1,
     2
   ],
+  "spacing": 0,
+  "thumbCells": 3,
+  "order": 6,
+  "published": true,
+  "gridType": "square",
+  "name": "Tsuzuki Yamagata (Mountains)",
+  "routingMode": "zigzag2",
+  "createdAt": 1782862093732,
+  "stitchLen": 6,
+  "id": "exp_1782862093732",
+  "community": false,
   "lines": [
     {
       "start": [
@@ -45,33 +48,33 @@
       ]
     },
     {
-      "end": [
-        1,
-        0
-      ],
       "start": [
         0,
         2
-      ]
-    },
-    {
-      "end": [
-        2,
-        2
       ],
-      "start": [
+      "end": [
         1,
         0
       ]
     },
     {
-      "end": [
-        2,
+      "start": [
+        1,
         0
       ],
+      "end": [
+        2,
+        2
+      ]
+    },
+    {
       "start": [
         1,
         2
+      ],
+      "end": [
+        2,
+        0
       ]
     },
     {
@@ -85,9 +88,19 @@
       ]
     },
     {
+      "start": [
+        2,
+        1
+      ],
       "end": [
         4,
         0
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
       ],
       "start": [
         2,
@@ -97,16 +110,6 @@
     {
       "start": [
         2,
-        1
-      ],
-      "end": [
-        4,
-        2
-      ]
-    },
-    {
-      "start": [
-        2,
         2
       ],
       "end": [
@@ -115,23 +118,23 @@
       ]
     },
     {
-      "start": [
-        0,
-        2
-      ],
       "end": [
         2,
         3
+      ],
+      "start": [
+        0,
+        2
       ]
     },
     {
-      "end": [
-        0,
-        3
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        0,
+        3
       ]
     },
     {
@@ -155,13 +158,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        2
-      ],
       "end": [
         3,
         4
+      ],
+      "start": [
+        2,
+        2
       ]
     },
     {
@@ -175,43 +178,40 @@
       ]
     },
     {
+      "start": [
+        3,
+        2
+      ],
       "end": [
         4,
         4
-      ],
-      "start": [
-        3,
-        2
       ]
     },
     {
-      "end": [
-        4,
-        2
-      ],
       "start": [
         3,
         4
+      ],
+      "end": [
+        4,
+        2
       ]
     }
   ],
-  "id": "exp_1782862093732",
-  "gridType": "square",
-  "patMacro": 1.2,
-  "routingEngine": 1,
-  "updatedAt": 1784714507598,
-  "thumbCells": 3,
-  "name": "Tsuzuki Yamagata (Mountains)",
-  "stitchView": true,
-  "order": 6,
-  "famOrder": [
-    0,
-    1,
-    2,
-    3
-  ],
+  "type": "exp",
+  "bboxRotated": false,
   "stitchGrid": false,
-  "stitchRatio": "standard",
-  "routingMode": "zigzag2",
-  "communityName": ""
+  "gridMacro": 1,
+  "routingEngine": 1,
+  "patMacro": 1.2,
+  "creatorId": "uq9c875443t",
+  "bbox": {
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0,
+    "maxU": 4
+  },
+  "traditional": true,
+  "stitchView": true,
+  "updatedAt": 1784714507598
 }

@@ -1,35 +1,13 @@
 {
-  "gridMacro": 1,
   "community": false,
-  "creatorId": "uq9c875443t",
   "stitchLen": 8,
-  "bbox": {
-    "maxU": 4.00030265668332,
-    "maxV": 4.000302349550017,
-    "minU": 0,
-    "minV": 0
-  },
-  "spacing": 0,
-  "traditional": true,
-  "bboxRotated": false,
-  "createdAt": 1782555421394,
-  "published": true,
-  "type": "exp",
   "routingMode": "default",
-  "communityName": "",
-  "stitchRatio": "standard",
-  "stitchGrid": false,
-  "famOrder": [
-    0,
-    1
-  ],
-  "stitchView": false,
+  "createdAt": 1782555421394,
   "name": "Toridasuki (Crossed Birds)",
+  "id": "exp_1782555421394",
+  "gridType": "square",
+  "published": true,
   "order": 22,
-  "routingEngine": 1,
-  "patMacro": 2,
-  "thumbCells": 5,
-  "updatedAt": 1784714507600,
   "families": [
     0,
     0,
@@ -40,59 +18,81 @@
     0,
     1
   ],
-  "id": "exp_1782555421394",
-  "gridType": "square",
+  "thumbCells": 5,
+  "spacing": 0,
+  "communityName": "",
+  "famOrder": [
+    0,
+    1
+  ],
+  "stitchRatio": "standard",
+  "updatedAt": 1784714507600,
+  "stitchView": false,
+  "traditional": true,
+  "bbox": {
+    "maxU": 4.00030265668332,
+    "maxV": 4.000302349550017,
+    "minU": 0,
+    "minV": 0
+  },
+  "patMacro": 2,
+  "routingEngine": 1,
+  "creatorId": "uq9c875443t",
+  "gridMacro": 1,
+  "bboxRotated": false,
+  "type": "exp",
+  "stitchGrid": false,
   "lines": [
     {
-      "end": [
-        2,
-        2
-      ],
+      "r": 1.414,
       "center": [
         3,
         1
       ],
-      "a2": 8.63938,
-      "r": 1.414,
-      "a1": 7.068583,
       "start": [
         4,
         2
       ],
-      "arc": true
-    },
-    {
-      "r": 1.414,
-      "a1": -2.356194,
-      "start": [
-        0,
-        2
-      ],
-      "arc": true,
-      "a2": -0.785398,
       "end": [
         2,
         2
       ],
+      "a1": 7.068583,
+      "arc": true,
+      "a2": 8.63938
+    },
+    {
+      "start": [
+        0,
+        2
+      ],
+      "r": 1.414,
       "center": [
         1,
         3
-      ]
+      ],
+      "arc": true,
+      "a1": -2.356194,
+      "end": [
+        2,
+        2
+      ],
+      "a2": -0.785398
     },
     {
       "end": [
         2,
         4
       ],
-      "center": [
-        1,
-        3
-      ],
-      "a1": -0.785398,
       "arc": true,
+      "a1": -0.785398,
       "start": [
         2,
         2
+      ],
+      "center": [
+        1,
+        3
       ],
       "r": 1.414,
       "a2": 0.785398
@@ -102,89 +102,89 @@
         -1,
         3
       ],
-      "end": [
-        0,
-        4
-      ],
-      "a2": 7.068583,
-      "a1": 5.497787,
-      "arc": true,
+      "r": 1.414,
       "start": [
         0,
         2
       ],
-      "r": 1.414
-    },
-    {
-      "start": [
+      "arc": true,
+      "a1": 5.497787,
+      "end": [
         0,
         4
       ],
-      "arc": true,
-      "r": 1.414,
-      "a1": -2.356194,
-      "a2": -0.785398,
-      "end": [
-        2,
-        4
-      ],
+      "a2": 7.068583
+    },
+    {
       "center": [
         1,
         5
-      ]
-    },
-    {
-      "arc": true,
-      "start": [
-        2,
-        2
       ],
       "r": 1.414,
-      "a1": 2.356194,
+      "start": [
+        0,
+        4
+      ],
+      "arc": true,
+      "a1": -2.356194,
+      "end": [
+        2,
+        4
+      ],
+      "a2": -0.785398
+    },
+    {
       "a2": 3.926991,
+      "arc": true,
+      "a1": 2.356194,
+      "end": [
+        2,
+        0
+      ],
       "center": [
         3,
         1
       ],
-      "end": [
+      "r": 1.414,
+      "start": [
         2,
-        0
+        2
       ]
     },
     {
+      "a2": 2.356194,
+      "start": [
+        4,
+        0
+      ],
       "center": [
         3,
         -1
       ],
+      "r": 1.414,
+      "a1": 0.785398,
       "end": [
         2,
         0
       ],
-      "arc": true,
-      "start": [
-        4,
-        0
-      ],
-      "r": 1.414,
-      "a1": 0.785398,
-      "a2": 2.356194
+      "arc": true
     },
     {
       "a2": 3.926991,
-      "a1": 2.356194,
-      "start": [
-        4,
-        2
-      ],
       "arc": true,
-      "r": 1.414,
       "end": [
         4,
         0
       ],
+      "a1": 2.356194,
       "center": [
         5,
         1
+      ],
+      "r": 1.414,
+      "start": [
+        4,
+        2
       ]
     }
   ]

@@ -804,11 +804,10 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <label class="cad-routing-toggle">Routing:
               <select id="cadRoutingMode" onchange="cadUpdateSettings()">
                 <option value="default" selected>1 · Straight rows</option>
-                <option value="rows2">1b · Rows v2 · ordered</option>
-                <option value="rows2e">1c · Rows v2 · efficient</option>
                 <option value="continuous">2 · Zigzag</option>
                 <option value="zigzag2">2b · Zigzag v2</option>
                 <option value="contour">3 · Waves</option>
+                <option value="waves2">3b · Waves v2</option>
                 <option value="sequential">4 · One by one (motifs)</option>
               </select>
               <button id="cadFamRoutingBtn" class="cad-famroute-btn" onclick="cadToggleFamRouting()" title="Advanced: route individual colours with a different logic">▾</button>
@@ -8090,7 +8089,7 @@ function _stitchChains(chains, tol){
   return chains;
 }
 
-function _isKnownMode(m){return m==='default'||m==='continuous'||m==='contour'||m==='sequential'||_isV2Mode(m);}
+function _isKnownMode(m){return m==='default'||m==='continuous'||m==='contour'||m==='sequential'||_isV2Mode(m);}   // retired: smooth, fewer-jumps, rows2, rows2e
 function buildExpPath(lines, famOrderOverride, routingMode, v2opts){
   if(!lines||!lines.length)return[];
 
@@ -8732,20 +8731,19 @@ function matchVertex(d,cost,maxCost){
 }
 
 // ══════════ Routing v2 (additive modes — the four original modes are untouched) ══════════
-// Four NEW selectable routing modes in a separate pipeline (buildExpPath dispatches here
+// Two selectable routing modes in a separate pipeline (buildExpPath dispatches here
 // before touching any v1 code path):
-//   rows2   "1b · Straight rows v2 · ordered"   — robust band-snake: gap-CLUSTERED bands
-//           with RANK parity (fixes min-gap pitch collapse + parity scramble), CENTROID
-//           band coordinate (per ROUTING.md Rule 3), movement-type + 30° orientation bins,
-//           NN fallback when banding degenerates. Prefers the most PREDICTABLE candidate
-//           ordering within 15% of the cheapest.
-//   rows2e  "1c · Straight rows v2 · efficient" — same candidates, always the cheapest by
-//           (jumps over the carry cap, then total jump length).
 //   zigzag2 "2b · Zigzag v2" — strokes built from the POOLED segment set instead of per
 //           family, so ±slope zigzag legs chain through every apex into true edge-to-edge
 //           runs (per-family building broke the chain at every apex); the drawn family is
 //           kept per SEGMENT for colouring.
-// (waves2 "3b · Waves v2" was removed 2026-07-22 — no saved pattern ever used it.)
+//   waves2  "3b · Waves v2" — contour waves exactly as mode 3 builds them, but ordered with
+//           the robust band-snake (_v2OrderFamily: gap-CLUSTERED bands with RANK parity,
+//           CENTROID band coordinate, movement-type + 30° orientation bins, v1/NN fallback
+//           candidates — most PREDICTABLE within 15% of the cheapest) instead of the
+//           fragile min-gap pitch.
+// (rows2 "1b · Rows v2 · ordered" and rows2e "1c · Rows v2 · efficient" were retired
+//  2026-07-22 once no saved pattern used them; waves2 keeps their ordering machinery.)
 // Shared v2 rules (user decisions 2026-07-02):
 //   • HARD CARRY CAP — a back-carry longer than ~1.5× the family's row advance means
 //     "cut the thread" in real sashiko; such jumps are penalised lexicographically BEFORE
@@ -8754,7 +8752,7 @@ function matchVertex(d,cost,maxCost){
 //     verticals → diagonals → curves/mixed (screen-space orientation, iso-aware).
 //   • Closed loops assembled from several OPEN arcs enter at a drawn arc ENDPOINT
 //     (fixes the mid-arc entries _rotateClosedEntry produced on e.g. Maru Shippō).
-function _isV2Mode(m){return m==='rows2'||m==='rows2e'||m==='zigzag2';}
+function _isV2Mode(m){return m==='zigzag2'||m==='waves2';}
 
 // Vertex key aligned to the router's vertex-merge resolution (Q=1e-4 in
 // buildStrokesForFamily): two coordinates the router treats as ONE vertex always
@@ -8923,9 +8921,9 @@ function _v2Axis(infos){
 //   B  movement-type + 30° orientation bins, band-snake per bin (ROUTING.md Rule 3),
 //   D  the v1 orderStrokesFamily ordering (guarantees v2 is never worse than v1),
 //   C  nearest-neighbour (most efficient).
-// variant 'ordered' → most predictable candidate within 15% of the cheapest score;
-// variant 'efficient' → outright cheapest.
-function _v2OrderFamily(strokes,variant){
+// Picks the most predictable candidate within 15% of the cheapest score.
+// (The 'efficient' variant — outright cheapest, mode rows2e — was retired 2026-07-22.)
+function _v2OrderFamily(strokes){
   const infos=strokes.map(p=>_v2StrokeInfo(p)).filter(s=>s.pts.length>=2);
   if(infos.length<=1)return infos;
   const axis=_v2Axis(infos);
@@ -8949,8 +8947,7 @@ function _v2OrderFamily(strokes,variant){
   cands.push({o:_v2NN(infos,null),rank:3});
   cands.forEach(c=>{c.cost=_v2Cost(c.o,cap);c.score=_v2Score(c.cost);});
   cands.sort((x,y)=>x.score!==y.score?x.score-y.score:x.rank-y.rank);
-  if(variant==='efficient')return cands[0].o;
-  // ordered: the most predictable candidate within 15% of the cheapest score —
+  // The most predictable candidate within 15% of the cheapest score —
   // banding only yields to NN when it is MATERIALLY worse (degenerate banding).
   const best=cands[0];
   for(const c of [...cands].sort((x,y)=>x.rank-y.rank)){
@@ -9075,11 +9072,12 @@ function buildExpPathV2(lines,famOrderOverride,mode,opts){
     return path;
   }
 
-  const variant=mode==='rows2e'?'efficient':'ordered';
+  // Only waves2 reaches this tail (rows2/rows2e retired 2026-07-22): contour waves
+  // exactly as mode 3 builds them, ordered with the robust band-snake below.
   const famData=[];
   for(const[fi,segs]of famGroups){
-    const strokes=buildStrokesForFamily(segs,90*Math.PI/180);
-    const infos=_v2OrderFamily(strokes,variant);
+    const strokes=buildContourStrokes(segs,120*Math.PI/180);
+    const infos=_v2OrderFamily(strokes);
     if(!infos.length)continue;
     let arcLen=0,totLen=0;
     for(const s of segs){

@@ -1,11 +1,4 @@
 {
-  "order": 26,
-  "name": "Sankuzushimon (Sets of Three)",
-  "zigzagRouting": false,
-  "bboxRotated": false,
-  "id": "exp_1782393370706",
-  "gridType": "square",
-  "type": "exp",
   "lines": [
     {
       "start": [
@@ -58,13 +51,13 @@
       ]
     },
     {
-      "end": [
-        0,
-        6
-      ],
       "start": [
         0,
         4
+      ],
+      "end": [
+        0,
+        6
       ]
     },
     {
@@ -168,19 +161,9 @@
       ]
     },
     {
-      "start": [
-        8,
-        6
-      ],
       "end": [
         8,
         12
-      ]
-    },
-    {
-      "end": [
-        12,
-        6
       ],
       "start": [
         8,
@@ -188,13 +171,23 @@
       ]
     },
     {
+      "start": [
+        8,
+        6
+      ],
       "end": [
         12,
-        12
-      ],
+        6
+      ]
+    },
+    {
       "start": [
         12,
         6
+      ],
+      "end": [
+        12,
+        12
       ]
     },
     {
@@ -218,12 +211,12 @@
       ]
     },
     {
-      "start": [
-        6,
+      "end": [
+        12,
         2
       ],
-      "end": [
-        12,
+      "start": [
+        6,
         2
       ]
     },
@@ -238,6 +231,13 @@
       ]
     }
   ],
+  "type": "exp",
+  "bboxRotated": false,
+  "famOrder": [
+    0,
+    1
+  ],
+  "patMacro": 4,
   "families": [
     0,
     0,
@@ -263,21 +263,21 @@
     1,
     1
   ],
-  "updatedAt": 1784714507600,
-  "published": true,
-  "createdAt": 1782393370706,
-  "patMacro": 4,
   "creatorId": "uyqa6wy657m",
-  "traditional": true,
+  "spacing": 0,
   "bbox": {
+    "maxU": 12,
     "minV": 0,
     "minU": 0,
-    "maxV": 12,
-    "maxU": 12
+    "maxV": 12
   },
-  "spacing": 0,
-  "famOrder": [
-    0,
-    1
-  ]
+  "order": 26,
+  "published": true,
+  "traditional": true,
+  "gridType": "square",
+  "name": "Sankuzushimon (Sets of Three)",
+  "createdAt": 1782393370706,
+  "zigzagRouting": false,
+  "id": "exp_1782393370706",
+  "updatedAt": 1784714507600
 }

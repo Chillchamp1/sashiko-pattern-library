@@ -1,4 +1,191 @@
 {
+  "published": true,
+  "order": 7,
+  "bbox": {
+    "maxV": 8,
+    "minU": 0,
+    "minV": 0,
+    "maxU": 8
+  },
+  "gridType": "square",
+  "traditional": true,
+  "stitchLen": 8,
+  "name": "Kaku Shippō (Shippō Tsunagi Variation)",
+  "createdAt": 1782654945463,
+  "stitchView": false,
+  "routingMode": "contour",
+  "id": "exp_1782654945463",
+  "updatedAt": 1784714507598,
+  "lines": [
+    {
+      "end": [
+        7,
+        3
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        8,
+        0
+      ],
+      "start": [
+        7,
+        3
+      ]
+    },
+    {
+      "start": [
+        4,
+        4
+      ],
+      "end": [
+        5,
+        1
+      ]
+    },
+    {
+      "end": [
+        8,
+        0
+      ],
+      "start": [
+        5,
+        1
+      ]
+    },
+    {
+      "start": [
+        4,
+        4
+      ],
+      "end": [
+        1,
+        3
+      ]
+    },
+    {
+      "start": [
+        1,
+        3
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        3,
+        1
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "start": [
+        4,
+        4
+      ],
+      "end": [
+        1,
+        5
+      ]
+    },
+    {
+      "start": [
+        1,
+        5
+      ],
+      "end": [
+        0,
+        8
+      ]
+    },
+    {
+      "start": [
+        0,
+        8
+      ],
+      "end": [
+        3,
+        7
+      ]
+    },
+    {
+      "start": [
+        3,
+        7
+      ],
+      "end": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        7,
+        5
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "start": [
+        7,
+        5
+      ],
+      "end": [
+        8,
+        8
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        8,
+        8
+      ]
+    },
+    {
+      "start": [
+        5,
+        7
+      ],
+      "end": [
+        4,
+        4
+      ]
+    }
+  ],
+  "stitchRatio": "standard",
+  "type": "exp",
+  "bboxRotated": false,
+  "stitchGrid": false,
+  "famOrder": [
+    0,
+    1
+  ],
   "families": [
     1,
     1,
@@ -17,195 +204,8 @@
     0,
     0
   ],
-  "type": "exp",
-  "id": "exp_1782654945463",
-  "gridType": "square",
-  "lines": [
-    {
-      "start": [
-        4,
-        4
-      ],
-      "end": [
-        7,
-        3
-      ]
-    },
-    {
-      "end": [
-        8,
-        0
-      ],
-      "start": [
-        7,
-        3
-      ]
-    },
-    {
-      "start": [
-        4,
-        4
-      ],
-      "end": [
-        5,
-        1
-      ]
-    },
-    {
-      "start": [
-        5,
-        1
-      ],
-      "end": [
-        8,
-        0
-      ]
-    },
-    {
-      "start": [
-        4,
-        4
-      ],
-      "end": [
-        1,
-        3
-      ]
-    },
-    {
-      "start": [
-        1,
-        3
-      ],
-      "end": [
-        0,
-        0
-      ]
-    },
-    {
-      "end": [
-        3,
-        1
-      ],
-      "start": [
-        0,
-        0
-      ]
-    },
-    {
-      "end": [
-        4,
-        4
-      ],
-      "start": [
-        3,
-        1
-      ]
-    },
-    {
-      "end": [
-        1,
-        5
-      ],
-      "start": [
-        4,
-        4
-      ]
-    },
-    {
-      "start": [
-        1,
-        5
-      ],
-      "end": [
-        0,
-        8
-      ]
-    },
-    {
-      "start": [
-        0,
-        8
-      ],
-      "end": [
-        3,
-        7
-      ]
-    },
-    {
-      "end": [
-        4,
-        4
-      ],
-      "start": [
-        3,
-        7
-      ]
-    },
-    {
-      "end": [
-        7,
-        5
-      ],
-      "start": [
-        4,
-        4
-      ]
-    },
-    {
-      "start": [
-        7,
-        5
-      ],
-      "end": [
-        8,
-        8
-      ]
-    },
-    {
-      "start": [
-        8,
-        8
-      ],
-      "end": [
-        5,
-        7
-      ]
-    },
-    {
-      "end": [
-        4,
-        4
-      ],
-      "start": [
-        5,
-        7
-      ]
-    }
-  ],
-  "createdAt": 1782654945463,
   "patMacro": 2,
-  "updatedAt": 1784714507598,
-  "thumbCells": 3,
-  "published": true,
-  "stitchView": false,
-  "name": "Kaku Shippō (Shippō Tsunagi Variation)",
-  "order": 7,
-  "bboxRotated": false,
-  "bbox": {
-    "maxU": 8,
-    "maxV": 8,
-    "minV": 0,
-    "minU": 0
-  },
   "spacing": 0,
-  "traditional": true,
-  "stitchGrid": false,
-  "famOrder": [
-    0,
-    1
-  ],
-  "stitchRatio": "standard",
-  "routingMode": "contour",
-  "stitchLen": 8,
+  "thumbCells": 3,
   "creatorId": "un4bcd6du2x"
 }

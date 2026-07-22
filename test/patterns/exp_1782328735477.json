@@ -1,16 +1,6 @@
 {
-  "stitchRatio": "standard",
-  "stitchLen": 8,
-  "creatorId": "ubv38qfe752",
-  "routingMode": "default",
-  "traditional": true,
-  "bbox": {
-    "maxU": 10,
-    "minV": 0,
-    "minU": 0,
-    "maxV": 10
-  },
-  "spacing": 0,
+  "bboxRotated": false,
+  "type": "exp",
   "stitchGrid": false,
   "famOrder": [
     3,
@@ -20,22 +10,16 @@
     2,
     4
   ],
-  "order": 0,
-  "stitchView": false,
-  "name": "Asanoha (Hemp Leaf) Zig Zag",
-  "bboxRotated": false,
-  "id": "exp_1782328735477",
-  "gridType": "isometric",
-  "type": "exp",
+  "stitchRatio": "standard",
   "lines": [
     {
-      "end": [
-        0,
-        0
-      ],
       "start": [
         0,
         10
+      ],
+      "end": [
+        0,
+        0
       ]
     },
     {
@@ -49,13 +33,13 @@
       ]
     },
     {
-      "start": [
-        10,
-        10
-      ],
       "end": [
         0,
         0
+      ],
+      "start": [
+        10,
+        10
       ]
     },
     {
@@ -69,23 +53,23 @@
       ]
     },
     {
-      "end": [
-        3.333,
-        6.667
-      ],
       "start": [
         10,
         10
+      ],
+      "end": [
+        3.333,
+        6.667
       ]
     },
     {
+      "start": [
+        10,
+        10
+      ],
       "end": [
         6.667,
         3.333
-      ],
-      "start": [
-        10,
-        10
       ]
     },
     {
@@ -119,6 +103,7 @@
       ]
     }
   ],
+  "patMacro": 3,
   "families": [
     5,
     1,
@@ -130,9 +115,24 @@
     0,
     0
   ],
-  "updatedAt": 1783247551220,
+  "spacing": 0,
   "thumbCells": 3,
+  "creatorId": "ubv38qfe752",
+  "gridType": "isometric",
+  "traditional": true,
   "published": true,
+  "order": 0,
+  "bbox": {
+    "maxU": 10,
+    "minV": 0,
+    "minU": 0,
+    "maxV": 10
+  },
+  "updatedAt": 1783247551220,
+  "stitchLen": 8,
+  "routingMode": "default",
+  "stitchView": false,
   "createdAt": 1782328735477,
-  "patMacro": 3
+  "name": "Asanoha (Hemp Leaf) Zig Zag",
+  "id": "exp_1782328735477"
 }

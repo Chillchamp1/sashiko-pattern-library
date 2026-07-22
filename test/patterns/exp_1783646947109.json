@@ -1,9 +1,13 @@
 {
-  "order": 47,
-  "name": "Rose",
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 5,
+    "maxU": 5
+  },
+  "traditional": false,
   "stitchView": true,
-  "gridType": "isometric",
-  "id": "exp_1783646947109",
+  "updatedAt": 1784714507602,
   "lines": [
     {
       "start": [
@@ -56,13 +60,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        2
-      ],
       "end": [
         5,
         4
+      ],
+      "start": [
+        4,
+        2
       ]
     },
     {
@@ -76,27 +80,27 @@
       ]
     },
     {
+      "end": [
+        3,
+        3
+      ],
       "start": [
         2,
         2
-      ],
+      ]
+    },
+    {
       "end": [
+        3,
+        2
+      ],
+      "start": [
         3,
         3
       ]
     },
     {
       "end": [
-        3,
-        2
-      ],
-      "start": [
-        3,
-        3
-      ]
-    },
-    {
-      "end": [
         2,
         1
       ],
@@ -106,23 +110,23 @@
       ]
     },
     {
-      "start": [
-        3,
-        1
-      ],
       "end": [
         1,
+        1
+      ],
+      "start": [
+        3,
         1
       ]
     },
     {
-      "start": [
-        1,
-        1
-      ],
       "end": [
         1,
         2
+      ],
+      "start": [
+        1,
+        1
       ]
     },
     {
@@ -136,23 +140,23 @@
       ]
     },
     {
+      "start": [
+        1,
+        2
+      ],
       "end": [
         4,
         5
-      ],
-      "start": [
-        1,
-        2
       ]
     },
     {
-      "start": [
-        4,
-        4
-      ],
       "end": [
         4,
         3
+      ],
+      "start": [
+        4,
+        4
       ]
     },
     {
@@ -166,13 +170,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        3
-      ],
       "end": [
         3,
         1
+      ],
+      "start": [
+        4,
+        3
       ]
     },
     {
@@ -186,13 +190,13 @@
       ]
     },
     {
-      "start": [
-        1,
-        3
-      ],
       "end": [
         0,
         2
+      ],
+      "start": [
+        1,
+        3
       ]
     },
     {
@@ -206,22 +210,22 @@
       ]
     },
     {
-      "end": [
-        5,
-        4
-      ],
       "start": [
         5,
         3
+      ],
+      "end": [
+        5,
+        4
       ]
     },
     {
-      "start": [
-        4,
-        5
-      ],
       "end": [
         3,
+        5
+      ],
+      "start": [
+        4,
         5
       ]
     },
@@ -243,6 +247,36 @@
       "start": [
         1,
         4
+      ]
+    },
+    {
+      "end": [
+        3,
+        1
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "start": [
+        4,
+        1
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        0,
+        2
       ]
     },
     {
@@ -251,37 +285,7 @@
         0
       ],
       "end": [
-        3,
-        1
-      ]
-    },
-    {
-      "start": [
-        4,
-        1
-      ],
-      "end": [
-        4,
-        2
-      ]
-    },
-    {
-      "end": [
-        0,
-        1
-      ],
-      "start": [
-        0,
-        2
-      ]
-    },
-    {
-      "end": [
         1,
-        0
-      ],
-      "start": [
-        2,
         0
       ]
     },
@@ -296,33 +300,33 @@
       ]
     },
     {
-      "end": [
-        3,
-        4
-      ],
       "start": [
         3,
         3
+      ],
+      "end": [
+        3,
+        4
       ]
     },
     {
-      "start": [
-        3,
-        2
-      ],
       "end": [
         4,
         4
-      ]
-    },
-    {
-      "end": [
-        1,
-        2
       ],
       "start": [
         3,
+        2
+      ]
+    },
+    {
+      "start": [
+        3,
         3
+      ],
+      "end": [
+        1,
+        2
       ]
     },
     {
@@ -345,6 +349,33 @@
         2
       ]
     }
+  ],
+  "bboxRotated": false,
+  "type": "exp",
+  "stitchGrid": false,
+  "gridMacro": 1,
+  "patMacro": 0.5,
+  "routingEngine": 1,
+  "creatorId": "u8pyswthw4v",
+  "published": true,
+  "order": 47,
+  "embroidery": false,
+  "gridType": "isometric",
+  "stitchLen": 7,
+  "createdAt": 1783646947109,
+  "routingMode": "default",
+  "name": "Rose",
+  "id": "exp_1783646947109",
+  "community": true,
+  "stitchRatio": "standard",
+  "communityName": "AntiqueWish",
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
   ],
   "families": [
     1,
@@ -382,37 +413,6 @@
     5,
     4
   ],
-  "thumbCells": 1,
-  "updatedAt": 1784714507602,
-  "routingEngine": 1,
-  "patMacro": 0.5,
-  "stitchRatio": "standard",
-  "communityName": "AntiqueWish",
-  "routingMode": "default",
-  "stitchGrid": false,
-  "famOrder": [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5
-  ],
-  "embroidery": false,
-  "bboxRotated": false,
-  "type": "exp",
-  "published": true,
-  "createdAt": 1783646947109,
-  "stitchLen": 7,
-  "creatorId": "u8pyswthw4v",
-  "community": true,
-  "gridMacro": 1,
-  "traditional": false,
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxV": 5,
-    "maxU": 5
-  },
-  "spacing": 2
+  "spacing": 2,
+  "thumbCells": 1
 }

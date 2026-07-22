@@ -1,61 +1,20 @@
 {
-  "stitchGrid": false,
-  "famOrder": [
-    2,
-    0,
-    1,
-    3
-  ],
-  "routingMode": "rows2e",
-  "communityName": "AntiqueWish",
-  "stitchRatio": "standard",
+  "updatedAt": 1784718690831,
+  "stitchView": true,
+  "traditional": false,
+  "bbox": {
+    "minU": 0,
+    "maxV": 8,
+    "minV": 0,
+    "maxU": 7
+  },
+  "creatorId": "uuqxh5yyn7w",
   "routingEngine": 1,
   "patMacro": 1.6,
-  "updatedAt": 1784716128422,
-  "thumbCells": 2,
-  "families": [
-    2,
-    2,
-    2,
-    2,
-    2,
-    0,
-    2,
-    2,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    2,
-    2,
-    2,
-    0,
-    2,
-    2,
-    1,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    0,
-    0,
-    0,
-    2,
-    2
-  ],
-  "id": "exp_1783453263040",
-  "gridType": "square",
+  "gridMacro": 2,
+  "stitchGrid": false,
+  "type": "exp",
+  "bboxRotated": false,
   "lines": [
     {
       "end": [
@@ -118,13 +77,13 @@
       ]
     },
     {
+      "end": [
+        5,
+        6
+      ],
       "start": [
         6,
         5
-      ],
-      "end": [
-        5,
-        6
       ]
     },
     {
@@ -148,23 +107,23 @@
       ]
     },
     {
-      "start": [
-        4,
-        5
-      ],
       "end": [
         5,
+        5
+      ],
+      "start": [
+        4,
         5
       ]
     },
     {
+      "start": [
+        5,
+        5
+      ],
       "end": [
         5,
         4
-      ],
-      "start": [
-        5,
-        5
       ]
     },
     {
@@ -178,13 +137,13 @@
       ]
     },
     {
+      "start": [
+        4,
+        4
+      ],
       "end": [
         3,
         5
-      ],
-      "start": [
-        4,
-        4
       ]
     },
     {
@@ -238,13 +197,13 @@
       ]
     },
     {
+      "start": [
+        2,
+        6
+      ],
       "end": [
         3,
         8
-      ],
-      "start": [
-        2,
-        6
       ]
     },
     {
@@ -278,88 +237,118 @@
       ]
     },
     {
-      "end": [
-        1,
-        6
-      ],
       "start": [
         0,
         5
-      ]
-    },
-    {
-      "end": [
-        2,
-        6
       ],
-      "start": [
+      "end": [
         1,
         6
       ]
     },
     {
       "start": [
-        3,
-        5
+        1,
+        6
       ],
+      "end": [
+        2,
+        6
+      ]
+    },
+    {
       "end": [
         3,
         8
+      ],
+      "start": [
+        3,
+        5
       ]
     },
     {
-      "start": [
-        3,
-        3
-      ],
       "end": [
         4,
         2
-      ]
-    },
-    {
-      "end": [
-        3,
-        1
       ],
       "start": [
-        4,
-        2
-      ]
-    },
-    {
-      "start": [
-        3,
-        1
-      ],
-      "end": [
-        2,
-        2
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
-      ],
-      "end": [
         3,
         3
       ]
     },
     {
+      "start": [
+        4,
+        2
+      ],
+      "end": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        3,
+        3
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
       "end": [
         2,
         1
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
       ],
       "start": [
         2,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "start": [
+        4,
+        1
+      ],
+      "end": [
+        4,
         2
       ]
     },
     {
       "start": [
-        2,
+        3,
         1
       ],
       "end": [
@@ -369,36 +358,6 @@
     },
     {
       "start": [
-        3,
-        0
-      ],
-      "end": [
-        4,
-        1
-      ]
-    },
-    {
-      "start": [
-        4,
-        1
-      ],
-      "end": [
-        4,
-        2
-      ]
-    },
-    {
-      "end": [
-        3,
-        0
-      ],
-      "start": [
-        3,
-        1
-      ]
-    },
-    {
-      "start": [
         6,
         5
       ],
@@ -438,33 +397,74 @@
       ]
     },
     {
-      "end": [
-        6,
-        5
-      ],
       "start": [
         7,
         4
+      ],
+      "end": [
+        6,
+        5
       ]
     }
   ],
-  "stitchView": true,
-  "name": "Ram and square",
-  "bbox": {
-    "maxU": 7,
-    "minU": 0,
-    "maxV": 8,
-    "minV": 0
-  },
-  "spacing": 0,
-  "traditional": false,
-  "gridMacro": 2,
   "community": true,
-  "stitchLen": 7,
-  "creatorId": "uuqxh5yyn7w",
+  "id": "exp_1783453263040",
   "createdAt": 1783453263040,
+  "name": "Ram and square",
+  "routingMode": "waves2",
+  "stitchLen": 7,
+  "gridType": "square",
+  "embroidery": false,
   "published": true,
-  "type": "exp",
-  "bboxRotated": false,
-  "embroidery": false
+  "spacing": 0,
+  "thumbCells": 2,
+  "families": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    0,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2,
+    0,
+    2,
+    2,
+    1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    0,
+    0,
+    0,
+    2,
+    2
+  ],
+  "famOrder": [
+    2,
+    0,
+    1,
+    3
+  ],
+  "communityName": "AntiqueWish",
+  "stitchRatio": "standard"
 }

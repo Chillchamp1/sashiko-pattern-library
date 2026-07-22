@@ -1,0 +1,230 @@
+{
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "communityName": "",
+  "stitchRatio": "standard",
+  "spacing": 0,
+  "thumbCells": 3,
+  "families": [
+    0,
+    7,
+    7,
+    3,
+    0,
+    7,
+    6,
+    2,
+    7,
+    1,
+    5,
+    6,
+    7,
+    4,
+    5,
+    5,
+    7
+  ],
+  "gridType": "square",
+  "embroidery": false,
+  "community": false,
+  "id": "exp_1784718465950",
+  "name": "Escher",
+  "createdAt": 1784718465950,
+  "routingMode": "default",
+  "stitchLen": 8,
+  "stitchGrid": false,
+  "bboxRotated": false,
+  "type": "exp",
+  "lines": [
+    {
+      "end": [
+        14,
+        4
+      ],
+      "start": [
+        17,
+        5
+      ]
+    },
+    {
+      "end": [
+        9,
+        4
+      ],
+      "start": [
+        14,
+        4
+      ]
+    },
+    {
+      "end": [
+        14,
+        5
+      ],
+      "start": [
+        17,
+        5
+      ]
+    },
+    {
+      "end": [
+        7,
+        1
+      ],
+      "start": [
+        9,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        7,
+        1
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "end": [
+        10,
+        6
+      ],
+      "start": [
+        14,
+        5
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        0,
+        4
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        7
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        11
+      ],
+      "start": [
+        4,
+        7
+      ]
+    },
+    {
+      "end": [
+        3,
+        10
+      ],
+      "start": [
+        0,
+        11
+      ]
+    },
+    {
+      "end": [
+        8,
+        10
+      ],
+      "start": [
+        3,
+        10
+      ]
+    },
+    {
+      "end": [
+        10,
+        6
+      ],
+      "start": [
+        8,
+        10
+      ]
+    },
+    {
+      "end": [
+        5,
+        6
+      ],
+      "start": [
+        4,
+        7
+      ]
+    },
+    {
+      "end": [
+        6,
+        5
+      ],
+      "start": [
+        5,
+        6
+      ]
+    },
+    {
+      "end": [
+        8,
+        5
+      ],
+      "start": [
+        6,
+        5
+      ]
+    }
+  ],
+  "creatorId": "uuqxh5yyn7w",
+  "patMacro": 5.1,
+  "gridMacro": 2,
+  "traditional": false,
+  "bbox": {
+    "minU": 0,
+    "maxV": 11,
+    "minV": 0,
+    "maxU": 17
+  },
+  "updatedAt": 1784718465954,
+  "stitchView": false
+}

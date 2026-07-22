@@ -1,85 +1,76 @@
 {
-  "order": 19,
-  "stitchView": false,
-  "name": "Asanoha (Hemp Leaf) straight rows",
-  "bboxRotated": false,
-  "id": "exp_1781819811459",
+  "traditional": true,
   "gridType": "isometric",
+  "published": true,
+  "bbox": {
+    "maxU": 10,
+    "maxV": 10,
+    "minV": 0,
+    "minU": 0
+  },
+  "order": 19,
+  "updatedAt": 1784714507599,
+  "id": "exp_1781819811459",
+  "stitchLen": 8,
+  "routingMode": "default",
+  "stitchView": false,
+  "createdAt": 1781819811462,
+  "name": "Asanoha (Hemp Leaf) straight rows",
+  "stitchGrid": false,
+  "famOrder": [
+    4,
+    1,
+    0,
+    5,
+    2,
+    3
+  ],
   "type": "exp",
+  "bboxRotated": false,
   "lines": [
     {
+      "start": [
+        0,
+        10
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        10,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
       "end": [
         0,
         0
       ],
       "start": [
-        0,
+        10,
         10
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
-      "end": [
-        10,
-        0
-      ]
-    },
-    {
-      "end": [
-        0,
-        0
-      ],
-      "start": [
-        10,
-        10
-      ]
-    },
-    {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         3.333,
         6.667
-      ]
-    },
-    {
-      "start": [
-        10,
-        10
       ],
-      "end": [
-        3.333,
-        6.667
-      ]
-    },
-    {
-      "start": [
-        10,
-        10
-      ],
-      "end": [
-        6.667,
-        3.333
-      ]
-    },
-    {
       "start": [
         0,
         0
-      ],
-      "end": [
-        6.667,
-        3.333
       ]
     },
     {
       "start": [
-        0,
+        10,
         10
       ],
       "end": [
@@ -89,15 +80,49 @@
     },
     {
       "end": [
+        6.667,
+        3.333
+      ],
+      "start": [
         10,
+        10
+      ]
+    },
+    {
+      "start": [
+        0,
         0
       ],
+      "end": [
+        6.667,
+        3.333
+      ]
+    },
+    {
+      "end": [
+        3.333,
+        6.667
+      ],
+      "start": [
+        0,
+        10
+      ]
+    },
+    {
       "start": [
         6.667,
         3.333
+      ],
+      "end": [
+        10,
+        0
       ]
     }
   ],
+  "stitchRatio": "standard",
+  "thumbCells": 3,
+  "spacing": 0,
+  "creatorId": "ubv38qfe752",
   "families": [
     4,
     1,
@@ -109,30 +134,5 @@
     5,
     5
   ],
-  "updatedAt": 1784714507599,
-  "thumbCells": 3,
-  "published": true,
-  "createdAt": 1781819811462,
-  "patMacro": 3,
-  "stitchRatio": "standard",
-  "stitchLen": 8,
-  "creatorId": "ubv38qfe752",
-  "routingMode": "default",
-  "traditional": true,
-  "bbox": {
-    "maxV": 10,
-    "minV": 0,
-    "minU": 0,
-    "maxU": 10
-  },
-  "spacing": 0,
-  "stitchGrid": false,
-  "famOrder": [
-    4,
-    1,
-    0,
-    5,
-    2,
-    3
-  ]
+  "patMacro": 3
 }

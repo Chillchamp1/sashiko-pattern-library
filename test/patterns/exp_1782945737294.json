@@ -1,26 +1,14 @@
 {
-  "bboxRotated": false,
-  "order": 4,
-  "name": "Diamond Blue Waves",
-  "stitchView": true,
-  "thumbCells": 3,
-  "updatedAt": 1783247597381,
-  "published": true,
-  "routingEngine": 1,
-  "createdAt": 1782945737294,
-  "patMacro": 1,
-  "type": "exp",
-  "id": "exp_1782945737294",
-  "gridType": "isometric",
+  "stitchRatio": "standard",
   "lines": [
     {
-      "end": [
-        1,
-        1
-      ],
       "start": [
         1,
         2
+      ],
+      "end": [
+        1,
+        1
       ]
     },
     {
@@ -64,13 +52,13 @@
       ]
     },
     {
-      "start": [
-        1,
-        2
-      ],
       "end": [
         1,
         4
+      ],
+      "start": [
+        1,
+        2
       ]
     },
     {
@@ -84,12 +72,12 @@
       ]
     },
     {
-      "end": [
-        4,
-        0
-      ],
       "start": [
         3,
+        0
+      ],
+      "end": [
+        4,
         0
       ]
     },
@@ -124,16 +112,26 @@
       ]
     },
     {
-      "start": [
-        3,
-        3
-      ],
       "end": [
         4,
+        3
+      ],
+      "start": [
+        3,
         3
       ]
     }
   ],
+  "stitchGrid": false,
+  "famOrder": [
+    0,
+    1
+  ],
+  "bboxRotated": false,
+  "type": "exp",
+  "spacing": 0,
+  "thumbCells": 3,
+  "creatorId": "uq9c875443t",
   "families": [
     1,
     0,
@@ -148,21 +146,23 @@
     1,
     0
   ],
-  "stitchLen": 8,
-  "creatorId": "uq9c875443t",
-  "routingMode": "default",
-  "stitchRatio": "standard",
-  "stitchGrid": false,
-  "famOrder": [
-    0,
-    1
-  ],
-  "traditional": true,
+  "patMacro": 1,
+  "routingEngine": 1,
+  "published": true,
+  "order": 4,
   "bbox": {
-    "maxU": 4,
     "minV": 0,
     "minU": 0,
-    "maxV": 4
+    "maxV": 4,
+    "maxU": 4
   },
-  "spacing": 0
+  "traditional": true,
+  "gridType": "isometric",
+  "id": "exp_1782945737294",
+  "stitchLen": 8,
+  "createdAt": 1782945737294,
+  "name": "Diamond Blue Waves",
+  "routingMode": "default",
+  "stitchView": true,
+  "updatedAt": 1783247597381
 }

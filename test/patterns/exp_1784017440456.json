@@ -1,23 +1,6 @@
 {
-  "createdAt": 1784017440456,
-  "type": "exp",
-  "bboxRotated": false,
-  "embroidery": false,
   "spacing": 0,
-  "bbox": {
-    "maxV": 15,
-    "minU": 0,
-    "minV": 0,
-    "maxU": 12
-  },
-  "traditional": false,
-  "gridMacro": 2,
-  "community": true,
-  "stitchLen": 8,
-  "creatorId": "uevg2wnhrt8",
-  "patMacro": 4.5,
   "thumbCells": 3,
-  "updatedAt": 1784682411938,
   "families": [
     1,
     0,
@@ -42,6 +25,28 @@
     0,
     3
   ],
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "communityName": "Cherry Blossom",
+  "stitchRatio": "standard",
+  "community": true,
+  "id": "exp_1784017440456",
+  "stitchLen": 8,
+  "routingMode": "default",
+  "createdAt": 1784017440456,
+  "name": "S x Infinity",
+  "gridType": "square",
+  "embroidery": false,
+  "creatorId": "uevg2wnhrt8",
+  "patMacro": 4.5,
+  "gridMacro": 2,
+  "stitchGrid": false,
+  "type": "exp",
+  "bboxRotated": false,
   "lines": [
     {
       "start": [
@@ -74,33 +79,33 @@
       ]
     },
     {
+      "end": [
+        6,
+        15
+      ],
       "start": [
         9,
         12
-      ],
-      "end": [
-        6,
-        15
       ]
     },
     {
-      "end": [
-        3,
-        12
-      ],
       "start": [
         6,
         15
+      ],
+      "end": [
+        3,
+        12
       ]
     },
     {
+      "start": [
+        3,
+        12
+      ],
       "end": [
         3,
         9
-      ],
-      "start": [
-        3,
-        12
       ]
     },
     {
@@ -114,31 +119,41 @@
       ]
     },
     {
+      "end": [
+        3,
+        6
+      ],
       "start": [
         6,
         9
-      ],
-      "end": [
-        3,
-        6
-      ]
-    },
-    {
-      "end": [
-        3,
-        3
-      ],
-      "start": [
-        3,
-        6
       ]
     },
     {
       "start": [
         3,
-        3
+        6
       ],
       "end": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        6,
+        0
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        9,
+        3
+      ],
+      "start": [
         6,
         0
       ]
@@ -146,31 +161,21 @@
     {
       "end": [
         9,
-        3
+        6
       ],
-      "start": [
-        6,
-        0
-      ]
-    },
-    {
       "start": [
         9,
         3
-      ],
-      "end": [
-        9,
-        6
       ]
     },
     {
-      "start": [
-        9,
-        6
-      ],
       "end": [
         7,
         7
+      ],
+      "start": [
+        9,
+        6
       ]
     },
     {
@@ -184,23 +189,23 @@
       ]
     },
     {
-      "start": [
-        3,
-        3
-      ],
       "end": [
         0,
         0
+      ],
+      "start": [
+        3,
+        3
       ]
     },
     {
+      "start": [
+        12,
+        3
+      ],
       "end": [
         12,
         6
-      ],
-      "start": [
-        12,
-        3
       ]
     },
     {
@@ -224,23 +229,23 @@
       ]
     },
     {
+      "start": [
+        9,
+        6
+      ],
       "end": [
         12,
         9
-      ],
-      "start": [
-        9,
-        6
       ]
     },
     {
+      "end": [
+        9,
+        9
+      ],
       "start": [
         11,
         8
-      ],
-      "end": [
-        9,
-        9
       ]
     },
     {
@@ -254,28 +259,23 @@
       ]
     },
     {
-      "start": [
-        3,
-        6
-      ],
       "end": [
         1,
         7
+      ],
+      "start": [
+        3,
+        6
       ]
     }
   ],
-  "gridType": "square",
-  "id": "exp_1784017440456",
-  "name": "S x Infinity",
+  "updatedAt": 1784682411938,
   "stitchView": true,
-  "famOrder": [
-    0,
-    1,
-    2,
-    3
-  ],
-  "stitchGrid": false,
-  "routingMode": "default",
-  "communityName": "Cherry Blossom",
-  "stitchRatio": "standard"
+  "traditional": false,
+  "bbox": {
+    "maxV": 15,
+    "minU": 0,
+    "minV": 0,
+    "maxU": 12
+  }
 }

@@ -1,39 +1,4 @@
 {
-  "stitchLen": 8,
-  "creatorId": "u8pyswthw4v",
-  "community": true,
-  "gridMacro": 2,
-  "traditional": false,
-  "spacing": 1,
-  "bbox": {
-    "maxU": 7.777999999999999,
-    "minV": 0,
-    "maxV": 7.777999999999999,
-    "minU": 0
-  },
-  "embroidery": false,
-  "bboxRotated": false,
-  "published": true,
-  "createdAt": 1783709178676,
-  "type": "exp",
-  "communityName": "AntiqueWish",
-  "routingMode": "default",
-  "stitchRatio": "standard",
-  "famOrder": [
-    0,
-    1,
-    2,
-    3,
-    4
-  ],
-  "stitchGrid": false,
-  "order": 43,
-  "name": "Arrows",
-  "stitchView": false,
-  "updatedAt": 1784714507601,
-  "thumbCells": 3,
-  "patMacro": 2.3333999999999997,
-  "routingEngine": 1,
   "lines": [
     {
       "end": [
@@ -56,23 +21,23 @@
       ]
     },
     {
-      "end": [
-        5.657,
-        0.707
-      ],
       "start": [
         6.364,
         0
+      ],
+      "end": [
+        5.657,
+        0.707
       ]
     },
     {
-      "end": [
-        7.071,
-        2.121
-      ],
       "start": [
         7.778,
         1.414
+      ],
+      "end": [
+        7.071,
+        2.121
       ]
     },
     {
@@ -86,23 +51,23 @@
       ]
     },
     {
-      "end": [
-        4.95,
-        2.828
-      ],
       "start": [
         6.364,
+        2.828
+      ],
+      "end": [
+        4.95,
         2.828
       ]
     },
     {
-      "end": [
-        4.95,
-        1.414
-      ],
       "start": [
         4.95,
         2.828
+      ],
+      "end": [
+        4.95,
+        1.414
       ]
     },
     {
@@ -126,12 +91,12 @@
       ]
     },
     {
-      "start": [
-        1.414,
-        6.364
-      ],
       "end": [
         2.828,
+        6.364
+      ],
+      "start": [
+        1.414,
         6.364
       ]
     },
@@ -166,13 +131,13 @@
       ]
     },
     {
-      "end": [
-        4.95,
-        2.828
-      ],
       "start": [
         6.364,
         1.414
+      ],
+      "end": [
+        4.95,
+        2.828
       ]
     },
     {
@@ -196,8 +161,31 @@
       ]
     }
   ],
-  "gridType": "square",
-  "id": "exp_1783709178676",
+  "bboxRotated": false,
+  "type": "exp",
+  "stitchGrid": false,
+  "gridMacro": 2,
+  "routingEngine": 1,
+  "patMacro": 2.3333999999999997,
+  "creatorId": "u8pyswthw4v",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 7.777999999999999,
+    "maxU": 7.777999999999999
+  },
+  "traditional": false,
+  "stitchView": false,
+  "updatedAt": 1784714507601,
+  "stitchRatio": "standard",
+  "communityName": "AntiqueWish",
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
   "families": [
     4,
     0,
@@ -215,5 +203,17 @@
     2,
     4,
     0
-  ]
+  ],
+  "spacing": 1,
+  "thumbCells": 3,
+  "order": 43,
+  "published": true,
+  "embroidery": false,
+  "gridType": "square",
+  "name": "Arrows",
+  "routingMode": "default",
+  "createdAt": 1783709178676,
+  "stitchLen": 8,
+  "id": "exp_1783709178676",
+  "community": true
 }

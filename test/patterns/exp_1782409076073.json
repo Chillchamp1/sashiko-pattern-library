@@ -1,4 +1,25 @@
 {
+  "traditional": true,
+  "gridType": "square",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 16,
+    "maxU": 16
+  },
+  "order": 25,
+  "published": true,
+  "updatedAt": 1784714507600,
+  "id": "exp_1782409076073",
+  "name": "Masusashi (Square Measures Stitch)",
+  "createdAt": 1782409076073,
+  "routingMode": "default",
+  "famOrder": [
+    0,
+    1
+  ],
+  "bboxRotated": false,
+  "type": "exp",
   "lines": [
     {
       "start": [
@@ -11,30 +32,30 @@
       ]
     },
     {
+      "end": [
+        10,
+        10
+      ],
       "start": [
         10,
+        6
+      ]
+    },
+    {
+      "start": [
+        10,
+        10
+      ],
+      "end": [
+        6,
+        10
+      ]
+    },
+    {
+      "end": [
+        6,
         6
       ],
-      "end": [
-        10,
-        10
-      ]
-    },
-    {
-      "end": [
-        6,
-        10
-      ],
-      "start": [
-        10,
-        10
-      ]
-    },
-    {
-      "end": [
-        6,
-        6
-      ],
       "start": [
         6,
         10
@@ -51,13 +72,13 @@
       ]
     },
     {
+      "end": [
+        12,
+        12
+      ],
       "start": [
         12,
         4
-      ],
-      "end": [
-        12,
-        12
       ]
     },
     {
@@ -81,28 +102,28 @@
       ]
     },
     {
+      "start": [
+        2,
+        14
+      ],
       "end": [
         14,
         14
+      ]
+    },
+    {
+      "end": [
+        14,
+        2
       ],
       "start": [
-        2,
+        14,
         14
       ]
     },
     {
       "start": [
         14,
-        14
-      ],
-      "end": [
-        14,
-        2
-      ]
-    },
-    {
-      "start": [
-        14,
         2
       ],
       "end": [
@@ -111,13 +132,13 @@
       ]
     },
     {
-      "end": [
-        2,
-        14
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        2,
+        14
       ]
     },
     {
@@ -141,22 +162,22 @@
       ]
     },
     {
-      "start": [
-        10,
-        6
-      ],
       "end": [
         10,
         5
-      ]
-    },
-    {
-      "end": [
-        11,
-        6
       ],
       "start": [
         10,
+        6
+      ]
+    },
+    {
+      "start": [
+        10,
+        6
+      ],
+      "end": [
+        11,
         6
       ]
     },
@@ -171,12 +192,12 @@
       ]
     },
     {
-      "start": [
-        10,
-        10
-      ],
       "end": [
         11,
+        10
+      ],
+      "start": [
+        10,
         10
       ]
     },
@@ -191,13 +212,13 @@
       ]
     },
     {
-      "start": [
-        6,
-        10
-      ],
       "end": [
         5,
         10
+      ],
+      "start": [
+        6,
+        10
       ]
     },
     {
@@ -211,23 +232,23 @@
       ]
     },
     {
-      "start": [
-        4,
-        4
-      ],
       "end": [
         4,
         3
+      ],
+      "start": [
+        4,
+        4
       ]
     },
     {
-      "start": [
-        12,
-        4
-      ],
       "end": [
         12,
         3
+      ],
+      "start": [
+        12,
+        4
       ]
     },
     {
@@ -241,42 +262,42 @@
       ]
     },
     {
+      "start": [
+        12,
+        12
+      ],
       "end": [
         12,
         13
-      ],
-      "start": [
-        12,
-        12
       ]
     },
     {
-      "start": [
-        12,
-        12
-      ],
       "end": [
         13,
         12
-      ]
-    },
-    {
-      "end": [
-        4,
-        13
       ],
       "start": [
-        4,
+        12,
         12
       ]
     },
     {
+      "start": [
+        4,
+        12
+      ],
+      "end": [
+        4,
+        13
+      ]
+    },
+    {
+      "start": [
+        4,
+        12
+      ],
       "end": [
         3,
-        12
-      ],
-      "start": [
-        4,
         12
       ]
     },
@@ -311,99 +332,99 @@
       ]
     },
     {
-      "start": [
-        14,
-        14
-      ],
       "end": [
         15,
         14
-      ]
-    },
-    {
-      "end": [
-        14,
-        1
       ],
       "start": [
         14,
-        2
+        14
       ]
     },
     {
+      "start": [
+        14,
+        2
+      ],
+      "end": [
+        14,
+        1
+      ]
+    },
+    {
+      "start": [
+        14,
+        2
+      ],
       "end": [
         15,
         2
-      ],
-      "start": [
-        14,
-        2
       ]
     },
     {
+      "start": [
+        2,
+        2
+      ],
       "end": [
         2,
         1
-      ],
-      "start": [
-        2,
-        2
       ]
     },
     {
-      "start": [
-        2,
-        2
-      ],
       "end": [
         1,
         2
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        16,
+        0
       ]
     },
     {
       "end": [
         16,
-        0
+        16
       ],
       "start": [
-        0,
+        16,
         0
       ]
     },
     {
       "start": [
         16,
-        0
+        16
       ],
       "end": [
-        16,
+        0,
         16
       ]
     },
     {
-      "end": [
+      "start": [
         0,
         16
       ],
-      "start": [
-        16,
-        16
-      ]
-    },
-    {
       "end": [
         0,
         0
-      ],
-      "start": [
-        0,
-        16
       ]
     }
   ],
-  "id": "exp_1782409076073",
-  "type": "exp",
-  "gridType": "square",
+  "creatorId": "uyqa6wy657m",
+  "spacing": 0,
+  "patMacro": 5,
   "families": [
     0,
     1,
@@ -445,26 +466,5 @@
     1,
     0,
     1
-  ],
-  "published": true,
-  "updatedAt": 1784714507600,
-  "patMacro": 5,
-  "createdAt": 1782409076073,
-  "order": 25,
-  "name": "Masusashi (Square Measures Stitch)",
-  "bboxRotated": false,
-  "traditional": true,
-  "spacing": 0,
-  "bbox": {
-    "maxU": 16,
-    "minV": 0,
-    "maxV": 16,
-    "minU": 0
-  },
-  "famOrder": [
-    0,
-    1
-  ],
-  "creatorId": "uyqa6wy657m",
-  "routingMode": "default"
+  ]
 }

@@ -1,25 +1,19 @@
 {
-  "famOrder": [
-    2,
-    0,
-    1
-  ],
-  "stitchGrid": false,
-  "communityName": "ChillChamp",
-  "routingMode": "default",
-  "stitchRatio": "standard",
-  "updatedAt": 1784513600338,
-  "thumbCells": 3,
-  "patMacro": 5.4,
   "routingEngine": 1,
+  "patMacro": 5.4,
+  "creatorId": "uconggef72r",
+  "gridMacro": 2,
+  "bboxRotated": false,
+  "type": "exp",
+  "stitchGrid": false,
   "lines": [
     {
-      "start": [
-        1,
-        0
-      ],
       "end": [
         10,
+        0
+      ],
+      "start": [
+        1,
         0
       ]
     },
@@ -34,58 +28,65 @@
       ]
     },
     {
+      "end": [
+        12,
+        4
+      ],
       "start": [
         8,
         4
-      ],
-      "end": [
-        12,
-        4
       ]
     },
     {
-      "start": [
-        12,
-        4
-      ],
       "end": [
         2,
         18
+      ],
+      "start": [
+        12,
+        4
       ]
     },
     {
+      "end": [
+        0,
+        7
+      ],
       "start": [
         1,
         0
-      ],
-      "end": [
-        0,
-        7
       ]
     },
     {
-      "start": [
-        0,
-        7
-      ],
       "end": [
         5,
         7
+      ],
+      "start": [
+        0,
+        7
       ]
     },
     {
+      "end": [
+        5,
+        7
+      ],
       "start": [
         2,
         18
-      ],
-      "end": [
-        5,
-        7
       ]
     }
   ],
-  "id": "exp_1782068642158",
-  "gridType": "square",
+  "updatedAt": 1784513600338,
+  "stitchView": false,
+  "traditional": false,
+  "bbox": {
+    "maxV": 18,
+    "minU": 0,
+    "minV": 0,
+    "maxU": 12
+  },
   "families": [
     2,
     0,
@@ -95,23 +96,22 @@
     2,
     1
   ],
-  "stitchView": false,
-  "name": "Lightning bolt 1",
-  "traditional": false,
   "spacing": 0,
-  "bbox": {
-    "maxU": 12,
-    "maxV": 18,
-    "minU": 0,
-    "minV": 0
-  },
-  "stitchLen": 8,
-  "creatorId": "uconggef72r",
+  "thumbCells": 3,
+  "communityName": "ChillChamp",
+  "famOrder": [
+    2,
+    0,
+    1
+  ],
+  "stitchRatio": "standard",
   "community": true,
-  "gridMacro": 2,
-  "published": true,
+  "stitchLen": 8,
+  "name": "Lightning bolt 1",
+  "routingMode": "default",
   "createdAt": 1782068642173,
-  "type": "exp",
-  "embroidery": false,
-  "bboxRotated": false
+  "id": "exp_1782068642158",
+  "gridType": "square",
+  "published": true,
+  "embroidery": false
 }
