@@ -368,6 +368,9 @@ body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-famroute-row select{font-size:11px}
 .cad-famroute-chip{width:13px;height:13px;border-radius:50%;border:1px solid rgba(255,255,255,.4);flex:none}
 /* Custom family-colour picker (double-click a family swatch; community patterns) */
+.cad-fam-col{display:inline-flex;flex-direction:column;align-items:center;gap:2px;vertical-align:top}
+.cad-fam-thread{width:12px;height:6px;border-radius:2px;border:1px solid rgba(255,255,255,.3)}
+.cad-fam-thread.empty{visibility:hidden}
 .cad-famcolor-panel{flex-wrap:wrap;gap:4px;align-items:center}
 .cad-color-sw{width:18px;height:18px;border-radius:50%;border:1px solid rgba(255,255,255,.35);cursor:pointer;padding:0;flex:none;font-size:10px;line-height:1;color:#08131f}
 .cad-color-sw.sel{outline:2px solid #fff;outline-offset:1px}

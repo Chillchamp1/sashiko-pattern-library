@@ -75,15 +75,16 @@ To prevent that, published gallery patterns are **pinned** to the routing engine
 
 **Today there is ONE engine (v1 === the live functions), so the whole layer is a transparent pass-through — zero behavioral change** (verified: `route.js --check` diff is identical with/without the layer; it's fixture drift only).
 
-**Custom family colours (2026-07-22, Community patterns only):** double-clicking a family swatch in the CAD
-editor (`cadFamColorPick`, panel `#cadFamColorPanel` under the fam bar, built by `_cadBuildFamColorUI`; swatches
-from `OLYMPUS_SASHIKO`+`GAL_PASTEL` + ↺ default chip) assigns a custom colour to that family — state
-`cadFamColors` {editor famIdx→hex}, applied everywhere in the editor via `cadFamColor(fam)` (draw canvas, Live
-Tiling, Play, fam bar, routing chips). **Gated on the Community flag**: with Community unchecked the picker
-refuses (alert) and existing entries go dormant (classic `FAM_PALETTE` shows; a non-community save stores `{}`).
-In the stitch view a community-only **🎨 Coloured thread** checkbox (`#cadStitchColorsWrap` in
-`#cadStitchControls`, state `cadStitchColors`, `_cadThreadColor(fam)` at both `_cadDrawStitch` call sites) dyes
-the thread with those colours. Saved as `famColors` (remapped via `_cadRemapFamColors(cf.map)`, same compaction
+**Custom family THREAD colours (2026-07-22, Community patterns only):** double-clicking a family swatch in the
+CAD editor (`cadFamColorPick`, panel `#cadFamColorPanel` under the fam bar, built by `_cadBuildFamColorUI`;
+swatches from `OLYMPUS_SASHIKO`+`GAL_PASTEL` + ↺ off-white chip) assigns a **thread colour** to that family —
+state `cadFamColors` {editor famIdx→hex}. **The editor display is untouched**: draw canvas, Live Tiling, Play,
+fam-bar swatches and routing chips all keep the classic `FAM_PALETTE` (`famColor`); the assigned thread colour
+shows as a **small square below the family swatch** (`.cad-fam-thread` in `.cad-fam-col`). Assigning a colour
+switches the community-only **🎨 Coloured thread** checkbox ON (`#cadStitchColorsWrap` in `#cadStitchControls`,
+state `cadStitchColors`) so the stitch view updates INSTANTLY; `_cadThreadColor(fam)` dyes the running stitches
+at both `_cadDrawStitch` call sites. **Gated on the Community flag**: with Community unchecked the picker
+refuses (alert) and existing entries go dormant (a non-community save stores `{}`). Saved as `famColors` (remapped via `_cadRemapFamColors(cf.map)`, same compaction
 as famRouting) + `stitchColors:bool`; restored in `editExpPattern`, carried by `remixPattern` (re-activates when
 the remixer re-checks Community), reset in `showCAD`. **Gallery viewer + thumbnails**: for community patterns
 saved with `stitchColors`, `galThreadColors` initialises from `pat.famColors` (loadPattern in render.js,

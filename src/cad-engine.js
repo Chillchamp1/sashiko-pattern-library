@@ -6,11 +6,12 @@ let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 // Per-family routing overrides {famIdx→mode} — normally empty (whole pattern uses
 // cadRoutingMode); an entry routes just that colour with a different logic.
 let cadFamRouting={},cadFamRoutingOpen=false;
-// Custom per-family colours (Community patterns only — traditional keep the classic
-// palette). cadFamColors {editor famIdx→hex}; cadStitchColors = also dye the thread
-// in the stitch view. Dormant (default palette shown) while Community is unchecked.
+// Custom per-family THREAD colours (Community patterns only). cadFamColors
+// {editor famIdx→hex} dyes the running stitches in the stitch view (and the gallery
+// viewer); the EDITOR keeps the classic FAM_PALETTE everywhere — the assigned thread
+// colour shows as a small square below each family swatch. Dormant while Community
+// is unchecked. cadStitchColors = the "Coloured thread" toggle.
 let cadFamColors={},cadFamColorOpen=null,cadStitchColors=false;
-function cadFamColor(fam){return (cadCommunity&&cadFamColors[fam])||FAM_PALETTE[fam%FAM_PALETTE.length];}
 let cadTraditional=false;
 let cadCommunity=false,cadCommunityName='';   // "Community" flag + optional author name ("by …")
 // "Embroidery" (community-only sub-flag): the drawing is a single standalone motif, never
@@ -650,7 +651,7 @@ function cadBakeRight(){
 
 // Draw a single line (straight or arc) onto a canvas context at offset (ou, ov) using the given g2s transform.
 function _cadDrawLine(x, l, fi, ox, oy, sz, g2s){
-  const col=fi>=0?cadFamColor(fi):'#00ffcc';
+  const col=fi>=0?famColor(fi):'#00ffcc';
   x.strokeStyle=col;
   if(l.arc){
     // Draw arc as polyline for accurate isometric projection
@@ -763,7 +764,7 @@ function cadDrawWorkspace(){
   x.lineWidth=4;x.lineCap='round';
   cadLines.forEach((l,i)=>{
     const fi=cadFamilies[i];
-    const col=fi>=0?cadFamColor(fi):'#00ffcc';
+    const col=fi>=0?famColor(fi):'#00ffcc';
     // Cut tool: keep full colour on hovered line (red glow drawn separately below)
     const isHovered=cadHover&&cadHover.li===i;
     x.strokeStyle=isHovered&&cadTool!=='erase'?col+'55':col;
@@ -854,7 +855,7 @@ function cadDrawWorkspace(){
   }
   // Recolor tool preview — blue glow on hovered line
   if(cadTool==='recolor'&&cadHover&&cadFamSel>=0){
-    const col=cadFamColor(cadFamOrder[cadFamSel]);
+    const col=famColor(cadFamOrder[cadFamSel]);
     if(cadHover.isArc){
       const arc=cadHover.arcData;
       const segs=cadFlattenArc(arc,60);
@@ -925,7 +926,7 @@ function cadDrawPattern(){
         if(_visible(sp,ep))anyVis=true;
       }
       if(!anyVis)return;
-      x.strokeStyle=fi>=0?cadFamColor(fi):'#00ffcc';
+      x.strokeStyle=fi>=0?famColor(fi):'#00ffcc';
       x.beginPath();
       const p0=g2s(segs[0].start[0],segs[0].start[1]);x.moveTo(p0.x,p0.y);
       for(const s of segs){const p=g2s(s.end[0],s.end[1]);x.lineTo(p.x,p.y);}
@@ -935,7 +936,7 @@ function cadDrawPattern(){
       const u2=l.end[0]-bbox.minU+ou,v2=l.end[1]-bbox.minV+ov2;
       const p1=g2s(u1,v1),p2=g2s(u2,v2);
       if(_visible(p1,p2)){
-        x.strokeStyle=fi>=0?cadFamColor(fi):'#00ffcc';
+        x.strokeStyle=fi>=0?famColor(fi):'#00ffcc';
         x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
       }
     }
@@ -978,9 +979,14 @@ function cadBuildFamBar(){
   const used=[...new Set(cadFamilies.filter(f=>f>=0))];
   used.forEach(f=>{if(!cadFamOrder.includes(f))cadFamOrder.push(f);});
   c.innerHTML=cadFamOrder.map((fam,pos)=>{
-    const col=cadFamColor(fam);
+    const col=famColor(fam);
     const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'');
-    return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" ondblclick="cadFamColorPick('+fam+')" style="background:'+col+'" title="Family '+(fam+1)+' — double-click to choose a custom colour (community patterns)"></button>';
+    // Editor swatch keeps the classic palette colour; an assigned THREAD colour shows
+    // as a small square below it (community patterns).
+    const thread=(cadCommunity&&cadFamColors[fam])
+      ?'<span class="cad-fam-thread" style="background:'+cadFamColors[fam]+'" title="Thread colour for the stitch view — double-click the swatch above to change"></span>'
+      :'<span class="cad-fam-thread empty"></span>';
+    return '<span class="cad-fam-col"><button class="'+cls+'" onclick="cadSelectFam('+pos+')" ondblclick="cadFamColorPick('+fam+')" style="background:'+col+'" title="Family '+(fam+1)+' — double-click to pick a thread colour for the stitch view (community patterns)"></button>'+thread+'</span>';
   }).join('');
   _cadBuildFamRoutingUI();   // keep the per-colour routing panel in sync with the families
   _cadBuildFamColorUI();     // …and the custom-colour picker panel
@@ -1013,7 +1019,7 @@ function _cadBuildFamRoutingUI(){
   const sel=document.getElementById('cadRoutingMode');
   const modeOpts=[...sel.options].map(o=>[o.value,o.textContent]);
   p.innerHTML='<span class="cad-famroute-hint">Per-colour routing:</span>'+fams.map(fam=>{
-    const col=cadFamColor(fam);
+    const col=famColor(fam);
     const cur=cadFamRouting[fam]||'';
     return '<span class="cad-famroute-row"><span class="cad-famroute-chip" style="background:'+col+'"></span>'+
       '<select onchange="cadSetFamRouting('+fam+',this.value)">'+
@@ -1083,6 +1089,9 @@ window.cadFamColorPick=function(fam){
 window.cadSetFamColor=function(fam,hex){
   if(hex)cadFamColors[fam]=hex; else delete cadFamColors[fam];
   cadFamColorOpen=null;
+  // Assigning a thread colour switches the coloured-thread toggle ON, so the stitch
+  // view reflects the pick INSTANTLY (cadUpdateAll below redraws it when visible).
+  if(hex&&!cadStitchColors){cadStitchColors=true;_cadSyncStitchUI();}
   cadUpdateAll();
 };
 function _cadBuildFamColorUI(){
@@ -1092,8 +1101,8 @@ function _cadBuildFamColorUI(){
   const sw=(hex,name,cur)=>'<button class="cad-color-sw'+(cur?' sel':'')+'" style="background:'+hex+'" title="'+name+'" onclick="cadSetFamColor('+fam+',\''+hex+'\')"></button>';
   const cur=cadFamColors[fam];
   p.style.display='flex';
-  p.innerHTML='<span class="cad-famroute-hint">Colour '+(fam+1)+':</span>'+
-    '<button class="cad-color-sw cad-color-reset'+(cur?'':' sel')+'" style="background:'+FAM_PALETTE[fam%FAM_PALETTE.length]+'" title="Default palette colour" onclick="cadSetFamColor('+fam+',null)">↺</button>'+
+  p.innerHTML='<span class="cad-famroute-hint">Thread colour '+(fam+1)+':</span>'+
+    '<button class="cad-color-sw cad-color-reset'+(cur?'':' sel')+'" style="background:'+CAD_YARN+'" title="Default off-white thread" onclick="cadSetFamColor('+fam+',null)">↺</button>'+
     OLYMPUS_SASHIKO.map(o=>sw(o.hex,'#'+o.code+' '+o.name,cur===o.hex)).join('')+
     GAL_PASTEL.map(o=>sw(o.hex,o.name,cur===o.hex)).join('');
 }
@@ -1630,7 +1639,7 @@ function _renderTileFrame(){
   x.lineWidth=2.5;x.lineCap='round';
   _tpSts.forEach((s,i)=>{
     if(i>=_tpStep)return;
-    x.strokeStyle=cadFamColor(s.fam);
+    x.strokeStyle=famColor(s.fam);
     x.beginPath();x.moveTo(s.x1,s.y1);x.lineTo(s.x2,s.y2);x.stroke();
   });
 }
