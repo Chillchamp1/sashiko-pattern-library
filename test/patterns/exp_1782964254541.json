@@ -1,0 +1,307 @@
+{
+  "lines": [
+    {
+      "end": [
+        10,
+        0
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "start": [
+        10,
+        0
+      ],
+      "end": [
+        8,
+        4
+      ]
+    },
+    {
+      "end": [
+        12,
+        4
+      ],
+      "start": [
+        8,
+        4
+      ]
+    },
+    {
+      "start": [
+        12,
+        4
+      ],
+      "end": [
+        2,
+        18
+      ]
+    },
+    {
+      "start": [
+        1,
+        0
+      ],
+      "end": [
+        0,
+        7
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        0,
+        7
+      ]
+    },
+    {
+      "start": [
+        2,
+        18
+      ],
+      "end": [
+        5,
+        7
+      ]
+    },
+    {
+      "end": [
+        10,
+        4
+      ],
+      "start": [
+        10,
+        0
+      ]
+    },
+    {
+      "start": [
+        9,
+        2
+      ],
+      "end": [
+        9,
+        4
+      ]
+    },
+    {
+      "start": [
+        11,
+        0
+      ],
+      "end": [
+        11,
+        4
+      ]
+    },
+    {
+      "start": [
+        10,
+        18
+      ],
+      "end": [
+        10,
+        7
+      ]
+    },
+    {
+      "end": [
+        9,
+        18
+      ],
+      "start": [
+        9,
+        8
+      ]
+    },
+    {
+      "end": [
+        8,
+        10
+      ],
+      "start": [
+        8,
+        18
+      ]
+    },
+    {
+      "start": [
+        7,
+        11
+      ],
+      "end": [
+        7,
+        18
+      ]
+    },
+    {
+      "end": [
+        6,
+        13
+      ],
+      "start": [
+        6,
+        18
+      ]
+    },
+    {
+      "start": [
+        5,
+        18
+      ],
+      "end": [
+        5,
+        14
+      ]
+    },
+    {
+      "start": [
+        4,
+        18
+      ],
+      "end": [
+        4,
+        15
+      ]
+    },
+    {
+      "end": [
+        3,
+        17
+      ],
+      "start": [
+        3,
+        18
+      ]
+    },
+    {
+      "start": [
+        2,
+        18
+      ],
+      "end": [
+        2,
+        7
+      ]
+    },
+    {
+      "end": [
+        3,
+        14
+      ],
+      "start": [
+        3,
+        7
+      ]
+    },
+    {
+      "start": [
+        4,
+        7
+      ],
+      "end": [
+        4,
+        11
+      ]
+    },
+    {
+      "start": [
+        1,
+        7
+      ],
+      "end": [
+        1,
+        18
+      ]
+    },
+    {
+      "end": [
+        12,
+        18
+      ],
+      "start": [
+        12,
+        0
+      ]
+    },
+    {
+      "start": [
+        11,
+        5.4
+      ],
+      "end": [
+        11,
+        18
+      ]
+    }
+  ],
+  "id": "exp_1782964254541",
+  "gridType": "square",
+  "families": [
+    0,
+    4,
+    0,
+    5,
+    2,
+    0,
+    3,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "thumbCells": 2,
+  "updatedAt": 1784514446526,
+  "patMacro": 3.6,
+  "routingEngine": 1,
+  "name": "Lightning bolt 1 Remix",
+  "stitchView": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "stitchGrid": false,
+  "stitchRatio": "standard",
+  "communityName": "AntiqueWish (remix version)",
+  "routingMode": "default",
+  "type": "exp",
+  "published": true,
+  "createdAt": 1782964254541,
+  "embroidery": false,
+  "bboxRotated": false,
+  "traditional": false,
+  "spacing": 0,
+  "bbox": {
+    "maxU": 12,
+    "maxV": 18,
+    "minV": 0,
+    "minU": 0
+  },
+  "stitchLen": 8,
+  "creatorId": "uconggef72r",
+  "gridMacro": 2,
+  "community": true
+}

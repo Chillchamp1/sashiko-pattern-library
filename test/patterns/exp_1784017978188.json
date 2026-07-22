@@ -1,0 +1,103 @@
+{
+  "gridMacro": 2,
+  "community": true,
+  "stitchLen": 8,
+  "creatorId": "uevg2wnhrt8",
+  "spacing": 1,
+  "bbox": {
+    "maxU": 5,
+    "minU": 0,
+    "maxV": 5,
+    "minV": 0
+  },
+  "traditional": false,
+  "bboxRotated": false,
+  "embroidery": false,
+  "createdAt": 1784017978188,
+  "type": "exp",
+  "routingMode": "default",
+  "communityName": "Cherry Blossom",
+  "stitchRatio": "standard",
+  "famOrder": [
+    0,
+    1
+  ],
+  "stitchGrid": false,
+  "stitchView": true,
+  "name": "Fries",
+  "patMacro": 1.5,
+  "thumbCells": 3,
+  "updatedAt": 1784682411377,
+  "families": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1
+  ],
+  "lines": [
+    {
+      "end": [
+        5,
+        3
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "start": [
+        3,
+        4
+      ],
+      "end": [
+        5,
+        4
+      ]
+    },
+    {
+      "start": [
+        3,
+        5
+      ],
+      "end": [
+        5,
+        5
+      ]
+    },
+    {
+      "end": [
+        2,
+        0
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        0,
+        0
+      ]
+    }
+  ],
+  "gridType": "square",
+  "id": "exp_1784017978188"
+}

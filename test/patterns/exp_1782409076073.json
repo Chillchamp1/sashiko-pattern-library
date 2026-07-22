@@ -1,5 +1,4 @@
 {
-  "createdAt": 1782409076073,
   "lines": [
     {
       "start": [
@@ -22,27 +21,27 @@
       ]
     },
     {
+      "end": [
+        6,
+        10
+      ],
       "start": [
         10,
         10
-      ],
+      ]
+    },
+    {
       "end": [
+        6,
+        6
+      ],
+      "start": [
         6,
         10
       ]
     },
     {
       "start": [
-        6,
-        10
-      ],
-      "end": [
-        6,
-        6
-      ]
-    },
-    {
-      "start": [
         4,
         4
       ],
@@ -72,22 +71,22 @@
       ]
     },
     {
-      "start": [
-        4,
-        12
-      ],
       "end": [
         4,
         4
+      ],
+      "start": [
+        4,
+        12
       ]
     },
     {
-      "start": [
-        2,
-        14
-      ],
       "end": [
         14,
+        14
+      ],
+      "start": [
+        2,
         14
       ]
     },
@@ -112,22 +111,22 @@
       ]
     },
     {
-      "start": [
-        2,
-        2
-      ],
       "end": [
         2,
         14
+      ],
+      "start": [
+        2,
+        2
       ]
     },
     {
-      "start": [
-        6,
-        6
-      ],
       "end": [
         5,
+        6
+      ],
+      "start": [
+        6,
         6
       ]
     },
@@ -152,12 +151,12 @@
       ]
     },
     {
-      "start": [
-        10,
-        6
-      ],
       "end": [
         11,
+        6
+      ],
+      "start": [
+        10,
         6
       ]
     },
@@ -182,13 +181,13 @@
       ]
     },
     {
-      "start": [
-        6,
-        10
-      ],
       "end": [
         6,
         11
+      ],
+      "start": [
+        6,
+        10
       ]
     },
     {
@@ -202,12 +201,12 @@
       ]
     },
     {
-      "start": [
-        4,
-        4
-      ],
       "end": [
         3,
+        4
+      ],
+      "start": [
+        4,
         4
       ]
     },
@@ -232,23 +231,23 @@
       ]
     },
     {
-      "start": [
-        12,
-        4
-      ],
       "end": [
         13,
         4
+      ],
+      "start": [
+        12,
+        4
       ]
     },
     {
-      "start": [
-        12,
-        12
-      ],
       "end": [
         12,
         13
+      ],
+      "start": [
+        12,
+        12
       ]
     },
     {
@@ -262,23 +261,23 @@
       ]
     },
     {
-      "start": [
-        4,
-        12
-      ],
       "end": [
         4,
         13
-      ]
-    },
-    {
+      ],
       "start": [
         4,
         12
-      ],
+      ]
+    },
+    {
       "end": [
         3,
         12
+      ],
+      "start": [
+        4,
+        12
       ]
     },
     {
@@ -292,23 +291,23 @@
       ]
     },
     {
-      "start": [
-        2,
-        14
-      ],
       "end": [
         1,
+        14
+      ],
+      "start": [
+        2,
         14
       ]
     },
     {
-      "start": [
-        14,
-        14
-      ],
       "end": [
         14,
         15
+      ],
+      "start": [
+        14,
+        14
       ]
     },
     {
@@ -322,33 +321,33 @@
       ]
     },
     {
-      "start": [
-        14,
-        2
-      ],
       "end": [
         14,
         1
-      ]
-    },
-    {
+      ],
       "start": [
         14,
         2
-      ],
+      ]
+    },
+    {
       "end": [
         15,
         2
+      ],
+      "start": [
+        14,
+        2
       ]
     },
     {
-      "start": [
-        2,
-        2
-      ],
       "end": [
         2,
         1
+      ],
+      "start": [
+        2,
+        2
       ]
     },
     {
@@ -362,12 +361,12 @@
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         16,
+        0
+      ],
+      "start": [
+        0,
         0
       ]
     },
@@ -382,33 +381,29 @@
       ]
     },
     {
-      "start": [
-        16,
-        16
-      ],
       "end": [
         0,
+        16
+      ],
+      "start": [
+        16,
         16
       ]
     },
     {
-      "start": [
-        0,
-        16
-      ],
       "end": [
         0,
         0
+      ],
+      "start": [
+        0,
+        16
       ]
     }
   ],
-  "published": true,
-  "famOrder": [
-    0,
-    1
-  ],
   "id": "exp_1782409076073",
-  "routingMode": "default",
+  "type": "exp",
+  "gridType": "square",
   "families": [
     0,
     1,
@@ -451,18 +446,25 @@
     0,
     1
   ],
-  "name": "Masusashi (Square Measures Stitch)",
+  "published": true,
+  "updatedAt": 1784714507600,
   "patMacro": 5,
-  "gridType": "square",
-  "bbox": {
-    "maxV": 16,
-    "minU": 0,
-    "maxU": 16,
-    "minV": 0
-  },
-  "spacing": 0,
-  "creatorId": "uyqa6wy657m",
-  "traditional": true,
+  "createdAt": 1782409076073,
+  "order": 25,
+  "name": "Masusashi (Square Measures Stitch)",
   "bboxRotated": false,
-  "type": "exp"
+  "traditional": true,
+  "spacing": 0,
+  "bbox": {
+    "maxU": 16,
+    "minV": 0,
+    "maxV": 16,
+    "minU": 0
+  },
+  "famOrder": [
+    0,
+    1
+  ],
+  "creatorId": "uyqa6wy657m",
+  "routingMode": "default"
 }

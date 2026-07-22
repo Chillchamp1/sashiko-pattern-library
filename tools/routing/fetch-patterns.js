@@ -55,14 +55,20 @@ async function main() {
     process.exit(1);
   }
   fs.mkdirSync(OUT, { recursive: true });
-  let n = 0;
-  for (const p of docs) {
-    if (!p.id) continue;
-    fs.writeFileSync(path.join(OUT, `${p.id}.json`), JSON.stringify(p, null, 2));
-    n++;
+  // Tombstoned docs ({deleted:true}) are dead patterns — not fixtures.
+  const live = docs.filter(p => p.id && !p.deleted);
+  const keep = new Set(live.map(p => `${p.id}.json`));
+  let pruned = 0;
+  for (const f of fs.readdirSync(OUT)) {
+    if (f.endsWith('.json') && !keep.has(f)) { fs.unlinkSync(path.join(OUT, f)); pruned++; }
   }
-  console.log(`Wrote ${n} pattern fixtures to ${path.relative(process.cwd(), OUT)}`);
-  const withMode = docs.filter(p => p.routingMode);
+  for (const p of live) {
+    fs.writeFileSync(path.join(OUT, `${p.id}.json`), JSON.stringify(p, null, 2));
+  }
+  console.log(`Wrote ${live.length} pattern fixtures to ${path.relative(process.cwd(), OUT)}`);
+  if (pruned) console.log(`  (pruned ${pruned} stale/tombstoned fixture files)`);
+  console.log(`  (${docs.length - live.length - docs.filter(p=>!p.id).length} remote docs are tombstoned)`);
+  const withMode = live.filter(p => p.routingMode);
   console.log(`  (${withMode.length} have an explicit routingMode)`);
 }
 

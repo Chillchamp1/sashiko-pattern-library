@@ -1,21 +1,26 @@
 {
-  "patMacro": 5,
-  "gridType": "square",
-  "bbox": {
-    "maxV": 4,
-    "minV": 0,
-    "maxU": 4,
-    "minU": 0
-  },
-  "spacing": 4,
-  "stitchLen": 8,
-  "creatorId": "ubv38qfe752",
+  "famOrder": [
+    0,
+    1
+  ],
   "stitchGrid": false,
-  "thumbCells": 12,
   "traditional": true,
-  "bboxRotated": false,
-  "type": "exp",
-  "stitchView": false,
+  "spacing": 4,
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 4,
+    "maxU": 4
+  },
+  "stitchLen": 8,
+  "creatorId": "uq9c875443t",
+  "routingMode": "default",
+  "stitchRatio": "standard",
+  "published": true,
+  "thumbCells": 12,
+  "updatedAt": 1784714507600,
+  "patMacro": 5,
+  "routingEngine": 1,
   "createdAt": 1782336864528,
   "lines": [
     {
@@ -39,17 +44,15 @@
       ]
     }
   ],
-  "stitchRatio": "standard",
-  "published": true,
-  "famOrder": [
-    0,
-    1
-  ],
-  "routingMode": "default",
+  "type": "exp",
+  "gridType": "square",
   "id": "exp_1782336864528",
   "families": [
     1,
     0
   ],
-  "name": "Jūji-zashi· Cross Stitch"
+  "bboxRotated": false,
+  "order": 29,
+  "name": "Naname Sugi-zashi (Diagonal Cross Stitch))",
+  "stitchView": false
 }

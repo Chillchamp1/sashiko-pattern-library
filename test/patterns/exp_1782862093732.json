@@ -1,0 +1,217 @@
+{
+  "type": "exp",
+  "createdAt": 1782862093732,
+  "published": true,
+  "bboxRotated": false,
+  "spacing": 0,
+  "bbox": {
+    "maxU": 4,
+    "maxV": 4,
+    "minV": 0,
+    "minU": 0
+  },
+  "traditional": true,
+  "community": false,
+  "gridMacro": 1,
+  "creatorId": "uq9c875443t",
+  "stitchLen": 6,
+  "families": [
+    1,
+    2,
+    1,
+    2,
+    0,
+    3,
+    0,
+    3,
+    0,
+    3,
+    0,
+    3,
+    1,
+    2,
+    1,
+    2
+  ],
+  "lines": [
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        0
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        2,
+        1
+      ]
+    },
+    {
+      "start": [
+        2,
+        1
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        4,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        2
+      ],
+      "end": [
+        2,
+        3
+      ]
+    },
+    {
+      "end": [
+        0,
+        3
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "start": [
+        0,
+        3
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "start": [
+        0,
+        4
+      ],
+      "end": [
+        2,
+        3
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        3,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        4
+      ],
+      "end": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        3,
+        4
+      ]
+    }
+  ],
+  "id": "exp_1782862093732",
+  "gridType": "square",
+  "patMacro": 1.2,
+  "routingEngine": 1,
+  "updatedAt": 1784714507598,
+  "thumbCells": 3,
+  "name": "Tsuzuki Yamagata (Mountains)",
+  "stitchView": true,
+  "order": 6,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "stitchGrid": false,
+  "stitchRatio": "standard",
+  "routingMode": "zigzag2",
+  "communityName": ""
+}

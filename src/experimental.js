@@ -1487,9 +1487,10 @@ window.editExpPattern=async function(idOrPat){
   cadStitchGrid=!!pat.stitchGrid;
   _cadSyncStitchUI();
   cadRoutingMode=pat.routingMode||'default';
-  // Legacy smooth/fewer-jumps are Logik-1 variants — collapse to the Straight option.
-  if(cadRoutingMode==='smooth'||cadRoutingMode==='fewer-jumps')cadRoutingMode='default';
-  document.getElementById('cadRoutingMode').value=cadRoutingMode;
+  // Retired modes (smooth, fewer-jumps, waves2) collapse to the Straight option.
+  const _routingSel=document.getElementById('cadRoutingMode');
+  if(![..._routingSel.options].some(o=>o.value===cadRoutingMode))cadRoutingMode='default';
+  _routingSel.value=cadRoutingMode;
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   cadMacro=macroVal;
@@ -1577,7 +1578,7 @@ function buildExpPath(lines, famOrderOverride, routingMode, v2opts){
   // v2 modes route through their own additive pipeline; the four original modes
   // below stay byte-identical (verified via tools/routing/route.js --check).
   if(_isV2Mode(mode))return buildExpPathV2(lines,famOrderOverride,mode,v2opts||{});
-  const maxTurnMap={smooth:60*Math.PI/180, default:90*Math.PI/180, 'fewer-jumps':120*Math.PI/180, continuous:Math.PI, contour:120*Math.PI/180, sequential:90*Math.PI/180};
+  const maxTurnMap={default:90*Math.PI/180, continuous:Math.PI, contour:120*Math.PI/180, sequential:90*Math.PI/180};
   const maxTurn=maxTurnMap[mode]||90*Math.PI/180;
 
   const famGroups=new Map();
@@ -2194,8 +2195,7 @@ function matchVertex(d,cost,maxCost){
 //           family, so ±slope zigzag legs chain through every apex into true edge-to-edge
 //           runs (per-family building broke the chain at every apex); the drawn family is
 //           kept per SEGMENT for colouring.
-//   waves2  "3b · Waves v2" — contour waves exactly as mode 3 builds them, but ordered with
-//           the robust band-snake / NN fallback instead of the fragile min-gap pitch.
+// (waves2 "3b · Waves v2" was removed 2026-07-22 — no saved pattern ever used it.)
 // Shared v2 rules (user decisions 2026-07-02):
 //   • HARD CARRY CAP — a back-carry longer than ~1.5× the family's row advance means
 //     "cut the thread" in real sashiko; such jumps are penalised lexicographically BEFORE
@@ -2204,7 +2204,7 @@ function matchVertex(d,cost,maxCost){
 //     verticals → diagonals → curves/mixed (screen-space orientation, iso-aware).
 //   • Closed loops assembled from several OPEN arcs enter at a drawn arc ENDPOINT
 //     (fixes the mid-arc entries _rotateClosedEntry produced on e.g. Maru Shippō).
-function _isV2Mode(m){return m==='rows2'||m==='rows2e'||m==='zigzag2'||m==='waves2';}
+function _isV2Mode(m){return m==='rows2'||m==='rows2e'||m==='zigzag2';}
 
 // Vertex key aligned to the router's vertex-merge resolution (Q=1e-4 in
 // buildStrokesForFamily): two coordinates the router treats as ONE vertex always
@@ -2528,8 +2528,7 @@ function buildExpPathV2(lines,famOrderOverride,mode,opts){
   const variant=mode==='rows2e'?'efficient':'ordered';
   const famData=[];
   for(const[fi,segs]of famGroups){
-    const strokes=mode==='waves2'?buildContourStrokes(segs,120*Math.PI/180)
-                                 :buildStrokesForFamily(segs,90*Math.PI/180);
+    const strokes=buildStrokesForFamily(segs,90*Math.PI/180);
     const infos=_v2OrderFamily(strokes,variant);
     if(!infos.length)continue;
     let arcLen=0,totLen=0;

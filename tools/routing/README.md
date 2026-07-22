@@ -55,7 +55,7 @@ across joins they shouldn't be (this is why Seigaiha looks wrong in `contour`).
 | `continuous` | Zigzag | zigzag & wave meshes (Tsuzuki Yamagata) | follow any turn (180°); nearest-neighbour order |
 | `contour` | Waves | flowing curves & arcs (Shippō) | chain whole arcs into waves; break at cusps > 120° |
 
-The additive **v2 modes** (`rows2`, `rows2e`, `zigzag2`, `waves2` — see ROUTING.md "Routing v2")
+The additive **v2 modes** (`rows2`, `rows2e`, `zigzag2` — see ROUTING.md "Routing v2")
 are testable via the explicit mode arg (`node tools/routing/route.js asanoha rows2`) but are
 deliberately NOT in `MODES`, so `--snapshot`/`--check` keep guarding the v1 engine only.
 

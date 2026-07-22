@@ -1,0 +1,168 @@
+{
+  "bboxRotated": false,
+  "order": 4,
+  "name": "Diamond Blue Waves",
+  "stitchView": true,
+  "thumbCells": 3,
+  "updatedAt": 1783247597381,
+  "published": true,
+  "routingEngine": 1,
+  "createdAt": 1782945737294,
+  "patMacro": 1,
+  "type": "exp",
+  "id": "exp_1782945737294",
+  "gridType": "isometric",
+  "lines": [
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "start": [
+        1,
+        1
+      ],
+      "end": [
+        2,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        3
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "start": [
+        0,
+        3
+      ],
+      "end": [
+        0,
+        4
+      ]
+    },
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        1,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "start": [
+        3,
+        4
+      ],
+      "end": [
+        3,
+        3
+      ]
+    },
+    {
+      "start": [
+        3,
+        3
+      ],
+      "end": [
+        4,
+        3
+      ]
+    }
+  ],
+  "families": [
+    1,
+    0,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0
+  ],
+  "stitchLen": 8,
+  "creatorId": "uq9c875443t",
+  "routingMode": "default",
+  "stitchRatio": "standard",
+  "stitchGrid": false,
+  "famOrder": [
+    0,
+    1
+  ],
+  "traditional": true,
+  "bbox": {
+    "maxU": 4,
+    "minV": 0,
+    "minU": 0,
+    "maxV": 4
+  },
+  "spacing": 0
+}

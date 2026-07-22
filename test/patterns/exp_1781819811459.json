@@ -1,43 +1,40 @@
 {
-  "patMacro": 3,
+  "order": 19,
+  "stitchView": false,
+  "name": "Asanoha (Hemp Leaf) straight rows",
+  "bboxRotated": false,
+  "id": "exp_1781819811459",
   "gridType": "isometric",
-  "bbox": {
-    "maxV": 10,
-    "minV": 0,
-    "maxU": 10,
-    "minU": 0
-  },
-  "creatorId": "uait1j283so",
-  "createdAt": 1781819811462,
+  "type": "exp",
   "lines": [
     {
+      "end": [
+        0,
+        0
+      ],
       "start": [
         0,
         10
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
       ],
       "end": [
-        0,
+        10,
         0
       ]
     },
     {
       "end": [
-        10,
-        0
-      ],
-      "start": [
         0,
         0
-      ]
-    },
-    {
+      ],
       "start": [
         10,
         10
-      ],
-      "end": [
-        0,
-        0
       ]
     },
     {
@@ -61,59 +58,81 @@
       ]
     },
     {
-      "end": [
-        6.667,
-        3.333
-      ],
       "start": [
         10,
         10
-      ]
-    },
-    {
+      ],
       "end": [
         6.667,
         3.333
-      ],
-      "start": [
-        0,
-        0
       ]
     },
     {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        6.667,
+        3.333
+      ]
+    },
+    {
+      "start": [
+        0,
+        10
+      ],
       "end": [
         3.333,
         6.667
-      ],
-      "start": [
-        0,
-        10
       ]
     },
     {
-      "start": [
-        6.667,
-        3.333
-      ],
       "end": [
         10,
         0
+      ],
+      "start": [
+        6.667,
+        3.333
       ]
     }
   ],
-  "published": true,
-  "id": "exp_1781819811459",
-  "type": "exp",
   "families": [
+    4,
+    1,
     0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
+    3,
+    2,
+    3,
+    2,
+    5,
+    5
   ],
-  "name": "Asanoha (Hemp Leaf)"
+  "updatedAt": 1784714507599,
+  "thumbCells": 3,
+  "published": true,
+  "createdAt": 1781819811462,
+  "patMacro": 3,
+  "stitchRatio": "standard",
+  "stitchLen": 8,
+  "creatorId": "ubv38qfe752",
+  "routingMode": "default",
+  "traditional": true,
+  "bbox": {
+    "maxV": 10,
+    "minV": 0,
+    "minU": 0,
+    "maxU": 10
+  },
+  "spacing": 0,
+  "stitchGrid": false,
+  "famOrder": [
+    4,
+    1,
+    0,
+    5,
+    2,
+    3
+  ]
 }

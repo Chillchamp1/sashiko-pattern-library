@@ -1,23 +1,32 @@
 {
-  "bboxRotated": false,
-  "type": "exp",
-  "traditional": true,
-  "stitchGrid": false,
-  "thumbCells": 10,
+  "routingMode": "default",
   "stitchLen": 8,
   "creatorId": "ubv38qfe752",
+  "stitchRatio": "standard",
+  "stitchGrid": false,
+  "famOrder": [
+    0,
+    2,
+    1,
+    3
+  ],
   "bbox": {
-    "maxV": 3.9780000000000015,
-    "minV": 0,
     "maxU": 4,
-    "minU": 0
+    "minV": 0,
+    "minU": 0,
+    "maxV": 3.9779999999999998
   },
   "spacing": 4,
+  "traditional": true,
+  "bboxRotated": false,
+  "stitchView": false,
+  "name": "Komesashi / Rice Stitch",
+  "order": 31,
+  "createdAt": 1782334860500,
   "patMacro": 5,
-  "gridType": "square",
-  "name": "Komesashi · Rice Stitch",
-  "routingMode": "default",
-  "id": "exp_1782334860500",
+  "thumbCells": 10,
+  "updatedAt": 1784714507600,
+  "published": true,
   "families": [
     3,
     3,
@@ -28,12 +37,9 @@
     0,
     0
   ],
-  "famOrder": [
-    0,
-    2,
-    1,
-    3
-  ],
+  "id": "exp_1782334860500",
+  "type": "exp",
+  "gridType": "square",
   "lines": [
     {
       "start": [
@@ -96,12 +102,12 @@
       ]
     },
     {
-      "start": [
-        0,
-        1.989
-      ],
       "end": [
         2,
+        1.989
+      ],
+      "start": [
+        0,
         1.989
       ]
     },
@@ -115,9 +121,5 @@
         1.989
       ]
     }
-  ],
-  "stitchRatio": "standard",
-  "published": true,
-  "createdAt": 1782334860500,
-  "stitchView": false
+  ]
 }

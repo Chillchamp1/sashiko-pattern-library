@@ -1,0 +1,418 @@
+{
+  "order": 47,
+  "name": "Rose",
+  "stitchView": true,
+  "gridType": "isometric",
+  "id": "exp_1783646947109",
+  "lines": [
+    {
+      "start": [
+        3,
+        1
+      ],
+      "end": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        1,
+        3
+      ]
+    },
+    {
+      "start": [
+        1,
+        3
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        4
+      ],
+      "end": [
+        4,
+        5
+      ]
+    },
+    {
+      "start": [
+        4,
+        2
+      ],
+      "end": [
+        5,
+        4
+      ]
+    },
+    {
+      "start": [
+        5,
+        4
+      ],
+      "end": [
+        4,
+        5
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "start": [
+        3,
+        1
+      ],
+      "end": [
+        1,
+        1
+      ]
+    },
+    {
+      "start": [
+        1,
+        1
+      ],
+      "end": [
+        1,
+        2
+      ]
+    },
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "start": [
+        4,
+        4
+      ],
+      "end": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "start": [
+        4,
+        3
+      ],
+      "end": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "start": [
+        1,
+        3
+      ],
+      "end": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        5,
+        3
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        5,
+        3
+      ]
+    },
+    {
+      "start": [
+        4,
+        5
+      ],
+      "end": [
+        3,
+        5
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        3,
+        5
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        1,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        3,
+        1
+      ]
+    },
+    {
+      "start": [
+        4,
+        1
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        4
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "start": [
+        3,
+        2
+      ],
+      "end": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        3
+      ],
+      "start": [
+        1,
+        2
+      ]
+    }
+  ],
+  "families": [
+    1,
+    2,
+    3,
+    2,
+    1,
+    3,
+    5,
+    2,
+    4,
+    2,
+    0,
+    4,
+    3,
+    2,
+    4,
+    2,
+    3,
+    0,
+    2,
+    3,
+    4,
+    0,
+    1,
+    0,
+    2,
+    4,
+    4,
+    0,
+    0,
+    4,
+    3,
+    1,
+    5,
+    4
+  ],
+  "thumbCells": 1,
+  "updatedAt": 1784714507602,
+  "routingEngine": 1,
+  "patMacro": 0.5,
+  "stitchRatio": "standard",
+  "communityName": "AntiqueWish",
+  "routingMode": "default",
+  "stitchGrid": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "embroidery": false,
+  "bboxRotated": false,
+  "type": "exp",
+  "published": true,
+  "createdAt": 1783646947109,
+  "stitchLen": 7,
+  "creatorId": "u8pyswthw4v",
+  "community": true,
+  "gridMacro": 1,
+  "traditional": false,
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 5,
+    "maxU": 5
+  },
+  "spacing": 2
+}

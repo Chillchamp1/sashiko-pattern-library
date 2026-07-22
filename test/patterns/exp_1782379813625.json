@@ -1,17 +1,17 @@
 {
-  "type": "exp",
-  "bboxRotated": false,
-  "traditional": true,
-  "creatorId": "uyqa6wy657m",
-  "gridType": "square",
-  "patMacro": 2,
   "spacing": 0,
   "bbox": {
-    "maxV": 8,
     "maxU": 8,
-    "minV": 0,
-    "minU": 0
+    "maxV": 8,
+    "minU": 0,
+    "minV": 0
   },
+  "traditional": true,
+  "famOrder": [
+    0,
+    1
+  ],
+  "creatorId": "uyqa6wy657m",
   "families": [
     1,
     1,
@@ -54,9 +54,6 @@
     0,
     0
   ],
-  "id": "exp_1782379813625",
-  "name": "My Kakuyose (Layered Squares)",
-  "published": true,
   "lines": [
     {
       "start": [
@@ -79,32 +76,42 @@
       ]
     },
     {
-      "end": [
-        6,
-        4
-      ],
       "start": [
         4,
+        4
+      ],
+      "end": [
+        6,
         4
       ]
     },
     {
-      "end": [
-        6,
-        5
-      ],
       "start": [
         4,
+        5
+      ],
+      "end": [
+        6,
         5
       ]
     },
     {
+      "start": [
+        4,
+        5
+      ],
       "end": [
         4,
         7
+      ]
+    },
+    {
+      "end": [
+        3,
+        7
       ],
       "start": [
-        4,
+        3,
         5
       ]
     },
@@ -114,16 +121,6 @@
         5
       ],
       "end": [
-        3,
-        7
-      ]
-    },
-    {
-      "start": [
-        3,
-        5
-      ],
-      "end": [
         1,
         5
       ]
@@ -139,26 +136,26 @@
       ]
     },
     {
+      "end": [
+        6,
+        2
+      ],
       "start": [
         1,
         2
-      ],
+      ]
+    },
+    {
       "end": [
+        6,
+        7
+      ],
+      "start": [
         6,
         2
       ]
     },
     {
-      "start": [
-        6,
-        2
-      ],
-      "end": [
-        6,
-        7
-      ]
-    },
-    {
       "end": [
         1,
         7
@@ -169,52 +166,52 @@
       ]
     },
     {
+      "start": [
+        1,
+        7
+      ],
       "end": [
         1,
         2
-      ],
-      "start": [
-        1,
-        7
       ]
     },
     {
+      "end": [
+        7,
+        8
+      ],
       "start": [
         7,
+        1
+      ]
+    },
+    {
+      "end": [
+        0,
+        8
+      ],
+      "start": [
+        7,
+        8
+      ]
+    },
+    {
+      "start": [
+        0,
+        8
+      ],
+      "end": [
+        0,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
         1
       ],
       "end": [
         7,
-        8
-      ]
-    },
-    {
-      "end": [
-        0,
-        8
-      ],
-      "start": [
-        7,
-        8
-      ]
-    },
-    {
-      "end": [
-        0,
-        1
-      ],
-      "start": [
-        0,
-        8
-      ]
-    },
-    {
-      "end": [
-        7,
-        1
-      ],
-      "start": [
-        0,
         1
       ]
     },
@@ -229,13 +226,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        3
-      ],
       "end": [
         0,
         3
+      ],
+      "start": [
+        2,
+        3
       ]
     },
     {
@@ -249,13 +246,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        1
-      ],
       "end": [
         4,
         2
+      ],
+      "start": [
+        4,
+        1
       ]
     },
     {
@@ -289,13 +286,13 @@
       ]
     },
     {
-      "end": [
-        5,
-        6
-      ],
       "start": [
         5,
         8
+      ],
+      "end": [
+        5,
+        6
       ]
     },
     {
@@ -359,12 +356,12 @@
       ]
     },
     {
-      "start": [
-        0,
-        6
-      ],
       "end": [
         2,
+        6
+      ],
+      "start": [
+        0,
         6
       ]
     },
@@ -379,13 +376,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        1
-      ],
       "end": [
         2,
         0
+      ],
+      "start": [
+        2,
+        1
       ]
     },
     {
@@ -399,13 +396,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        1
-      ],
       "end": [
         4,
         0
+      ],
+      "start": [
+        4,
+        1
       ]
     },
     {
@@ -429,40 +426,45 @@
       ]
     },
     {
-      "start": [
-        7,
-        4
-      ],
       "end": [
         8,
+        4
+      ],
+      "start": [
+        7,
         4
       ]
     },
     {
-      "end": [
-        8,
-        5
-      ],
       "start": [
         7,
+        5
+      ],
+      "end": [
+        8,
         5
       ]
     },
     {
-      "end": [
-        8,
+      "start": [
+        7,
         6
       ],
-      "start": [
-        7,
+      "end": [
+        8,
         6
       ]
     }
   ],
-  "famOrder": [
-    0,
-    1
-  ],
-  "zigzagRouting": false,
-  "createdAt": 1782379813625
+  "id": "exp_1782379813625",
+  "type": "exp",
+  "gridType": "square",
+  "patMacro": 2,
+  "createdAt": 1782379813625,
+  "published": true,
+  "updatedAt": 1784714507600,
+  "name": "My Kakuyose (Layered Squares)",
+  "order": 28,
+  "bboxRotated": false,
+  "zigzagRouting": false
 }

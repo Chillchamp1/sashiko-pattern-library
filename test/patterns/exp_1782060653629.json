@@ -1,19 +1,23 @@
 {
-  "bbox": {
-    "maxV": 8,
-    "minV": 0,
-    "maxU": 8,
-    "minU": 0
-  },
-  "patMacro": 5,
-  "gridType": "square",
-  "createdAt": 1782060653634,
-  "creatorId": "uait1j283so",
+  "updatedAt": 1784714507605,
+  "thumbCells": 4,
+  "patMacro": 3.2,
+  "routingEngine": 1,
   "lines": [
     {
+      "start": [
+        0,
+        1
+      ],
       "end": [
         1,
         0
+      ]
+    },
+    {
+      "end": [
+        0,
+        2
       ],
       "start": [
         0,
@@ -21,43 +25,33 @@
       ]
     },
     {
-      "start": [
-        0,
-        1
-      ],
       "end": [
-        0,
-        2
-      ]
-    },
-    {
+        1,
+        3
+      ],
       "start": [
         0,
         2
-      ],
-      "end": [
-        1,
-        3
       ]
     },
     {
-      "end": [
-        2,
-        2
-      ],
       "start": [
         1,
         3
+      ],
+      "end": [
+        2,
+        2
       ]
     },
     {
+      "start": [
+        2,
+        2
+      ],
       "end": [
         2,
         1
-      ],
-      "start": [
-        2,
-        2
       ]
     },
     {
@@ -91,12 +85,12 @@
       ]
     },
     {
-      "end": [
-        5,
-        0
-      ],
       "start": [
         4,
+        0
+      ],
+      "end": [
+        5,
         0
       ]
     },
@@ -111,13 +105,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        3
-      ],
       "end": [
         4,
         2
+      ],
+      "start": [
+        4,
+        3
       ]
     },
     {
@@ -131,13 +125,13 @@
       ]
     },
     {
+      "start": [
+        4,
+        2
+      ],
       "end": [
         5,
         1
-      ],
-      "start": [
-        4,
-        2
       ]
     },
     {
@@ -151,42 +145,42 @@
       ]
     },
     {
+      "start": [
+        5,
+        4
+      ],
       "end": [
         5,
         3
-      ],
-      "start": [
-        5,
-        4
       ]
     },
     {
+      "start": [
+        5,
+        4
+      ],
       "end": [
         4,
         4
-      ],
-      "start": [
-        5,
-        4
       ]
     },
     {
-      "end": [
-        3,
-        5
-      ],
       "start": [
         2,
         4
+      ],
+      "end": [
+        3,
+        5
       ]
     },
     {
-      "start": [
-        3,
-        5
-      ],
       "end": [
         4,
+        5
+      ],
+      "start": [
+        3,
         5
       ]
     },
@@ -201,13 +195,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        5
-      ],
       "end": [
         4,
         6
+      ],
+      "start": [
+        4,
+        5
       ]
     },
     {
@@ -221,23 +215,23 @@
       ]
     },
     {
-      "start": [
-        5,
-        4
-      ],
       "end": [
         5,
         5
+      ],
+      "start": [
+        5,
+        4
       ]
     },
     {
-      "start": [
-        1,
-        4
-      ],
       "end": [
         1,
         5
+      ],
+      "start": [
+        1,
+        4
       ]
     },
     {
@@ -261,13 +255,13 @@
       ]
     },
     {
-      "end": [
-        0,
-        7
-      ],
       "start": [
         0,
         6
+      ],
+      "end": [
+        0,
+        7
       ]
     },
     {
@@ -361,12 +355,12 @@
       ]
     },
     {
-      "start": [
-        6,
-        5
-      ],
       "end": [
         7,
+        5
+      ],
+      "start": [
+        6,
         5
       ]
     },
@@ -401,13 +395,13 @@
       ]
     },
     {
-      "end": [
-        6,
-        6
-      ],
       "start": [
         5,
         7
+      ],
+      "end": [
+        6,
+        6
       ]
     },
     {
@@ -501,39 +495,38 @@
       ]
     },
     {
-      "start": [
-        1,
-        0
-      ],
       "end": [
         0,
         0
-      ]
-    },
-    {
+      ],
       "start": [
         1,
         0
-      ],
+      ]
+    },
+    {
       "end": [
         2,
+        0
+      ],
+      "start": [
+        1,
         0
       ]
     },
     {
-      "start": [
-        2,
-        1
-      ],
       "end": [
         3,
+        1
+      ],
+      "start": [
+        2,
         1
       ]
     }
   ],
-  "name": "My Pattern",
+  "gridType": "square",
   "id": "exp_1782060653629",
-  "type": "exp",
   "families": [
     2,
     0,
@@ -587,5 +580,35 @@
     1,
     1,
     1
-  ]
+  ],
+  "order": 67,
+  "name": "Dasies",
+  "stitchView": false,
+  "famOrder": [
+    2,
+    0,
+    3,
+    1
+  ],
+  "stitchGrid": false,
+  "communityName": "",
+  "routingMode": "default",
+  "stitchRatio": "standard",
+  "published": true,
+  "createdAt": 1782060653634,
+  "type": "exp",
+  "embroidery": false,
+  "bboxRotated": false,
+  "traditional": true,
+  "spacing": 0,
+  "bbox": {
+    "minU": 0,
+    "maxV": 8,
+    "minV": 0,
+    "maxU": 8
+  },
+  "creatorId": "uconggef72r",
+  "stitchLen": 8,
+  "gridMacro": 1,
+  "community": false
 }

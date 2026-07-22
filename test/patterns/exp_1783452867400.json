@@ -1,0 +1,141 @@
+{
+  "bboxRotated": false,
+  "embroidery": false,
+  "type": "exp",
+  "createdAt": 1783452867400,
+  "published": true,
+  "gridMacro": 1,
+  "community": false,
+  "creatorId": "u8pyswthw4v",
+  "stitchLen": 8,
+  "bbox": {
+    "maxU": 4,
+    "minV": 0,
+    "minU": 0,
+    "maxV": 4
+  },
+  "spacing": 0,
+  "traditional": true,
+  "stitchView": true,
+  "name": "Scales",
+  "order": 59,
+  "families": [
+    1,
+    0,
+    3,
+    2,
+    0,
+    3,
+    2,
+    1,
+    3
+  ],
+  "id": "exp_1783452867400",
+  "gridType": "square",
+  "lines": [
+    {
+      "start": [
+        2,
+        4
+      ],
+      "end": [
+        2,
+        3
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        2,
+        3
+      ]
+    },
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        2,
+        3
+      ]
+    },
+    {
+      "start": [
+        4,
+        1
+      ],
+      "end": [
+        3,
+        0
+      ]
+    },
+    {
+      "start": [
+        3,
+        0
+      ],
+      "end": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        3,
+        2
+      ]
+    }
+  ],
+  "routingEngine": 1,
+  "patMacro": 1.6,
+  "updatedAt": 1784714507603,
+  "thumbCells": 4,
+  "stitchRatio": "standard",
+  "routingMode": "default",
+  "communityName": "",
+  "stitchGrid": false,
+  "famOrder": [
+    3,
+    1,
+    0,
+    2
+  ]
+}

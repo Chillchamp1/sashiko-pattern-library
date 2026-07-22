@@ -1,0 +1,267 @@
+{
+  "patMacro": 1,
+  "createdAt": 1783025395704,
+  "routingEngine": 1,
+  "published": true,
+  "updatedAt": 1784714507598,
+  "thumbCells": 1,
+  "families": [
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0
+  ],
+  "lines": [
+    {
+      "end": [
+        0,
+        4
+      ],
+      "start": [
+        0,
+        8
+      ]
+    },
+    {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        2,
+        6
+      ]
+    },
+    {
+      "start": [
+        2,
+        6
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        6,
+        8
+      ]
+    },
+    {
+      "end": [
+        2,
+        6
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "start": [
+        0,
+        8
+      ],
+      "end": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        6,
+        8
+      ],
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        4
+      ],
+      "end": [
+        2,
+        2
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        6
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "start": [
+        6,
+        6
+      ],
+      "end": [
+        8,
+        6
+      ]
+    },
+    {
+      "end": [
+        8,
+        4
+      ],
+      "start": [
+        8,
+        6
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        8,
+        4
+      ]
+    },
+    {
+      "start": [
+        6,
+        4
+      ],
+      "end": [
+        6,
+        0
+      ]
+    },
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        6,
+        0
+      ]
+    },
+    {
+      "start": [
+        4,
+        0
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "start": [
+        6,
+        2
+      ],
+      "end": [
+        8,
+        2
+      ]
+    }
+  ],
+  "id": "exp_1783025395704",
+  "gridType": "isometric",
+  "type": "exp",
+  "bboxRotated": false,
+  "name": "Higaki (Wooden fence) Remix",
+  "stitchView": false,
+  "order": 9,
+  "famOrder": [
+    0,
+    1
+  ],
+  "stitchGrid": false,
+  "spacing": 0,
+  "bbox": {
+    "minU": 0,
+    "maxV": 8,
+    "minV": 0,
+    "maxU": 8
+  },
+  "traditional": true,
+  "routingMode": "default",
+  "stitchLen": 8,
+  "creatorId": "uq9c875443t",
+  "stitchRatio": "standard"
+}

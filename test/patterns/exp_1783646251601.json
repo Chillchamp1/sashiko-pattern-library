@@ -1,0 +1,429 @@
+{
+  "stitchRatio": "standard",
+  "communityName": "AntiqueWish",
+  "routingMode": "default",
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "stitchGrid": false,
+  "order": 48,
+  "name": "Bushy Rose",
+  "stitchView": false,
+  "lines": [
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        0,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "start": [
+        3,
+        1
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        1,
+        3
+      ]
+    },
+    {
+      "start": [
+        1,
+        3
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "start": [
+        1,
+        1
+      ],
+      "end": [
+        1,
+        2
+      ]
+    },
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "start": [
+        4,
+        4
+      ],
+      "end": [
+        4,
+        3
+      ]
+    },
+    {
+      "start": [
+        4,
+        3
+      ],
+      "end": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        1
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "start": [
+        4,
+        4
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        1,
+        3
+      ]
+    },
+    {
+      "start": [
+        0,
+        2
+      ],
+      "end": [
+        0,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        1,
+        0
+      ]
+    },
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "start": [
+        4,
+        1
+      ],
+      "end": [
+        5,
+        3
+      ]
+    },
+    {
+      "start": [
+        5,
+        3
+      ],
+      "end": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        5,
+        5
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        5,
+        5
+      ]
+    },
+    {
+      "end": [
+        3,
+        5
+      ],
+      "start": [
+        4,
+        5
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        3,
+        5
+      ]
+    },
+    {
+      "start": [
+        1,
+        4
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "start": [
+        0,
+        2
+      ],
+      "end": [
+        1,
+        4
+      ]
+    }
+  ],
+  "gridType": "isometric",
+  "id": "exp_1783646251601",
+  "families": [
+    0,
+    2,
+    3,
+    4,
+    3,
+    2,
+    4,
+    0,
+    3,
+    5,
+    3,
+    1,
+    5,
+    4,
+    3,
+    5,
+    3,
+    4,
+    1,
+    3,
+    5,
+    5,
+    1,
+    1,
+    3,
+    5,
+    3,
+    4,
+    5,
+    5,
+    1,
+    1,
+    2,
+    1,
+    4
+  ],
+  "updatedAt": 1784714507602,
+  "thumbCells": 2,
+  "patMacro": 1,
+  "routingEngine": 1,
+  "creatorId": "uconggef72r",
+  "stitchLen": 8,
+  "gridMacro": 1,
+  "community": true,
+  "traditional": false,
+  "spacing": 2,
+  "bbox": {
+    "maxU": 5,
+    "maxV": 5,
+    "minV": 0,
+    "minU": 0
+  },
+  "embroidery": false,
+  "bboxRotated": false,
+  "type": "exp",
+  "published": true,
+  "createdAt": 1783646251599
+}

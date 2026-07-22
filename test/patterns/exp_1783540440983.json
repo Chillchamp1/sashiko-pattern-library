@@ -1,0 +1,218 @@
+{
+  "published": true,
+  "createdAt": 1783540440983,
+  "type": "exp",
+  "embroidery": false,
+  "bboxRotated": false,
+  "traditional": false,
+  "bbox": {
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0,
+    "maxU": 8
+  },
+  "spacing": 0,
+  "stitchLen": 5,
+  "creatorId": "uuqxh5yyn7w",
+  "gridMacro": 2,
+  "community": true,
+  "thumbCells": 1,
+  "updatedAt": 1784714507602,
+  "routingEngine": 1,
+  "patMacro": 0.8,
+  "id": "exp_1783540440983",
+  "gridType": "isometric",
+  "lines": [
+    {
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "start": [
+        4,
+        1
+      ],
+      "end": [
+        6,
+        1
+      ]
+    },
+    {
+      "end": [
+        7,
+        2
+      ],
+      "start": [
+        6,
+        1
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        7,
+        3
+      ],
+      "start": [
+        7,
+        2
+      ]
+    },
+    {
+      "start": [
+        5,
+        1
+      ],
+      "end": [
+        5,
+        0
+      ]
+    },
+    {
+      "start": [
+        1,
+        1
+      ],
+      "end": [
+        1,
+        0
+      ]
+    },
+    {
+      "start": [
+        2,
+        3
+      ],
+      "end": [
+        4,
+        3
+      ]
+    },
+    {
+      "start": [
+        6,
+        3
+      ],
+      "end": [
+        8,
+        3
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        3
+      ],
+      "start": [
+        1,
+        4
+      ]
+    },
+    {
+      "start": [
+        4,
+        3
+      ],
+      "end": [
+        5,
+        4
+      ]
+    },
+    {
+      "start": [
+        5,
+        4
+      ],
+      "end": [
+        6,
+        3
+      ]
+    },
+    {
+      "end": [
+        8,
+        1
+      ],
+      "start": [
+        7,
+        2
+      ]
+    }
+  ],
+  "families": [
+    1,
+    2,
+    0,
+    1,
+    2,
+    3,
+    3,
+    3,
+    3,
+    1,
+    1,
+    2,
+    0,
+    2,
+    0,
+    0
+  ],
+  "order": 51,
+  "name": "Isometric Scales",
+  "stitchView": true,
+  "stitchGrid": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "communityName": "AntiqueWish",
+  "routingMode": "default",
+  "stitchRatio": "standard"
+}
