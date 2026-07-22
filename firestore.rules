@@ -80,8 +80,28 @@ service cloud.firestore {
         allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       }
 
+      // Per-pattern photos ("my stitched piece"): ONE doc per visitor — the doc id
+      // must equal the uploader's auth uid, which hard-caps junk volume per person.
+      // data = compressed base64 JPEG (< ~400 KB). New/replaced photos are always
+      // UNAPPROVED; only the admin can set approved:true (moderation gate), so junk
+      // never shows publicly. Owner may replace/delete their own photo.
+      match /photos/{uid} {
+        allow read: if true;
+        allow create, update: if isAdmin()
+                      || (request.auth != null
+                          && request.auth.uid == uid
+                          && request.resource.data.data is string
+                          && request.resource.data.data.size() < 400000
+                          && request.resource.data.keys().size() <= 6
+                          && request.resource.data.get('approved', false) == false
+                          && (!('handle' in request.resource.data)
+                              || (request.resource.data.handle is string
+                                  && request.resource.data.handle.size() <= 40)));
+        allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      }
+
       // Per-pattern comments (handle + text). Public read; any signed-in visitor
-      // (anonymous is fine) may post. Text only — no photos.
+      // (anonymous is fine) may post.
       match /comments/{cid} {
         allow read: if true;
         allow create: if request.auth != null

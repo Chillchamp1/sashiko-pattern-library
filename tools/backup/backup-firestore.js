@@ -11,6 +11,9 @@
 //                               with the anonymous auth `uid` stripped — it only
 //                               grants delete-ownership live and is useless in a
 //                               backup (defense-in-depth for the public repo)
+//   backup/photos/<id>.json     the pattern's APPROVED photos (compressed base64
+//                               JPEGs; unapproved junk is deliberately excluded),
+//                               `uid` stripped like the comments
 // Files whose doc no longer exists remotely are pruned (git history keeps them).
 // No timestamps inside the files — the git commit itself dates each backup.
 //
@@ -88,8 +91,9 @@ async function main() {
   const patById = new Map();
   for (const p of pats) if (p.id) patById.set(p.id, p);
 
-  // Comments per pattern (public read; sparse — most patterns have none).
+  // Comments + approved photos per pattern (public read; sparse — most have none).
   const comById = new Map();
+  const phoById = new Map();
   const ids = [...patById.keys()];
   const POOL = 8;
   let next = 0;
@@ -102,15 +106,26 @@ async function main() {
         comments.sort((a, b) => (a.created || 0) - (b.created || 0));
         comById.set(id, comments);
       }
+      // Tolerate PERMISSION_DENIED here: until the /photos rules block is deployed
+      // the subcollection is unreadable — the rest of the backup must still run.
+      let photos = [];
+      try { photos = (await fetchCollection(`${BASE}/patterns/${id}/photos`)).filter(p => p.approved); } catch (e) {}
+      if (photos.length) {
+        photos.forEach(p => delete p.uid);
+        photos.sort((a, b) => (a.created || 0) - (b.created || 0));
+        phoById.set(id, photos);
+      }
     }
   }));
 
   const p = writeDir(path.join(OUT, 'patterns'), patById);
   const c = writeDir(path.join(OUT, 'comments'), comById);
+  const f = writeDir(path.join(OUT, 'photos'), phoById);
   const tomb = pats.filter(x => x.deleted).length;
-  console.log(`Backed up ${patById.size} pattern docs (${tomb} tombstones) and comments for ${comById.size} patterns.`);
+  console.log(`Backed up ${patById.size} pattern docs (${tomb} tombstones), comments for ${comById.size} and approved photos for ${phoById.size} patterns.`);
   console.log(`  patterns: ${p.wrote} written/updated, ${p.pruned} pruned`);
   console.log(`  comments: ${c.wrote} written/updated, ${c.pruned} pruned`);
+  console.log(`  photos:   ${f.wrote} written/updated, ${f.pruned} pruned`);
 }
 
 main().catch(e => { console.error('Backup failed:', e.message); process.exit(1); });

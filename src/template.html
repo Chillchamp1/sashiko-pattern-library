@@ -207,16 +207,24 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     <button class="ctrl gal-pop-btn" id="commentBtn" onclick="toggleCommentMenu()">💬 <span id="cmBtnLabel">Comments</span> <span class="dl-caret" id="cmCaret">▾</span></button>
   </div>
 
-  <!-- Comments panel — expands inline BELOW the action bar (not a popover). Text only;
-       photo upload needs Firebase Storage (paid Blaze plan), so it's deferred. -->
+  <!-- Comments panel — expands inline BELOW the action bar (not a popover).
+       Photos live as compressed base64 JPEGs in the photos subcollection (no Firebase
+       Storage needed): one per visitor per pattern, shown only after admin approval. -->
   <div class="cm-panel" id="cmPanel" style="display:none">
+    <div class="cm-photos" id="cmPhotos" style="display:none"></div>
     <div class="cm-list" id="cmList"></div>
     <div class="cm-form">
       <input id="cmHandle" class="cm-handle" maxlength="40" placeholder="Your handle" autocomplete="off">
       <textarea id="cmText" class="cm-text" maxlength="500" placeholder="Write a comment…"></textarea>
-      <div class="cm-formbtns"><button class="cm-post" id="cmPost" onclick="postComment()">Post</button></div>
+      <div class="cm-formbtns">
+        <button class="cm-post cm-photo-btn" id="cmPhotoBtn" onclick="pickPhoto()" title="Add a photo of your stitched piece — one per person, shown after approval">📷 Photo</button>
+        <button class="cm-post" id="cmPost" onclick="postComment()">Post</button>
+      </div>
+      <input type="file" id="cmPhotoFile" accept="image/*" style="display:none" onchange="cmPhotoChange(this)">
     </div>
   </div>
+  <!-- Fullscreen photo lightbox (click anywhere to close) -->
+  <div class="photo-lightbox" id="photoLightbox" style="display:none" onclick="this.style.display='none'"><img alt="stitched piece photo"></div>
 
   <!-- Stitching Order Settings + community profiles — commented out for later reuse, DO NOT DELETE -->
   <!--

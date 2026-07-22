@@ -367,6 +367,17 @@ body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-famroute-row{display:inline-flex;align-items:center;gap:5px}
 .cad-famroute-row select{font-size:11px}
 .cad-famroute-chip{width:13px;height:13px;border-radius:50%;border:1px solid rgba(255,255,255,.4);flex:none}
+/* Pattern photos in the comment panel (+ fullscreen lightbox) */
+.cm-photos{display:flex;flex-wrap:wrap;gap:10px;padding:4px 0 8px}
+.cm-photo{position:relative;width:110px}
+.cm-photo img{width:110px;height:110px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--line);display:block}
+.cm-photo.pending img{opacity:.55;border-style:dashed}
+.cm-photo-meta{display:flex;align-items:center;gap:4px;font-size:10px;color:#9db4cc;margin-top:2px;flex-wrap:wrap}
+.cm-photo-pend{color:#e0b890;font-style:italic}
+.cm-photo-ok{background:#1c4028;color:#9fe0a8;border:1px solid #2c6038;border-radius:5px;font-size:10px;cursor:pointer;padding:1px 5px}
+.cm-photo-btn{background:#1c3045}
+.photo-lightbox{position:fixed;inset:0;background:rgba(6,14,24,.9);display:flex;align-items:center;justify-content:center;z-index:99;cursor:zoom-out}
+.photo-lightbox img{max-width:92vw;max-height:92vh;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
 /* Stitch-view toggle switch */
 .cad-switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;font-size:12px;color:#b0c8e0;padding:3px 6px}
 .cad-switch input{position:absolute;opacity:0;width:0;height:0}

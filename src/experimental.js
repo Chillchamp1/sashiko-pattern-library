@@ -525,6 +525,7 @@ async function _loadComments(){
   if(!curPat||!curPat.id){if(list)list.innerHTML='<div class="cm-empty">Open a pattern to comment.</div>';return;}
   if(!_firebaseReady){if(list)list.innerHTML='<div class="cm-empty">Comments are offline right now.</div>';return;}
   if(list)list.innerHTML='<div class="cm-empty">Loading…</div>';
+  _fetchPhotos(curPat.id).then(ph=>{if(curPat)_renderPhotos(ph);});   // photo strip, in parallel
   const comments=await _fetchCommentsFromFirestore(curPat.id);
   renderCommentList(comments);
   // We now know the exact count — refresh the cache, the button label and any card badge.
@@ -562,12 +563,109 @@ window.postComment=async function(){
   }catch(e){console.warn('Comment post failed:',e);alert('Could not post your comment (offline?). Please try again.');}
   btn.disabled=false;
 };
+// ── Pattern photos (one per visitor, admin-approved, stored as compressed base64
+//    JPEG in patterns/{id}/photos/{authUid} — no Firebase Storage needed) ────────
+// Returns null (NOT []) when the subcollection is unreadable — i.e. the /photos
+// rules block isn't deployed yet — so the UI can hide the 📷 button entirely
+// instead of letting uploads fail with an error.
+async function _fetchPhotos(id){
+  if(!_db||!_firebaseReady)return null;
+  try{
+    const s=await _db.collection('patterns').doc(id).collection('photos').get();
+    return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.created||0)-(b.created||0));
+  }catch(e){return null;}
+}
+function _renderPhotos(photos){
+  const btn=document.getElementById('cmPhotoBtn');
+  if(btn)btn.style.display=photos===null?'none':'';
+  photos=photos||[];
+  const box=document.getElementById('cmPhotos');if(!box)return;
+  // Public sees approved photos; you always see your own (pending) one; admin sees all.
+  const show=photos.filter(p=>p.approved||p.id===_authUid||_isAdmin());
+  if(!show.length){box.style.display='none';box.innerHTML='';return;}
+  box.style.display='flex';
+  box.innerHTML=show.map(p=>{
+    const canDel=p.id===_authUid||_isAdmin();
+    const pend=!p.approved;
+    return '<div class="cm-photo'+(pend?' pending':'')+'">'+
+      '<img src="'+p.data+'" alt="stitched piece" onclick="showPhotoLightbox(this.src)">'+
+      '<div class="cm-photo-meta"><span class="cm-h">'+_cmEsc(p.handle||'anon')+'</span>'+
+      (pend&&!_isAdmin()?'<span class="cm-photo-pend">pending approval</span>':'')+
+      (pend&&_isAdmin()?'<button class="cm-photo-ok" onclick="approvePhoto(\''+_cmEsc(p.id)+'\')">✓ approve</button>':'')+
+      (canDel?'<button class="cm-del" title="Delete photo" onclick="deletePhoto(\''+_cmEsc(p.id)+'\')">✕</button>':'')+
+      '</div></div>';
+  }).join('');
+}
+// Downscale + JPEG-compress in the browser until the dataURL fits the rules cap
+// (< 400 KB); users can throw full-size phone photos at it.
+async function _compressPhoto(file){
+  const url=URL.createObjectURL(file);
+  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;});
+  const MAX=1000;
+  let w=img.width,h=img.height;
+  const sc=Math.min(1,MAX/Math.max(w,h));w=Math.max(1,Math.round(w*sc));h=Math.max(1,Math.round(h*sc));
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  c.getContext('2d').drawImage(img,0,0,w,h);
+  URL.revokeObjectURL(url);
+  for(let q=0.8;q>=0.35;q-=0.1){
+    const d=c.toDataURL('image/jpeg',q);
+    if(d.length<280000)return d;
+  }
+  const c2=document.createElement('canvas');c2.width=Math.max(1,Math.round(w*0.6));c2.height=Math.max(1,Math.round(h*0.6));
+  c2.getContext('2d').drawImage(c,0,0,c2.width,c2.height);
+  return c2.toDataURL('image/jpeg',0.5);
+}
+window.pickPhoto=function(){
+  if(!curPat||!curPat.id)return;
+  const h=document.getElementById('cmHandle');
+  if(!(h.value||'').trim()){alert('Please enter a handle first — it is shown with your photo.');h.focus();return;}
+  document.getElementById('cmPhotoFile').click();
+};
+window.cmPhotoChange=async function(inp){
+  const f=inp.files&&inp.files[0];inp.value='';
+  if(!f||!curPat||!curPat.id)return;
+  const id=curPat.id;
+  const btn=document.getElementById('cmPhotoBtn');btn.disabled=true;btn.textContent='📷 uploading…';
+  try{
+    const data=await _compressPhoto(f);
+    const handle=(document.getElementById('cmHandle').value||'').trim().slice(0,40);
+    localStorage.setItem('sashiko_handle',handle);
+    await _awaitAuth();
+    await _db.collection('patterns').doc(id).collection('photos').doc(_authUid)
+      .set({uid:_authUid,handle,data,created:Date.now(),approved:false});
+    if(curPat&&curPat.id===id)_renderPhotos((await _fetchPhotos(id))||[]);
+    alert(_isAdmin()?'Photo uploaded.':'Photo uploaded — it will appear for everyone once approved. Uploading again replaces it.');
+  }catch(e){console.warn('Photo upload failed:',e);alert('Could not upload the photo. Please try again.');}
+  btn.disabled=false;btn.textContent='📷 Photo';
+};
+window.approvePhoto=async function(uid){
+  if(!curPat||!curPat.id)return;
+  if(!await _ensureAdmin())return;
+  try{
+    await _db.collection('patterns').doc(curPat.id).collection('photos').doc(uid).update({approved:true});
+    _renderPhotos(await _fetchPhotos(curPat.id));
+  }catch(e){alert('Approve failed.');}
+};
+window.deletePhoto=async function(uid){
+  if(!curPat||!curPat.id)return;
+  if(!confirm('Delete this photo?'))return;
+  try{
+    await _db.collection('patterns').doc(curPat.id).collection('photos').doc(uid).delete();
+    _renderPhotos(await _fetchPhotos(curPat.id));
+  }catch(e){alert('Delete failed.');}
+};
+window.showPhotoLightbox=function(src){
+  const lb=document.getElementById('photoLightbox');if(!lb)return;
+  lb.querySelector('img').src=src;lb.style.display='flex';
+};
+
 // Reset the comment panel when a different pattern is opened (called from loadPattern).
 function _resetCommentBar(){
   const p=document.getElementById('cmPanel');if(p)p.style.display='none';
   const car=document.getElementById('cmCaret');if(car)car.textContent='▾';
   const t=document.getElementById('cmText');if(t)t.value='';
   const list=document.getElementById('cmList');if(list)list.innerHTML='';
+  const ph=document.getElementById('cmPhotos');if(ph){ph.style.display='none';ph.innerHTML='';}
   const id=curPat&&curPat.id;
   _setCommentBtnLabel(id?(_commentCounts[id]||0):0);
   // Show the count on the button even before the panel is opened (1 cheap read, cached).
