@@ -360,7 +360,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             </span>
             <span class="cad-panel-stepper">
               <span class="cad-panel-stepper-label">Spacing</span>
-              <input type="number" id="cadSpacing" value="0" min="0" max="12" onchange="cadUpdateSettings()">
+              <input type="number" id="cadSpacing" value="0" min="-12" max="12" onchange="cadUpdateSettings()" title="Space between tiled motifs — negative values overlap/interlock them">
               <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
             </span>
           </div>

@@ -538,7 +538,10 @@ Lines are colored by family in real-time as you draw. Both the Draw canvas and L
 - Stitches scaled to fit the 500×500 tile canvas with the grid background visible
 
 ### CAD Spacing Control
-- Dropdown (0–12) adds padding between tiled pattern units in both Live Tiling and Play views
+- Stepper (−12…12) adds padding between tiled pattern units in both Live Tiling and Play views;
+  **negative values overlap/interlock the motifs** (2026-07-23). Every tiling step is floored at
+  1 grid unit (`Math.max(…+spacing,1)` in `genTiledSegs` square branch + the four CAD mirror
+  sites) so a too-negative value clamps instead of freezing the tiling loops.
 - Stored in `cadSpacing` variable, read by `cadUpdateSettings()`
 
 ### Realistic Stitch View (denim + off-white yarn)

@@ -1195,7 +1195,9 @@ function genTiledSegs(pat){
       }
     }
   }else{
-    const su=dU+spacing, sv=dV+spacing;
+    // Spacing may be NEGATIVE (tiles overlap/interlock); floor the step at 1 grid
+    // unit so the tiling loop always advances (0/negative step = infinite loop).
+    const su=Math.max(dU+spacing,1), sv=Math.max(dV+spacing,1);
     const ou0=Math.floor((minU-dU)/su)*su, ou1=Math.ceil((maxU-0)/su)*su;
     const ov0=Math.floor((minV-dV)/sv)*sv, ov1=Math.ceil((maxV-0)/sv)*sv;
     for(let ou=ou0;ou<=ou1;ou+=su){

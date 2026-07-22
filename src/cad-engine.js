@@ -739,7 +739,7 @@ function cadDrawWorkspace(){
   const bbox=cadBBox2(all);
   if(bbox){
     const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
-    const sU=dU+cadSpacing,sV=dV+cadSpacing;
+    const sU=Math.max(dU+cadSpacing,1),sV=Math.max(dV+cadSpacing,1);   // negative spacing floors at 1
     const cu=(bbox.minU+bbox.maxU)/2,cv=(bbox.minV+bbox.maxV)/2;
     x.fillStyle='rgba(255,255,255,0.06)';
     x.strokeStyle='rgba(255,240,140,0.65)';x.lineWidth=1.5;x.setLineDash([4,3]);
@@ -754,7 +754,7 @@ function cadDrawWorkspace(){
       epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
       // Match genTiledSegs: diagonal tiling period is rounded up to even so tiles stay grid-aligned.
       const evenUp=x=>2*Math.ceil(x/2);
-      const sP=evenUp(mxP-mnP+cadSpacing),sQ=evenUp(mxQ-mnQ+cadSpacing);
+      const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacing,1));
       const midP=(mnP+mxP)/2,midQ=(mnQ+mxQ)/2;
       const g45=(p,q)=>cadG2S((p+q)/2,(p-q)/2,cadOX,cadOY,cadTileSize);
       const ps=[g45(midP-sP/2,midQ-sQ/2),g45(midP+sP/2,midQ-sQ/2),g45(midP+sP/2,midQ+sQ/2),g45(midP-sP/2,midQ+sQ/2)];
@@ -903,7 +903,7 @@ function cadDrawPattern(){
   }
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
-  const stepU=dU+cadSpacing, stepV=dV+cadSpacing;
+  const stepU=Math.max(dU+cadSpacing,1), stepV=Math.max(dV+cadSpacing,1);   // negative spacing floors at step 1
   const ptc=cadPtc||cadPatMacro*cadMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
   const g2s=(u,v)=>cadG2S(u,v,cadPOX,cadPOY,cadPTile);
@@ -953,7 +953,7 @@ function cadDrawPattern(){
     const epts=[];cadAllSegments(all.filter(l=>!l.preview)).forEach(s=>epts.push(s.start,s.end));
     let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
     epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
-    const sP=mxP-mnP+cadSpacing,sQ=mxQ-mnQ+cadSpacing;
+    const sP=Math.max(mxP-mnP+cadSpacing,1),sQ=Math.max(mxQ-mnQ+cadSpacing,1);   // negative spacing floors at 1
     const base_u=(mnP+mnQ)/2,base_v=(mnP-mnQ)/2;
     const N=Math.ceil(2*(ptc+ov)/Math.min(sP,sQ))+3;
     for(let a=-N;a<=N;a++){for(let b=-N;b<=N;b++){
@@ -1229,7 +1229,9 @@ function _cadSyncCommunityUI(){
 window.cadStepSpacing=function(d){
   const el=document.getElementById('cadSpacing');
   let v=parseInt(el.value)||0;
-  v=Math.max(0,Math.min(12,v+d));
+  // Negative spacing overlaps/interlocks the tiled motifs (the tiling step is
+  // floored at 1 grid unit in the geometry, so it can never lock up).
+  v=Math.max(-12,Math.min(12,v+d));
   el.value=v;cadUpdateSettings();
 };
 window.cadStepMacro=function(d){
