@@ -322,8 +322,16 @@ live-toggles `draggable` so no thumbnail rebuild on sign-in). Dropping runs `_on
 each pattern whose `order` actually changed (first curation = one write per pattern; later drags = a few). `order`
 rides the field-spread + 80-key rule (no rules change) and — like all published-pattern writes — is **admin-gated
 by the Firestore rules**: a non-admin can't drag (not `draggable`) and even a forced write is rejected server-side.
-The admin-curated order is also the answer to "most popular / featured first" (the like system is per-device
-`localStorage` only, never aggregated, so there is no global popularity signal to sort by). **Editing preserves the
+**Engagement sorts first (2026-07-22):** hearts are now GLOBAL — one Firestore doc per visitor under
+`patterns/{id}/likes/{authUid}` (mirrors the comments model; **needs the `/likes` rules block in
+`firestore.rules` deployed** — until then everything degrades gracefully to the old per-device localStorage
+hearts). `_expGalleryOrder` sorts published cards by engagement score `3×hearts + 1×comments`
+(`_engagement` in gallery.js; counts cached in `_likeCounts`/`_commentCounts`, prefetched by
+`_refreshEngagement` after the Firestore fetch, re-sorting via `_resortGalleryIfChanged` only when the
+visible order actually changed): equal hearts → comments break the tie; a commented zero-heart pattern
+outranks a silent one; one heart outweighs two comments. The admin drag order is the tiebreak within equal
+scores (in practice: the all-zero majority), so curation still shapes the default layout. `_syncMyLikes`
+pushes a device's pre-global local hearts to the cloud once (retries each session until the rules exist). **Editing preserves the
 position (2026-07-22):** the edit branches of `cadSaveToLibrary`/`cadPublishToLibrary` MERGE the new save over the
 stored pattern (`{...old,...pat}` + explicit id/createdAt/creatorId/published), so edit-invisible fields — the
 `order` sort key, `remixOf`/`remixes` links, the original `creatorId` — survive a re-save; before this, re-saving

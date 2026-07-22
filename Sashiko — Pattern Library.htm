@@ -6370,6 +6370,7 @@ function _buildExpCard(pat,sandbox){
 function buildGallery(){
   const grid=document.getElementById('pgrid');if(!grid)return;grid.innerHTML='';
   const deleted=_getDeleted();
+  _lastExpOrderKey=_expOrderedIds().join(',');   // baseline for _resortGalleryIfChanged
   // Register-card counts (all tabs).
   const setCount=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=String(n);};
   const nBuiltIn=PATTERNS.filter(p=>p.id!=='generator'&&!deleted.includes(p.id)).length;
@@ -6423,15 +6424,35 @@ window.galSetTab=function(tab){
   ['fcSashiko','fcEmbroidery'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=tech?'':'none';});
   buildGallery();filterGallery();
 };
-// ── Admin gallery ordering ───────────────────────────────────────────────────
-// `pat.order` is an admin-set sort key (lower = earlier). Patterns without one sort
-// last, newest-first (the previous default). Drag-to-reorder (admin) renumbers the
-// published set and persists each changed pattern to Firestore.
+// ── Gallery ordering: engagement first, then admin curation ──────────────────
+// Engagement score = 3×hearts + 1×comments (counts cached in experimental.js
+// _likeCounts/_commentCounts, prefetched by _refreshEngagement): equal hearts →
+// comments break the tie, and a commented pattern outranks a silent one even with
+// zero hearts, but a heart (3 pts) outweighs up to two comments. Patterns people
+// engage with bubble to the top automatically.
+// Tiebreak (incl. the all-zero majority): `pat.order`, the admin-set drag key
+// (lower = earlier); patterns without one sort last, newest-first.
 let _dragId=null;
+function _engagement(p){
+  const h=(typeof _likeCounts!=='undefined'&&p.id in _likeCounts)?_likeCounts[p.id]:0;
+  const c=(typeof _commentCounts!=='undefined'&&_commentCounts[p.id])||0;
+  return 3*h+c;
+}
 function _expGalleryOrder(a,b){
+  const ea=_engagement(a), eb=_engagement(b);
+  if(ea!==eb)return eb-ea;
   const ao=(typeof a.order==='number')?a.order:1e9, bo=(typeof b.order==='number')?b.order:1e9;
   if(ao!==bo)return ao-bo;
   return (b.createdAt||0)-(a.createdAt||0);
+}
+// Called when async heart/comment counts arrive (or a heart is toggled): rebuild
+// the gallery only if the counts actually changed the visible order.
+let _lastExpOrderKey='';
+function _resortGalleryIfChanged(){
+  const key=_expOrderedIds().join(',');
+  if(key===_lastExpOrderKey)return;
+  _lastExpOrderKey=key;
+  if(_galTab!=='sandbox'){buildGallery();filterGallery();}
 }
 function _expOrderedIds(){
   const del=_getDeleted();
@@ -7248,6 +7269,8 @@ function loadExpPatterns(){
     _fetchFromFirestore()
       .then(()=>{
         rebuildMyPatsView();
+        _refreshEngagement();   // heart+comment counts → engagement re-sort (async)
+        _syncMyLikes();         // one-time: push this device's old local hearts to the cloud
         // Re-check deep link for exp patterns (Firebase wasn't ready at init time)
         const hash=location.hash.slice(1);
         if(hash&&!PATTERNS.find(p=>p.id===hash)){
@@ -9571,15 +9594,69 @@ window.showMyPatterns=function(){
 window.showGalleryFromMyPats=function(){galSetTab('sandbox');document.getElementById('galleryView').style.display='block';};
 
 // ── Likes & Remix ────────────────────────────────────────────────────────────
+// Hearts are GLOBAL (2026-07-22): one Firestore doc per visitor under
+// patterns/{id}/likes/{authUid} (mirrors the comments model; needs the /likes rules
+// block deployed). The aggregated counts + comment counts drive the gallery
+// engagement sort (gallery.js _engagement). The old per-device localStorage store
+// ('sashiko_likes') stays as the my-vote mirror and as a graceful fallback while
+// the rules aren't deployed / offline — everything degrades to the old behaviour.
 function _getLikes(){try{return JSON.parse(localStorage.getItem('sashiko_likes')||'{}');}catch(e){return{};}}
 function _saveLikes(l){localStorage.setItem('sashiko_likes',JSON.stringify(l));}
-window.likePattern=function(id){
+let _likeCounts={};
+function _localHearts(id){const l=_getLikes()[id];return l?(l.up||0):0;}
+async function _fetchLikeCount(id){
+  if(id in _likeCounts)return _likeCounts[id];
+  if(!_db||!_firebaseReady)return _localHearts(id);
+  try{
+    const col=_db.collection('patterns').doc(id).collection('likes');
+    let n;
+    if(typeof col.count==='function'){const s=await col.count().get();n=s.data().count;}
+    else{const s=await col.get();n=s.size;}
+    _likeCounts[id]=n;return n;
+  }catch(e){return _localHearts(id);}   // rules not deployed yet → local fallback
+}
+// Prefetch heart+comment counts for every published pattern, then re-sort the
+// gallery once if engagement actually changed the order.
+async function _refreshEngagement(){
+  const pubs=EXP_PATTERNS.filter(p=>p.published&&!p.deleted);
+  await Promise.all(pubs.map(p=>Promise.all([_fetchLikeCount(p.id),_fetchCommentCount(p.id)])));
+  if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
+}
+// One-time migration: hearts given before they went global exist only in this
+// device's localStorage — push them as like docs so they count for everyone.
+// Retries every session until the write succeeds (i.e. once the rules are deployed).
+async function _syncMyLikes(){
+  if(localStorage.getItem('sashiko_likes_synced'))return;
+  if(!_db||!_firebaseReady)return;
+  try{
+    await _awaitAuth();
+    const likes=_getLikes(),uid=_getUserId();
+    for(const id in likes){
+      if(likes[id]&&likes[id][uid]===1)
+        await _db.collection('patterns').doc(id).collection('likes').doc(_authUid).set({uid:_authUid,created:Date.now()});
+    }
+    localStorage.setItem('sashiko_likes_synced','1');
+  }catch(e){}   // rules not deployed yet → try again next session
+}
+window.likePattern=async function(id){
   if(!id)return;
   const likes=_getLikes();if(!likes[id])likes[id]={up:0,down:0};
   const uid=_getUserId();const prev=likes[id][uid];
-  if(prev===1){delete likes[id][uid];likes[id].up--;}
-  else{if(prev===-1)likes[id].down--;likes[id].up++;likes[id][uid]=1;}
-  _saveLikes(likes);_updatePatternLikes(id);renderLikeButtons(id);
+  const hearting=prev!==1;
+  if(hearting){if(prev===-1)likes[id].down--;likes[id].up++;likes[id][uid]=1;}
+  else{delete likes[id][uid];likes[id].up=Math.max(0,likes[id].up-1);}
+  _saveLikes(likes);_updatePatternLikes(id);
+  if(id in _likeCounts)_likeCounts[id]=Math.max(0,_likeCounts[id]+(hearting?1:-1));
+  renderLikeButtons(id);
+  if(_db&&_firebaseReady){
+    try{
+      await _awaitAuth();
+      const ref=_db.collection('patterns').doc(id).collection('likes').doc(_authUid);
+      if(hearting)await ref.set({uid:_authUid,created:Date.now()});
+      else await ref.delete();
+    }catch(e){}   // rules not deployed / offline → heart stays local-only
+  }
+  if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
 };
 function _updatePatternLikes(id){
   const likes=_getLikes();const l=likes[id]||{up:0,down:0};
@@ -9587,9 +9664,9 @@ function _updatePatternLikes(id){
   if(pat){pat.likes=l.up;pat.dislikes=l.down;_saveLocal();}
 }
 function renderLikeButtons(id){
-  const likes=_getLikes();const l=likes[id]||{up:0,down:0};
+  const likes=_getLikes();
   const uid=_getUserId();const myVote=likes[id]?.[uid];
-  const hearts=l.up;
+  const hearts=(id in _likeCounts)?_likeCounts[id]:_localHearts(id);
   document.querySelectorAll(`.like-row[data-id="${id}"]`).forEach(el=>{
     const isDetail=el.id==='likeRow';
     if(isDetail){

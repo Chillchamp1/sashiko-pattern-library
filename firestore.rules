@@ -68,6 +68,18 @@ service cloud.firestore {
         allow write: if request.auth != null;
       }
 
+      // Per-pattern hearts: ONE doc per visitor (doc id = their auth uid), so each
+      // visitor can heart a pattern once and remove only their own heart. Public
+      // read — the aggregated count drives the gallery engagement sort.
+      match /likes/{uid} {
+        allow read: if true;
+        allow create: if request.auth != null
+                      && request.auth.uid == uid
+                      && request.resource.data.keys().size() <= 3;
+        allow update: if false;
+        allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      }
+
       // Per-pattern comments (handle + text). Public read; any signed-in visitor
       // (anonymous is fine) may post. Text only — no photos.
       match /comments/{cid} {

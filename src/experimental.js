@@ -710,6 +710,8 @@ function loadExpPatterns(){
     _fetchFromFirestore()
       .then(()=>{
         rebuildMyPatsView();
+        _refreshEngagement();   // heart+comment counts → engagement re-sort (async)
+        _syncMyLikes();         // one-time: push this device's old local hearts to the cloud
         // Re-check deep link for exp patterns (Firebase wasn't ready at init time)
         const hash=location.hash.slice(1);
         if(hash&&!PATTERNS.find(p=>p.id===hash)){
@@ -3033,15 +3035,69 @@ window.showMyPatterns=function(){
 window.showGalleryFromMyPats=function(){galSetTab('sandbox');document.getElementById('galleryView').style.display='block';};
 
 // ── Likes & Remix ────────────────────────────────────────────────────────────
+// Hearts are GLOBAL (2026-07-22): one Firestore doc per visitor under
+// patterns/{id}/likes/{authUid} (mirrors the comments model; needs the /likes rules
+// block deployed). The aggregated counts + comment counts drive the gallery
+// engagement sort (gallery.js _engagement). The old per-device localStorage store
+// ('sashiko_likes') stays as the my-vote mirror and as a graceful fallback while
+// the rules aren't deployed / offline — everything degrades to the old behaviour.
 function _getLikes(){try{return JSON.parse(localStorage.getItem('sashiko_likes')||'{}');}catch(e){return{};}}
 function _saveLikes(l){localStorage.setItem('sashiko_likes',JSON.stringify(l));}
-window.likePattern=function(id){
+let _likeCounts={};
+function _localHearts(id){const l=_getLikes()[id];return l?(l.up||0):0;}
+async function _fetchLikeCount(id){
+  if(id in _likeCounts)return _likeCounts[id];
+  if(!_db||!_firebaseReady)return _localHearts(id);
+  try{
+    const col=_db.collection('patterns').doc(id).collection('likes');
+    let n;
+    if(typeof col.count==='function'){const s=await col.count().get();n=s.data().count;}
+    else{const s=await col.get();n=s.size;}
+    _likeCounts[id]=n;return n;
+  }catch(e){return _localHearts(id);}   // rules not deployed yet → local fallback
+}
+// Prefetch heart+comment counts for every published pattern, then re-sort the
+// gallery once if engagement actually changed the order.
+async function _refreshEngagement(){
+  const pubs=EXP_PATTERNS.filter(p=>p.published&&!p.deleted);
+  await Promise.all(pubs.map(p=>Promise.all([_fetchLikeCount(p.id),_fetchCommentCount(p.id)])));
+  if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
+}
+// One-time migration: hearts given before they went global exist only in this
+// device's localStorage — push them as like docs so they count for everyone.
+// Retries every session until the write succeeds (i.e. once the rules are deployed).
+async function _syncMyLikes(){
+  if(localStorage.getItem('sashiko_likes_synced'))return;
+  if(!_db||!_firebaseReady)return;
+  try{
+    await _awaitAuth();
+    const likes=_getLikes(),uid=_getUserId();
+    for(const id in likes){
+      if(likes[id]&&likes[id][uid]===1)
+        await _db.collection('patterns').doc(id).collection('likes').doc(_authUid).set({uid:_authUid,created:Date.now()});
+    }
+    localStorage.setItem('sashiko_likes_synced','1');
+  }catch(e){}   // rules not deployed yet → try again next session
+}
+window.likePattern=async function(id){
   if(!id)return;
   const likes=_getLikes();if(!likes[id])likes[id]={up:0,down:0};
   const uid=_getUserId();const prev=likes[id][uid];
-  if(prev===1){delete likes[id][uid];likes[id].up--;}
-  else{if(prev===-1)likes[id].down--;likes[id].up++;likes[id][uid]=1;}
-  _saveLikes(likes);_updatePatternLikes(id);renderLikeButtons(id);
+  const hearting=prev!==1;
+  if(hearting){if(prev===-1)likes[id].down--;likes[id].up++;likes[id][uid]=1;}
+  else{delete likes[id][uid];likes[id].up=Math.max(0,likes[id].up-1);}
+  _saveLikes(likes);_updatePatternLikes(id);
+  if(id in _likeCounts)_likeCounts[id]=Math.max(0,_likeCounts[id]+(hearting?1:-1));
+  renderLikeButtons(id);
+  if(_db&&_firebaseReady){
+    try{
+      await _awaitAuth();
+      const ref=_db.collection('patterns').doc(id).collection('likes').doc(_authUid);
+      if(hearting)await ref.set({uid:_authUid,created:Date.now()});
+      else await ref.delete();
+    }catch(e){}   // rules not deployed / offline → heart stays local-only
+  }
+  if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
 };
 function _updatePatternLikes(id){
   const likes=_getLikes();const l=likes[id]||{up:0,down:0};
@@ -3049,9 +3105,9 @@ function _updatePatternLikes(id){
   if(pat){pat.likes=l.up;pat.dislikes=l.down;_saveLocal();}
 }
 function renderLikeButtons(id){
-  const likes=_getLikes();const l=likes[id]||{up:0,down:0};
+  const likes=_getLikes();
   const uid=_getUserId();const myVote=likes[id]?.[uid];
-  const hearts=l.up;
+  const hearts=(id in _likeCounts)?_likeCounts[id]:_localHearts(id);
   document.querySelectorAll(`.like-row[data-id="${id}"]`).forEach(el=>{
     const isDetail=el.id==='likeRow';
     if(isDetail){

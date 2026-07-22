@@ -76,6 +76,7 @@ function _buildExpCard(pat,sandbox){
 function buildGallery(){
   const grid=document.getElementById('pgrid');if(!grid)return;grid.innerHTML='';
   const deleted=_getDeleted();
+  _lastExpOrderKey=_expOrderedIds().join(',');   // baseline for _resortGalleryIfChanged
   // Register-card counts (all tabs).
   const setCount=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=String(n);};
   const nBuiltIn=PATTERNS.filter(p=>p.id!=='generator'&&!deleted.includes(p.id)).length;
@@ -129,15 +130,35 @@ window.galSetTab=function(tab){
   ['fcSashiko','fcEmbroidery'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=tech?'':'none';});
   buildGallery();filterGallery();
 };
-// ── Admin gallery ordering ───────────────────────────────────────────────────
-// `pat.order` is an admin-set sort key (lower = earlier). Patterns without one sort
-// last, newest-first (the previous default). Drag-to-reorder (admin) renumbers the
-// published set and persists each changed pattern to Firestore.
+// ── Gallery ordering: engagement first, then admin curation ──────────────────
+// Engagement score = 3×hearts + 1×comments (counts cached in experimental.js
+// _likeCounts/_commentCounts, prefetched by _refreshEngagement): equal hearts →
+// comments break the tie, and a commented pattern outranks a silent one even with
+// zero hearts, but a heart (3 pts) outweighs up to two comments. Patterns people
+// engage with bubble to the top automatically.
+// Tiebreak (incl. the all-zero majority): `pat.order`, the admin-set drag key
+// (lower = earlier); patterns without one sort last, newest-first.
 let _dragId=null;
+function _engagement(p){
+  const h=(typeof _likeCounts!=='undefined'&&p.id in _likeCounts)?_likeCounts[p.id]:0;
+  const c=(typeof _commentCounts!=='undefined'&&_commentCounts[p.id])||0;
+  return 3*h+c;
+}
 function _expGalleryOrder(a,b){
+  const ea=_engagement(a), eb=_engagement(b);
+  if(ea!==eb)return eb-ea;
   const ao=(typeof a.order==='number')?a.order:1e9, bo=(typeof b.order==='number')?b.order:1e9;
   if(ao!==bo)return ao-bo;
   return (b.createdAt||0)-(a.createdAt||0);
+}
+// Called when async heart/comment counts arrive (or a heart is toggled): rebuild
+// the gallery only if the counts actually changed the visible order.
+let _lastExpOrderKey='';
+function _resortGalleryIfChanged(){
+  const key=_expOrderedIds().join(',');
+  if(key===_lastExpOrderKey)return;
+  _lastExpOrderKey=key;
+  if(_galTab!=='sandbox'){buildGallery();filterGallery();}
 }
 function _expOrderedIds(){
   const del=_getDeleted();
