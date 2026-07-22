@@ -255,7 +255,12 @@ function loadPattern(pat){
     galStitchRatio=pat.stitchRatio||'standard';
     galStitchGrid=!!pat.stitchGrid;
     galDraft=false;_galDraftCache=null;
-    galThreadColors={}; galActiveFam=0;   // thread-colour preview resets per pattern
+    // Thread-colour preview resets per pattern; community patterns saved with the
+    // "Coloured thread" flag start from their creator's custom colours (the visitor
+    // can still repaint or reset via the 🎨 Color popover). Traditional patterns
+    // always start off-white.
+    galThreadColors=(pat.community&&pat.stitchColors&&pat.famColors)?{...pat.famColors}:{};
+    galActiveFam=0;
     _galStitchCache=null;
     syncGalStitchUI();
     step=TOTAL;if(playing)pause();

@@ -257,7 +257,9 @@ function renderThumb(canvas,pat){
       TOTAL=EXP_path.length;
       // Thumbnails render in the realistic stitch view (denim + off-white yarn),
       // using the pattern's saved stitch settings; grid is omitted (too fine to read).
-      galStitch=true; galStitchLen=pat.stitchLen||8; galStitchRatio=pat.stitchRatio||'standard'; galStitchGrid=false; galDraft=false; galThreadColors={}; _galStitchCache=null;
+      galStitch=true; galStitchLen=pat.stitchLen||8; galStitchRatio=pat.stitchRatio||'standard'; galStitchGrid=false; galDraft=false; _galStitchCache=null;
+      // Thumbs show the creator's thread colours for community patterns saved with them.
+      galThreadColors=(pat.community&&pat.stitchColors&&pat.famColors)?{...pat.famColors}:{};
       renderExp(TOTAL);
     } else if(isPL){
       SIZE=THUMB_SIZE;

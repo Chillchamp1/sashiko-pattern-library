@@ -75,6 +75,21 @@ To prevent that, published gallery patterns are **pinned** to the routing engine
 
 **Today there is ONE engine (v1 === the live functions), so the whole layer is a transparent pass-through — zero behavioral change** (verified: `route.js --check` diff is identical with/without the layer; it's fixture drift only).
 
+**Custom family colours (2026-07-22, Community patterns only):** double-clicking a family swatch in the CAD
+editor (`cadFamColorPick`, panel `#cadFamColorPanel` under the fam bar, built by `_cadBuildFamColorUI`; swatches
+from `OLYMPUS_SASHIKO`+`GAL_PASTEL` + ↺ default chip) assigns a custom colour to that family — state
+`cadFamColors` {editor famIdx→hex}, applied everywhere in the editor via `cadFamColor(fam)` (draw canvas, Live
+Tiling, Play, fam bar, routing chips). **Gated on the Community flag**: with Community unchecked the picker
+refuses (alert) and existing entries go dormant (classic `FAM_PALETTE` shows; a non-community save stores `{}`).
+In the stitch view a community-only **🎨 Coloured thread** checkbox (`#cadStitchColorsWrap` in
+`#cadStitchControls`, state `cadStitchColors`, `_cadThreadColor(fam)` at both `_cadDrawStitch` call sites) dyes
+the thread with those colours. Saved as `famColors` (remapped via `_cadRemapFamColors(cf.map)`, same compaction
+as famRouting) + `stitchColors:bool`; restored in `editExpPattern`, carried by `remixPattern` (re-activates when
+the remixer re-checks Community), reset in `showCAD`. **Gallery viewer + thumbnails**: for community patterns
+saved with `stitchColors`, `galThreadColors` initialises from `pat.famColors` (loadPattern in render.js,
+`renderThumb` in generator.js) — visitors can still repaint/reset via the 🎨 Color popover; traditional patterns
+always start off-white. Round-trips via the field spread + 80-key rule (no Firestore rules change).
+
 **Per-colour routing overrides (2026-07-22):** `pat.famRouting` = `{famIdx→mode}` lets individual colours (families) route with a different logic than the pattern's `routingMode`. `buildExpPath` partitions families by effective mode and routes each group with the normal single-mode logic, concatenated in `famOrder` position — additive, byte-identical without overrides (`route.js --check` verified; no engine fork, same reasoning as the v2 modes). Threaded through the opts param (`famRouting` next to `iso`): `expPathFor`, both CAD call sites, `route.js`. CAD UI: **▾** button next to the Routing dropdown (`#cadFamRoutingBtn`, `cadToggleFamRouting`) opens `#cadFamRoutingPanel` below the Live-Tiling canvas (built by `_cadBuildFamRoutingUI`, refreshed from `cadBuildFamBar`); state `cadFamRouting` keyed by **editor** fam indices, remapped via `_compactFamilies(...).map` on save (`_cadRemapFamRouting`, prunes entries equal to the base mode), restored in `editExpPattern`, reset in `remixPattern`/`showCAD` (`_cadSyncFamRoutingUI`). `_cadStitchSig` includes it. Round-trips via the field spread + 80-key rule (no Firestore rules change). The ▾ tints amber while overrides are active.
 
 **Routing v2 modes are NOT an engine fork:** `zigzag2`/`waves2` are additive mode *values* dispatched from `buildExpPath` into a separate `buildExpPathV2` pipeline (`_isV2Mode`, section "Routing v2" in `experimental.js`; rules in ROUTING.md "Routing v2"). The four original mode values behave byte-identically (verified vs the golden snapshot), so no published pattern changes until a pattern is explicitly saved/published with a v2 mode. The gallery viewer additionally has a **view-only routing switcher** (`#galRoutingSel` in `#stitchViewBar`; `galSetRouting`/`_galRouteOverride`/`_expPathForView` in `experimental.js`) to preview any of the eight modes per pattern without saving; it resets on every pattern load (`_galResetRouting` in `loadPattern`) and also drives `_reloadExpWithTiles`, so the tile-count picker keeps the override. `buildExpPath` gained an optional 4th param `v2opts` (`{iso}`, threaded through `expPathFor`, the engine-1 wrapper and the CAD call sites) — only the v2 traditional family classification (H→V→diagonal→curves) reads it.
