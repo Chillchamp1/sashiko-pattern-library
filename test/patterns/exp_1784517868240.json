@@ -1,72 +1,72 @@
 {
-  "bbox": {
-    "minU": 0,
-    "maxV": 12,
-    "minV": 0,
-    "maxU": 18
-  },
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
   "traditional": false,
-  "stitchView": true,
-  "updatedAt": 1784714507600,
   "lines": [
     {
-      "start": [
-        5,
-        7
-      ],
       "end": [
         7,
         7
+      ],
+      "start": [
+        5,
+        7
       ]
     },
     {
+      "end": [
+        1,
+        5
+      ],
       "start": [
         1,
         4
-      ],
-      "end": [
-        1,
-        5
       ]
     },
     {
-      "end": [
-        1,
-        6
-      ],
       "start": [
         1,
         5
+      ],
+      "end": [
+        1,
+        6
       ]
     },
     {
+      "end": [
+        0,
+        5
+      ],
       "start": [
         2,
         5
-      ],
-      "end": [
-        0,
-        5
       ]
     },
     {
-      "end": [
-        16,
-        3
-      ],
       "start": [
         16,
         1
+      ],
+      "end": [
+        16,
+        3
       ]
     },
     {
-      "end": [
-        17,
-        2
-      ],
       "start": [
         15,
         2
+      ],
+      "end": [
+        17,
+        2
       ]
     },
     {
@@ -80,13 +80,13 @@
       ]
     },
     {
-      "end": [
-        8,
-        6
-      ],
       "start": [
         6,
         7
+      ],
+      "end": [
+        8,
+        6
       ]
     },
     {
@@ -110,32 +110,32 @@
       ]
     },
     {
+      "start": [
+        6,
+        8
+      ],
       "end": [
         6,
         9
-      ],
-      "start": [
-        6,
-        8
       ]
     },
     {
-      "end": [
-        6,
-        6
-      ],
       "start": [
         6,
         5
+      ],
+      "end": [
+        6,
+        6
       ]
     },
     {
-      "end": [
-        3,
-        7
-      ],
       "start": [
         4,
+        7
+      ],
+      "end": [
+        3,
         7
       ]
     },
@@ -150,23 +150,23 @@
       ]
     },
     {
-      "start": [
-        1,
-        2
-      ],
       "end": [
         0,
         1
+      ],
+      "start": [
+        1,
+        2
       ]
     },
     {
-      "end": [
-        1,
-        1
-      ],
       "start": [
         0,
         2
+      ],
+      "end": [
+        1,
+        1
       ]
     },
     {
@@ -180,33 +180,33 @@
       ]
     },
     {
-      "end": [
-        7,
-        9
-      ],
       "start": [
         6,
         8
+      ],
+      "end": [
+        7,
+        9
       ]
     },
     {
+      "end": [
+        6,
+        6
+      ],
       "start": [
         7,
         5
-      ],
-      "end": [
-        6,
-        6
       ]
     },
     {
-      "start": [
-        6,
-        6
-      ],
       "end": [
         5,
         5
+      ],
+      "start": [
+        6,
+        6
       ]
     },
     {
@@ -220,13 +220,13 @@
       ]
     },
     {
-      "start": [
-        6,
-        9
-      ],
       "end": [
         6,
         10
+      ],
+      "start": [
+        6,
+        9
       ]
     },
     {
@@ -240,33 +240,33 @@
       ]
     },
     {
-      "start": [
-        3,
-        2
-      ],
       "end": [
         5,
+        2
+      ],
+      "start": [
+        3,
         2
       ]
     },
     {
-      "start": [
-        3,
-        1
-      ],
       "end": [
         5,
         3
+      ],
+      "start": [
+        3,
+        1
       ]
     },
     {
-      "start": [
-        5,
-        1
-      ],
       "end": [
         3,
         3
+      ],
+      "start": [
+        5,
+        1
       ]
     },
     {
@@ -280,13 +280,13 @@
       ]
     },
     {
-      "end": [
-        9,
-        2
-      ],
       "start": [
         8,
         3
+      ],
+      "end": [
+        9,
+        2
       ]
     },
     {
@@ -320,12 +320,12 @@
       ]
     },
     {
-      "start": [
-        13,
-        9
-      ],
       "end": [
         17,
+        9
+      ],
+      "start": [
+        13,
         9
       ]
     },
@@ -340,23 +340,23 @@
       ]
     },
     {
-      "start": [
-        13,
-        7
-      ],
       "end": [
         14,
         8
+      ],
+      "start": [
+        13,
+        7
       ]
     },
     {
-      "start": [
-        17,
-        7
-      ],
       "end": [
         16,
         8
+      ],
+      "start": [
+        17,
+        7
       ]
     },
     {
@@ -370,13 +370,13 @@
       ]
     },
     {
-      "end": [
-        17,
-        11
-      ],
       "start": [
         16,
         10
+      ],
+      "end": [
+        17,
+        11
       ]
     },
     {
@@ -400,28 +400,28 @@
       ]
     },
     {
-      "end": [
-        10,
-        12
-      ],
       "start": [
         9,
         11
-      ]
-    },
-    {
-      "start": [
-        13,
-        5
       ],
       "end": [
-        12,
-        4
+        10,
+        12
       ]
     },
     {
       "end": [
         12,
+        4
+      ],
+      "start": [
+        13,
+        5
+      ]
+    },
+    {
+      "end": [
+        12,
         5
       ],
       "start": [
@@ -430,55 +430,45 @@
       ]
     },
     {
-      "start": [
-        1,
-        11
-      ],
       "end": [
         2,
         10
+      ],
+      "start": [
+        1,
+        11
       ]
     },
     {
-      "start": [
-        1,
-        10
-      ],
       "end": [
         2,
         11
+      ],
+      "start": [
+        1,
+        10
       ]
     }
   ],
-  "stitchGrid": false,
-  "type": "exp",
-  "bboxRotated": false,
-  "gridMacro": 3,
-  "creatorId": "uconggef72r",
-  "patMacro": 3.6,
-  "routingEngine": 1,
-  "embroidery": false,
-  "order": 34,
+  "communityName": "AntiqueWish",
+  "id": "exp_1784517868240",
+  "community": true,
   "published": true,
   "gridType": "square",
-  "id": "exp_1784517868240",
+  "bboxRotated": false,
+  "stitchView": true,
+  "routingEngine": 1,
+  "patMacro": 3.6,
+  "bbox": {
+    "maxV": 12,
+    "maxU": 18,
+    "minU": 0,
+    "minV": 0
+  },
   "createdAt": 1784517868240,
-  "name": "Starry Sky",
-  "routingMode": "default",
+  "gridMacro": 3,
   "stitchLen": 8,
-  "community": true,
-  "stitchRatio": "standard",
-  "famOrder": [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5
-  ],
-  "communityName": "AntiqueWish",
-  "thumbCells": 2,
-  "spacing": 0,
+  "creatorId": "uconggef72r",
   "families": [
     0,
     3,
@@ -524,5 +514,15 @@
     4,
     4,
     2
-  ]
+  ],
+  "stitchRatio": "standard",
+  "spacing": 0,
+  "routingMode": "default",
+  "name": "Starry Sky",
+  "order": 30,
+  "thumbCells": 2,
+  "embroidery": false,
+  "stitchGrid": false,
+  "updatedAt": 1784727523710,
+  "type": "exp"
 }

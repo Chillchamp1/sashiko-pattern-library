@@ -1,13 +1,8 @@
 {
-  "stitchRatio": "standard",
-  "famOrder": [
-    0,
-    2,
-    1
-  ],
-  "communityName": "Chillchamp",
-  "spacing": 0,
-  "thumbCells": 1,
+  "gridMacro": 4,
+  "createdAt": 1783284507560,
+  "stitchLen": 10,
+  "creatorId": "uuqxh5yyn7w",
   "families": [
     2,
     1,
@@ -57,16 +52,22 @@
     2,
     0
   ],
-  "embroidery": false,
-  "published": true,
-  "order": 50,
-  "gridType": "isometric",
-  "id": "exp_1783284507560",
-  "stitchLen": 10,
-  "name": "Sierpiński Fractal",
+  "stitchRatio": "standard",
+  "spacing": 0,
   "routingMode": "default",
-  "createdAt": 1783284507560,
-  "community": true,
+  "order": 34,
+  "name": "Sierpiński Fractal",
+  "thumbCells": 1,
+  "type": "exp",
+  "updatedAt": 1784728424372,
+  "stitchGrid": false,
+  "embroidery": false,
+  "famOrder": [
+    0,
+    2,
+    1
+  ],
+  "traditional": false,
   "lines": [
     {
       "end": [
@@ -79,13 +80,13 @@
       ]
     },
     {
-      "start": [
-        10,
-        40
-      ],
       "end": [
         0,
         30
+      ],
+      "start": [
+        10,
+        40
       ]
     },
     {
@@ -109,23 +110,23 @@
       ]
     },
     {
+      "end": [
+        16,
+        36
+      ],
       "start": [
         0,
         20
-      ],
-      "end": [
-        16,
-        36
       ]
     },
     {
-      "end": [
-        20,
-        40
-      ],
       "start": [
         0,
         40
+      ],
+      "end": [
+        20,
+        40
       ]
     },
     {
@@ -139,13 +140,13 @@
       ]
     },
     {
-      "end": [
-        5,
-        40
-      ],
       "start": [
         0,
         35
+      ],
+      "end": [
+        5,
+        40
       ]
     },
     {
@@ -179,12 +180,12 @@
       ]
     },
     {
-      "end": [
-        5,
-        25
-      ],
       "start": [
         0,
+        25
+      ],
+      "end": [
+        5,
         25
       ]
     },
@@ -219,22 +220,22 @@
       ]
     },
     {
-      "end": [
-        10,
-        35
-      ],
       "start": [
         15,
+        35
+      ],
+      "end": [
+        10,
         35
       ]
     },
     {
-      "start": [
-        20,
-        40
-      ],
       "end": [
         30,
+        40
+      ],
+      "start": [
+        20,
         40
       ]
     },
@@ -259,13 +260,13 @@
       ]
     },
     {
+      "end": [
+        20,
+        20
+      ],
       "start": [
         0,
         0
-      ],
-      "end": [
-        20,
-        20
       ]
     },
     {
@@ -279,9 +280,19 @@
       ]
     },
     {
+      "end": [
+        40,
+        40
+      ],
       "start": [
         20,
         20
+      ]
+    },
+    {
+      "start": [
+        30,
+        40
       ],
       "end": [
         40,
@@ -289,16 +300,6 @@
       ]
     },
     {
-      "start": [
-        30,
-        40
-      ],
-      "end": [
-        40,
-        40
-      ]
-    },
-    {
       "end": [
         30,
         40
@@ -309,13 +310,13 @@
       ]
     },
     {
-      "end": [
-        30,
-        30
-      ],
       "start": [
         30,
         40
+      ],
+      "end": [
+        30,
+        30
       ]
     },
     {
@@ -339,23 +340,23 @@
       ]
     },
     {
-      "end": [
-        0,
-        10
-      ],
       "start": [
         10,
         20
+      ],
+      "end": [
+        0,
+        10
       ]
     },
     {
+      "start": [
+        20,
+        30
+      ],
       "end": [
         30,
         30
-      ],
-      "start": [
-        20,
-        30
       ]
     },
     {
@@ -389,83 +390,83 @@
       ]
     },
     {
-      "start": [
-        20,
-        35
-      ],
       "end": [
         25,
         40
-      ]
-    },
-    {
-      "start": [
-        25,
-        40
       ],
-      "end": [
-        25,
-        35
-      ]
-    },
-    {
       "start": [
-        25,
-        35
-      ],
-      "end": [
         20,
         35
       ]
     },
     {
-      "start": [
-        30,
-        35
-      ],
       "end": [
-        35,
-        40
-      ]
-    },
-    {
-      "end": [
-        35,
+        25,
         35
       ],
       "start": [
-        35,
+        25,
         40
       ]
     },
     {
       "start": [
-        35,
+        25,
         35
       ],
       "end": [
+        20,
+        35
+      ]
+    },
+    {
+      "end": [
+        35,
+        40
+      ],
+      "start": [
         30,
         35
       ]
     },
     {
+      "end": [
+        35,
+        35
+      ],
+      "start": [
+        35,
+        40
+      ]
+    },
+    {
+      "start": [
+        35,
+        35
+      ],
+      "end": [
+        30,
+        35
+      ]
+    },
+    {
+      "end": [
+        5,
+        10
+      ],
       "start": [
         0,
         5
-      ],
-      "end": [
-        5,
-        10
       ]
     },
     {
-      "start": [
-        5,
-        10
-      ],
       "end": [
         5,
         5
+      ],
+      "start": [
+        5,
+        10
       ]
     },
     {
@@ -539,20 +540,19 @@
       ]
     }
   ],
-  "stitchGrid": false,
+  "communityName": "Chillchamp",
+  "gridType": "isometric",
+  "published": true,
+  "id": "exp_1783284507560",
+  "community": true,
+  "stitchView": true,
   "bboxRotated": false,
-  "type": "exp",
-  "gridMacro": 4,
-  "creatorId": "uuqxh5yyn7w",
-  "patMacro": 4,
-  "routingEngine": 1,
   "bbox": {
-    "maxV": 40,
     "minU": 0,
     "minV": 0,
+    "maxV": 40,
     "maxU": 40
   },
-  "traditional": false,
-  "stitchView": true,
-  "updatedAt": 1784714507602
+  "routingEngine": 1,
+  "patMacro": 4
 }

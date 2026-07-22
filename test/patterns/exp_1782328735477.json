@@ -1,7 +1,5 @@
 {
-  "bboxRotated": false,
-  "type": "exp",
-  "stitchGrid": false,
+  "famRouting": {},
   "famOrder": [
     3,
     0,
@@ -10,16 +8,17 @@
     2,
     4
   ],
-  "stitchRatio": "standard",
+  "traditional": true,
+  "communityName": "Chillchamp",
   "lines": [
     {
-      "start": [
-        0,
-        10
-      ],
       "end": [
         0,
         0
+      ],
+      "start": [
+        0,
+        10
       ]
     },
     {
@@ -43,13 +42,13 @@
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         3.333,
         6.667
+      ],
+      "start": [
+        0,
+        0
       ]
     },
     {
@@ -73,13 +72,13 @@
       ]
     },
     {
-      "end": [
-        6.667,
-        3.333
-      ],
       "start": [
         0,
         0
+      ],
+      "end": [
+        6.667,
+        3.333
       ]
     },
     {
@@ -93,17 +92,32 @@
       ]
     },
     {
-      "start": [
-        6.667,
-        3.333
-      ],
       "end": [
         10,
         0
+      ],
+      "start": [
+        6.667,
+        3.333
       ]
     }
   ],
+  "id": "exp_1782328735477",
+  "community": false,
+  "published": true,
+  "gridType": "isometric",
+  "routingEngine": 1,
   "patMacro": 3,
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 10,
+    "maxV": 10
+  },
+  "bboxRotated": false,
+  "stitchView": false,
+  "createdAt": 1782328735477,
+  "gridMacro": 1,
   "families": [
     5,
     1,
@@ -115,24 +129,16 @@
     0,
     0
   ],
-  "spacing": 0,
-  "thumbCells": 3,
-  "creatorId": "ubv38qfe752",
-  "gridType": "isometric",
-  "traditional": true,
-  "published": true,
-  "order": 0,
-  "bbox": {
-    "maxU": 10,
-    "minV": 0,
-    "minU": 0,
-    "maxV": 10
-  },
-  "updatedAt": 1783247551220,
+  "stitchRatio": "standard",
+  "creatorId": "uuqxh5yyn7w",
   "stitchLen": 8,
-  "routingMode": "default",
-  "stitchView": false,
-  "createdAt": 1782328735477,
   "name": "Asanoha (Hemp Leaf) Zig Zag",
-  "id": "exp_1782328735477"
+  "order": 0,
+  "spacing": 0,
+  "routingMode": "default",
+  "embroidery": false,
+  "type": "exp",
+  "stitchGrid": false,
+  "updatedAt": 1784726137731,
+  "thumbCells": 3
 }

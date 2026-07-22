@@ -89,8 +89,11 @@ refuses (alert) and existing entries go dormant (a non-community save stores `{}
 state `cadFabric`, ids = `SASHIKO_FABRICS`) swaps the stitch-view background via `_cadDrawFabricBg` ('indigo'
 default = the classic `_cadDrawDenim`, so non-community stays byte-identical); `_cadEditorGrid` draws its dots
 dark on a light cloth (Natural), same adaptation as the gallery grid. Saved as `pat.fabric` on community saves,
-restored on edit, carried by remix, reset in `showCAD`. The GALLERY fabric stays the visitor's own persistent
-`galFabric` preference (deliberately not driven by the pattern). Saved as `famColors` (remapped via `_cadRemapFamColors(cf.map)`, same compaction
+restored on edit, carried by remix, reset in `showCAD`. **Gallery (2026-07-23):** a community pattern saved
+with a fabric OPENS on that cloth — `loadPattern` sets `galFabric=pat.fabric` for it, everything else falls
+back to `_galFabricUser` (the visitor's sticky choice, updated by `galSetFabric`); thumbnails do the same
+(`renderThumb` sets/restores `galFabric`). So the creator's cloth is the default view, the visitor's own pick
+still wins on every pattern without a saved fabric and can override per view. Saved as `famColors` (remapped via `_cadRemapFamColors(cf.map)`, same compaction
 as famRouting) + `stitchColors:bool`; restored in `editExpPattern`, carried by `remixPattern` (re-activates when
 the remixer re-checks Community), reset in `showCAD`. **Gallery viewer + thumbnails**: for community patterns
 saved with `stitchColors`, `galThreadColors` initialises from `pat.famColors` (loadPattern in render.js,

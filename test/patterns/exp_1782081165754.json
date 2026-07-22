@@ -1,18 +1,4 @@
 {
-  "updatedAt": 1784624114562,
-  "id": "exp_1782081165754",
-  "name": "Tsuzuki Yamagata (Moutains))",
-  "createdAt": 1782081165754,
-  "traditional": true,
-  "gridType": "square",
-  "bbox": {
-    "minV": 0,
-    "maxV": 8,
-    "minU": 0,
-    "maxU": 8
-  },
-  "spacing": 0,
-  "creatorId": "uy09jle01o7",
   "families": [
     0,
     2,
@@ -31,15 +17,7 @@
     1,
     3
   ],
-  "patMacro": 3,
-  "famOrder": [
-    0,
-    2,
-    1,
-    3
-  ],
-  "bboxRotated": false,
-  "type": "exp",
+  "creatorId": "uy09jle01o7",
   "lines": [
     {
       "start": [
@@ -52,28 +30,28 @@
       ]
     },
     {
-      "end": [
-        2,
-        4
-      ],
       "start": [
         0,
         0
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        2,
+        0
       ]
     },
     {
       "start": [
         2,
-        0
-      ],
-      "end": [
-        4,
-        4
-      ]
-    },
-    {
-      "start": [
-        2,
         4
       ],
       "end": [
@@ -82,33 +60,33 @@
       ]
     },
     {
-      "end": [
-        6,
-        8
-      ],
       "start": [
         4,
         4
-      ]
-    },
-    {
+      ],
       "end": [
         6,
-        4
-      ],
-      "start": [
-        4,
         8
       ]
     },
     {
       "start": [
+        4,
+        8
+      ],
+      "end": [
         6,
         4
-      ],
+      ]
+    },
+    {
       "end": [
         8,
         8
+      ],
+      "start": [
+        6,
+        4
       ]
     },
     {
@@ -132,33 +110,33 @@
       ]
     },
     {
+      "start": [
+        4,
+        2
+      ],
       "end": [
         8,
         0
-      ],
-      "start": [
-        4,
-        2
-      ]
-    },
-    {
-      "end": [
-        8,
-        4
-      ],
-      "start": [
-        4,
-        2
       ]
     },
     {
       "start": [
         4,
-        4
+        2
       ],
       "end": [
         8,
+        4
+      ]
+    },
+    {
+      "end": [
+        8,
         2
+      ],
+      "start": [
+        4,
+        4
       ]
     },
     {
@@ -172,13 +150,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        6
-      ],
       "start": [
         0,
         4
+      ],
+      "end": [
+        4,
+        6
       ]
     },
     {
@@ -201,5 +179,27 @@
         8
       ]
     }
-  ]
+  ],
+  "traditional": true,
+  "famOrder": [
+    0,
+    2,
+    1,
+    3
+  ],
+  "createdAt": 1782081165754,
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 8,
+    "maxU": 8
+  },
+  "updatedAt": 1784743743439,
+  "type": "exp",
+  "patMacro": 3,
+  "bboxRotated": false,
+  "gridType": "square",
+  "name": "Tsuzuki Yamagata (Moutains))",
+  "id": "exp_1782081165754",
+  "spacing": 0
 }

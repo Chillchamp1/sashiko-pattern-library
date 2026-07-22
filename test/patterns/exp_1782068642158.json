@@ -1,20 +1,56 @@
 {
-  "routingEngine": 1,
-  "patMacro": 5.4,
-  "creatorId": "uconggef72r",
-  "gridMacro": 2,
-  "bboxRotated": false,
-  "type": "exp",
+  "name": "Lightning bolt 1",
+  "routingMode": "default",
+  "spacing": 0,
   "stitchGrid": false,
+  "type": "exp",
+  "updatedAt": 1784513600338,
+  "embroidery": false,
+  "thumbCells": 3,
+  "gridMacro": 2,
+  "createdAt": 1782068642173,
+  "stitchRatio": "standard",
+  "families": [
+    2,
+    0,
+    2,
+    0,
+    1,
+    2,
+    1
+  ],
+  "creatorId": "uconggef72r",
+  "stitchLen": 8,
+  "published": true,
+  "gridType": "square",
+  "community": true,
+  "id": "exp_1782068642158",
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxV": 18,
+    "maxU": 12
+  },
+  "patMacro": 5.4,
+  "routingEngine": 1,
+  "stitchView": false,
+  "bboxRotated": false,
+  "traditional": false,
+  "famOrder": [
+    2,
+    0,
+    1
+  ],
+  "communityName": "ChillChamp",
   "lines": [
     {
-      "end": [
-        10,
-        0
-      ],
       "start": [
         1,
         0
+      ],
+      "end": [
+        10,
+        0
       ]
     },
     {
@@ -28,23 +64,23 @@
       ]
     },
     {
-      "end": [
-        12,
-        4
-      ],
       "start": [
         8,
+        4
+      ],
+      "end": [
+        12,
         4
       ]
     },
     {
-      "end": [
-        2,
-        18
-      ],
       "start": [
         12,
         4
+      ],
+      "end": [
+        2,
+        18
       ]
     },
     {
@@ -77,41 +113,5 @@
         18
       ]
     }
-  ],
-  "updatedAt": 1784513600338,
-  "stitchView": false,
-  "traditional": false,
-  "bbox": {
-    "maxV": 18,
-    "minU": 0,
-    "minV": 0,
-    "maxU": 12
-  },
-  "families": [
-    2,
-    0,
-    2,
-    0,
-    1,
-    2,
-    1
-  ],
-  "spacing": 0,
-  "thumbCells": 3,
-  "communityName": "ChillChamp",
-  "famOrder": [
-    2,
-    0,
-    1
-  ],
-  "stitchRatio": "standard",
-  "community": true,
-  "stitchLen": 8,
-  "name": "Lightning bolt 1",
-  "routingMode": "default",
-  "createdAt": 1782068642173,
-  "id": "exp_1782068642158",
-  "gridType": "square",
-  "published": true,
-  "embroidery": false
+  ]
 }

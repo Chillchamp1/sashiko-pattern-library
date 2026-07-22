@@ -1,19 +1,13 @@
 {
+  "embroidery": false,
+  "type": "exp",
+  "updatedAt": 1784727610413,
+  "stitchGrid": false,
+  "thumbCells": 2,
   "name": "Kikkō (Tortoise Shell)",
-  "createdAt": 1782254084612,
-  "id": "exp_1782254084612",
-  "updatedAt": 1783247597381,
-  "published": true,
-  "order": 3,
-  "bbox": {
-    "maxV": 18,
-    "minV": 0,
-    "minU": 0,
-    "maxU": 18
-  },
-  "traditional": true,
-  "gridType": "isometric",
-  "patMacro": 3,
+  "order": 60,
+  "spacing": 0,
+  "routingMode": "default",
   "families": [
     2,
     2,
@@ -61,17 +55,35 @@
     1,
     1
   ],
-  "spacing": 0,
-  "creatorId": "uy09jle01o7",
+  "stitchRatio": "standard",
+  "stitchLen": 8,
+  "creatorId": "uuqxh5yyn7w",
+  "createdAt": 1782254084612,
+  "gridMacro": 2,
+  "routingEngine": 1,
+  "patMacro": 3.6,
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 18,
+    "maxV": 18
+  },
+  "bboxRotated": false,
+  "stitchView": false,
+  "id": "exp_1782254084612",
+  "community": false,
+  "gridType": "isometric",
+  "published": true,
+  "communityName": "",
   "lines": [
     {
-      "end": [
-        12,
-        18
-      ],
       "start": [
         12,
         12
+      ],
+      "end": [
+        12,
+        18
       ]
     },
     {
@@ -105,13 +117,13 @@
       ]
     },
     {
-      "start": [
-        12,
-        12
-      ],
       "end": [
         6,
         6
+      ],
+      "start": [
+        12,
+        12
       ]
     },
     {
@@ -135,63 +147,63 @@
       ]
     },
     {
-      "end": [
-        12,
-        12
-      ],
       "start": [
         18,
         12
+      ],
+      "end": [
+        12,
+        12
       ]
     },
     {
-      "start": [
-        12,
-        18
-      ],
       "end": [
         6,
         18
+      ],
+      "start": [
+        12,
+        18
       ]
     },
     {
-      "end": [
-        10,
-        12
-      ],
       "start": [
         10,
         16
+      ],
+      "end": [
+        10,
+        12
       ]
     },
     {
-      "start": [
-        10,
-        12
-      ],
       "end": [
         6,
         8
+      ],
+      "start": [
+        10,
+        12
       ]
     },
     {
-      "start": [
-        10,
-        16
-      ],
       "end": [
         6,
         16
+      ],
+      "start": [
+        10,
+        16
       ]
     },
     {
-      "end": [
-        12,
-        10
-      ],
       "start": [
         8,
         6
+      ],
+      "end": [
+        12,
+        10
       ]
     },
     {
@@ -235,13 +247,13 @@
       ]
     },
     {
-      "end": [
-        14,
-        18
-      ],
       "start": [
         14,
         14
+      ],
+      "end": [
+        14,
+        18
       ]
     },
     {
@@ -255,143 +267,143 @@
       ]
     },
     {
-      "start": [
-        2,
-        12
-      ],
       "end": [
         2,
         8
+      ],
+      "start": [
+        2,
+        12
       ]
     },
     {
+      "start": [
+        2,
+        8
+      ],
       "end": [
         6,
         8
-      ],
-      "start": [
-        2,
-        8
       ]
     },
     {
-      "end": [
-        8,
-        2
-      ],
       "start": [
         8,
         6
+      ],
+      "end": [
+        8,
+        2
+      ]
+    },
+    {
+      "start": [
+        8,
+        2
+      ],
+      "end": [
+        12,
+        2
       ]
     },
     {
       "end": [
-        12,
+        4,
+        4
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "start": [
+        18,
+        4
+      ],
+      "end": [
+        14,
+        0
+      ]
+    },
+    {
+      "start": [
+        4,
+        18
+      ],
+      "end": [
+        0,
+        14
+      ]
+    },
+    {
+      "end": [
+        2,
         2
       ],
       "start": [
-        8,
+        0,
         2
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        2,
+        0
       ]
     },
     {
       "start": [
         0,
-        4
+        16
       ],
-      "end": [
-        4,
-        4
-      ]
-    },
-    {
-      "end": [
-        4,
-        0
-      ],
-      "start": [
-        4,
-        4
-      ]
-    },
-    {
-      "end": [
-        14,
-        0
-      ],
-      "start": [
-        18,
-        4
-      ]
-    },
-    {
-      "start": [
-        4,
-        18
-      ],
-      "end": [
-        0,
-        14
-      ]
-    },
-    {
-      "start": [
-        0,
-        2
-      ],
-      "end": [
-        2,
-        2
-      ]
-    },
-    {
-      "end": [
-        2,
-        0
-      ],
-      "start": [
-        2,
-        2
-      ]
-    },
-    {
       "end": [
         2,
         18
-      ],
-      "start": [
-        0,
-        16
       ]
     },
     {
-      "start": [
-        16,
-        0
-      ],
       "end": [
         18,
         2
+      ],
+      "start": [
+        16,
+        0
       ]
     },
     {
-      "end": [
-        16,
-        16
-      ],
       "start": [
         16,
         18
+      ],
+      "end": [
+        16,
+        16
       ]
     },
     {
-      "start": [
-        16,
-        16
-      ],
       "end": [
         18,
         16
+      ],
+      "start": [
+        16,
+        16
       ]
     },
     {
@@ -415,13 +427,13 @@
       ]
     },
     {
-      "start": [
-        6,
-        10
-      ],
       "end": [
         8,
         12
+      ],
+      "start": [
+        6,
+        10
       ]
     },
     {
@@ -452,25 +464,25 @@
       "start": [
         6,
         14
-      ]
-    },
-    {
-      "end": [
-        10,
-        4
-      ],
-      "start": [
-        10,
-        6
       ]
     },
     {
       "start": [
         10,
-        4
+        6
       ],
+      "end": [
+        10,
+        4
+      ]
+    },
+    {
       "end": [
         12,
+        4
+      ],
+      "start": [
+        10,
         4
       ]
     },
@@ -495,12 +507,12 @@
       ]
     },
     {
-      "start": [
-        14,
-        8
-      ],
       "end": [
         12,
+        8
+      ],
+      "start": [
+        14,
         8
       ]
     },
@@ -515,12 +527,15 @@
       ]
     }
   ],
-  "type": "exp",
-  "bboxRotated": false,
+  "famRouting": {
+    "0": "waves2",
+    "1": "sequential"
+  },
   "famOrder": [
     2,
     3,
     0,
     1
-  ]
+  ],
+  "traditional": true
 }

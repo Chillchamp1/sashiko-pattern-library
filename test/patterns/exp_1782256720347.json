@@ -1,20 +1,65 @@
 {
-  "creatorId": "uq9c875443t",
-  "patMacro": 2.4,
-  "routingEngine": 1,
   "gridMacro": 2,
-  "stitchGrid": false,
+  "createdAt": 1782256720347,
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "stitchRatio": "standard",
+  "stitchLen": 8,
+  "creatorId": "uq9c875443t",
+  "order": 28,
+  "name": "Ajiro (Wickerwork)",
+  "spacing": 0,
+  "routingMode": "default",
   "type": "exp",
-  "bboxRotated": true,
+  "updatedAt": 1784727523710,
+  "stitchGrid": false,
+  "thumbCells": 2,
+  "famOrder": [
+    0,
+    1
+  ],
+  "traditional": true,
+  "communityName": "",
   "lines": [
     {
-      "end": [
-        6,
-        6
-      ],
       "start": [
         5,
         5
+      ],
+      "end": [
+        6,
+        6
       ]
     },
     {
@@ -38,33 +83,33 @@
       ]
     },
     {
-      "end": [
-        7,
-        9
-      ],
       "start": [
         4,
         6
+      ],
+      "end": [
+        7,
+        9
       ]
     },
     {
-      "start": [
-        3,
-        7
-      ],
       "end": [
         6,
         10
+      ],
+      "start": [
+        3,
+        7
       ]
     },
     {
-      "end": [
-        9,
-        7
-      ],
       "start": [
         8,
         8
+      ],
+      "end": [
+        9,
+        7
       ]
     },
     {
@@ -88,13 +133,13 @@
       ]
     },
     {
-      "start": [
-        7,
-        7
-      ],
       "end": [
         10,
         4
+      ],
+      "start": [
+        7,
+        7
       ]
     },
     {
@@ -108,13 +153,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        6
-      ],
       "start": [
         3,
         7
+      ],
+      "end": [
+        4,
+        6
       ]
     },
     {
@@ -148,33 +193,33 @@
       ]
     },
     {
+      "end": [
+        4,
+        2
+      ],
       "start": [
         1,
         5
-      ],
-      "end": [
-        4,
-        2
       ]
     },
     {
-      "end": [
-        9,
-        9
-      ],
       "start": [
         8,
         8
+      ],
+      "end": [
+        9,
+        9
       ]
     },
     {
-      "start": [
-        7,
-        9
-      ],
       "end": [
         8,
         10
+      ],
+      "start": [
+        7,
+        9
       ]
     },
     {
@@ -188,13 +233,13 @@
       ]
     },
     {
-      "end": [
-        10,
-        8
-      ],
       "start": [
         7,
         11
+      ],
+      "end": [
+        10,
+        8
       ]
     },
     {
@@ -208,23 +253,23 @@
       ]
     },
     {
-      "end": [
-        8,
-        4
-      ],
       "start": [
         5,
         1
+      ],
+      "end": [
+        8,
+        4
       ]
     },
     {
-      "start": [
-        6,
-        0
-      ],
       "end": [
         9,
         3
+      ],
+      "start": [
+        6,
+        0
       ]
     },
     {
@@ -248,13 +293,13 @@
       ]
     },
     {
-      "start": [
-        11,
-        5
-      ],
       "end": [
         12,
         6
+      ],
+      "start": [
+        11,
+        5
       ]
     },
     {
@@ -298,13 +343,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        10
-      ],
       "start": [
         5,
         9
+      ],
+      "end": [
+        4,
+        10
       ]
     },
     {
@@ -318,63 +363,18 @@
       ]
     }
   ],
-  "updatedAt": 1784714507600,
-  "stitchView": false,
-  "traditional": true,
-  "bbox": {
-    "maxU": 12,
-    "minV": 0,
-    "maxV": 11,
-    "minU": 0
-  },
-  "thumbCells": 2,
-  "spacing": 0,
-  "families": [
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1
-  ],
-  "famOrder": [
-    0,
-    1
-  ],
-  "communityName": "",
-  "stitchRatio": "standard",
-  "community": false,
-  "id": "exp_1782256720347",
-  "stitchLen": 8,
-  "routingMode": "default",
-  "createdAt": 1782256720347,
-  "name": "Ajiro (Wickerwork)",
   "gridType": "square",
   "published": true,
-  "order": 32
+  "id": "exp_1782256720347",
+  "community": false,
+  "bbox": {
+    "maxU": 12,
+    "maxV": 11,
+    "minV": 0,
+    "minU": 0
+  },
+  "routingEngine": 1,
+  "patMacro": 2.4,
+  "stitchView": false,
+  "bboxRotated": true
 }

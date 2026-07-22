@@ -1,20 +1,4 @@
 {
-  "updatedAt": 1784718690831,
-  "stitchView": true,
-  "traditional": false,
-  "bbox": {
-    "minU": 0,
-    "maxV": 8,
-    "minV": 0,
-    "maxU": 7
-  },
-  "creatorId": "uuqxh5yyn7w",
-  "routingEngine": 1,
-  "patMacro": 1.6,
-  "gridMacro": 2,
-  "stitchGrid": false,
-  "type": "exp",
-  "bboxRotated": false,
   "lines": [
     {
       "end": [
@@ -27,13 +11,13 @@
       ]
     },
     {
-      "end": [
-        3,
-        4
-      ],
       "start": [
         2,
         3
+      ],
+      "end": [
+        3,
+        4
       ]
     },
     {
@@ -47,33 +31,33 @@
       ]
     },
     {
-      "end": [
-        5,
-        3
-      ],
       "start": [
         4,
+        3
+      ],
+      "end": [
+        5,
         3
       ]
     },
     {
-      "start": [
-        5,
-        3
-      ],
       "end": [
         6,
         4
+      ],
+      "start": [
+        5,
+        3
       ]
     },
     {
-      "end": [
-        6,
-        5
-      ],
       "start": [
         6,
         4
+      ],
+      "end": [
+        6,
+        5
       ]
     },
     {
@@ -87,12 +71,12 @@
       ]
     },
     {
-      "end": [
-        4,
-        6
-      ],
       "start": [
         5,
+        6
+      ],
+      "end": [
+        4,
         6
       ]
     },
@@ -107,12 +91,12 @@
       ]
     },
     {
-      "end": [
-        5,
-        5
-      ],
       "start": [
         4,
+        5
+      ],
+      "end": [
+        5,
         5
       ]
     },
@@ -147,13 +131,13 @@
       ]
     },
     {
+      "start": [
+        3,
+        5
+      ],
       "end": [
         2,
         4
-      ],
-      "start": [
-        3,
-        5
       ]
     },
     {
@@ -167,13 +151,13 @@
       ]
     },
     {
-      "end": [
-        1,
-        5
-      ],
       "start": [
         1,
         4
+      ],
+      "end": [
+        1,
+        5
       ]
     },
     {
@@ -197,9 +181,69 @@
       ]
     },
     {
+      "end": [
+        3,
+        8
+      ],
       "start": [
         2,
         6
+      ]
+    },
+    {
+      "end": [
+        4,
+        6
+      ],
+      "start": [
+        3,
+        8
+      ]
+    },
+    {
+      "end": [
+        0,
+        4
+      ],
+      "start": [
+        1,
+        3
+      ]
+    },
+    {
+      "start": [
+        0,
+        4
+      ],
+      "end": [
+        0,
+        5
+      ]
+    },
+    {
+      "end": [
+        1,
+        6
+      ],
+      "start": [
+        0,
+        5
+      ]
+    },
+    {
+      "end": [
+        2,
+        6
+      ],
+      "start": [
+        1,
+        6
+      ]
+    },
+    {
+      "start": [
+        3,
+        5
       ],
       "end": [
         3,
@@ -209,81 +253,21 @@
     {
       "start": [
         3,
-        8
-      ],
-      "end": [
-        4,
-        6
-      ]
-    },
-    {
-      "end": [
-        0,
-        4
-      ],
-      "start": [
-        1,
         3
-      ]
-    },
-    {
-      "start": [
-        0,
-        4
       ],
-      "end": [
-        0,
-        5
-      ]
-    },
-    {
-      "start": [
-        0,
-        5
-      ],
-      "end": [
-        1,
-        6
-      ]
-    },
-    {
-      "start": [
-        1,
-        6
-      ],
-      "end": [
-        2,
-        6
-      ]
-    },
-    {
-      "end": [
-        3,
-        8
-      ],
-      "start": [
-        3,
-        5
-      ]
-    },
-    {
       "end": [
         4,
         2
-      ],
-      "start": [
-        3,
-        3
       ]
     },
     {
-      "start": [
-        4,
-        2
-      ],
       "end": [
         3,
         1
+      ],
+      "start": [
+        4,
+        2
       ]
     },
     {
@@ -297,13 +281,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        2
-      ],
       "end": [
         3,
         3
+      ],
+      "start": [
+        2,
+        2
       ]
     },
     {
@@ -314,6 +298,36 @@
       "end": [
         2,
         1
+      ]
+    },
+    {
+      "start": [
+        2,
+        1
+      ],
+      "end": [
+        3,
+        0
+      ]
+    },
+    {
+      "start": [
+        3,
+        0
+      ],
+      "end": [
+        4,
+        1
+      ]
+    },
+    {
+      "start": [
+        4,
+        1
+      ],
+      "end": [
+        4,
+        2
       ]
     },
     {
@@ -322,38 +336,8 @@
         0
       ],
       "start": [
-        2,
-        1
-      ]
-    },
-    {
-      "end": [
-        4,
-        1
-      ],
-      "start": [
-        3,
-        0
-      ]
-    },
-    {
-      "start": [
-        4,
-        1
-      ],
-      "end": [
-        4,
-        2
-      ]
-    },
-    {
-      "start": [
         3,
         1
-      ],
-      "end": [
-        3,
-        0
       ]
     },
     {
@@ -387,13 +371,13 @@
       ]
     },
     {
-      "end": [
-        7,
-        5
-      ],
       "start": [
         6,
         4
+      ],
+      "end": [
+        7,
+        5
       ]
     },
     {
@@ -407,17 +391,31 @@
       ]
     }
   ],
+  "communityName": "AntiqueWish",
+  "traditional": false,
+  "famOrder": [
+    2,
+    0,
+    1,
+    3
+  ],
+  "stitchView": true,
+  "bboxRotated": false,
+  "bbox": {
+    "maxU": 7,
+    "maxV": 8,
+    "minV": 0,
+    "minU": 0
+  },
+  "patMacro": 1.6,
+  "routingEngine": 1,
+  "published": true,
+  "gridType": "square",
   "community": true,
   "id": "exp_1783453263040",
-  "createdAt": 1783453263040,
-  "name": "Ram and square",
-  "routingMode": "waves2",
+  "creatorId": "uuqxh5yyn7w",
   "stitchLen": 7,
-  "gridType": "square",
-  "embroidery": false,
-  "published": true,
-  "spacing": 0,
-  "thumbCells": 2,
+  "stitchRatio": "standard",
   "families": [
     2,
     2,
@@ -459,12 +457,15 @@
     2,
     2
   ],
-  "famOrder": [
-    2,
-    0,
-    1,
-    3
-  ],
-  "communityName": "AntiqueWish",
-  "stitchRatio": "standard"
+  "gridMacro": 2,
+  "createdAt": 1783453263040,
+  "thumbCells": 2,
+  "type": "exp",
+  "updatedAt": 1784727594498,
+  "stitchGrid": false,
+  "embroidery": false,
+  "routingMode": "waves2",
+  "spacing": 0,
+  "order": 37,
+  "name": "Ram and square"
 }

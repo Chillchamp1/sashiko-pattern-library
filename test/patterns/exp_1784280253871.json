@@ -1,6 +1,12 @@
 {
-  "spacing": 0,
+  "embroidery": false,
+  "stitchGrid": false,
+  "type": "exp",
+  "updatedAt": 1784743696666,
   "thumbCells": 3,
+  "name": "My Pattern",
+  "spacing": 0,
+  "routingMode": "default",
   "families": [
     7,
     3,
@@ -24,61 +30,56 @@
     5
   ],
   "stitchRatio": "standard",
-  "famOrder": [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7
-  ],
-  "communityName": "",
-  "id": "exp_1784280253871",
-  "name": "My Pattern",
-  "routingMode": "default",
-  "createdAt": 1784280253871,
   "stitchLen": 8,
-  "community": true,
-  "embroidery": false,
-  "gridType": "square",
-  "gridMacro": 3,
   "creatorId": "uuqxh5yyn7w",
+  "createdAt": 1784280253871,
+  "gridMacro": 3,
   "patMacro": 6,
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 20,
+    "maxV": 20
+  },
+  "bboxRotated": false,
+  "stitchView": false,
+  "id": "exp_1784280253871",
+  "community": true,
+  "gridType": "square",
+  "communityName": "",
   "lines": [
     {
-      "end": [
-        10,
-        7
-      ],
       "start": [
         7,
         10
-      ]
-    },
-    {
-      "end": [
-        13,
-        10
       ],
-      "start": [
+      "end": [
         10,
         7
       ]
     },
     {
-      "end": [
-        10,
-        13
-      ],
       "start": [
+        10,
+        7
+      ],
+      "end": [
         13,
         10
       ]
     },
     {
       "start": [
+        13,
+        10
+      ],
+      "end": [
+        10,
+        13
+      ]
+    },
+    {
+      "start": [
         10,
         13
       ],
@@ -88,13 +89,13 @@
       ]
     },
     {
-      "end": [
-        7,
-        7
-      ],
       "start": [
         7,
         13
+      ],
+      "end": [
+        7,
+        7
       ]
     },
     {
@@ -118,13 +119,23 @@
       ]
     },
     {
-      "end": [
-        7,
-        13
-      ],
       "start": [
         13,
         13
+      ],
+      "end": [
+        7,
+        13
+      ]
+    },
+    {
+      "start": [
+        7,
+        13
+      ],
+      "end": [
+        11.8,
+        15.4
       ]
     },
     {
@@ -133,18 +144,8 @@
         15.4
       ],
       "start": [
-        7,
-        13
-      ]
-    },
-    {
-      "start": [
         13,
         13
-      ],
-      "end": [
-        11.8,
-        15.4
       ]
     },
     {
@@ -168,23 +169,13 @@
       ]
     },
     {
+      "start": [
+        13,
+        13
+      ],
       "end": [
         15.4,
         8.2
-      ],
-      "start": [
-        13,
-        13
-      ]
-    },
-    {
-      "start": [
-        7,
-        13
-      ],
-      "end": [
-        4.6,
-        11.8
       ]
     },
     {
@@ -194,27 +185,37 @@
       ],
       "start": [
         7,
-        7
+        13
       ]
     },
     {
-      "end": [
-        8.2,
-        4.6
+      "start": [
+        7,
+        7
       ],
+      "end": [
+        4.6,
+        11.8
+      ]
+    },
+    {
       "start": [
         13,
         7
+      ],
+      "end": [
+        8.2,
+        4.6
       ]
     },
     {
-      "start": [
-        8.2,
-        4.6
-      ],
       "end": [
         20,
         7
+      ],
+      "start": [
+        8.2,
+        4.6
       ]
     },
     {
@@ -248,16 +249,15 @@
       ]
     }
   ],
-  "stitchGrid": false,
-  "type": "exp",
-  "bboxRotated": false,
-  "stitchView": false,
-  "updatedAt": 1784682409464,
-  "bbox": {
-    "minU": 0,
-    "maxV": 20,
-    "minV": 0,
-    "maxU": 20
-  },
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
   "traditional": false
 }

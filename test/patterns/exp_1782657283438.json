@@ -1,22 +1,26 @@
 {
   "bbox": {
-    "maxU": 11.313708498984763,
-    "maxV": 11.313708498984761,
     "minU": 0,
-    "minV": 0
+    "minV": 0,
+    "maxV": 11.313708498984761,
+    "maxU": 11.313708498984763
   },
-  "traditional": true,
+  "patMacro": 3.3941125496954285,
+  "routingEngine": 1,
   "stitchView": false,
-  "updatedAt": 1784714507599,
+  "bboxRotated": true,
+  "published": true,
+  "gridType": "square",
+  "id": "exp_1782657283438",
   "lines": [
     {
-      "start": [
-        9.657,
-        9.657
-      ],
       "end": [
         9.657,
         7.314
+      ],
+      "start": [
+        9.657,
+        9.657
       ]
     },
     {
@@ -30,13 +34,13 @@
       ]
     },
     {
-      "start": [
-        9.657,
-        4
-      ],
       "end": [
         9.657,
         1.657
+      ],
+      "start": [
+        9.657,
+        4
       ]
     },
     {
@@ -50,13 +54,13 @@
       ]
     },
     {
-      "start": [
-        7.314,
-        9.657
-      ],
       "end": [
         8.485,
         8.485
+      ],
+      "start": [
+        7.314,
+        9.657
       ]
     },
     {
@@ -110,53 +114,53 @@
       ]
     },
     {
+      "start": [
+        1.657,
+        7.314
+      ],
       "end": [
         2.828,
         8.485
-      ],
-      "start": [
-        1.657,
-        7.314
       ]
     },
     {
-      "end": [
-        5.657,
-        11.314
-      ],
       "start": [
         4,
         9.657
+      ],
+      "end": [
+        5.657,
+        11.314
       ]
     },
     {
+      "end": [
+        1.657,
+        4
+      ],
       "start": [
         1.657,
         1.657
-      ],
-      "end": [
-        1.657,
-        4
       ]
     },
     {
-      "start": [
-        1.657,
-        4
-      ],
       "end": [
         1.657,
         5.657
+      ],
+      "start": [
+        1.657,
+        4
       ]
     },
     {
-      "start": [
-        1.657,
-        7.314
-      ],
       "end": [
         1.657,
         9.657
+      ],
+      "start": [
+        1.657,
+        7.314
       ]
     },
     {
@@ -170,13 +174,13 @@
       ]
     },
     {
-      "end": [
-        2.828,
-        2.828
-      ],
       "start": [
         4,
         1.657
+      ],
+      "end": [
+        2.828,
+        2.828
       ]
     },
     {
@@ -200,22 +204,22 @@
       ]
     },
     {
-      "end": [
-        5.658,
-        1.657
-      ],
       "start": [
         7.314,
+        1.657
+      ],
+      "end": [
+        5.658,
         1.657
       ]
     },
     {
-      "start": [
-        4,
-        1.657
-      ],
       "end": [
         1.657,
+        1.657
+      ],
+      "start": [
+        4,
         1.657
       ]
     },
@@ -230,32 +234,32 @@
       ]
     },
     {
-      "start": [
-        9.657,
-        4
-      ],
       "end": [
         8.485,
         2.828
+      ],
+      "start": [
+        9.657,
+        4
       ]
     },
     {
-      "end": [
-        5.657,
-        0
-      ],
       "start": [
         7.314,
         1.657
+      ],
+      "end": [
+        5.657,
+        0
       ]
     },
     {
-      "end": [
-        5.657,
-        5.657
-      ],
       "start": [
         9.658,
+        5.657
+      ],
+      "end": [
+        5.657,
         5.657
       ]
     },
@@ -280,13 +284,13 @@
       ]
     },
     {
-      "start": [
-        5.657,
-        5.657
-      ],
       "end": [
         5.658,
         9.657
+      ],
+      "start": [
+        5.657,
+        5.657
       ]
     },
     {
@@ -320,40 +324,32 @@
       ]
     },
     {
-      "start": [
-        5.657,
-        5.657
-      ],
       "end": [
         2.828,
         2.828
+      ],
+      "start": [
+        5.657,
+        5.657
       ]
     }
   ],
-  "stitchGrid": false,
-  "bboxRotated": true,
-  "type": "exp",
-  "gridMacro": 2,
-  "creatorId": "ua6ec3mc39b",
-  "patMacro": 3.3941125496954285,
-  "routingEngine": 1,
-  "published": true,
-  "order": 15,
-  "gridType": "square",
-  "id": "exp_1782657283438",
-  "stitchLen": 8,
-  "routingMode": "sequential",
-  "name": "Ishi Guruma (Stone Wheel)",
-  "createdAt": 1782657283438,
-  "stitchRatio": "standard",
+  "traditional": true,
   "famOrder": [
     0,
     1,
     2,
     3
   ],
-  "spacing": 6,
+  "stitchGrid": false,
+  "type": "exp",
+  "updatedAt": 1784724887803,
   "thumbCells": 3,
+  "order": 11,
+  "name": "Ishi Guruma (Stone Wheel)",
+  "routingMode": "sequential",
+  "spacing": 6,
+  "stitchRatio": "standard",
   "families": [
     2,
     2,
@@ -387,5 +383,9 @@
     3,
     1,
     1
-  ]
+  ],
+  "creatorId": "ua6ec3mc39b",
+  "stitchLen": 8,
+  "gridMacro": 2,
+  "createdAt": 1782657283438
 }

@@ -240,7 +240,7 @@ function renderThumb(canvas,pat){
   const sHMN=HM_N,sHMC=HM_CELL,sHMPth=HM_path,sHMFr=HM_fronts,sHMPO=HM_phase_order;
   const sPLp=PL_path,sPLf=PL_fronts,sPLps=PL_passes,sPLN=PL_N,sPLHU=PL_HU,sPLSh=PL_shCount,sPLNHU=PL_NHU;
   const sEXpath=EXP_path,sEXg2s=EXP_g2s,sEXh=EXP_canvasH,sEXur=EXP_uRange,sEXvr=EXP_vRange,sEXsz=EXP_sz,sEXszr=EXP_szRef;
-  const sGS=galStitch,sGSl=galStitchLen,sGSr=galStitchRatio,sGSg=galStitchGrid,sGSc=_galStitchCache,sGTC=galThreadColors,sGSd=galDraft;
+  const sGS=galStitch,sGSl=galStitchLen,sGSr=galStitchRatio,sGSg=galStitchGrid,sGSc=_galStitchCache,sGTC=galThreadColors,sGSd=galDraft,sGF=galFabric;
 
   ctx=canvas.getContext('2d'); ctx.scale(ctxSX,ctxSY);
   if(expTranslateX||expTranslateY) ctx.translate(expTranslateX,expTranslateY);
@@ -258,8 +258,9 @@ function renderThumb(canvas,pat){
       // Thumbnails render in the realistic stitch view (denim + off-white yarn),
       // using the pattern's saved stitch settings; grid is omitted (too fine to read).
       galStitch=true; galStitchLen=pat.stitchLen||8; galStitchRatio=pat.stitchRatio||'standard'; galStitchGrid=false; galDraft=false; _galStitchCache=null;
-      // Thumbs show the creator's thread colours for community patterns saved with them.
+      // Thumbs show the creator's thread colours + fabric for community patterns saved with them.
       galThreadColors=(pat.community&&pat.stitchColors&&pat.famColors)?{...pat.famColors}:{};
+      if(pat.community&&pat.fabric)galFabric=pat.fabric;
       renderExp(TOTAL);
     } else if(isPL){
       SIZE=THUMB_SIZE;
@@ -288,6 +289,6 @@ function renderThumb(canvas,pat){
   HM_N=sHMN; HM_CELL=sHMC; HM_path=sHMPth; HM_fronts=sHMFr; HM_phase_order=sHMPO;
   PL_path=sPLp; PL_fronts=sPLf; PL_passes=sPLps; PL_N=sPLN; PL_HU=sPLHU; PL_shCount=sPLSh; PL_NHU=sPLNHU;
   EXP_path=sEXpath; EXP_g2s=sEXg2s; EXP_canvasH=sEXh; EXP_uRange=sEXur; EXP_vRange=sEXvr; EXP_sz=sEXsz; EXP_szRef=sEXszr;
-  galStitch=sGS; galStitchLen=sGSl; galStitchRatio=sGSr; galStitchGrid=sGSg; _galStitchCache=sGSc; galThreadColors=sGTC; galDraft=sGSd;
+  galStitch=sGS; galStitchLen=sGSl; galStitchRatio=sGSr; galStitchGrid=sGSg; _galStitchCache=sGSc; galThreadColors=sGTC; galDraft=sGSd; galFabric=sGF;
 }
 

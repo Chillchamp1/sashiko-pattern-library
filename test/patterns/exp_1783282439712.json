@@ -1,15 +1,16 @@
 {
-  "community": false,
-  "id": "exp_1783282439712",
-  "name": "Nijuu-Kagome / Double Woven Bamboo",
-  "createdAt": 1783282439712,
-  "routingMode": "default",
-  "stitchLen": 7,
-  "gridType": "isometric",
-  "order": 10,
-  "published": true,
   "spacing": 0,
+  "routingMode": "default",
+  "name": "Nijuu-Kagome / Double Woven Bamboo",
+  "order": 8,
   "thumbCells": 1,
+  "stitchGrid": false,
+  "type": "exp",
+  "updatedAt": 1784724887803,
+  "createdAt": 1783282439712,
+  "gridMacro": 1,
+  "creatorId": "uuqxh5yyn7w",
+  "stitchLen": 7,
   "families": [
     2,
     1,
@@ -50,38 +51,36 @@
     1,
     2
   ],
+  "stitchRatio": "standard",
+  "id": "exp_1783282439712",
+  "community": false,
+  "published": true,
+  "gridType": "isometric",
+  "bboxRotated": true,
+  "stitchView": true,
+  "routingEngine": 1,
+  "patMacro": 0.9,
+  "bbox": {
+    "maxV": 9,
+    "maxU": 9,
+    "minU": 0,
+    "minV": 0
+  },
   "famOrder": [
     0,
     2,
     1
   ],
-  "communityName": "",
-  "stitchRatio": "standard",
-  "updatedAt": 1784714507598,
-  "stitchView": true,
   "traditional": true,
-  "bbox": {
-    "maxV": 9,
-    "minV": 0,
-    "minU": 0,
-    "maxU": 9
-  },
-  "creatorId": "uuqxh5yyn7w",
-  "routingEngine": 1,
-  "patMacro": 0.9,
-  "gridMacro": 1,
-  "stitchGrid": false,
-  "bboxRotated": true,
-  "type": "exp",
   "lines": [
     {
-      "end": [
-        4,
-        7
-      ],
       "start": [
         4,
         9
+      ],
+      "end": [
+        4,
+        7
       ]
     },
     {
@@ -95,62 +94,62 @@
       ]
     },
     {
+      "start": [
+        4,
+        6
+      ],
       "end": [
         5,
         7
-      ],
-      "start": [
-        4,
-        6
       ]
     },
     {
-      "start": [
-        4,
-        6
-      ],
       "end": [
         4,
         4
-      ]
-    },
-    {
-      "end": [
-        5,
-        8
       ],
       "start": [
-        5,
-        9
-      ]
-    },
-    {
-      "start": [
-        5,
-        7
-      ],
-      "end": [
-        5,
+        4,
         6
       ]
     },
     {
-      "end": [
-        3,
-        5
-      ],
       "start": [
-        2,
-        5
+        5,
+        9
+      ],
+      "end": [
+        5,
+        8
       ]
     },
     {
       "end": [
-        4,
-        5
+        5,
+        6
       ],
       "start": [
+        5,
+        7
+      ]
+    },
+    {
+      "start": [
+        2,
+        5
+      ],
+      "end": [
         3,
+        5
+      ]
+    },
+    {
+      "start": [
+        3,
+        5
+      ],
+      "end": [
+        4,
         5
       ]
     },
@@ -165,12 +164,12 @@
       ]
     },
     {
-      "start": [
-        5,
-        4
-      ],
       "end": [
         9,
+        4
+      ],
+      "start": [
+        5,
         4
       ]
     },
@@ -215,23 +214,23 @@
       ]
     },
     {
+      "end": [
+        5,
+        5
+      ],
       "start": [
         5,
         6
-      ],
-      "end": [
-        5,
-        5
       ]
     },
     {
-      "start": [
-        5,
-        5
-      ],
       "end": [
         5,
         4
+      ],
+      "start": [
+        5,
+        5
       ]
     },
     {
@@ -245,13 +244,13 @@
       ]
     },
     {
-      "end": [
-        5,
-        1
-      ],
       "start": [
         5,
         2
+      ],
+      "end": [
+        5,
+        1
       ]
     },
     {
@@ -285,23 +284,23 @@
       ]
     },
     {
-      "start": [
-        4,
-        6
-      ],
       "end": [
         3,
         5
+      ],
+      "start": [
+        4,
+        6
       ]
     },
     {
-      "end": [
-        0,
-        4
-      ],
       "start": [
         0,
         5
+      ],
+      "end": [
+        0,
+        4
       ]
     },
     {
@@ -325,33 +324,33 @@
       ]
     },
     {
-      "start": [
-        3,
-        1
-      ],
       "end": [
         4,
         2
+      ],
+      "start": [
+        3,
+        1
       ]
     },
     {
-      "start": [
-        4,
-        1
-      ],
       "end": [
         3.5,
         0.5
+      ],
+      "start": [
+        4,
+        1
       ]
     },
     {
-      "end": [
-        5,
-        0
-      ],
       "start": [
         5,
         1
+      ],
+      "end": [
+        5,
+        0
       ]
     },
     {
@@ -375,32 +374,32 @@
       ]
     },
     {
-      "end": [
-        0,
-        4
-      ],
       "start": [
         1,
         4
+      ],
+      "end": [
+        0,
+        4
       ]
     },
     {
-      "start": [
-        0,
-        5
-      ],
       "end": [
         2,
         5
+      ],
+      "start": [
+        0,
+        5
       ]
     },
     {
-      "start": [
-        8,
-        5
-      ],
       "end": [
         9,
+        5
+      ],
+      "start": [
+        8,
         5
       ]
     },
@@ -435,24 +434,25 @@
       ]
     },
     {
-      "end": [
-        5.5,
-        8.5
-      ],
       "start": [
         5,
         8
+      ],
+      "end": [
+        5.5,
+        8.5
       ]
     },
     {
-      "end": [
-        9,
-        4
-      ],
       "start": [
         9,
         5
+      ],
+      "end": [
+        9,
+        4
       ]
     }
-  ]
+  ],
+  "communityName": ""
 }

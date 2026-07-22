@@ -261,6 +261,9 @@ function loadPattern(pat){
     // always start off-white.
     galThreadColors=(pat.community&&pat.stitchColors&&pat.famColors)?{...pat.famColors}:{};
     galActiveFam=0;
+    // A community pattern saved with a fabric opens on that cloth; otherwise the
+    // visitor's own sticky choice applies (they can still switch via the Fabric tab).
+    galFabric=(pat.community&&pat.fabric)?pat.fabric:_galFabricUser;
     _galStitchCache=null;
     syncGalStitchUI();
     step=TOTAL;if(playing)pause();

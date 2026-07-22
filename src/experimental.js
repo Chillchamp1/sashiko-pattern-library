@@ -64,6 +64,10 @@ let galThreadColors={}, galPalette='sashiko', galActiveFam=0;
 // Selected fabric (gallery viewer only) — persists across pattern loads (an aesthetic
 // preference, not tied to a pattern's family indices the way thread colours are).
 let galFabric='indigo';
+// The visitor's own sticky cloth choice. galFabric is the ACTIVE one: a community
+// pattern saved with a fabric opens on that cloth (loadPattern), everything else
+// falls back to this preference; picking a cloth in the popover updates both.
+let _galFabricUser='indigo';
 // Soft pastel thread palette — named, and a touch more saturated (less pale) than before.
 const GAL_PASTEL=[
   {name:'Cream',      hex:'#e8dcb5'}, {name:'Rose',     hex:'#eaa9b8'},
@@ -2957,6 +2961,7 @@ function galBuildFabricUI(){
 }
 window.galSetFabric=function(id){
   galFabric=id;                        // fabric is just the background; stitch geometry unchanged
+  _galFabricUser=id;                   // …and becomes the visitor's sticky preference
   galBuildFabricUI(); galBuildColorTabs(); render(step);
 };
 window.galSetStitchLen=function(v){galStitchLen=parseInt(v)||8;const e=document.getElementById('galStitchLenVal');if(e)e.textContent=galStitchLen;_galStitchCache=null;render(step);};

@@ -1,25 +1,33 @@
 {
-  "id": "exp_1782748419661",
-  "stitchLen": 8,
-  "stitchView": false,
-  "createdAt": 1782748419661,
-  "name": "Musubi Kasane Kikkō (Knotted and Overlapping Tortoise Shell)",
-  "routingMode": "default",
-  "updatedAt": 1784714507600,
+  "order": 18,
+  "gridType": "square",
   "published": true,
-  "order": 21,
+  "name": "Musubi Kasane Kikkō (Knotted and Overlapping Tortoise Shell)",
+  "id": "exp_1782748419661",
+  "routingMode": "default",
+  "spacing": 0,
   "bbox": {
-    "maxU": 8,
     "minU": 0,
     "minV": 0,
-    "maxV": 12
+    "maxV": 12,
+    "maxU": 8
   },
-  "traditional": true,
-  "gridType": "square",
-  "thumbCells": 3,
-  "spacing": 0,
-  "creatorId": "un4bcd6du2x",
+  "type": "exp",
+  "stitchGrid": false,
+  "updatedAt": 1784727523709,
   "patMacro": 3,
+  "stitchView": false,
+  "thumbCells": 3,
+  "bboxRotated": false,
+  "traditional": true,
+  "famOrder": [
+    1,
+    0,
+    2,
+    3
+  ],
+  "createdAt": 1782748419661,
+  "stitchRatio": "standard",
   "families": [
     2,
     3,
@@ -49,26 +57,27 @@
     0,
     0
   ],
-  "stitchRatio": "standard",
+  "stitchLen": 8,
+  "creatorId": "un4bcd6du2x",
   "lines": [
     {
-      "end": [
-        2,
-        2
-      ],
       "start": [
         0,
         3
+      ],
+      "end": [
+        2,
+        2
       ]
     },
     {
-      "end": [
-        4,
-        3
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        4,
+        3
       ]
     },
     {
@@ -122,63 +131,63 @@
       ]
     },
     {
-      "end": [
-        8,
-        3
-      ],
       "start": [
         4,
         5
+      ],
+      "end": [
+        8,
+        3
       ]
     },
     {
-      "start": [
-        0,
-        11
-      ],
       "end": [
         6,
         8
+      ],
+      "start": [
+        0,
+        11
       ]
     },
     {
-      "start": [
-        2,
-        2
-      ],
       "end": [
         0,
         1
+      ],
+      "start": [
+        2,
+        2
       ]
     },
     {
+      "end": [
+        4,
+        11
+      ],
       "start": [
         4,
         9
-      ],
-      "end": [
-        4,
-        11
       ]
     },
     {
-      "end": [
-        6,
-        12
-      ],
       "start": [
         4,
         11
+      ],
+      "end": [
+        6,
+        12
       ]
     },
     {
+      "start": [
+        6,
+        12
+      ],
       "end": [
         8,
         11
-      ],
-      "start": [
-        6,
-        12
       ]
     },
     {
@@ -222,23 +231,23 @@
       ]
     },
     {
-      "end": [
-        6,
-        6
-      ],
       "start": [
         6,
         4
+      ],
+      "end": [
+        6,
+        6
       ]
     },
     {
-      "end": [
-        4,
-        1
-      ],
       "start": [
         6,
         2
+      ],
+      "end": [
+        4,
+        1
       ]
     },
     {
@@ -252,33 +261,33 @@
       ]
     },
     {
-      "end": [
-        4,
-        7
-      ],
       "start": [
         6,
         6
+      ],
+      "end": [
+        4,
+        7
       ]
     },
     {
+      "start": [
+        2,
+        8
+      ],
       "end": [
         2,
         12
-      ],
-      "start": [
-        2,
-        8
       ]
     },
     {
-      "start": [
-        2,
-        8
-      ],
       "end": [
         4,
         7
+      ],
+      "start": [
+        2,
+        8
       ]
     },
     {
@@ -302,33 +311,24 @@
       ]
     },
     {
-      "start": [
-        2,
-        0
-      ],
       "end": [
         0,
         1
+      ],
+      "start": [
+        2,
+        0
       ]
     },
     {
-      "end": [
-        8,
-        7
-      ],
       "start": [
         6,
         6
+      ],
+      "end": [
+        8,
+        7
       ]
     }
-  ],
-  "stitchGrid": false,
-  "famOrder": [
-    1,
-    0,
-    2,
-    3
-  ],
-  "type": "exp",
-  "bboxRotated": false
+  ]
 }

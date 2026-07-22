@@ -1,137 +1,4 @@
 {
-  "stitchRatio": "standard",
-  "lines": [
-    {
-      "start": [
-        1,
-        2
-      ],
-      "end": [
-        1,
-        1
-      ]
-    },
-    {
-      "start": [
-        1,
-        1
-      ],
-      "end": [
-        2,
-        1
-      ]
-    },
-    {
-      "start": [
-        0,
-        3
-      ],
-      "end": [
-        0,
-        0
-      ]
-    },
-    {
-      "end": [
-        3,
-        0
-      ],
-      "start": [
-        0,
-        0
-      ]
-    },
-    {
-      "start": [
-        0,
-        3
-      ],
-      "end": [
-        0,
-        4
-      ]
-    },
-    {
-      "end": [
-        1,
-        4
-      ],
-      "start": [
-        1,
-        2
-      ]
-    },
-    {
-      "end": [
-        4,
-        1
-      ],
-      "start": [
-        2,
-        1
-      ]
-    },
-    {
-      "start": [
-        3,
-        0
-      ],
-      "end": [
-        4,
-        0
-      ]
-    },
-    {
-      "end": [
-        2,
-        2
-      ],
-      "start": [
-        2,
-        4
-      ]
-    },
-    {
-      "start": [
-        2,
-        2
-      ],
-      "end": [
-        4,
-        2
-      ]
-    },
-    {
-      "start": [
-        3,
-        4
-      ],
-      "end": [
-        3,
-        3
-      ]
-    },
-    {
-      "end": [
-        4,
-        3
-      ],
-      "start": [
-        3,
-        3
-      ]
-    }
-  ],
-  "stitchGrid": false,
-  "famOrder": [
-    0,
-    1
-  ],
-  "bboxRotated": false,
-  "type": "exp",
-  "spacing": 0,
-  "thumbCells": 3,
-  "creatorId": "uq9c875443t",
   "families": [
     1,
     0,
@@ -146,23 +13,156 @@
     1,
     0
   ],
-  "patMacro": 1,
-  "routingEngine": 1,
-  "published": true,
-  "order": 4,
+  "stitchRatio": "standard",
+  "creatorId": "uq9c875443t",
+  "stitchLen": 8,
+  "lines": [
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        3,
+        0
+      ]
+    },
+    {
+      "end": [
+        0,
+        4
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        1,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        1
+      ],
+      "end": [
+        4,
+        1
+      ]
+    },
+    {
+      "start": [
+        3,
+        0
+      ],
+      "end": [
+        4,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        3,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        3,
+        3
+      ]
+    }
+  ],
+  "createdAt": 1782945737294,
+  "famOrder": [
+    0,
+    1
+  ],
+  "traditional": true,
+  "stitchGrid": false,
+  "updatedAt": 1784724455668,
+  "type": "exp",
   "bbox": {
     "minV": 0,
     "minU": 0,
-    "maxV": 4,
-    "maxU": 4
+    "maxU": 4,
+    "maxV": 4
   },
-  "traditional": true,
-  "gridType": "isometric",
-  "id": "exp_1782945737294",
-  "stitchLen": 8,
-  "createdAt": 1782945737294,
-  "name": "Diamond Blue Waves",
-  "routingMode": "default",
+  "routingEngine": 1,
+  "patMacro": 1,
+  "thumbCells": 3,
   "stitchView": true,
-  "updatedAt": 1783247597381
+  "bboxRotated": false,
+  "gridType": "isometric",
+  "published": true,
+  "order": 3,
+  "id": "exp_1782945737294",
+  "name": "Diamond Blue Waves",
+  "spacing": 0,
+  "routingMode": "default"
 }

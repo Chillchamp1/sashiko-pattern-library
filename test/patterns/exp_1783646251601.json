@@ -1,374 +1,18 @@
 {
-  "creatorId": "uconggef72r",
-  "routingEngine": 1,
-  "patMacro": 1,
-  "gridMacro": 1,
-  "stitchGrid": false,
-  "bboxRotated": false,
-  "type": "exp",
-  "lines": [
-    {
-      "end": [
-        1,
-        0
-      ],
-      "start": [
-        0,
-        1
-      ]
-    },
-    {
-      "end": [
-        1,
-        0
-      ],
-      "start": [
-        3,
-        1
-      ]
-    },
-    {
-      "start": [
-        3,
-        1
-      ],
-      "end": [
-        4,
-        2
-      ]
-    },
-    {
-      "start": [
-        0,
-        1
-      ],
-      "end": [
-        1,
-        3
-      ]
-    },
-    {
-      "end": [
-        2,
-        4
-      ],
-      "start": [
-        1,
-        3
-      ]
-    },
-    {
-      "end": [
-        4,
-        5
-      ],
-      "start": [
-        2,
-        4
-      ]
-    },
-    {
-      "start": [
-        4,
-        2
-      ],
-      "end": [
-        5,
-        4
-      ]
-    },
-    {
-      "start": [
-        5,
-        4
-      ],
-      "end": [
-        4,
-        5
-      ]
-    },
-    {
-      "end": [
-        3,
-        3
-      ],
-      "start": [
-        2,
-        2
-      ]
-    },
-    {
-      "end": [
-        3,
-        2
-      ],
-      "start": [
-        3,
-        3
-      ]
-    },
-    {
-      "start": [
-        3,
-        2
-      ],
-      "end": [
-        2,
-        1
-      ]
-    },
-    {
-      "end": [
-        1,
-        1
-      ],
-      "start": [
-        3,
-        1
-      ]
-    },
-    {
-      "start": [
-        1,
-        1
-      ],
-      "end": [
-        1,
-        2
-      ]
-    },
-    {
-      "end": [
-        2,
-        4
-      ],
-      "start": [
-        1,
-        2
-      ]
-    },
-    {
-      "end": [
-        4,
-        5
-      ],
-      "start": [
-        1,
-        2
-      ]
-    },
-    {
-      "start": [
-        4,
-        4
-      ],
-      "end": [
-        4,
-        3
-      ]
-    },
-    {
-      "start": [
-        4,
-        3
-      ],
-      "end": [
-        5,
-        4
-      ]
-    },
-    {
-      "end": [
-        3,
-        1
-      ],
-      "start": [
-        4,
-        3
-      ]
-    },
-    {
-      "end": [
-        2,
-        4
-      ],
-      "start": [
-        4,
-        4
-      ]
-    },
-    {
-      "start": [
-        1,
-        3
-      ],
-      "end": [
-        0,
-        2
-      ]
-    },
-    {
-      "start": [
-        0,
-        2
-      ],
-      "end": [
-        0,
-        1
-      ]
-    },
-    {
-      "start": [
-        0,
-        1
-      ],
-      "end": [
-        0,
-        0
-      ]
-    },
-    {
-      "start": [
-        0,
-        0
-      ],
-      "end": [
-        1,
-        0
-      ]
-    },
-    {
-      "end": [
-        1,
-        0
-      ],
-      "start": [
-        2,
-        0
-      ]
-    },
-    {
-      "end": [
-        3,
-        1
-      ],
-      "start": [
-        2,
-        0
-      ]
-    },
-    {
-      "start": [
-        3,
-        1
-      ],
-      "end": [
-        3,
-        0
-      ]
-    },
-    {
-      "end": [
-        4,
-        1
-      ],
-      "start": [
-        3,
-        0
-      ]
-    },
-    {
-      "end": [
-        5,
-        3
-      ],
-      "start": [
-        4,
-        1
-      ]
-    },
-    {
-      "end": [
-        5,
-        4
-      ],
-      "start": [
-        5,
-        3
-      ]
-    },
-    {
-      "end": [
-        5,
-        4
-      ],
-      "start": [
-        5,
-        5
-      ]
-    },
-    {
-      "end": [
-        4,
-        5
-      ],
-      "start": [
-        5,
-        5
-      ]
-    },
-    {
-      "start": [
-        4,
-        5
-      ],
-      "end": [
-        3,
-        5
-      ]
-    },
-    {
-      "end": [
-        1,
-        4
-      ],
-      "start": [
-        3,
-        5
-      ]
-    },
-    {
-      "end": [
-        2,
-        4
-      ],
-      "start": [
-        1,
-        4
-      ]
-    },
-    {
-      "end": [
-        1,
-        4
-      ],
-      "start": [
-        0,
-        2
-      ]
-    }
-  ],
-  "updatedAt": 1784714507602,
-  "stitchView": false,
-  "traditional": false,
-  "bbox": {
-    "maxV": 5,
-    "minV": 0,
-    "minU": 0,
-    "maxU": 5
-  },
-  "thumbCells": 2,
+  "routingMode": "default",
   "spacing": 2,
+  "name": "Bushy Rose",
+  "order": 47,
+  "thumbCells": 2,
+  "embroidery": false,
+  "stitchGrid": false,
+  "type": "exp",
+  "updatedAt": 1784727606840,
+  "createdAt": 1783646251599,
+  "gridMacro": 1,
+  "stitchLen": 8,
+  "creatorId": "uconggef72r",
+  "stitchRatio": "standard",
   "families": [
     0,
     2,
@@ -406,6 +50,21 @@
     1,
     4
   ],
+  "community": true,
+  "id": "exp_1783646251601",
+  "gridType": "isometric",
+  "published": true,
+  "bboxRotated": false,
+  "stitchView": false,
+  "patMacro": 1,
+  "routingEngine": 1,
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 5,
+    "maxV": 5
+  },
+  "traditional": false,
   "famOrder": [
     0,
     1,
@@ -414,16 +73,357 @@
     4,
     5
   ],
-  "communityName": "AntiqueWish",
-  "stitchRatio": "standard",
-  "community": true,
-  "id": "exp_1783646251601",
-  "name": "Bushy Rose",
-  "routingMode": "default",
-  "createdAt": 1783646251599,
-  "stitchLen": 8,
-  "gridType": "isometric",
-  "embroidery": false,
-  "order": 48,
-  "published": true
+  "lines": [
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        0,
+        1
+      ]
+    },
+    {
+      "start": [
+        3,
+        1
+      ],
+      "end": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        1,
+        3
+      ]
+    },
+    {
+      "start": [
+        1,
+        3
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "start": [
+        2,
+        4
+      ],
+      "end": [
+        4,
+        5
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "start": [
+        5,
+        4
+      ],
+      "end": [
+        4,
+        5
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "start": [
+        3,
+        3
+      ],
+      "end": [
+        3,
+        2
+      ]
+    },
+    {
+      "start": [
+        3,
+        2
+      ],
+      "end": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        2
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        4,
+        5
+      ]
+    },
+    {
+      "start": [
+        4,
+        4
+      ],
+      "end": [
+        4,
+        3
+      ]
+    },
+    {
+      "start": [
+        4,
+        3
+      ],
+      "end": [
+        5,
+        4
+      ]
+    },
+    {
+      "start": [
+        4,
+        3
+      ],
+      "end": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        1,
+        3
+      ]
+    },
+    {
+      "end": [
+        0,
+        1
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "start": [
+        2,
+        0
+      ],
+      "end": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        3,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "end": [
+        5,
+        3
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        5,
+        3
+      ]
+    },
+    {
+      "start": [
+        5,
+        5
+      ],
+      "end": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        5,
+        5
+      ]
+    },
+    {
+      "start": [
+        4,
+        5
+      ],
+      "end": [
+        3,
+        5
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        3,
+        5
+      ]
+    },
+    {
+      "start": [
+        1,
+        4
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        0,
+        2
+      ]
+    }
+  ],
+  "communityName": "AntiqueWish"
 }

@@ -1,52 +1,4 @@
 {
-  "spacing": 0,
-  "thumbCells": 3,
-  "families": [
-    1,
-    0,
-    1,
-    2,
-    0,
-    1,
-    3,
-    0,
-    1,
-    2,
-    0,
-    1,
-    3,
-    2,
-    0,
-    1,
-    0,
-    2,
-    0,
-    3,
-    0,
-    3
-  ],
-  "famOrder": [
-    0,
-    1,
-    2,
-    3
-  ],
-  "communityName": "Cherry Blossom",
-  "stitchRatio": "standard",
-  "community": true,
-  "id": "exp_1784017440456",
-  "stitchLen": 8,
-  "routingMode": "default",
-  "createdAt": 1784017440456,
-  "name": "S x Infinity",
-  "gridType": "square",
-  "embroidery": false,
-  "creatorId": "uevg2wnhrt8",
-  "patMacro": 4.5,
-  "gridMacro": 2,
-  "stitchGrid": false,
-  "type": "exp",
-  "bboxRotated": false,
   "lines": [
     {
       "start": [
@@ -69,13 +21,13 @@
       ]
     },
     {
+      "end": [
+        9,
+        12
+      ],
       "start": [
         9,
         9
-      ],
-      "end": [
-        9,
-        12
       ]
     },
     {
@@ -89,13 +41,13 @@
       ]
     },
     {
-      "start": [
-        6,
-        15
-      ],
       "end": [
         3,
         12
+      ],
+      "start": [
+        6,
+        15
       ]
     },
     {
@@ -149,13 +101,13 @@
       ]
     },
     {
-      "end": [
-        9,
-        3
-      ],
       "start": [
         6,
         0
+      ],
+      "end": [
+        9,
+        3
       ]
     },
     {
@@ -179,13 +131,13 @@
       ]
     },
     {
-      "end": [
-        12,
-        0
-      ],
       "start": [
         9,
         3
+      ],
+      "end": [
+        12,
+        0
       ]
     },
     {
@@ -269,13 +221,61 @@
       ]
     }
   ],
-  "updatedAt": 1784682411938,
-  "stitchView": true,
+  "communityName": "Cherry Blossom",
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
   "traditional": false,
+  "stitchView": true,
+  "bboxRotated": false,
   "bbox": {
     "maxV": 15,
+    "maxU": 12,
     "minU": 0,
-    "minV": 0,
-    "maxU": 12
-  }
+    "minV": 0
+  },
+  "patMacro": 4.5,
+  "gridType": "square",
+  "id": "exp_1784017440456",
+  "community": true,
+  "stitchLen": 8,
+  "creatorId": "uevg2wnhrt8",
+  "families": [
+    1,
+    0,
+    1,
+    2,
+    0,
+    1,
+    3,
+    0,
+    1,
+    2,
+    0,
+    1,
+    3,
+    2,
+    0,
+    1,
+    0,
+    2,
+    0,
+    3,
+    0,
+    3
+  ],
+  "stitchRatio": "standard",
+  "gridMacro": 2,
+  "createdAt": 1784017440456,
+  "thumbCells": 3,
+  "stitchGrid": false,
+  "type": "exp",
+  "updatedAt": 1784743700470,
+  "embroidery": false,
+  "spacing": 0,
+  "routingMode": "default",
+  "name": "S x Infinity"
 }

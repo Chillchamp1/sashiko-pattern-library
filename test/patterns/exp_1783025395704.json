@@ -1,9 +1,11 @@
 {
-  "spacing": 0,
-  "thumbCells": 1,
-  "creatorId": "uq9c875443t",
-  "patMacro": 1,
-  "routingEngine": 1,
+  "traditional": true,
+  "createdAt": 1783025395704,
+  "famOrder": [
+    0,
+    1
+  ],
+  "stitchRatio": "standard",
   "families": [
     1,
     1,
@@ -27,6 +29,8 @@
     1,
     0
   ],
+  "creatorId": "uq9c875443t",
+  "stitchLen": 8,
   "lines": [
     {
       "end": [
@@ -49,13 +53,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        6
-      ],
       "end": [
         2,
         4
+      ],
+      "start": [
+        2,
+        6
       ]
     },
     {
@@ -119,21 +123,11 @@
       ]
     },
     {
-      "end": [
-        3,
-        2
-      ],
       "start": [
         2,
         2
-      ]
-    },
-    {
-      "end": [
-        4,
-        2
       ],
-      "start": [
+      "end": [
         3,
         2
       ]
@@ -141,71 +135,81 @@
     {
       "end": [
         4,
-        6
+        2
       ],
       "start": [
-        4,
+        3,
         2
       ]
     },
     {
-      "end": [
-        8,
-        6
-      ],
       "start": [
-        6,
-        6
-      ]
-    },
-    {
-      "end": [
-        8,
-        4
-      ],
-      "start": [
-        8,
-        6
-      ]
-    },
-    {
-      "end": [
-        4,
-        4
-      ],
-      "start": [
-        8,
-        4
-      ]
-    },
-    {
-      "end": [
-        6,
-        0
-      ],
-      "start": [
-        6,
-        4
-      ]
-    },
-    {
-      "start": [
-        6,
-        0
-      ],
-      "end": [
-        4,
-        0
-      ]
-    },
-    {
-      "end": [
         4,
         2
       ],
+      "end": [
+        4,
+        6
+      ]
+    },
+    {
+      "start": [
+        6,
+        6
+      ],
+      "end": [
+        8,
+        6
+      ]
+    },
+    {
+      "start": [
+        8,
+        6
+      ],
+      "end": [
+        8,
+        4
+      ]
+    },
+    {
+      "start": [
+        8,
+        4
+      ],
+      "end": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        6,
+        0
+      ],
+      "start": [
+        6,
+        4
+      ]
+    },
+    {
+      "start": [
+        6,
+        0
+      ],
+      "end": [
+        4,
+        0
+      ]
+    },
+    {
       "start": [
         4,
         0
+      ],
+      "end": [
+        4,
+        2
       ]
     },
     {
@@ -219,49 +223,45 @@
       ]
     },
     {
+      "start": [
+        0,
+        2
+      ],
       "end": [
         0,
         0
-      ],
-      "start": [
-        0,
-        2
       ]
     },
     {
-      "start": [
-        6,
-        2
-      ],
       "end": [
         8,
+        2
+      ],
+      "start": [
+        6,
         2
       ]
     }
   ],
-  "stitchRatio": "standard",
-  "stitchGrid": false,
-  "famOrder": [
-    0,
-    1
-  ],
-  "type": "exp",
-  "bboxRotated": false,
-  "id": "exp_1783025395704",
-  "stitchLen": 8,
-  "createdAt": 1783025395704,
-  "stitchView": false,
-  "routingMode": "default",
-  "name": "Higaki (Wooden fence) Remix",
-  "updatedAt": 1784714507598,
+  "order": 7,
+  "gridType": "isometric",
   "published": true,
+  "name": "Higaki (Wooden fence) Remix",
+  "id": "exp_1783025395704",
+  "routingMode": "default",
+  "spacing": 0,
   "bbox": {
+    "maxV": 8,
     "maxU": 8,
     "minU": 0,
-    "maxV": 8,
     "minV": 0
   },
-  "order": 9,
-  "gridType": "isometric",
-  "traditional": true
+  "type": "exp",
+  "updatedAt": 1784724887803,
+  "stitchGrid": false,
+  "patMacro": 1,
+  "routingEngine": 1,
+  "stitchView": false,
+  "thumbCells": 1,
+  "bboxRotated": false
 }

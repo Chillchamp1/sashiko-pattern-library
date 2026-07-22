@@ -1,22 +1,6 @@
 {
   "traditional": true,
-  "gridType": "isometric",
-  "published": true,
-  "bbox": {
-    "maxU": 10,
-    "maxV": 10,
-    "minV": 0,
-    "minU": 0
-  },
-  "order": 19,
-  "updatedAt": 1784714507599,
-  "id": "exp_1781819811459",
-  "stitchLen": 8,
-  "routingMode": "default",
-  "stitchView": false,
   "createdAt": 1781819811462,
-  "name": "Asanoha (Hemp Leaf) straight rows",
-  "stitchGrid": false,
   "famOrder": [
     4,
     1,
@@ -25,8 +9,6 @@
     2,
     3
   ],
-  "type": "exp",
-  "bboxRotated": false,
   "lines": [
     {
       "start": [
@@ -39,32 +21,12 @@
       ]
     },
     {
+      "start": [
+        0,
+        0
+      ],
       "end": [
         10,
-        0
-      ],
-      "start": [
-        0,
-        0
-      ]
-    },
-    {
-      "end": [
-        0,
-        0
-      ],
-      "start": [
-        10,
-        10
-      ]
-    },
-    {
-      "end": [
-        3.333,
-        6.667
-      ],
-      "start": [
-        0,
         0
       ]
     },
@@ -72,6 +34,16 @@
       "start": [
         10,
         10
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
       ],
       "end": [
         3.333,
@@ -79,50 +51,59 @@
       ]
     },
     {
-      "end": [
-        6.667,
-        3.333
-      ],
       "start": [
         10,
         10
-      ]
-    },
-    {
-      "start": [
-        0,
-        0
       ],
-      "end": [
-        6.667,
-        3.333
-      ]
-    },
-    {
       "end": [
         3.333,
         6.667
-      ],
-      "start": [
-        0,
-        10
       ]
     },
     {
       "start": [
+        10,
+        10
+      ],
+      "end": [
         6.667,
         3.333
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
       ],
+      "end": [
+        6.667,
+        3.333
+      ]
+    },
+    {
+      "start": [
+        0,
+        10
+      ],
+      "end": [
+        3.333,
+        6.667
+      ]
+    },
+    {
       "end": [
         10,
         0
+      ],
+      "start": [
+        6.667,
+        3.333
       ]
     }
   ],
-  "stitchRatio": "standard",
-  "thumbCells": 3,
-  "spacing": 0,
+  "stitchLen": 8,
   "creatorId": "ubv38qfe752",
+  "stitchRatio": "standard",
   "families": [
     4,
     1,
@@ -134,5 +115,24 @@
     5,
     5
   ],
-  "patMacro": 3
+  "routingMode": "default",
+  "spacing": 0,
+  "name": "Asanoha (Hemp Leaf) straight rows",
+  "id": "exp_1781819811459",
+  "order": 16,
+  "published": true,
+  "gridType": "isometric",
+  "bboxRotated": false,
+  "stitchView": false,
+  "thumbCells": 3,
+  "patMacro": 3,
+  "bbox": {
+    "maxU": 10,
+    "maxV": 10,
+    "minV": 0,
+    "minU": 0
+  },
+  "type": "exp",
+  "stitchGrid": false,
+  "updatedAt": 1784727523709
 }
