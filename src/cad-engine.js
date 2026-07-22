@@ -12,6 +12,10 @@ let cadFamRouting={},cadFamRoutingOpen=false;
 // colour shows as a small square below each family swatch. Dormant while Community
 // is unchecked. cadStitchColors = the "Coloured thread" toggle.
 let cadFamColors={},cadFamColorOpen=null,cadStitchColors=false;
+// Fabric preview for the CAD stitch view (Community patterns only; default = the
+// classic denim). Saved with community patterns and restored on edit.
+let cadFabric='indigo';
+function _cadFabricId(){return cadCommunity?cadFabric:'indigo';}
 let cadTraditional=false;
 let cadCommunity=false,cadCommunityName='';   // "Community" flag + optional author name ("by …")
 // "Embroidery" (community-only sub-flag): the drawing is a single standalone motif, never
@@ -1481,7 +1485,7 @@ window.cadSaveToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),famColors:_cadRemapFamColors(cf.map),stitchColors:cadCommunity&&cadStitchColors,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),famColors:_cadRemapFamColors(cf.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1532,7 +1536,7 @@ window.cadPublishToLibrary=async function(){
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),famColors:_cadRemapFamColors(cf2.map),stitchColors:cadCommunity&&cadStitchColors,published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),famColors:_cadRemapFamColors(cf2.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -1628,7 +1632,7 @@ function _renderTileFrame(){
   const x=pv.getContext('2d');
   x.clearRect(0,0,500,500);
   if(cadStitchView){
-    _cadDrawDenim(x);
+    _cadDrawFabricBg(x);
     // Grid always on (whole canvas); stitches at FULL contrast (no gallery-style subduing).
     _cadEditorGrid(x,_cadStitchCache);
     const w=(_cadStitchCache&&_cadStitchCache.w)||_cadStitchW();
@@ -1687,6 +1691,12 @@ function _cadBakeDenim(){
   d.fillStyle=v;d.fillRect(0,0,500,500);
 }
 function _cadDrawDenim(x,w,h){if(!_cadDenimBuf)_cadBakeDenim();x.drawImage(_cadDenimBuf,0,0,w||500,h||500);}
+// Stitch-view background: the selected fabric for community patterns, classic denim
+// otherwise (and for the Indigo default, so non-community stays byte-identical).
+function _cadDrawFabricBg(x){
+  const id=_cadFabricId();
+  if(id==='indigo')_cadDrawDenim(x); else _drawFabric(x,id,500,500);
+}
 
 // ── Sashiko fabrics (curated) ────────────────────────────────────────────────
 // The cloths sashiko is actually worked on: indigo aizome (the classic), a deeper
@@ -2049,7 +2059,11 @@ function _cadEditorGrid(x,scene){
     const p=S(u,v);
     if(p[0]<-4||p[0]>504||p[1]<-4||p[1]>504)continue;
     const onMain=(u%M===0)&&(v%M===0);
-    x.fillStyle=onMain?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.6)';
+    // On a LIGHT fabric (e.g. Natural) white dots vanish — draw them dark instead
+    // (same adaptation as the gallery's _cadDrawStitchGrid dark mode).
+    const dark=_fabricById(_cadFabricId()).light;
+    x.fillStyle=dark?(onMain?'rgba(28,42,72,0.9)':'rgba(28,42,72,0.55)')
+                    :(onMain?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.6)');
     x.beginPath();x.arc(p[0],p[1],onMain?1.25:0.6,0,Math.PI*2);x.fill();
   }
 }
@@ -2069,7 +2083,7 @@ function _cadStitchW(){return Math.max(2.5,Math.min(6,cadStitchLen*0.22));}
 function _cadDrawStitchStatic(){
   const pv=document.getElementById('patCanvas');if(!pv)return;
   const x=pv.getContext('2d');
-  x.clearRect(0,0,500,500);_cadDrawDenim(x);
+  x.clearRect(0,0,500,500);_cadDrawFabricBg(x);
   const sc=_cadStitchScene();
   // Grid is always on in the CAD Live Tiling, covering the whole canvas; stitches stay at
   // FULL contrast (subduing-under-grid is a gallery-only feature). Draw with the LAID width
@@ -2115,10 +2129,17 @@ function _cadSyncStitchUI(){
   const sc=document.getElementById('cadStitchControls'); if(sc)sc.style.display=cadStitchView?'flex':'none';
   const lv=document.getElementById('cadStitchLenVal'); if(lv)lv.textContent=cadStitchLen;
   const r=document.getElementById('cadStitchRatio'); if(r)r.value=cadStitchRatio;
-  // Coloured-thread toggle: community patterns only (traditional keep off-white thread).
+  // Coloured-thread toggle + fabric picker: community patterns only (traditional
+  // keep off-white thread on the classic denim).
   const cw=document.getElementById('cadStitchColorsWrap'); if(cw)cw.style.display=cadCommunity?'':'none';
   const cc=document.getElementById('cadStitchColors'); if(cc)cc.checked=cadStitchColors;
+  const fw=document.getElementById('cadFabricWrap'); if(fw)fw.style.display=cadCommunity?'':'none';
+  const fs=document.getElementById('cadFabric'); if(fs)fs.value=cadFabric;
 }
+window.cadSetFabric=function(v){
+  cadFabric=_fabricById(v).id;   // sanitise to a known id
+  cadDrawPattern();              // instant background swap in the stitch view
+};
 window.cadToggleStitchColors=function(){
   cadStitchColors=document.getElementById('cadStitchColors').checked;
   cadDrawPattern();

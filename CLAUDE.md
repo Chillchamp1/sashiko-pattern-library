@@ -84,7 +84,13 @@ shows as a **small square below the family swatch** (`.cad-fam-thread` in `.cad-
 switches the community-only **🎨 Coloured thread** checkbox ON (`#cadStitchColorsWrap` in `#cadStitchControls`,
 state `cadStitchColors`) so the stitch view updates INSTANTLY; `_cadThreadColor(fam)` dyes the running stitches
 at both `_cadDrawStitch` call sites. **Gated on the Community flag**: with Community unchecked the picker
-refuses (alert) and existing entries go dormant (a non-community save stores `{}`). Saved as `famColors` (remapped via `_cadRemapFamColors(cf.map)`, same compaction
+refuses (alert) and existing entries go dormant (a non-community save stores `{}`). **Fabric preview
+(2026-07-23, community-only):** a `Fabric` dropdown in `#cadStitchControls` (`#cadFabricWrap`, `cadSetFabric`,
+state `cadFabric`, ids = `SASHIKO_FABRICS`) swaps the stitch-view background via `_cadDrawFabricBg` ('indigo'
+default = the classic `_cadDrawDenim`, so non-community stays byte-identical); `_cadEditorGrid` draws its dots
+dark on a light cloth (Natural), same adaptation as the gallery grid. Saved as `pat.fabric` on community saves,
+restored on edit, carried by remix, reset in `showCAD`. The GALLERY fabric stays the visitor's own persistent
+`galFabric` preference (deliberately not driven by the pattern). Saved as `famColors` (remapped via `_cadRemapFamColors(cf.map)`, same compaction
 as famRouting) + `stitchColors:bool`; restored in `editExpPattern`, carried by `remixPattern` (re-activates when
 the remixer re-checks Community), reset in `showCAD`. **Gallery viewer + thumbnails**: for community patterns
 saved with `stitchColors`, `galThreadColors` initialises from `pat.famColors` (loadPattern in render.js,

@@ -402,6 +402,17 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <label class="cad-routing-toggle" id="cadStitchColorsWrap" style="display:none" title="Use the custom family colours for the thread in the stitch view">
             <input type="checkbox" id="cadStitchColors" onchange="cadToggleStitchColors()"> 🎨 Coloured thread
           </label>
+          <!-- Community-only: fabric preview for the stitch view (ids = SASHIKO_FABRICS). -->
+          <label class="cad-routing-toggle" id="cadFabricWrap" style="display:none" title="Preview the stitching on a different cloth">Fabric
+            <select id="cadFabric" onchange="cadSetFabric(this.value)">
+              <option value="indigo" selected>Indigo</option>
+              <option value="midnight">Midnight</option>
+              <option value="black">Black</option>
+              <option value="slate">Slate grey</option>
+              <option value="natural">Natural</option>
+              <option value="kakishibu">Kakishibu</option>
+            </select>
+          </label>
           <!-- Grid is always on in the Live Tiling stitch view (matches the gallery object); no checkbox. -->
           <!-- Hub-size fine-tune — hidden from the UI but kept for later; cadSetHubScale still works.
           <span class="cad-panel-stepper">

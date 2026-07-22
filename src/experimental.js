@@ -1606,9 +1606,10 @@ window.editExpPattern=async function(idOrPat){
   const _pfr=pat.famRouting||{};
   for(const k in _pfr)if(_isKnownMode(_pfr[k]))cadFamRouting[k]=_pfr[k];
   _cadSyncFamRoutingUI();
-  // Restore the custom family colours + coloured-thread flag (community feature).
+  // Restore the custom family colours + coloured-thread flag + fabric (community feature).
   cadFamColors={...(pat.famColors||{})};
   cadStitchColors=!!pat.stitchColors;
+  cadFabric=pat.fabric||'indigo';
   cadFamColorOpen=null;
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
@@ -3255,9 +3256,9 @@ window.remixPattern=function(id){
   cadStitchLen=pat.stitchLen||8;cadStitchRatio=pat.stitchRatio||'standard';cadStitchView=!!pat.stitchView;cadStitchGrid=!!pat.stitchGrid;_cadSyncStitchUI();
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
   cadFamRouting={};_cadSyncFamRoutingUI();   // remix restarts from uniform routing (like the base mode)
-  // Custom colours carry into the remix (visual identity) — they re-activate once the
-  // remixer re-checks Community, like the embroidery flag above.
-  cadFamColors={...(pat.famColors||{})};cadStitchColors=!!pat.stitchColors;cadFamColorOpen=null;
+  // Custom colours + fabric carry into the remix (visual identity) — they re-activate
+  // once the remixer re-checks Community, like the embroidery flag above.
+  cadFamColors={...(pat.famColors||{})};cadStitchColors=!!pat.stitchColors;cadFabric=pat.fabric||'indigo';cadFamColorOpen=null;
   cadBBoxRotated=pat.bboxRotated||false;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
   cadInited=false;
@@ -3319,7 +3320,7 @@ window.showCAD=function(){
   document.getElementById('cadTraditional').checked=false;
   cadCommunity=false;cadCommunityName='';cadEmbroidery=false;_cadSyncCommunityUI();
   cadStitchLen=8;cadStitchRatio='standard';cadStitchView=false;cadStitchGrid=false;_cadSyncStitchUI();  // fresh stitch defaults
-  cadFamColors={};cadStitchColors=false;cadFamColorOpen=null;   // fresh pattern = classic palette
+  cadFamColors={};cadStitchColors=false;cadFabric='indigo';cadFamColorOpen=null;   // fresh pattern = classic palette + denim
   cadInited=false;
   cadInit();
   window.scrollTo({top:0,behavior:'smooth'});
