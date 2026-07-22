@@ -218,7 +218,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       <input id="cmHandle" class="cm-handle" maxlength="40" placeholder="Your handle" autocomplete="off">
       <textarea id="cmText" class="cm-text" maxlength="500" placeholder="Write a comment…"></textarea>
       <div class="cm-formbtns">
-        <button class="cm-post cm-photo-btn" id="cmPhotoBtn" onclick="pickPhoto()" title="Add a photo of your stitched piece — one per person, shown after approval">📷 Photo</button>
+        <!-- starts HIDDEN: _renderPhotos reveals it only once the /photos probe read
+             succeeds (rules deployed) — no flash, no dead-clickable window before that -->
+        <button class="cm-post cm-photo-btn" id="cmPhotoBtn" style="display:none" onclick="pickPhoto()" title="Add a photo of your stitched piece — one per person">📷 Photo</button>
         <button class="cm-post" id="cmPost" onclick="postComment()">Post</button>
       </div>
       <input type="file" id="cmPhotoFile" accept="image/*" style="display:none" onchange="cmPhotoChange(this)">
