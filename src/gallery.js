@@ -142,7 +142,14 @@ let _dragId=null;
 function _engagement(p){
   const h=(typeof _likeCounts!=='undefined'&&p.id in _likeCounts)?_likeCounts[p.id]:0;
   const c=(typeof _commentCounts!=='undefined'&&_commentCounts[p.id])||0;
-  return 3*h+c;
+  // View bonus from PATTERN_CLICKS (30-day unique pattern opens, refreshed weekly by
+  // .github/workflows/weekly.yml → pattern-clicks.json → build inject). Log-scaled and
+  // capped so a much-viewed pattern lower in the list catches up with the top cards
+  // (whose click advantage saturates), but raw views can never outrank real
+  // hearts/comments long-term: 8 views ≈ 1 comment, ~56 views ≈ 1 heart, cap 4 pts.
+  const v=(typeof PATTERN_CLICKS!=='undefined'&&PATTERN_CLICKS[p.id])||0;
+  const vb=Math.min(4,Math.floor(Math.log2(v/8+1)));
+  return 3*h+c+vb;
 }
 function _expGalleryOrder(a,b){
   const ea=_engagement(a), eb=_engagement(b);

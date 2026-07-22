@@ -1,0 +1,44 @@
+name: Weekly stats & photo review
+
+on:
+  schedule:
+    # Mondays 04:43 UTC (odd minute to avoid the top-of-hour cron rush)
+    - cron: '43 4 * * 1'
+  workflow_dispatch: {}   # manual "Run workflow" button
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Refresh pattern view counts (last 30 days, GoatCounter)
+        run: node tools/stats/fetch-clicks.js
+
+      - name: Rebuild site with the new counts baked in
+        run: python build.py
+
+      - name: Commit (only if counts changed)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pattern-clicks.json
+          git add -f "Sashiko — Pattern Library.htm" index.html
+          git diff --cached --quiet || git commit -m "stats: weekly pattern view counts"
+          git push
+
+      - name: Photo review reminder (issue only while unreviewed photos exist)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PENDING="$(node tools/stats/check-photos.js)"
+          if [ -n "$PENDING" ]; then
+            gh label create photo-review -c "e0b890" -d "Unreviewed pattern photos" 2>/dev/null || true
+            if [ -z "$(gh issue list --label photo-review --state open --json number --jq '.[].number')" ]; then
+              gh issue create --title "📷 New pattern photos to review" --label photo-review --body "$PENDING"
+            fi
+          fi

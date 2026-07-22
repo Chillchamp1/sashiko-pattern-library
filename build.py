@@ -54,6 +54,14 @@ def main():
     cad_toolbar = read("cad-toolbar.json").strip()
     html = html.replace("<!-- INJECT:cad-toolbar.json -->", cad_toolbar)
 
+    # Inject the weekly-refreshed pattern view counts (tools/stats/fetch-clicks.js →
+    # pattern-clicks.json; feeds the gallery engagement score). Missing file → {}.
+    try:
+        clicks = read("pattern-clicks.json").strip()
+    except OSError:
+        clicks = "{}"
+    html = html.replace("<!-- INJECT:pattern-clicks.json -->", clicks)
+
     # Build stamp (visible in the About panel) so a deployed version is identifiable —
     # if the live date differs from what a browser shows, that browser is serving a cache.
     # DATE-ONLY on purpose: a same-day local build and the CI rebuild are then byte-identical,

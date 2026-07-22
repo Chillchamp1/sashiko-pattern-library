@@ -580,18 +580,19 @@ function _renderPhotos(photos){
   if(btn)btn.style.display=photos===null?'none':'';
   photos=photos||[];
   const box=document.getElementById('cmPhotos');if(!box)return;
-  // Public sees approved photos; you always see your own (pending) one; admin sees all.
-  const show=photos.filter(p=>p.approved||p.id===_authUid||_isAdmin());
-  if(!show.length){box.style.display='none';box.innerHTML='';return;}
+  // Photos show IMMEDIATELY for everyone (post-moderation, owner decision 2026-07-22).
+  // `approved` is the admin's ARCHIVE flag now: only ✓-ticked photos enter the public
+  // monthly git backup (git history is forever — nothing unreviewed gets baked in).
+  // A weekly Action opens a GitHub issue while unreviewed photos exist.
+  if(!photos.length){box.style.display='none';box.innerHTML='';return;}
   box.style.display='flex';
-  box.innerHTML=show.map(p=>{
+  box.innerHTML=photos.map(p=>{
     const canDel=p.id===_authUid||_isAdmin();
-    const pend=!p.approved;
-    return '<div class="cm-photo'+(pend?' pending':'')+'">'+
+    const unarchived=!p.approved&&_isAdmin();
+    return '<div class="cm-photo'+(unarchived?' pending':'')+'">'+
       '<img src="'+p.data+'" alt="stitched piece" onclick="showPhotoLightbox(this.src)">'+
       '<div class="cm-photo-meta"><span class="cm-h">'+_cmEsc(p.handle||'anon')+'</span>'+
-      (pend&&!_isAdmin()?'<span class="cm-photo-pend">pending approval</span>':'')+
-      (pend&&_isAdmin()?'<button class="cm-photo-ok" onclick="approvePhoto(\''+_cmEsc(p.id)+'\')">✓ approve</button>':'')+
+      (unarchived?'<button class="cm-photo-ok" title="Reviewed: include this photo in the monthly GitHub backup" onclick="approvePhoto(\''+_cmEsc(p.id)+'\')">✓ keep</button>':'')+
       (canDel?'<button class="cm-del" title="Delete photo" onclick="deletePhoto(\''+_cmEsc(p.id)+'\')">✕</button>':'')+
       '</div></div>';
   }).join('');
@@ -634,7 +635,7 @@ window.cmPhotoChange=async function(inp){
     await _db.collection('patterns').doc(id).collection('photos').doc(_authUid)
       .set({uid:_authUid,handle,data,created:Date.now(),approved:false});
     if(curPat&&curPat.id===id)_renderPhotos((await _fetchPhotos(id))||[]);
-    alert(_isAdmin()?'Photo uploaded.':'Photo uploaded — it will appear for everyone once approved. Uploading again replaces it.');
+    alert('Photo uploaded! Uploading again replaces it.');
   }catch(e){console.warn('Photo upload failed:',e);alert('Could not upload the photo. Please try again.');}
   btn.disabled=false;btn.textContent='📷 Photo';
 };

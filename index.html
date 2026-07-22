@@ -541,6 +541,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p>This library is built with love to keep traditional patterns alive and to support sustainable crafting and mindful garment repair.</p>
       <p>Feel free to copy, mod or reimagine this project. If you do so, please mention sashikolib.org as a source.</p>
       <p>If you love what’s being built here, a small <a class="about-link" href="https://ko-fi.com/chillchamp" target="_blank" rel="noopener">donation</a> keeps the servers running and the stitches flowing❤️</p>
+      <p class="build-stamp" id="aboutVisitors" style="display:none"></p>
       <p class="build-stamp">sashikolib.org · build 2026-07-22</p>
     </div>
   </div>
@@ -5133,6 +5134,91 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   ]
 }</script>
 <script>const CAD_TOOLBAR_LAYOUT={"cadLeft":["reset","clear","sep1","move","sep2","cut","draw","arc","color","undo"],"cadRight":["play","rsep","stitchview"]}</script>
+<script>const PATTERN_CLICKS={
+  "exp_1781813334725": 5,
+  "exp_1781819811459": 35,
+  "exp_1782060653629": 31,
+  "exp_1782065677440": 19,
+  "exp_1782068235130": 5,
+  "exp_1782081165754": 2,
+  "exp_1782254084612": 42,
+  "exp_1782254781220": 5,
+  "exp_1782256720347": 12,
+  "exp_1782328735477": 76,
+  "exp_1782334860500": 67,
+  "exp_1782335965777": 29,
+  "exp_1782336864528": 19,
+  "exp_1782379813625": 16,
+  "exp_1782392569307": 16,
+  "exp_1782393370706": 12,
+  "exp_1782409076073": 8,
+  "exp_1782409906383": 5,
+  "exp_1782421629701": 63,
+  "exp_1782425579806": 11,
+  "exp_1782481281581": 93,
+  "exp_1782555421394": 15,
+  "exp_1782654940068": 29,
+  "exp_1782654945463": 13,
+  "exp_1782657283438": 24,
+  "exp_1782679660951": 51,
+  "exp_1782748419661": 15,
+  "exp_1782862093732": 30,
+  "exp_1782942864853": 31,
+  "exp_1782943535171": 26,
+  "exp_1782944904928": 29,
+  "exp_1782945737294": 46,
+  "exp_1782953582289": 44,
+  "exp_1782953784354": 4,
+  "exp_1782958554798": 1,
+  "exp_1782959260595": 3,
+  "exp_1782959575505": 5,
+  "exp_1782963934345": 11,
+  "exp_1782964254541": 5,
+  "exp_1783022980402": 32,
+  "exp_1783025395704": 16,
+  "exp_1783192903226": 12,
+  "exp_1783259170053": 12,
+  "exp_1783282439712": 10,
+  "exp_1783283365137": 22,
+  "exp_1783284507560": 10,
+  "exp_1783451634543": 23,
+  "exp_1783452476548": 5,
+  "exp_1783452867400": 8,
+  "exp_1783453263040": 8,
+  "exp_1783453661239": 6,
+  "exp_1783479147598": 11,
+  "exp_1783481825193": 10,
+  "exp_1783481833887": 1,
+  "exp_1783483110943": 6,
+  "exp_1783483701454": 1,
+  "exp_1783539172297": 3,
+  "exp_1783539853737": 1,
+  "exp_1783540440983": 4,
+  "exp_1783540867257": 1,
+  "exp_1783646251601": 2,
+  "exp_1783646947109": 1,
+  "exp_1783647748417": 2,
+  "exp_1783648119935": 1,
+  "exp_1783652358690": 10,
+  "exp_1783709178676": 3,
+  "exp_1783709303982": 2,
+  "exp_1783841170769": 8,
+  "exp_1783841543057": 4,
+  "exp_1783846934869": 6,
+  "exp_1783847279092": 4,
+  "exp_1784017440456": 5,
+  "exp_1784017978188": 1,
+  "exp_1784018562794": 4,
+  "exp_1784058747640": 6,
+  "exp_1784231801452": 5,
+  "exp_1784277826996": 5,
+  "exp_1784279457459": 4,
+  "exp_1784280253871": 1,
+  "exp_1784516043518": 7,
+  "exp_1784517865321": 1,
+  "exp_1784517868240": 1,
+  "exp_1784718465950": 1
+}</script>
 <script>
 (()=>{
 // ── patterns.js ──────────────────────────────
@@ -6455,7 +6541,14 @@ let _dragId=null;
 function _engagement(p){
   const h=(typeof _likeCounts!=='undefined'&&p.id in _likeCounts)?_likeCounts[p.id]:0;
   const c=(typeof _commentCounts!=='undefined'&&_commentCounts[p.id])||0;
-  return 3*h+c;
+  // View bonus from PATTERN_CLICKS (30-day unique pattern opens, refreshed weekly by
+  // .github/workflows/weekly.yml → pattern-clicks.json → build inject). Log-scaled and
+  // capped so a much-viewed pattern lower in the list catches up with the top cards
+  // (whose click advantage saturates), but raw views can never outrank real
+  // hearts/comments long-term: 8 views ≈ 1 comment, ~56 views ≈ 1 heart, cap 4 pts.
+  const v=(typeof PATTERN_CLICKS!=='undefined'&&PATTERN_CLICKS[p.id])||0;
+  const vb=Math.min(4,Math.floor(Math.log2(v/8+1)));
+  return 3*h+c+vb;
 }
 function _expGalleryOrder(a,b){
   const ea=_engagement(a), eb=_engagement(b);
@@ -7158,18 +7251,19 @@ function _renderPhotos(photos){
   if(btn)btn.style.display=photos===null?'none':'';
   photos=photos||[];
   const box=document.getElementById('cmPhotos');if(!box)return;
-  // Public sees approved photos; you always see your own (pending) one; admin sees all.
-  const show=photos.filter(p=>p.approved||p.id===_authUid||_isAdmin());
-  if(!show.length){box.style.display='none';box.innerHTML='';return;}
+  // Photos show IMMEDIATELY for everyone (post-moderation, owner decision 2026-07-22).
+  // `approved` is the admin's ARCHIVE flag now: only ✓-ticked photos enter the public
+  // monthly git backup (git history is forever — nothing unreviewed gets baked in).
+  // A weekly Action opens a GitHub issue while unreviewed photos exist.
+  if(!photos.length){box.style.display='none';box.innerHTML='';return;}
   box.style.display='flex';
-  box.innerHTML=show.map(p=>{
+  box.innerHTML=photos.map(p=>{
     const canDel=p.id===_authUid||_isAdmin();
-    const pend=!p.approved;
-    return '<div class="cm-photo'+(pend?' pending':'')+'">'+
+    const unarchived=!p.approved&&_isAdmin();
+    return '<div class="cm-photo'+(unarchived?' pending':'')+'">'+
       '<img src="'+p.data+'" alt="stitched piece" onclick="showPhotoLightbox(this.src)">'+
       '<div class="cm-photo-meta"><span class="cm-h">'+_cmEsc(p.handle||'anon')+'</span>'+
-      (pend&&!_isAdmin()?'<span class="cm-photo-pend">pending approval</span>':'')+
-      (pend&&_isAdmin()?'<button class="cm-photo-ok" onclick="approvePhoto(\''+_cmEsc(p.id)+'\')">✓ approve</button>':'')+
+      (unarchived?'<button class="cm-photo-ok" title="Reviewed: include this photo in the monthly GitHub backup" onclick="approvePhoto(\''+_cmEsc(p.id)+'\')">✓ keep</button>':'')+
       (canDel?'<button class="cm-del" title="Delete photo" onclick="deletePhoto(\''+_cmEsc(p.id)+'\')">✕</button>':'')+
       '</div></div>';
   }).join('');
@@ -7212,7 +7306,7 @@ window.cmPhotoChange=async function(inp){
     await _db.collection('patterns').doc(id).collection('photos').doc(_authUid)
       .set({uid:_authUid,handle,data,created:Date.now(),approved:false});
     if(curPat&&curPat.id===id)_renderPhotos((await _fetchPhotos(id))||[]);
-    alert(_isAdmin()?'Photo uploaded.':'Photo uploaded — it will appear for everyone once approved. Uploading again replaces it.');
+    alert('Photo uploaded! Uploading again replaces it.');
   }catch(e){console.warn('Photo upload failed:',e);alert('Could not upload the photo. Please try again.');}
   btn.disabled=false;btn.textContent='📷 Photo';
 };
@@ -12226,12 +12320,31 @@ if(location.hash){
 
 // ── download.js ──────────────────────────────
 // ── About-this-library toggle (gallery) ─────────────────────────────────────
+// Average daily visitors over the last 7 days, from GoatCounter's public
+// visitor-counter endpoint (CORS-enabled, no auth). Fetched once per session on
+// first open; the line simply stays hidden if the fetch fails.
+let _aboutVisitorsLoaded=false;
+function _loadAboutVisitors(){
+  if(_aboutVisitorsLoaded)return;_aboutVisitorsLoaded=true;
+  const el=document.getElementById('aboutVisitors');if(!el)return;
+  const start=new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+  fetch('https://sashiko.goatcounter.com/counter/TOTAL.json?start='+start)
+    .then(r=>r.json())
+    .then(j=>{
+      const n=parseInt(String(j.count_unique||j.count||'').replace(/\D/g,''),10);
+      if(!n)return;
+      el.textContent='≈ '+Math.max(1,Math.round(n/7))+' visitors per day (last 7 days)';
+      el.style.display='';
+    })
+    .catch(()=>{});
+}
 window.toggleAbout=function(){
   const b=document.getElementById('aboutBody'),t=document.getElementById('aboutToggle');
   if(!b)return;
   const open=b.style.display!=='none';
   b.style.display=open?'none':'block';
   if(t)t.classList.toggle('on',!open);
+  if(!open)_loadAboutVisitors();
 };
 
 // ── Download dropdown (pattern viewer) ───────────────────────────────────────

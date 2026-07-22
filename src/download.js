@@ -1,10 +1,29 @@
 // ── About-this-library toggle (gallery) ─────────────────────────────────────
+// Average daily visitors over the last 7 days, from GoatCounter's public
+// visitor-counter endpoint (CORS-enabled, no auth). Fetched once per session on
+// first open; the line simply stays hidden if the fetch fails.
+let _aboutVisitorsLoaded=false;
+function _loadAboutVisitors(){
+  if(_aboutVisitorsLoaded)return;_aboutVisitorsLoaded=true;
+  const el=document.getElementById('aboutVisitors');if(!el)return;
+  const start=new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+  fetch('https://sashiko.goatcounter.com/counter/TOTAL.json?start='+start)
+    .then(r=>r.json())
+    .then(j=>{
+      const n=parseInt(String(j.count_unique||j.count||'').replace(/\D/g,''),10);
+      if(!n)return;
+      el.textContent='≈ '+Math.max(1,Math.round(n/7))+' visitors per day (last 7 days)';
+      el.style.display='';
+    })
+    .catch(()=>{});
+}
 window.toggleAbout=function(){
   const b=document.getElementById('aboutBody'),t=document.getElementById('aboutToggle');
   if(!b)return;
   const open=b.style.display!=='none';
   b.style.display=open?'none':'block';
   if(t)t.classList.toggle('on',!open);
+  if(!open)_loadAboutVisitors();
 };
 
 // ── Download dropdown (pattern viewer) ───────────────────────────────────────
