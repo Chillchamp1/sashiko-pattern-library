@@ -359,6 +359,14 @@ body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-name-input::placeholder{color:#6b7d92}
 .cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
 .cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
+/* Per-colour routing overrides (▾ next to the Routing dropdown + panel below the canvas) */
+.cad-famroute-btn{background:none;border:none;color:#7f93ac;cursor:pointer;font-size:11px;padding:0 2px;line-height:1}
+.cad-famroute-btn:hover{color:#fff}
+.cad-famroute-panel{margin-top:6px}
+.cad-famroute-hint{font-size:11px;color:#9db4cc}
+.cad-famroute-row{display:inline-flex;align-items:center;gap:5px}
+.cad-famroute-row select{font-size:11px}
+.cad-famroute-chip{width:13px;height:13px;border-radius:50%;border:1px solid rgba(255,255,255,.4);flex:none}
 /* Stitch-view toggle switch */
 .cad-switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;font-size:12px;color:#b0c8e0;padding:3px 6px}
 .cad-switch input{position:absolute;opacity:0;width:0;height:0}

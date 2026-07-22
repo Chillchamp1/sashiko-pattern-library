@@ -1009,7 +1009,7 @@ function routingEngineFor(pat){
 // Route an exp pattern's tiled segments / stitch path through its pinned engine.
 // Use these (not the bare genTiledSegs/buildExpPath) at every GALLERY-facing call site.
 function tiledSegsFor(pat){ return routingEngineFor(pat).genTiledSegs(pat); }
-function expPathFor(segs, pat){ return routingEngineFor(pat).buildExpPath(segs, pat.famOrder, pat.routingMode, {iso:!!pat&&pat.gridType==='isometric'}); }
+function expPathFor(segs, pat){ return routingEngineFor(pat).buildExpPath(segs, pat.famOrder, pat.routingMode, {iso:!!pat&&pat.gridType==='isometric', famRouting:(pat&&pat.famRouting)||null}); }
 
 // ── Tiled segments (with symmetry-family assignment) ───────────────────────
 function genTiledSegs(pat){
@@ -1491,6 +1491,11 @@ window.editExpPattern=async function(idOrPat){
   const _routingSel=document.getElementById('cadRoutingMode');
   if(![..._routingSel.options].some(o=>o.value===cadRoutingMode))cadRoutingMode='default';
   _routingSel.value=cadRoutingMode;
+  // Restore per-family routing overrides (unknown modes dropped).
+  cadFamRouting={};
+  const _pfr=pat.famRouting||{};
+  for(const k in _pfr)if(_isKnownMode(_pfr[k]))cadFamRouting[k]=_pfr[k];
+  _cadSyncFamRoutingUI();
   cadSpacing=parseInt(pat.spacing)||0;
   document.getElementById('cadSpacing').value=cadSpacing;
   cadMacro=macroVal;
@@ -1571,10 +1576,41 @@ function _stitchChains(chains, tol){
   return chains;
 }
 
+function _isKnownMode(m){return m==='default'||m==='continuous'||m==='contour'||m==='sequential'||_isV2Mode(m);}
 function buildExpPath(lines, famOrderOverride, routingMode, v2opts){
   if(!lines||!lines.length)return[];
 
   const mode=routingMode||'default';
+  // Per-family routing overrides (pat.famRouting = {famIdx→mode}, 2026-07-22):
+  // normally one mode routes the whole pattern; an override routes that colour
+  // (family) with a different logic. Families are PARTITIONED by effective mode,
+  // each group routed by the normal single-mode logic below, groups concatenated
+  // in famOrder position (first jump marked). Additive — without overrides the
+  // partition is one group and we fall through byte-identical.
+  const _fr=v2opts&&v2opts.famRouting;
+  if(_fr){
+    const eff=fi=>{const m=_fr[fi];return(m&&m!==mode&&_isKnownMode(m))?m:mode;};
+    const famSet=[...new Set(lines.map(l=>l.fam||0))];
+    if(famSet.some(fi=>eff(fi)!==mode)){
+      const pos=new Map();(famOrderOverride||[]).forEach((fi,i)=>pos.set(fi,i));
+      const groups=new Map();               // effective mode → {lines, minPos}
+      lines.forEach(l=>{
+        const fi=l.fam||0, m=eff(fi);
+        if(!groups.has(m))groups.set(m,{lines:[],minPos:Infinity});
+        const g=groups.get(m); g.lines.push(l);
+        const p=pos.has(fi)?pos.get(fi):1e6+fi;
+        if(p<g.minPos)g.minPos=p;
+      });
+      const subOpts={...v2opts,famRouting:null};
+      const path=[];
+      [...groups.entries()].sort((a,b)=>a[1].minPos-b[1].minPos).forEach(([m,g])=>{
+        const p=buildExpPath(g.lines,famOrderOverride,m,subOpts);
+        if(path.length&&p.length)p[0]={...p[0],jump:true};
+        path.push(...p);
+      });
+      return path;
+    }
+  }
   // v2 modes route through their own additive pipeline; the four original modes
   // below stay byte-identical (verified via tools/routing/route.js --check).
   if(_isV2Mode(mode))return buildExpPathV2(lines,famOrderOverride,mode,v2opts||{});
@@ -3051,6 +3087,7 @@ window.remixPattern=function(id){
   // Carry the parent's stitch params into the remix so it starts from the same look.
   cadStitchLen=pat.stitchLen||8;cadStitchRatio=pat.stitchRatio||'standard';cadStitchView=!!pat.stitchView;cadStitchGrid=!!pat.stitchGrid;_cadSyncStitchUI();
   cadRoutingMode='default';document.getElementById('cadRoutingMode').value='default';
+  cadFamRouting={};_cadSyncFamRoutingUI();   // remix restarts from uniform routing (like the base mode)
   cadBBoxRotated=pat.bboxRotated||false;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
   cadInited=false;
@@ -3104,6 +3141,7 @@ window.showCAD=function(){
   document.getElementById('cadView').classList.add('open');
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
   cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';
+  cadFamRouting={};_cadSyncFamRoutingUI();
   cadMacro=2;cadPatMacro=3;   // fresh draw-grid + Tiles defaults for a new pattern
   document.getElementById('cadRoutingMode').value='default';
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows

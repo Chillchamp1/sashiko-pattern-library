@@ -321,6 +321,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
                 <option value="contour">3 · Waves</option>
                 <option value="sequential">4 · One by one (motifs)</option>
               </select>
+              <button id="cadFamRoutingBtn" class="cad-famroute-btn" onclick="cadToggleFamRouting()" title="Advanced: route individual colours with a different logic">▾</button>
             </label>
             <span class="cad-panel-stepper" id="cadTilesCtl">
               <span class="cad-panel-stepper-label">Tiles</span>
@@ -351,6 +352,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
+        <!-- Per-colour routing overrides (opened via the ▾ next to the Routing dropdown).
+             Sits below the canvas like #cadStitchControls so toggling never shifts the canvas. -->
+        <div class="cad-stitch-controls cad-famroute-panel" id="cadFamRoutingPanel" style="display:none"></div>
         <div class="cad-stitch-controls" id="cadStitchControls" style="display:none">
           <span class="cad-panel-stepper">
             <span class="cad-panel-stepper-label">Stitch</span>

@@ -3,6 +3,9 @@ let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
 let cadGridType='isometric',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
+// Per-family routing overrides {famIdx→mode} — normally empty (whole pattern uses
+// cadRoutingMode); an entry routes just that colour with a different logic.
+let cadFamRouting={},cadFamRoutingOpen=false;
 let cadTraditional=false;
 let cadCommunity=false,cadCommunityName='';   // "Community" flag + optional author name ("by …")
 // "Embroidery" (community-only sub-flag): the drawing is a single standalone motif, never
@@ -932,7 +935,49 @@ function cadBuildFamBar(){
     const cls='cad-fam-swatch'+(cadFamSel===pos?' sel':'');
     return '<button class="'+cls+'" onclick="cadSelectFam('+pos+')" style="background:'+col+'" title="Family '+(fam+1)+'"></button>';
   }).join('');
+  _cadBuildFamRoutingUI();   // keep the per-colour routing panel in sync with the families
 }
+// ── Per-colour routing overrides UI ──────────────────────────────────────────
+// Hidden behind the small ▾ next to the Routing dropdown: one row per colour with
+// "same as pattern" + the routing modes. State in cadFamRouting {famIdx→mode}.
+window.cadToggleFamRouting=function(){
+  cadFamRoutingOpen=!cadFamRoutingOpen;
+  _cadBuildFamRoutingUI();
+};
+window.cadSetFamRouting=function(fam,val){
+  if(val)cadFamRouting[fam]=val;else delete cadFamRouting[fam];
+  _cadBuildFamRoutingUI();
+  cadUpdateSettings();
+};
+function _cadBuildFamRoutingUI(){
+  const p=document.getElementById('cadFamRoutingPanel');if(!p)return;
+  const btn=document.getElementById('cadFamRoutingBtn');
+  const hasOverride=Object.keys(cadFamRouting).some(k=>cadFamRouting[k]&&cadFamRouting[k]!==cadRoutingMode);
+  if(btn){
+    btn.textContent=cadFamRoutingOpen?'▴':'▾';
+    // Amber tint = overrides active, so the feature is findable even when collapsed.
+    btn.style.color=hasOverride?'#e0b890':'';
+    btn.title=hasOverride?'Per-colour routing overrides ACTIVE':'Advanced: route individual colours with a different logic';
+  }
+  if(!cadFamRoutingOpen){p.style.display='none';return;}
+  const fams=cadFamOrder.length?cadFamOrder:[...new Set(cadFamilies.filter(f=>f>=0))].sort((a,b)=>a-b);
+  if(!fams.length){p.style.display='flex';p.innerHTML='<span class="cad-famroute-hint">Draw something first — each colour can then get its own routing.</span>';return;}
+  const sel=document.getElementById('cadRoutingMode');
+  const modeOpts=[...sel.options].map(o=>[o.value,o.textContent]);
+  p.innerHTML='<span class="cad-famroute-hint">Per-colour routing:</span>'+fams.map(fam=>{
+    const col=FAM_PALETTE[fam%FAM_PALETTE.length];
+    const cur=cadFamRouting[fam]||'';
+    return '<span class="cad-famroute-row"><span class="cad-famroute-chip" style="background:'+col+'"></span>'+
+      '<select onchange="cadSetFamRouting('+fam+',this.value)">'+
+      '<option value=""'+(cur?'':' selected')+'>↳ same as pattern</option>'+
+      modeOpts.map(([v,t])=>'<option value="'+v+'"'+(cur===v?' selected':'')+'>'+t+'</option>').join('')+
+      '</select></span>';
+  }).join('');
+  p.style.display='flex';
+}
+// Called from experimental.js on pattern load / remix / new: close the panel and
+// refresh the ▾ indicator for the (re)loaded cadFamRouting.
+function _cadSyncFamRoutingUI(){cadFamRoutingOpen=false;_cadBuildFamRoutingUI();}
 window.cadSelectFam=function(pos){cadFamSel=cadFamSel===pos?-1:pos;cadUpdateAll();};
 window.cadMoveFam=function(dir){
   if(cadFamSel<0||cadFamSel>=cadFamOrder.length)return;
@@ -951,11 +996,21 @@ window.cadAddFam=function(){
 };
 function _compactFamilies(families, famOrder){
   const used=[...new Set(families.filter(f=>f>=0))].sort((a,b)=>a-b);
-  if(!used.length)return{families:[], famOrder:[]};
+  if(!used.length)return{families:[], famOrder:[], map:{}};
   const map={};used.forEach((of,i)=>{map[of]=i;});
   const newFam=families.map(f=>f>=0?map[f]:-1);
   const newOrder=famOrder.filter(f=>used.includes(f)).map(f=>map[f]);
-  return{families:newFam, famOrder:newOrder};
+  return{families:newFam, famOrder:newOrder, map};
+}
+// cadFamRouting uses editor fam indices; saving compacts/renumbers families, so the
+// overrides are remapped with the same map. Entries equal to the base mode are pruned.
+function _cadRemapFamRouting(map){
+  const out={};
+  for(const k in cadFamRouting){
+    const m=cadFamRouting[k];
+    if(map[k]!==undefined&&m&&m!==cadRoutingMode)out[map[k]]=m;
+  }
+  return out;
 }
 // Draw/Tiles readouts. Grid shows the draw-canvas span in grid units — cadMacro cells ×
 // CAD_MICRO units each — as "(N·10)×(N·10)". Tiles shows the live-tiling repeat count as "N×N".
@@ -1299,7 +1354,7 @@ window.cadSaveToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1348,7 +1403,7 @@ window.cadPublishToLibrary=async function(){
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:cadCommunity?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -1399,7 +1454,7 @@ window.cadTilePlay=function(){
   const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric',famRouting:cadFamRouting});
   if(!fullPath.length)return;
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);
@@ -1470,7 +1525,7 @@ function _tpLoop(t){
 // ── Realistic stitch scene ───────────────────────────────────────────────────
 function _cadStitchSig(){
   return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+_cadRefMacro+'|'+cadSpacing+'|'+
-    cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio+'|'+cadEmbroidery;
+    cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio+'|'+cadEmbroidery+'|'+JSON.stringify(cadFamRouting);
 }
 // Bake the indigo-denim background once (base wash + twill diagonal + speckle).
 function _cadBakeDenim(){
@@ -1772,7 +1827,7 @@ function _cadStitchScene(){
     patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
-  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric'});
+  const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric',famRouting:cadFamRouting});
   if(!fullPath.length){return(_cadStitchCache=empty);}
   const lay=computeExpLayout(pat);
   const path=filterVisiblePath(fullPath,lay);

@@ -60,7 +60,7 @@ function metrics(pat, mode) {
   const segs = R.genTiledSegs({ ...pat, routingMode: mode });
   // Pass the iso flag exactly as the browser's expPathFor does, so the v2 modes'
   // traditional family classification matches what ships (no-op for the v1 modes).
-  const path0 = R.buildExpPath(segs, pat.famOrder, mode, { iso: pat.gridType === 'isometric' });
+  const path0 = R.buildExpPath(segs, pat.famOrder, mode, { iso: pat.gridType === 'isometric', famRouting: pat.famRouting || null });
   const { interior } = arcVertexSets(segs);
 
   let strokes = 0, jumps = 0, jumpLen = 0, stitchLen = 0, maxTurn = 0, midArc = 0;

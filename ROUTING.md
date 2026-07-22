@@ -32,6 +32,10 @@ Shared v2 rules (owner decisions 2026-07-02):
 - **Closed loops assembled from open arcs** enter at a drawn arc **endpoint** (`_rotateClosedEntryV2`) — fixes the mid-arc entries v1's `_rotateClosedEntry` produced (Maru Shippō `midArc=4`).
 - The **gallery viewer** has a view-only routing switcher (`#galRoutingSel`, 🔀 next to ⚙ Advanced) to compare any mode per pattern without saving; the CAD **Routing** dropdown saves any of the seven modes per pattern.
 
+### Per-colour routing overrides (2026-07-22)
+
+Normally one mode routes the whole pattern; occasionally one colour (family) wants a different logic. `pat.famRouting` = `{famIdx→mode}` (sparse — absent family inherits `routingMode`). `buildExpPath` **partitions** the families by their effective mode, routes each group with the normal single-mode logic, and concatenates the groups in `famOrder` position (first segment of each later group marked `jump`). Additive: without overrides the partition is a single group and behaviour is byte-identical (`route.js --check` verified). UI: the small **▾** next to the CAD Routing dropdown opens a per-colour panel below the Live-Tiling canvas (one row per colour: "same as pattern" + the seven modes); the ▾ tints amber while overrides are active. Overrides are remapped through `_compactFamilies` on save (editor fam indices → saved compacted indices), pruned when equal to the base mode, and restored on edit; remix and new pattern reset them.
+
 ## The human-makability cost (how we decide between two routings)
 A complete route covers every segment exactly once, as an ordered list of continuous **strokes** with **jumps** (needle re-insertions) between them. We approximately minimise, in strict priority order:
 
