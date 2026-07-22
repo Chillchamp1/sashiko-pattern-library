@@ -226,7 +226,11 @@ function loadPattern(pat){
     TOTAL=EXP_path.length; PASSES=[];
     const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display=pat.embroidery?'none':'';
     const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
-    document.getElementById('animTitle').innerHTML=_displayName(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
+    // Traditional patterns credit the contributor only HERE in the detail view
+    // ("added by: …") — their gallery cards stay clean; community cards carry "by …".
+    const _esc=s=>String(s).replace(/[<>"'&]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'}[c]));
+    const _addedBy=pat.traditional&&pat.communityName?' · added by: '+_esc(pat.communityName):'';
+    document.getElementById('animTitle').innerHTML=_displayName(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY'+_addedBy+'</span>';
     document.getElementById('animTip').textContent='';
     // Like/remix bar
     const lr=document.getElementById('likeRow');

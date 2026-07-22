@@ -2975,7 +2975,7 @@ function expCardHTML(pat){
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${esc(pat.id)}"></canvas>
     <div class="pcard-body">
       <div class="pcard-name">${esc(_displayName(pat.name||'Custom'))}</div>
-      ${(pat.community||pat.traditional)&&pat.communityName?`<div class="pcard-by">${pat.community?'by':'added by:'} ${esc(pat.communityName)}</div>`:''}
+      ${pat.community&&pat.communityName?`<div class="pcard-by">by ${esc(pat.communityName)}</div>`:''}
       <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.community?'Community · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>

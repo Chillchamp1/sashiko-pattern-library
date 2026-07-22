@@ -337,9 +337,10 @@ checking one clears the other (in both `cadUpdateTraditional`/`cadUpdateCommunit
 `communityName:string` on the pattern (round-trips via `_pushToFirestore` spread +
 the 80-key rule — no rules change). **The name field also shows for Traditional patterns (2026-07-22):**
 `_cadSyncCommunityUI` reveals `#cadCommunityName` when `cadCommunity||cadTraditional`; saves keep the name
-under the same `communityName` key for either flag (empty when neither is set). Gallery + sandbox cards
-(`.pcard-by` in `_buildExpCard` + `expCardHTML`) show `by <name>` for community patterns and
-`added by: <name>` for traditional ones — only with a non-empty name; the name is never mandatory. `editExpPattern`/`remixPattern`/`showCAD` restore or reset the fields via `_cadSyncCommunityUI()`
+under the same `communityName` key for either flag (empty when neither is set). **Cards credit contributors only on the Community tab** (`.pcard-by` in `_buildExpCard` + `expCardHTML`:
+`by <name>`, community + non-empty name only). Traditional patterns show their `added by: <name>` **only in
+the pattern DETAIL view** (appended to the `#animTitle` subtitle in `loadPattern`, render.js) — the traditional
+gallery grid stays focused on the patterns; the name is never mandatory. `editExpPattern`/`remixPattern`/`showCAD` restore or reset the fields via `_cadSyncCommunityUI()`
 (cad-engine.js). Search also matches `communityName` (and `embroidery` for embroidery-flagged patterns).
 
 **Embroidery = community-only single-motif flag (2026-07-11).** Checking Community also reveals an optional

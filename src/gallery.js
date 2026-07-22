@@ -57,11 +57,11 @@ function _buildExpCard(pat,sandbox){
   card.appendChild(delBtn);
   const name=document.createElement('div');name.className='pcard-name';name.textContent=_displayName(pat.name||'Custom');
   card.append(name);
-  if((pat.community||pat.traditional)&&pat.communityName){
-    // Community drawings credit the author ("by …"); traditional patterns credit the
-    // person who added them to the library ("added by: …").
-    const by=document.createElement('div');by.className='pcard-by';
-    by.textContent=(pat.community?'by ':'added by: ')+pat.communityName;
+  // Cards credit contributors only in the Community tab ("by …"). Traditional
+  // patterns keep their "added by: …" for the DETAIL view (render.js animTitle) —
+  // the gallery grid stays focused on the patterns themselves.
+  if(pat.community&&pat.communityName){
+    const by=document.createElement('div');by.className='pcard-by';by.textContent='by '+pat.communityName;
     card.append(by);
   }
   const likeRow=document.createElement('div');

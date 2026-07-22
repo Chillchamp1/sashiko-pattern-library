@@ -5862,7 +5862,11 @@ function loadPattern(pat){
     TOTAL=EXP_path.length; PASSES=[];
     const tcc=document.getElementById('tileCellsCtrl');if(tcc)tcc.style.display=pat.embroidery?'none':'';
     const tcv=document.getElementById('tileCellsVal');if(tcv)tcv.textContent=_tileCells+'×'+_tileCells;
-    document.getElementById('animTitle').innerHTML=_displayName(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY</span>';
+    // Traditional patterns credit the contributor only HERE in the detail view
+    // ("added by: …") — their gallery cards stay clean; community cards carry "by …".
+    const _esc=s=>String(s).replace(/[<>"'&]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'}[c]));
+    const _addedBy=pat.traditional&&pat.communityName?' · added by: '+_esc(pat.communityName):'';
+    document.getElementById('animTitle').innerHTML=_displayName(pat.name||'Custom')+'<span class="jp">'+(pat.gridType==='isometric'?'Isometric':'Square')+' · DIY'+_addedBy+'</span>';
     document.getElementById('animTip').textContent='';
     // Like/remix bar
     const lr=document.getElementById('likeRow');
@@ -6347,11 +6351,11 @@ function _buildExpCard(pat,sandbox){
   card.appendChild(delBtn);
   const name=document.createElement('div');name.className='pcard-name';name.textContent=_displayName(pat.name||'Custom');
   card.append(name);
-  if((pat.community||pat.traditional)&&pat.communityName){
-    // Community drawings credit the author ("by …"); traditional patterns credit the
-    // person who added them to the library ("added by: …").
-    const by=document.createElement('div');by.className='pcard-by';
-    by.textContent=(pat.community?'by ':'added by: ')+pat.communityName;
+  // Cards credit contributors only in the Community tab ("by …"). Traditional
+  // patterns keep their "added by: …" for the DETAIL view (render.js animTitle) —
+  // the gallery grid stays focused on the patterns themselves.
+  if(pat.community&&pat.communityName){
+    const by=document.createElement('div');by.className='pcard-by';by.textContent='by '+pat.communityName;
     card.append(by);
   }
   const likeRow=document.createElement('div');
@@ -9509,7 +9513,7 @@ function expCardHTML(pat){
     <canvas class="pcard-thumb" width="120" height="120" data-expid="${esc(pat.id)}"></canvas>
     <div class="pcard-body">
       <div class="pcard-name">${esc(_displayName(pat.name||'Custom'))}</div>
-      ${(pat.community||pat.traditional)&&pat.communityName?`<div class="pcard-by">${pat.community?'by':'added by:'} ${esc(pat.communityName)}</div>`:''}
+      ${pat.community&&pat.communityName?`<div class="pcard-by">by ${esc(pat.communityName)}</div>`:''}
       <span class="pcard-badge">${pat.traditional?'Traditional · ':''}${pat.community?'Community · ':''}${pat.gridType==='isometric'?'Iso':'Sq'} · ${new Set((pat.families||[]).filter(f=>f>=0)).size||1} passes</span>
     </div>
     <div class="like-row" data-id="${esc(pat.id)}"></div>
