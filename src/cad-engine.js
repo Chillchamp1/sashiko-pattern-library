@@ -1547,14 +1547,17 @@ window.cadPublishToLibrary=async function(){
       // gallery sort key `order` so a re-publish doesn't move the card, plus remix
       // links, original creatorId, createdAt, ….
       pat={...old,...pat,id:cadEditId,createdAt:old.createdAt,creatorId:old.creatorId||pat.creatorId,published:true};
+      // First-time publication stamps publishedAt (freshness boost); a re-publish
+      // keeps the original stamp (carried by the merge above).
+      if(!old.published)pat.publishedAt=Date.now();
       // Re-publishing an already-published pattern KEEPS its pinned routing engine
       // (a missing field = published before versioning → engine 1), so the lock holds.
       pat.routingEngine=old.routingEngine||1;
       pat.families=cf2.families;
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.publishedAt=Date.now();pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
   }else{
-    pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;
+    pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.publishedAt=Date.now();pat.families=cf2.families;
     EXP_PATTERNS.unshift(pat);
   }
   if(cadRemixOf){

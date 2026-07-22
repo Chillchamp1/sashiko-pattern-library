@@ -355,7 +355,11 @@ bonus (2026-07-22) comes from `PATTERN_CLICKS` (30-day unique pattern opens; Goa
 tracked in `loadPattern`, refreshed **weekly** by `.github/workflows/weekly.yml` → `tools/stats/fetch-clicks.js`
 → `pattern-clicks.json` → build inject), log-scaled + capped (`min(4,floor(log2(views/8+1)))`: 8 views ≈ 1
 comment, ~56 ≈ 1 heart) so a much-viewed pattern low in the list catches up while top-card click advantage
-saturates. The same weekly workflow also opens the photo-review issue. The About dropdown shows `≈ N visitors
+saturates. The same weekly workflow also opens the photo-review issue. **Freshness boost (2026-07-23):**
+newly PUBLISHED patterns additionally get 8 bonus points fading linearly to 0 over 10 days (Reddit-style
+exposure window, in `_engagement`) — driven by `pat.publishedAt`, stamped on the publish transition in
+`cadPublishToLibrary` (first publish only; re-publish keeps the original stamp via the merge) and
+`publishExpPattern`; pre-existing publications have no stamp → no retroactive boost. The About dropdown shows `≈ N visitors
 per day` from GoatCounter's public counter endpoint (`_loadAboutVisitors`, download.js; fetched on first open,
 hidden on failure)
 (`_engagement` in gallery.js; counts cached in `_likeCounts`/`_commentCounts`, prefetched by

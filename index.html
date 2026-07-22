@@ -6587,7 +6587,14 @@ function _engagement(p){
   // hearts/comments long-term: 8 views ≈ 1 comment, ~56 views ≈ 1 heart, cap 4 pts.
   const v=(typeof PATTERN_CLICKS!=='undefined'&&PATTERN_CLICKS[p.id])||0;
   const vb=Math.min(4,Math.floor(Math.log2(v/8+1)));
-  return 3*h+c+vb;
+  // New-publication boost (Reddit-style, for exposure): a freshly published pattern
+  // starts with 8 bonus points — enough to open near the top — fading LINEARLY to 0
+  // over 10 days, so new work gets seen without permanently outranking genuinely
+  // loved patterns. Needs pat.publishedAt (stamped since 2026-07-23); older
+  // publications have no stamp → no retroactive boost.
+  const age=p.publishedAt?(Date.now()-p.publishedAt)/86400000:Infinity;
+  const fresh=age<10?8*(1-age/10):0;
+  return 3*h+c+vb+fresh;
 }
 function _expGalleryOrder(a,b){
   const ea=_engagement(a), eb=_engagement(b);
@@ -9822,6 +9829,7 @@ window.publishExpPattern=async function(id){
   if(!pat)return;
   if(!confirm('Publish "'+(pat.name||'Custom')+'" to the main gallery?'))return;
   pat.published=true;
+  pat.publishedAt=Date.now();   // freshness boost: new publications rank high for ~a week
   // Lock this pattern to the routing engine it was authored under (its stitching never
   // changes when the routing algorithm is updated later).
   if(pat.routingEngine===undefined)pat.routingEngine=ROUTING_ENGINE_CURRENT;
@@ -11603,14 +11611,17 @@ window.cadPublishToLibrary=async function(){
       // gallery sort key `order` so a re-publish doesn't move the card, plus remix
       // links, original creatorId, createdAt, ….
       pat={...old,...pat,id:cadEditId,createdAt:old.createdAt,creatorId:old.creatorId||pat.creatorId,published:true};
+      // First-time publication stamps publishedAt (freshness boost); a re-publish
+      // keeps the original stamp (carried by the merge above).
+      if(!old.published)pat.publishedAt=Date.now();
       // Re-publishing an already-published pattern KEEPS its pinned routing engine
       // (a missing field = published before versioning → engine 1), so the lock holds.
       pat.routingEngine=old.routingEngine||1;
       pat.families=cf2.families;
       EXP_PATTERNS[idx]=pat;
-    }else{pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
+    }else{pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.publishedAt=Date.now();pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}
   }else{
-    pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;
+    pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.publishedAt=Date.now();pat.families=cf2.families;
     EXP_PATTERNS.unshift(pat);
   }
   if(cadRemixOf){

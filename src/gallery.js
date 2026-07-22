@@ -149,7 +149,14 @@ function _engagement(p){
   // hearts/comments long-term: 8 views ≈ 1 comment, ~56 views ≈ 1 heart, cap 4 pts.
   const v=(typeof PATTERN_CLICKS!=='undefined'&&PATTERN_CLICKS[p.id])||0;
   const vb=Math.min(4,Math.floor(Math.log2(v/8+1)));
-  return 3*h+c+vb;
+  // New-publication boost (Reddit-style, for exposure): a freshly published pattern
+  // starts with 8 bonus points — enough to open near the top — fading LINEARLY to 0
+  // over 10 days, so new work gets seen without permanently outranking genuinely
+  // loved patterns. Needs pat.publishedAt (stamped since 2026-07-23); older
+  // publications have no stamp → no retroactive boost.
+  const age=p.publishedAt?(Date.now()-p.publishedAt)/86400000:Infinity;
+  const fresh=age<10?8*(1-age/10):0;
+  return 3*h+c+vb+fresh;
 }
 function _expGalleryOrder(a,b){
   const ea=_engagement(a), eb=_engagement(b);

@@ -3112,6 +3112,7 @@ window.publishExpPattern=async function(id){
   if(!pat)return;
   if(!confirm('Publish "'+(pat.name||'Custom')+'" to the main gallery?'))return;
   pat.published=true;
+  pat.publishedAt=Date.now();   // freshness boost: new publications rank high for ~a week
   // Lock this pattern to the routing engine it was authored under (its stitching never
   // changes when the routing algorithm is updated later).
   if(pat.routingEngine===undefined)pat.routingEngine=ROUTING_ENGINE_CURRENT;
