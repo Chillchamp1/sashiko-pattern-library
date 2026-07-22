@@ -1422,17 +1422,19 @@ window.cadSaveToLibrary=function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
-      pat.id=cadEditId;
-      pat.createdAt=EXP_PATTERNS[idx].createdAt;
-      pat.published=EXP_PATTERNS[idx].published;
+      const old=EXP_PATTERNS[idx];
+      // Merge over the STORED pattern so edit-invisible fields survive a re-save:
+      // the admin gallery sort key `order` (else the card jumps position), remix
+      // links (remixOf/remixes), the original creatorId, likes, createdAt, ….
+      pat={...old,...pat,id:cadEditId,createdAt:old.createdAt,creatorId:old.creatorId||pat.creatorId,published:old.published};
       // Preserve the pinned routing engine on edit (published patterns stay locked to it;
       // sandbox patterns carry undefined and keep using the current engine).
-      if(EXP_PATTERNS[idx].routingEngine!==undefined)pat.routingEngine=EXP_PATTERNS[idx].routingEngine;
+      if(old.routingEngine!==undefined)pat.routingEngine=old.routingEngine;
       else if(pat.published)pat.routingEngine=1;
       cadIsPublished=pat.published;
       pat.families=cf.families;
@@ -1475,10 +1477,14 @@ window.cadPublishToLibrary=async function(){
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
-      pat.id=cadEditId;pat.createdAt=EXP_PATTERNS[idx].createdAt;pat.published=true;
+      const old=EXP_PATTERNS[idx];
+      // Merge over the STORED pattern (same as cadSaveToLibrary): keeps the admin
+      // gallery sort key `order` so a re-publish doesn't move the card, plus remix
+      // links, original creatorId, createdAt, ….
+      pat={...old,...pat,id:cadEditId,createdAt:old.createdAt,creatorId:old.creatorId||pat.creatorId,published:true};
       // Re-publishing an already-published pattern KEEPS its pinned routing engine
       // (a missing field = published before versioning → engine 1), so the lock holds.
-      pat.routingEngine=EXP_PATTERNS[idx].routingEngine||1;
+      pat.routingEngine=old.routingEngine||1;
       pat.families=cf2.families;
       EXP_PATTERNS[idx]=pat;
     }else{pat.id='exp_'+Date.now();pat.routingEngine=ROUTING_ENGINE_CURRENT;pat.families=cf2.families;EXP_PATTERNS.unshift(pat);}

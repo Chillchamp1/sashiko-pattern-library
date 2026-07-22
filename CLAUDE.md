@@ -323,7 +323,11 @@ each pattern whose `order` actually changed (first curation = one write per patt
 rides the field-spread + 80-key rule (no rules change) and — like all published-pattern writes — is **admin-gated
 by the Firestore rules**: a non-admin can't drag (not `draggable`) and even a forced write is rejected server-side.
 The admin-curated order is also the answer to "most popular / featured first" (the like system is per-device
-`localStorage` only, never aggregated, so there is no global popularity signal to sort by).
+`localStorage` only, never aggregated, so there is no global popularity signal to sort by). **Editing preserves the
+position (2026-07-22):** the edit branches of `cadSaveToLibrary`/`cadPublishToLibrary` MERGE the new save over the
+stored pattern (`{...old,...pat}` + explicit id/createdAt/creatorId/published), so edit-invisible fields — the
+`order` sort key, `remixOf`/`remixes` links, the original `creatorId` — survive a re-save; before this, re-saving
+dropped `order` and the card jumped to the un-curated createdAt tail.
 
 **Community patterns.** The CAD header stacks a **Community** checkbox (`#cadCommunity` → `cadUpdateCommunity`)
 **below** Traditional (`.cad-flags` column); checking it reveals an optional name field (`#cadCommunityName`,
