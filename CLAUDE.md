@@ -659,6 +659,10 @@ though the geometry was identical.
   Ishi Guruma on-grid, Yotsukumi Hishi (integer) unchanged. (`route.js --check` shows only pre-existing fixture drift,
   identical with/without this change.)
 
+## Editor load centring is phase-aware (2026-07-22)
+
+`editExpPattern` centres the motif with shift `s = round(gc−centre+φ)−φ` where φ = `_cadGridPhaseOf(pat.lines)` (cad-engine.js: majority fractional endpoint offset per axis, ≥50%-share gate). The old raw shift `gc−centre` was a **half-integer whenever the bbox extent was odd**, pushing the whole motif 0.5 off the dots on every editor open (19 of 85 live patterns affected). φ-aware snapping keeps 45°-rotated constant-phase motifs (Ishi Guruma) landing on the dots exactly as before, gives integer motifs an integer shift, and **auto-heals patterns that were saved half-shifted** by the old bug (the next save persists the healed coords). `cadMovePattern` (arrow keys) also cancels a detected constant off-grid phase along with the move — manual one-keypress fix for stale motifs; on-grid patterns are untouched.
+
 ## Known Issues / Gotchas
 
 - **Syntax errors are fatal** — the entire script is one IIFE; an extra `}` anywhere (like the one found in `drawPLGuide`) prevents ALL JavaScript from executing, causing "is not defined" for every onclick handler
