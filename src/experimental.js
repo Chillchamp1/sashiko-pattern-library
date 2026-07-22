@@ -3150,6 +3150,7 @@ window.showCAD=function(){
   cadEditId=null;cadRemixOf=null;cadIsPublished=false;cadLines=[];cadFamilies=[];cadHistory=[];cadManualBBox=null;
   cadBBoxRotated=false;cadFamOrder=[];cadFamSel=-1;cadFamsLocked=false;cadTraditional=false;cadRoutingMode='default';
   cadFamRouting={};_cadSyncFamRoutingUI();
+  cadBgRemove();   // fresh pattern starts without a background sketch image
   cadMacro=2;cadPatMacro=3;   // fresh draw-grid + Tiles defaults for a new pattern
   document.getElementById('cadRoutingMode').value='default';
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows

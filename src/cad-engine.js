@@ -21,6 +21,10 @@ let _cadRefMacro=3;
 const CAD_MICRO=10;
 const CAD_COS30=Math.cos(Math.PI/6),CAD_SIN30=Math.sin(Math.PI/6);
 let cadZoom=1,cadPanX=0,cadPanY=0,cadPanning=false,cadPanStart={x:0,y:0};
+// Background sketch image (session-only tracing aid — never saved with the pattern).
+// Position/size live in GRID units (cadBgU/V = top-left corner, cadBgW = width), so the
+// image pans/zooms with the grid and can be nudged to sit right on the dots.
+let cadBgImg=null,cadBgU=0,cadBgV=0,cadBgW=10,cadBgAlpha=0.22,cadBgDrag=null;
 let cadBase=1,cadTileSize,cadOX,cadOY;
 let cadPTile,cadPOX,cadPOY;
 // Live-Tiling span in grid units = cadPatMacro (N) copies of the drawn motif → an N×N tiling.
@@ -662,11 +666,49 @@ function _cadDrawLine(x, l, fi, ox, oy, sz, g2s){
   }
 }
 
+// ── Background sketch image ──────────────────────────────────────────────────
+window.cadBgPick=function(){document.getElementById('cadBgFile').click();};
+window.cadBgFileChange=function(inp){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>cadBgFromURL(r.result);
+  r.readAsDataURL(f);
+  inp.value='';   // same file can be re-picked later
+};
+window.cadBgFromURL=function(url){
+  const img=new Image();
+  img.onload=()=>{
+    cadBgImg=img;
+    // Fit into the work area, anchored at the grid origin.
+    const tc=cadMacro*CAD_MICRO, ar=img.height/img.width;
+    cadBgW=ar>1?tc/ar:tc; cadBgU=0;cadBgV=0;
+    _cadBgSyncUI();cadDrawWorkspace();
+  };
+  img.src=url;
+};
+window.cadBgRemove=function(){cadBgImg=null;cadBgDrag=null;_cadBgSyncUI();cadDrawWorkspace();};
+window.cadBgMove=function(du,dv){if(!cadBgImg)return;cadBgU+=du;cadBgV+=dv;cadDrawWorkspace();};
+window.cadBgZoom=function(f){if(!cadBgImg)return;cadBgW=Math.max(1,cadBgW*f);cadDrawWorkspace();};
+window.cadBgSetAlpha=function(v){cadBgAlpha=Math.max(0.05,Math.min(0.6,v/100));cadDrawWorkspace();};
+function _cadBgSyncUI(){
+  const c=document.getElementById('cadBgControls');
+  if(c)c.style.display=cadBgImg?'flex':'none';
+  const b=document.querySelector('[data-did="bgimg"]');
+  if(b)b.style.color=cadBgImg?'#e0b890':'';
+}
 function cadDrawWorkspace(){
   const cv=document.getElementById('cadCanvas');if(!cv)return;
   const x=cv.getContext('2d');
   x.clearRect(0,0,500,500);
   if(cadLeftBuf)x.drawImage(cadLeftBuf,0,0);
+  // Pale background sketch image, in grid coordinates (moves with pan/zoom). Drawn
+  // over the baked grid at low alpha so the dots stay readable; the actual pattern
+  // lines render after this at full contrast.
+  if(cadBgImg){
+    const p0=cadG2S(cadBgU,cadBgV,cadOX,cadOY,cadTileSize);
+    const w=cadBgW*cadTileSize, h=w*cadBgImg.height/cadBgImg.width;
+    x.save();x.globalAlpha=cadBgAlpha;x.drawImage(cadBgImg,p0.x,p0.y,w,h);x.restore();
+  }
 
   // Build full line list including previews
   const all=[...cadLines];
@@ -2033,6 +2075,12 @@ function cadInit(){
     cv.setPointerCapture(e.pointerId);
     const pos=cadGetPos(e,cv);
     if(e.button===1||e.button===2){cadPanning=true;cadPanStart=pos;cv.style.cursor='grabbing';return;}
+    // Alt+drag moves the background sketch image (free, fractional — for fitting it to the grid).
+    if(cadBgImg&&e.altKey&&e.button===0){
+      const gb=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
+      cadBgDrag={u:gb.u-cadBgU,v:gb.v-cadBgV};
+      cv.style.cursor='move';return;
+    }
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     cadCur=cadSnapPoint(g.u,g.v);
     if(cadTool==='draw'){
@@ -2117,6 +2165,11 @@ function cadInit(){
   cv.addEventListener('pointermove',e=>{
     const pos=cadGetPos(e,cv);
     if(cadPanning){cadPanX+=pos.x-cadPanStart.x;cadPanY+=pos.y-cadPanStart.y;cadPanStart=pos;cadApplyView();cadBakeLeft();cadUpdateAll();return;}
+    if(cadBgDrag){
+      const gb=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
+      cadBgU=gb.u-cadBgDrag.u;cadBgV=gb.v-cadBgDrag.v;
+      cadDrawWorkspace();return;
+    }
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     if(cadTool==='draw'||cadTool==='arc')cadCur=cadSnapPoint(g.u,g.v);
     // Arc: after the radius click, accumulate the sweep continuously as the mouse circles the
@@ -2131,6 +2184,7 @@ function cadInit(){
     cadUpdateAll();
   });
   cv.addEventListener('pointerup',e=>{
+    if(cadBgDrag){cadBgDrag=null;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     if(cadPanning){cadPanning=false;cv.style.cursor='crosshair';cv.releasePointerCapture(e.pointerId);return;}
     // Draw is now click-move-click (committed on the second pointerdown), so pointerup no longer
     // finishes a line — it only releases the pointer capture.

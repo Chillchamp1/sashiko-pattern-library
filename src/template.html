@@ -303,9 +303,27 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             <button data-did="undo" class="cad-tool" onclick="cadUndo()">↩ Undo</button>
             <button data-did="clear" class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
             <button data-did="reset" class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
+            <button data-did="bgimg" class="cad-tool" onclick="cadBgPick()" title="Load a pale background image to sketch over (session only, never saved)">🖼 Image</button>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
+        <input type="file" id="cadBgFile" accept="image/*" style="display:none" onchange="cadBgFileChange(this)">
+        <!-- Background sketch image controls — shown only while an image is loaded. -->
+        <div class="cad-stitch-controls" id="cadBgControls" style="display:none">
+          <span class="cad-famroute-hint">Sketch image:</span>
+          <span class="cad-panel-stepper">
+            <button class="cad-tool cad-arrow" onclick="cadBgMove(0,-0.5)" title="Nudge image up">↑</button>
+            <button class="cad-tool cad-arrow" onclick="cadBgMove(0,0.5)" title="Nudge image down">↓</button>
+            <button class="cad-tool cad-arrow" onclick="cadBgMove(-0.5,0)" title="Nudge image left">←</button>
+            <button class="cad-tool cad-arrow" onclick="cadBgMove(0.5,0)" title="Nudge image right">→</button>
+          </span>
+          <span class="cad-step-pm"><button class="cad-tool cad-thumb-btn" onclick="cadBgZoom(1/1.06)" title="Shrink image">−</button><span class="cad-stitch-val">size</span><button class="cad-tool cad-thumb-btn" onclick="cadBgZoom(1.06)" title="Enlarge image">+</button></span>
+          <span class="speed-slider" title="Image opacity">
+            <input type="range" min="5" max="60" value="22" oninput="cadBgSetAlpha(this.value)">
+          </span>
+          <button class="cad-tool" onclick="cadBgRemove()" style="color:#f09090" title="Remove the background image">✕</button>
+          <span class="cad-famroute-hint">Alt+drag on canvas to move it freely</span>
+        </div>
       </div>
       <div class="cad-panel">
         <div class="cad-panel-head">
