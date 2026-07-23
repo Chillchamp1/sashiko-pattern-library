@@ -3209,11 +3209,13 @@ async function _fetchLikeCount(id){
     _likeCounts[id]=n;return n;
   }catch(e){return _localHearts(id);}   // rules not deployed yet → local fallback
 }
-// Prefetch heart+comment+download counts for every published pattern, then
-// re-sort the gallery once if engagement actually changed the order.
+// Prefetch heart+comment+download counts for every published pattern — AND the
+// built-in traditional patterns, which rank in the merged traditional tab too —
+// then re-sort the gallery once if engagement actually changed the order.
 async function _refreshEngagement(){
   const pubs=EXP_PATTERNS.filter(p=>p.published&&!p.deleted);
-  await Promise.all(pubs.map(p=>Promise.all([_fetchLikeCount(p.id),_fetchCommentCount(p.id),_fetchDownloadCount(p.id)])));
+  const builtins=(typeof PATTERNS!=='undefined')?PATTERNS.filter(p=>p.id!=='generator'):[];
+  await Promise.all([...pubs,...builtins].map(p=>Promise.all([_fetchLikeCount(p.id),_fetchCommentCount(p.id),_fetchDownloadCount(p.id)])));
   if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
 }
 // One-time migration: hearts given before they went global exist only in this

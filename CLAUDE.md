@@ -180,14 +180,18 @@ Geometry derived from **Essential Sashiko p.13**, verified 100% recall / 98% pre
 
 ```javascript
 const PATTERNS = [
-  { id:'generator',         type:'generator', ...  },  // Hitomezashi Generator, always first
-  { id:'juji',              passes:['V','H'],  ... },
-  { id:'naname',            passes:['D1','D2'], ... },
-  { id:'komesashi',         passes:['V','H','D1','D2'], ... },
-  { id:'tsuzuki-yamagata',  type:'polyline',  ... },                   // Polyline Engine, 2 passes
-  { id:'asanoha',           type:'polyline', engine:'asanoha', ... },  // Polyline Engine, 4 passes
+  { id:'generator', type:'generator', ... },  // Hitomezashi Generator — HIDDEN in the gallery (buildGallery guard)
 ];
 ```
+
+**The built-in registry now holds ONLY the (hidden) generator** — the old hardcoded gallery cards
+(`juji`, `naname`, `komesashi`, `tsuzuki-yamagata`, `asanoha`) were removed from `PATTERNS`; the
+traditional classics live as **published custom (exp) patterns** in Firestore instead (e.g. the
+Jūji/Komesashi edits mentioned under sync-conflict resolution), so the Traditional tab is 100%
+custom patterns and gets the full engagement ranking + badges automatically. The star-arm /
+polyline engines and their build functions are KEPT (thumbnails/legacy); a re-added `PATTERNS`
+entry would rank + badge automatically via `_tradEntries`/`_buildBuiltinCard` (gallery.js,
+currently dormant).
 
 Koshi and Kaki no Hana are **not** separate gallery entries — they are generator presets.
 
@@ -376,7 +380,20 @@ the first unique downloader is worth 2 pts — between a comment (1, weaker sign
 more deliberate endorsement) — and growth is sub-linear (4 downloads = 4 pts, 9 = 6, 25 = 10) because
 downloading is the default action for anyone *using* a pattern, so mass downloads can never drown out
 linearly-growing hearts. Recording: `_recordDownload(id)` in experimental.js (called from
-`downloadGIF`/`downloadPDF` after a successful export). The admin drag order is the tiebreak within equal
+`downloadGIF`/`downloadPDF` after a successful export). **The traditional tab is engagement-ranked
+too (2026-07-23):** `_tradEntries` (gallery.js) merges the built-in `PATTERNS` (generator still
+hidden) with the published traditional customs into ONE list sorted by `_engagement` — STABLE by
+score only, so all-zero groups keep the classic layout (built-ins in canonical order first, then
+customs in admin drag order). Built-in cards are built by `_buildBuiltinCard` and carry the same
+read-only 💬/⬇ badges via the shared like-row renderer (hearts stay custom-only — no heart UI for
+built-ins, downloads/comments/views are their score inputs). `_refreshEngagement` prefetches
+built-in counts too; `_galOrderKey` (traditional merged order + `_expOrderedIds`) drives
+`_resortGalleryIfChanged`. `tools/stats/fetch-clicks.js` fetches the built-ins' GoatCounter
+counters as well (`BUILTIN_IDS` — they're not in Firestore, which previously kept them out of
+`pattern-clicks.json` entirely). **NB currently dormant:** `PATTERNS` holds only the hidden
+generator (see "Gallery Patterns"), so today the Traditional tab is 100% published customs — which
+were ALREADY fully score-ranked and badged; this machinery activates only if a hardcoded pattern
+is ever re-added. The admin drag order is the tiebreak within equal
 scores (in practice: the all-zero majority), so curation still shapes the default layout. `_syncMyLikes`
 pushes a device's pre-global local hearts to the cloud once (retries each session until the rules exist). **Editing preserves the
 position (2026-07-22):** the edit branches of `cadSaveToLibrary`/`cadPublishToLibrary` MERGE the new save over the

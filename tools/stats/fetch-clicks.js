@@ -41,8 +41,13 @@ async function fetchPatternIds() {
   return ids;
 }
 
+// Built-in (hard-coded) gallery patterns — not in Firestore, but their opens are
+// tracked the same way client-side (`pattern/<id>` events) and they rank in the
+// merged traditional tab, so fetch their counters too. (The generator is hidden.)
+const BUILTIN_IDS = ['juji', 'naname', 'komesashi', 'tsuzuki-yamagata', 'asanoha'];
+
 async function main() {
-  const ids = await fetchPatternIds();
+  const ids = [...BUILTIN_IDS, ...await fetchPatternIds()];
   const start = new Date(Date.now() - DAYS * 86400000).toISOString().slice(0, 10);
   const clicks = {};
   const POOL = 8;

@@ -73,10 +73,52 @@ function _buildExpCard(pat,sandbox){
   setTimeout(()=>renderThumb(thumb,pat),0);
   return card;
 }
+// One card for a built-in (hard-coded) traditional pattern. Carries the same
+// read-only engagement badges as custom cards (💬 comments + ⬇ downloads via the
+// shared like-row renderer; hearts stay custom-pattern-only — built-ins have no
+// heart UI, so their ♥ count is always 0).
+function _buildBuiltinCard(pat){
+  const card=document.createElement('button');
+  card.className='pcard'+(pat.type==='generator'?' gen-card':'');
+  card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
+  const thumb=document.createElement('canvas');
+  thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
+  card.appendChild(thumb);
+  const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
+  const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
+  card.append(name,jp);
+  const delBtn=document.createElement('button');
+  delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
+  delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
+  card.appendChild(delBtn);
+  const likeRow=document.createElement('div');
+  likeRow.className='like-row';likeRow.dataset.id=pat.id;
+  card.appendChild(likeRow);
+  setTimeout(()=>renderLikeButtons(pat.id),0);
+  setTimeout(()=>{if(window._renderCommentBadge)_renderCommentBadge(pat.id);},0);
+  card.onclick=()=>openPattern(pat);
+  setTimeout(()=>renderThumb(thumb,pat),0);
+  return card;
+}
+// Traditional tab = built-ins + published traditional customs in ONE
+// engagement-ranked list (same _engagement score as the community tab: hearts,
+// comments, downloads, view bonus). The sort is STABLE by score only, so every
+// all-zero group keeps the classic layout: built-ins in canonical PATTERNS order
+// first, then customs in admin drag order (_expTradList pre-sorts those via
+// _expGalleryOrder). The Hitomezashi Generator stays hidden (NOT removed; drop the
+// guard to re-enable it).
+function _tradEntries(deleted){
+  const entries=[
+    ...PATTERNS.filter(p=>p.id!=='generator'&&!deleted.includes(p.id)).map(pat=>({pat,builtin:true})),
+    ..._expTradList(deleted).map(pat=>({pat,builtin:false}))
+  ];
+  entries.sort((a,b)=>_engagement(b.pat)-_engagement(a.pat));
+  return entries;
+}
 function buildGallery(){
   const grid=document.getElementById('pgrid');if(!grid)return;grid.innerHTML='';
   const deleted=_getDeleted();
-  _lastExpOrderKey=_expOrderedIds().join(',');   // baseline for _resortGalleryIfChanged
+  _lastExpOrderKey=_galOrderKey();   // baseline for _resortGalleryIfChanged
   // Register-card counts (all tabs).
   const setCount=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=String(n);};
   const nBuiltIn=PATTERNS.filter(p=>p.id!=='generator'&&!deleted.includes(p.id)).length;
@@ -84,29 +126,7 @@ function buildGallery(){
   setCount('galCountCommunity',_expCommunityList(deleted).length);
   setCount('galCountSandbox',_expSandboxList(deleted).length);
   if(_galTab==='traditional'){
-    PATTERNS.forEach(pat=>{
-      if(deleted.includes(pat.id))return;
-      // Hitomezashi Generator hidden for now — NOT removed; the generator engine + preset
-      // UI are kept intact and may be re-enabled in a future version (just drop this guard).
-      if(pat.id==='generator')return;
-      const card=document.createElement('button');
-      card.className='pcard'+(pat.type==='generator'?' gen-card':'');
-      card.dataset.id=pat.id;card.dataset.p=pat.passes.length;
-      const thumb=document.createElement('canvas');
-      thumb.style.cssText='width:100%;aspect-ratio:1;border-radius:7px;display:block';
-      card.appendChild(thumb);
-      const name=document.createElement('div');name.className='pcard-name';name.textContent=pat.name;
-      const jp=document.createElement('div');jp.className='pcard-jp';jp.textContent=pat.jp;
-      card.append(name,jp);
-      const delBtn=document.createElement('button');
-      delBtn.className='exp-del-btn';delBtn.title='Delete (admin)';delBtn.textContent='✕';
-      delBtn.onclick=e=>{e.stopPropagation();deletePattern(pat.id);};
-      card.appendChild(delBtn);
-      card.onclick=()=>openPattern(pat);
-      grid.appendChild(card);
-      setTimeout(()=>renderThumb(thumb,pat),0);
-    });
-    _expTradList(deleted).forEach(pat=>grid.appendChild(_buildExpCard(pat,false)));
+    _tradEntries(deleted).forEach(e=>grid.appendChild(e.builtin?_buildBuiltinCard(e.pat):_buildExpCard(e.pat,false)));
   }else if(_galTab==='community'){
     _expCommunityList(deleted).forEach(pat=>grid.appendChild(_buildExpCard(pat,false)));
   }else{ // sandbox
@@ -176,11 +196,16 @@ function _expGalleryOrder(a,b){
   if(ao!==bo)return ao-bo;
   return (b.createdAt||0)-(a.createdAt||0);
 }
-// Called when async heart/comment counts arrive (or a heart is toggled): rebuild
-// the gallery only if the counts actually changed the visible order.
+// Called when async heart/comment/download counts arrive (or a heart is toggled):
+// rebuild the gallery only if the counts actually changed the visible order. The key
+// covers BOTH ranked surfaces — the merged traditional tab (built-ins + customs) and
+// the published-custom ordering (community tab) — so either re-sorts on change.
 let _lastExpOrderKey='';
+function _galOrderKey(){
+  return _tradEntries(_getDeleted()).map(e=>e.pat.id).join(',')+'|'+_expOrderedIds().join(',');
+}
 function _resortGalleryIfChanged(){
-  const key=_expOrderedIds().join(',');
+  const key=_galOrderKey();
   if(key===_lastExpOrderKey)return;
   _lastExpOrderKey=key;
   if(_galTab!=='sandbox'){buildGallery();filterGallery();}
