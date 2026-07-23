@@ -297,13 +297,19 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
             </span>
           </div>
+          <!-- Toolbar layout: row 1 = the DRAWING tools (modal, raised buttons) + Undo right
+               beside them; row 2 = arrange/transform (Move cluster, sketch image) and the
+               flat one-shot actions (Reset view, Clear). Actions carry .cad-act (flat look)
+               so tools and commands read as different things. -->
           <div class="cad-toolbar" data-dragzone="cadLeft">
-            <button data-did="draw" id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
-            <button data-did="arc" id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
-            <button data-did="ellipse" id="cadBtnEllipse" class="cad-tool" onclick="cadSetTool('ellipse')">⬭ Ellipse</button>
-            <button data-did="cut" id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
-            <button data-did="color" id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
+            <button data-did="draw" id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')" title="Draw a straight line: click the start point, then click the end point">✏ Line</button>
+            <button data-did="arc" id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')" title="Circular arc — 3 clicks: center → radius → move to sweep, click to finish">⭕ Arc</button>
+            <button data-did="ellipse" id="cadBtnEllipse" class="cad-tool" onclick="cadSetTool('ellipse')" title="Elliptical arc — 4 clicks: center → first radius (sets the tilt) → second radius → move to sweep, click to finish">⬭ Ellipse</button>
+            <button data-did="cut" id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')" title="Cut: click a piece of a line or arc to remove it (shapes split at crossings)">✂ Cut</button>
+            <button data-did="color" id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')" title="Recolor: pick a family swatch below, then click lines to assign them to it">🎨 Color</button>
             <span data-did="sep1" class="cad-tool-sep"></span>
+            <button data-did="undo" class="cad-tool cad-act" onclick="cadUndo()" title="Undo the last change (Ctrl+Z)">↩ Undo</button>
+            <span data-did="sep2" class="cad-tool-break" title="Row break"></span>
             <span data-did="move" class="cad-tool-group cad-move-inline" title="Move whole pattern">
               <span class="cad-move-label">Move</span>
               <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
@@ -314,14 +320,16 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
               <button id="cadBtnDiamond" class="cad-tool" onclick="cadDiamondCut()" title="Kitties cut: replace the motif with a half-period-shifted copy cut at the tile edges into the corners — the freed middle is for drawing the alternate motif (square grid only)">◆ Diamond</button>
             </span>
-            <span data-did="sep2" class="cad-tool-break" title="Row break"></span>
-            <button data-did="undo" class="cad-tool" onclick="cadUndo()">↩ Undo</button>
-            <button data-did="clear" class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
-            <button data-did="reset" class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
-            <button data-did="bgimg" class="cad-tool" onclick="cadBgPick()" title="Load a pale background image to sketch over (session only, never saved)">🖼 Image</button>
+            <button data-did="bgimg" class="cad-tool cad-act" onclick="cadBgPick()" title="Load a pale background image to sketch over (session only, never saved)">🖼 Image</button>
+            <span data-did="sep3" class="cad-tool-sep"></span>
+            <button data-did="reset" class="cad-tool cad-act" onclick="cadResetView()" title="Reset zoom and pan of the draw canvas (does not touch the drawing)">🔍 Reset view</button>
+            <button data-did="clear" class="cad-tool cad-act" onclick="cadClear()" title="Clear the whole drawing — Undo brings it back">🗑 Clear</button>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
+        <!-- Step-by-step tool hint (arc/ellipse state labels, redundant-line warnings) — lives
+             directly under the draw canvas so multi-click tools explain themselves in view. -->
+        <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:2px"></div>
         <input type="file" id="cadBgFile" accept="image/*" style="display:none" onchange="cadBgFileChange(this)">
         <!-- Background sketch image controls — shown only while an image is loaded. -->
         <div class="cad-stitch-controls" id="cadBgControls" style="display:none">
@@ -427,7 +435,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   </div>
   <div class="remixes-section" id="remixesSection" style="display:none"></div>
 </div>
-    <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:6px"></div>
     <p class="tip" style="text-align:center;margin:6px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints · Arc: 3 clicks (center → radius → sweep) · Ellipse: 4 clicks (center → first radius → second radius → sweep)</p>
   </div>
 </div>

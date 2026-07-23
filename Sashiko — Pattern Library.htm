@@ -471,6 +471,10 @@ body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
+/* One-shot ACTIONS (Undo / Clear / Reset view / Image) are flat until hovered, so the
+   raised buttons read as the modal drawing-tool palette and these read as commands. */
+.cad-act{background:transparent;border-color:transparent}
+.cad-act:hover{background:#1d3850;border-color:var(--line)}
 /* New Pattern / CAD button card */
 .pcard.new-pattern-card{border:2px dashed #2a4a2a;background:#111a11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:100px}
 .pcard.new-pattern-card:hover{background:#162016;border-color:#3a6a3a}
@@ -810,13 +814,19 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
             </span>
           </div>
+          <!-- Toolbar layout: row 1 = the DRAWING tools (modal, raised buttons) + Undo right
+               beside them; row 2 = arrange/transform (Move cluster, sketch image) and the
+               flat one-shot actions (Reset view, Clear). Actions carry .cad-act (flat look)
+               so tools and commands read as different things. -->
           <div class="cad-toolbar" data-dragzone="cadLeft">
-            <button data-did="draw" id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
-            <button data-did="arc" id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
-            <button data-did="ellipse" id="cadBtnEllipse" class="cad-tool" onclick="cadSetTool('ellipse')">⬭ Ellipse</button>
-            <button data-did="cut" id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
-            <button data-did="color" id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
+            <button data-did="draw" id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')" title="Draw a straight line: click the start point, then click the end point">✏ Line</button>
+            <button data-did="arc" id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')" title="Circular arc — 3 clicks: center → radius → move to sweep, click to finish">⭕ Arc</button>
+            <button data-did="ellipse" id="cadBtnEllipse" class="cad-tool" onclick="cadSetTool('ellipse')" title="Elliptical arc — 4 clicks: center → first radius (sets the tilt) → second radius → move to sweep, click to finish">⬭ Ellipse</button>
+            <button data-did="cut" id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')" title="Cut: click a piece of a line or arc to remove it (shapes split at crossings)">✂ Cut</button>
+            <button data-did="color" id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')" title="Recolor: pick a family swatch below, then click lines to assign them to it">🎨 Color</button>
             <span data-did="sep1" class="cad-tool-sep"></span>
+            <button data-did="undo" class="cad-tool cad-act" onclick="cadUndo()" title="Undo the last change (Ctrl+Z)">↩ Undo</button>
+            <span data-did="sep2" class="cad-tool-break" title="Row break"></span>
             <span data-did="move" class="cad-tool-group cad-move-inline" title="Move whole pattern">
               <span class="cad-move-label">Move</span>
               <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
@@ -827,14 +837,16 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
               <button id="cadBtnDiamond" class="cad-tool" onclick="cadDiamondCut()" title="Kitties cut: replace the motif with a half-period-shifted copy cut at the tile edges into the corners — the freed middle is for drawing the alternate motif (square grid only)">◆ Diamond</button>
             </span>
-            <span data-did="sep2" class="cad-tool-break" title="Row break"></span>
-            <button data-did="undo" class="cad-tool" onclick="cadUndo()">↩ Undo</button>
-            <button data-did="clear" class="cad-tool" onclick="cadClear()" style="color:#f09090">🗑 Clear</button>
-            <button data-did="reset" class="cad-tool" onclick="cadResetView()">🔍 Reset</button>
-            <button data-did="bgimg" class="cad-tool" onclick="cadBgPick()" title="Load a pale background image to sketch over (session only, never saved)">🖼 Image</button>
+            <button data-did="bgimg" class="cad-tool cad-act" onclick="cadBgPick()" title="Load a pale background image to sketch over (session only, never saved)">🖼 Image</button>
+            <span data-did="sep3" class="cad-tool-sep"></span>
+            <button data-did="reset" class="cad-tool cad-act" onclick="cadResetView()" title="Reset zoom and pan of the draw canvas (does not touch the drawing)">🔍 Reset view</button>
+            <button data-did="clear" class="cad-tool cad-act" onclick="cadClear()" title="Clear the whole drawing — Undo brings it back">🗑 Clear</button>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
+        <!-- Step-by-step tool hint (arc/ellipse state labels, redundant-line warnings) — lives
+             directly under the draw canvas so multi-click tools explain themselves in view. -->
+        <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:2px"></div>
         <input type="file" id="cadBgFile" accept="image/*" style="display:none" onchange="cadBgFileChange(this)">
         <!-- Background sketch image controls — shown only while an image is loaded. -->
         <div class="cad-stitch-controls" id="cadBgControls" style="display:none">
@@ -940,7 +952,6 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   </div>
   <div class="remixes-section" id="remixesSection" style="display:none"></div>
 </div>
-    <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:6px"></div>
     <p class="tip" style="text-align:center;margin:6px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints · Arc: 3 clicks (center → radius → sweep) · Ellipse: 4 clicks (center → first radius → second radius → sweep)</p>
   </div>
 </div>
@@ -5166,7 +5177,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     }
   ]
 }</script>
-<script>const CAD_TOOLBAR_LAYOUT={"cadLeft":["reset","clear","sep1","move","sep2","cut","draw","arc","color","undo"],"cadRight":["play","rsep","stitchview"]}</script>
+<script>const CAD_TOOLBAR_LAYOUT={"cadLeft":["draw","arc","ellipse","cut","color","sep1","undo","sep2","move","bgimg","sep3","reset","clear"],"cadRight":["play","rsep","stitchview"]}</script>
 <script>const PATTERN_CLICKS={
   "exp_1781813334725": 5,
   "exp_1781819811459": 35,
@@ -12648,11 +12659,13 @@ function cadInit(){
     }
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     cadCur=cadSnapPoint(g.u,g.v);
+    // Set by the arc/ellipse branches when a click is invalid for the current step —
+    // shown in place of the normal step label so the click never fails silently.
+    let hintOverride=null;
     if(cadTool==='draw'){
-      if(cadFamSel>=0){
-        const hit=cadHoveredSeg(g.u,g.v);
-        if(hit&&hit.li>=0&&cadFamSel<cadFamOrder.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadFamilies[hit.li]=cadFamOrder[cadFamSel];cadFamsLocked=true;cadUpdateAll();return;}
-      }
+      // NB the old "recolor shortcut" (a selected family swatch made draw-clicks near an
+      // existing line recolor it instead of drawing) was removed 2026-07-23 — it silently
+      // swallowed clicks and read as "drawing doesn't work". Recoloring is the 🎨 tool's job.
       // Click-move-click (like the arc tool): first click sets the start, second click commits the line.
       if(!cadDrawing){
         cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];
@@ -12681,17 +12694,25 @@ function cadInit(){
         cadArcSweep=0;cadArcPrevAng=Math.atan2(cadArcStart[1]-cadArcCenter[1],cadArcStart[0]-cadArcCenter[0]);
       }
       else if(cadArcState===2){
-        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
         const newArc=cadGenArcSweep(cadArcCenter,cadArcStart,cadArcSweep);
-        if(newArc)cadLines.push(newArc);
-        cadFamsLocked=false;cadFamSel=-1;
-        cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;
-        cadAutoExtendGrid();
+        if(newArc){
+          cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+          cadLines.push(newArc);
+          cadFamsLocked=false;cadFamSel=-1;
+          cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;
+          cadAutoExtendGrid();
+        }else{
+          // No sweep yet — a finishing click before any mouse movement used to silently
+          // DISCARD the whole arc; now it's ignored and the hint explains what to do.
+          hintOverride='Now MOVE the mouse around the center to sweep the arc, then click to finish';
+        }
       }
       cadArcLabel();
     }
     else if(cadTool==='ellipse'){
       // 4 clicks: center → first-axis point (rx + tilt) → second radius → sweep & finish.
+      // Every "invalid" click keeps the state and explains itself via hintOverride —
+      // silent swallows here were the "ellipse doesn't work" bug reports.
       if(cadEllState===0){cadEllCenter=[...cadCur];cadEllState=1;}
       else if(cadEllState===1){
         const rx=Math.hypot(cadCur[0]-cadEllCenter[0],cadCur[1]-cadEllCenter[1]);
@@ -12699,6 +12720,8 @@ function cadInit(){
           cadEllAx1=[...cadCur];cadEllRx=rx;
           cadEllRot=Math.atan2(cadCur[1]-cadEllCenter[1],cadCur[0]-cadEllCenter[0]);
           cadEllState=2;
+        }else{
+          hintOverride='Click AWAY from the center — that point sets the first radius and the tilt';
         }
       }
       else if(cadEllState===2){
@@ -12710,15 +12733,21 @@ function cadInit(){
           cadEllA1=_cadEllParam(_cadEllProto(),cadCur);
           cadEllSweep=0;cadEllPrevAng=cadEllA1;
           cadEllState=3;
+        }else{
+          hintOverride='Click AWAY from the first-axis line — the distance from that line is the second radius';
         }
       }
       else if(cadEllState===3){
-        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
         const el=cadGenEllipseSweep(cadEllCenter,cadEllRx,cadEllRy,cadEllRot,cadEllA1,cadEllSweep);
-        if(el)cadLines.push(el);
-        cadFamsLocked=false;cadFamSel=-1;
-        _cadEllReset();
-        cadAutoExtendGrid();
+        if(el){
+          cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+          cadLines.push(el);
+          cadFamsLocked=false;cadFamSel=-1;
+          _cadEllReset();
+          cadAutoExtendGrid();
+        }else{
+          hintOverride='Now MOVE the mouse around the ellipse to sweep it out, then click to finish';
+        }
       }
       cadArcLabel();
     }
@@ -12759,6 +12788,7 @@ function cadInit(){
       cadHover=null;cadFamsLocked=false;cadFamSel=-1;cadAutoShrinkGrid();
     }
     cadUpdateAll();
+    if(hintOverride){const hel=document.getElementById('cadArcHint');if(hel)hel.textContent=hintOverride;}
   });
   cv.addEventListener('pointermove',e=>{
     const pos=cadGetPos(e,cv);
@@ -12833,7 +12863,13 @@ function _cadTbApply(order){
   if(!order)return;
   _cadTbZones().forEach(z=>{
     const dids=order[z.dataset.dragzone]; if(!Array.isArray(dids)||!dids.length)return;
+    // Buttons the saved layout doesn't know yet (newly shipped tools) go to the END of the
+    // zone — re-appending only the known ones used to strand new buttons at the FRONT
+    // (that's how the Ellipse tool ended up far away from Arc when it shipped).
+    const known=new Set(dids);
+    const unknown=[..._cadTbItems(z)].filter(el=>!known.has(el.dataset.did));
     dids.forEach(did=>{const el=z.querySelector(':scope > [data-did="'+did+'"]'); if(el)z.appendChild(el);});
+    unknown.forEach(el=>z.appendChild(el));
   });
 }
 function _cadTbSetDraggable(on){_cadTbZones().forEach(z=>_cadTbItems(z).forEach(el=>{el.draggable=!!on;}));}
@@ -12868,7 +12904,13 @@ function _cadInitToolbarDrag(){
 // draft; to publish it for everyone, run sashikoToolbarLayout() and commit the result to
 // cad-toolbar.json (browsers can't push to GitHub, so publishing is a commit, not a live sync).
 function _cadSaveToolbarOrder(){try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(_cadTbCollect()));}catch(_){}}
-function _cadApplyToolbarCache(){try{const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(c)_cadTbApply(c);}catch(_){}}
+function _cadApplyToolbarCache(){try{
+  const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(!c)return;
+  // An admin draft saved before the current toolset existed would scramble the new
+  // committed layout — drop it (detected by a did the draft doesn't know about).
+  if(Array.isArray(c.cadLeft)&&!c.cadLeft.includes('ellipse')){localStorage.removeItem('sashiko_cadtoolbar');return;}
+  _cadTbApply(c);
+}catch(_){}}
 window._cadTbSetDraggable=_cadTbSetDraggable;
 function _cadCopyText(text){
   const legacy=()=>new Promise((res,rej)=>{try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);ok?res():rej();}catch(e){rej(e);}});

@@ -1,1 +1,1 @@
-{"cadLeft":["reset","clear","sep1","move","sep2","cut","draw","arc","color","undo"],"cadRight":["play","rsep","stitchview"]}
+{"cadLeft":["draw","arc","ellipse","cut","color","sep1","undo","sep2","move","bgimg","sep3","reset","clear"],"cadRight":["play","rsep","stitchview"]}

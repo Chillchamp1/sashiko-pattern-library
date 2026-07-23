@@ -2426,11 +2426,13 @@ function cadInit(){
     }
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
     cadCur=cadSnapPoint(g.u,g.v);
+    // Set by the arc/ellipse branches when a click is invalid for the current step —
+    // shown in place of the normal step label so the click never fails silently.
+    let hintOverride=null;
     if(cadTool==='draw'){
-      if(cadFamSel>=0){
-        const hit=cadHoveredSeg(g.u,g.v);
-        if(hit&&hit.li>=0&&cadFamSel<cadFamOrder.length){cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});cadFamilies[hit.li]=cadFamOrder[cadFamSel];cadFamsLocked=true;cadUpdateAll();return;}
-      }
+      // NB the old "recolor shortcut" (a selected family swatch made draw-clicks near an
+      // existing line recolor it instead of drawing) was removed 2026-07-23 — it silently
+      // swallowed clicks and read as "drawing doesn't work". Recoloring is the 🎨 tool's job.
       // Click-move-click (like the arc tool): first click sets the start, second click commits the line.
       if(!cadDrawing){
         cadDrawing=true;cadStart=[cadCur[0],cadCur[1]];
@@ -2459,17 +2461,25 @@ function cadInit(){
         cadArcSweep=0;cadArcPrevAng=Math.atan2(cadArcStart[1]-cadArcCenter[1],cadArcStart[0]-cadArcCenter[0]);
       }
       else if(cadArcState===2){
-        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
         const newArc=cadGenArcSweep(cadArcCenter,cadArcStart,cadArcSweep);
-        if(newArc)cadLines.push(newArc);
-        cadFamsLocked=false;cadFamSel=-1;
-        cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;
-        cadAutoExtendGrid();
+        if(newArc){
+          cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+          cadLines.push(newArc);
+          cadFamsLocked=false;cadFamSel=-1;
+          cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;
+          cadAutoExtendGrid();
+        }else{
+          // No sweep yet — a finishing click before any mouse movement used to silently
+          // DISCARD the whole arc; now it's ignored and the hint explains what to do.
+          hintOverride='Now MOVE the mouse around the center to sweep the arc, then click to finish';
+        }
       }
       cadArcLabel();
     }
     else if(cadTool==='ellipse'){
       // 4 clicks: center → first-axis point (rx + tilt) → second radius → sweep & finish.
+      // Every "invalid" click keeps the state and explains itself via hintOverride —
+      // silent swallows here were the "ellipse doesn't work" bug reports.
       if(cadEllState===0){cadEllCenter=[...cadCur];cadEllState=1;}
       else if(cadEllState===1){
         const rx=Math.hypot(cadCur[0]-cadEllCenter[0],cadCur[1]-cadEllCenter[1]);
@@ -2477,6 +2487,8 @@ function cadInit(){
           cadEllAx1=[...cadCur];cadEllRx=rx;
           cadEllRot=Math.atan2(cadCur[1]-cadEllCenter[1],cadCur[0]-cadEllCenter[0]);
           cadEllState=2;
+        }else{
+          hintOverride='Click AWAY from the center — that point sets the first radius and the tilt';
         }
       }
       else if(cadEllState===2){
@@ -2488,15 +2500,21 @@ function cadInit(){
           cadEllA1=_cadEllParam(_cadEllProto(),cadCur);
           cadEllSweep=0;cadEllPrevAng=cadEllA1;
           cadEllState=3;
+        }else{
+          hintOverride='Click AWAY from the first-axis line — the distance from that line is the second radius';
         }
       }
       else if(cadEllState===3){
-        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
         const el=cadGenEllipseSweep(cadEllCenter,cadEllRx,cadEllRy,cadEllRot,cadEllA1,cadEllSweep);
-        if(el)cadLines.push(el);
-        cadFamsLocked=false;cadFamSel=-1;
-        _cadEllReset();
-        cadAutoExtendGrid();
+        if(el){
+          cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+          cadLines.push(el);
+          cadFamsLocked=false;cadFamSel=-1;
+          _cadEllReset();
+          cadAutoExtendGrid();
+        }else{
+          hintOverride='Now MOVE the mouse around the ellipse to sweep it out, then click to finish';
+        }
       }
       cadArcLabel();
     }
@@ -2537,6 +2555,7 @@ function cadInit(){
       cadHover=null;cadFamsLocked=false;cadFamSel=-1;cadAutoShrinkGrid();
     }
     cadUpdateAll();
+    if(hintOverride){const hel=document.getElementById('cadArcHint');if(hel)hel.textContent=hintOverride;}
   });
   cv.addEventListener('pointermove',e=>{
     const pos=cadGetPos(e,cv);
@@ -2611,7 +2630,13 @@ function _cadTbApply(order){
   if(!order)return;
   _cadTbZones().forEach(z=>{
     const dids=order[z.dataset.dragzone]; if(!Array.isArray(dids)||!dids.length)return;
+    // Buttons the saved layout doesn't know yet (newly shipped tools) go to the END of the
+    // zone — re-appending only the known ones used to strand new buttons at the FRONT
+    // (that's how the Ellipse tool ended up far away from Arc when it shipped).
+    const known=new Set(dids);
+    const unknown=[..._cadTbItems(z)].filter(el=>!known.has(el.dataset.did));
     dids.forEach(did=>{const el=z.querySelector(':scope > [data-did="'+did+'"]'); if(el)z.appendChild(el);});
+    unknown.forEach(el=>z.appendChild(el));
   });
 }
 function _cadTbSetDraggable(on){_cadTbZones().forEach(z=>_cadTbItems(z).forEach(el=>{el.draggable=!!on;}));}
@@ -2646,7 +2671,13 @@ function _cadInitToolbarDrag(){
 // draft; to publish it for everyone, run sashikoToolbarLayout() and commit the result to
 // cad-toolbar.json (browsers can't push to GitHub, so publishing is a commit, not a live sync).
 function _cadSaveToolbarOrder(){try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(_cadTbCollect()));}catch(_){}}
-function _cadApplyToolbarCache(){try{const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(c)_cadTbApply(c);}catch(_){}}
+function _cadApplyToolbarCache(){try{
+  const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(!c)return;
+  // An admin draft saved before the current toolset existed would scramble the new
+  // committed layout — drop it (detected by a did the draft doesn't know about).
+  if(Array.isArray(c.cadLeft)&&!c.cadLeft.includes('ellipse')){localStorage.removeItem('sashiko_cadtoolbar');return;}
+  _cadTbApply(c);
+}catch(_){}}
 window._cadTbSetDraggable=_cadTbSetDraggable;
 function _cadCopyText(text){
   const legacy=()=>new Promise((res,rej)=>{try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);ok?res():rej();}catch(e){rej(e);}});

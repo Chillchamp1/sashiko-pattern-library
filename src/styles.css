@@ -448,6 +448,10 @@ body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-tool{background:var(--panel2,#1c3045);border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:12px;color:var(--muted);cursor:pointer;font:inherit;transition:.15s}
 .cad-tool:hover{background:#1d3850;color:#e7eef6}
 .cad-tool.on{background:#1f4468;border-color:#2e638f;color:#c8dff4}
+/* One-shot ACTIONS (Undo / Clear / Reset view / Image) are flat until hovered, so the
+   raised buttons read as the modal drawing-tool palette and these read as commands. */
+.cad-act{background:transparent;border-color:transparent}
+.cad-act:hover{background:#1d3850;border-color:var(--line)}
 /* New Pattern / CAD button card */
 .pcard.new-pattern-card{border:2px dashed #2a4a2a;background:#111a11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:100px}
 .pcard.new-pattern-card:hover{background:#162016;border-color:#3a6a3a}
