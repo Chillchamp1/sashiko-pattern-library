@@ -785,8 +785,8 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     <div class="cad-settings-bar">
       <label>Grid:
         <select id="cadGridType" onchange="cadUpdateSettings()">
-          <option value="isometric" selected>Isometric (30°)</option>
-          <option value="square">Square (90°)</option>
+          <option value="square" selected>Square (90°)</option>
+          <option value="isometric">Isometric (30°)</option>
         </select>
       </label>
     </div>
@@ -10164,6 +10164,9 @@ window.showCAD=function(){
   cadFamRouting={};_cadSyncFamRoutingUI();
   cadBgRemove();   // fresh pattern starts without a background sketch image
   cadMacro=2;cadPatMacro=3;   // fresh draw-grid + Tiles defaults for a new pattern
+  // Square is the standard grid for a NEW pattern (the select is otherwise sticky from
+  // the last edited pattern); editing/remixing still restores the pattern's own gridType.
+  document.getElementById('cadGridType').value='square';
   document.getElementById('cadRoutingMode').value='default';
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
   document.getElementById('cadTraditional').checked=false;
@@ -10189,7 +10192,7 @@ window.showGalleryFromCAD=function(){
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
-let cadGridType='isometric',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
+let cadGridType='square',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 // Per-family routing overrides {famIdx→mode} — normally empty (whole pattern uses
 // cadRoutingMode); an entry routes just that colour with a different logic.

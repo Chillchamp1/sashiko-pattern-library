@@ -529,6 +529,10 @@ When saving a new pattern from the CAD editor, lines are automatically grouped i
 Lines are colored by family in real-time as you draw. Both the Draw canvas and Live Tiling panel show family colors. The color assignment is stored in `cadFamilies[]` and recomputed via `cadAutoAssign()` on every change (called from `cadUpdateAll()`).
 
 ### CAD Editor Layout / UX
+- **Square (90°) is the standard grid** (2026-07-23): the Grid select defaults to square and
+  `showCAD` resets it to square for every NEW pattern (it was sticky before); edit/remix still
+  restore the pattern's own `gridType`, and the legacy `pat.gridType||'isometric'` fallbacks
+  stay (patterns saved without the field were authored in the iso-default era).
 - **Header:** name input (`#cadPatName`, placeholder **"Unnamed pattern"**, starts empty) + **Traditional** checkbox (`#cadTraditional`, moved here from the settings bar) + Save / Publish. Save & Publish **require a name** — empty → `alert('Please name your pattern…')` and the field is focused; no silent "Custom Pattern" default.
 - **Both panels** (Draw + Live Tiling) put their pre-canvas controls in a `.cad-panel-head`; `cadAlignHeads()` (called from `cadInit` + on window resize) measures both and sets a shared min-height to the taller, so the **two canvases line up** (same top, same size) regardless of how the toolbars wrap.
 - **Left-panel toolbar** is grouped with `.cad-tool-sep` dividers: **draw tools** (Draw/Arc/Cut/Color) · **move + transform** (the Move ↑↓←→ arrows — now inline in the toolbar via `.cad-move-inline`, not a panel below the canvas — plus ↻ 45° rotate and ◇ 45° tiling) · **actions** (Undo/Clear/Reset). Undo sits in this toolbar directly above the Draw canvas.

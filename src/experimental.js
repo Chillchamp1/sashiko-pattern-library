@@ -3430,6 +3430,9 @@ window.showCAD=function(){
   cadFamRouting={};_cadSyncFamRoutingUI();
   cadBgRemove();   // fresh pattern starts without a background sketch image
   cadMacro=2;cadPatMacro=3;   // fresh draw-grid + Tiles defaults for a new pattern
+  // Square is the standard grid for a NEW pattern (the select is otherwise sticky from
+  // the last edited pattern); editing/remixing still restores the pattern's own gridType.
+  document.getElementById('cadGridType').value='square';
   document.getElementById('cadRoutingMode').value='default';
   document.getElementById('cadPatName').value='';   // empty → "Unnamed pattern" placeholder shows
   document.getElementById('cadTraditional').checked=false;
