@@ -365,6 +365,12 @@ function _pdfDraftWindow(px){
     gp.forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)x.moveTo(p.x,p.y);else x.lineTo(p.x,p.y);});
     x.stroke();
   });
+  // Elliptical arcs → their full pre-drawn ellipse (mirrors the gallery draft view).
+  (_galDraftShapes().ellipses||[]).forEach(e=>{
+    x.beginPath();
+    _galEllipsePts(e,NS).forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)x.moveTo(p.x,p.y);else x.lineTo(p.x,p.y);});
+    x.stroke();
+  });
   // The stitch-path lines highlighted on top.
   _pdfDrawLines(x,-1,'rgba(18,42,82,0.72)',1.0);
   return c;

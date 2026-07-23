@@ -813,6 +813,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           <div class="cad-toolbar" data-dragzone="cadLeft">
             <button data-did="draw" id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')">✏ Draw</button>
             <button data-did="arc" id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')">⭕ Arc</button>
+            <button data-did="ellipse" id="cadBtnEllipse" class="cad-tool" onclick="cadSetTool('ellipse')">⬭ Ellipse</button>
             <button data-did="cut" id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')">✂ Cut</button>
             <button data-did="color" id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')">🎨 Color</button>
             <span data-did="sep1" class="cad-tool-sep"></span>
@@ -940,7 +941,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   <div class="remixes-section" id="remixesSection" style="display:none"></div>
 </div>
     <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:6px"></div>
-    <p class="tip" style="text-align:center;margin:6px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints · Arc: 3 clicks (center → radius → sweep)</p>
+    <p class="tip" style="text-align:center;margin:6px auto 0">Scroll to zoom · Right/middle-click to pan · Snaps to grid and line endpoints · Arc: 3 clicks (center → radius → sweep) · Ellipse: 4 clicks (center → first radius → second radius → sweep)</p>
   </div>
 </div>
 
@@ -7793,6 +7794,22 @@ function _flattenArc(l, nSegs, arcId, iso){
   const totalSweep=Math.abs(sweep);
   const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
   const result=[];
+  // Elliptical arc (CAD ellipse tool): p(φ)=C+R(rot)·(rx·cosφ, ry·sinφ), flattened in grid
+  // space on both grid types (no iso round-on-screen correction — circles only). Each seg
+  // carries the ellipse params (`ell`) so the draft view can recover the FULL ellipse the
+  // way it recovers full circles; genTiledSegs offsets ell.c per tile.
+  if(l.ellipse){
+    const co=Math.cos(l.rot||0), si=Math.sin(l.rot||0);
+    const pt=a=>{const x=l.rx*Math.cos(a),y=l.ry*Math.sin(a);return[l.center[0]+x*co-y*si,l.center[1]+x*si+y*co];};
+    const ell={c:[l.center[0],l.center[1]],rx:l.rx,ry:l.ry,rot:l.rot||0};
+    let prev=[...l.start];
+    for(let i=1;i<=segs;i++){
+      const next=pt(a1+sweep*(i/segs));
+      result.push({start:prev,end:next,aid:arcId,ell});
+      prev=next;
+    }
+    return result;
+  }
   // Use the exact center→start radius, not the stored l.r (which may be rounded, e.g.
   // 1.414 vs √2). A rounded radius drifts the computed points off the clean grid by
   // float noise — enough to break arc→arc endpoint merging when tiled (dead-ends, no
@@ -7895,7 +7912,9 @@ function genTiledSegs(pat){
   // everything else (same reasoning as the v2 routing modes — no engine fork needed).
   if(pat.embroidery){
     flatSegs.forEach((l,fi)=>{
-      segs.push({start:[...l.start],end:[...l.end],fam:flatFamOf[fi],aid:l.aid});
+      const s={start:[...l.start],end:[...l.end],fam:flatFamOf[fi],aid:l.aid};
+      if(l.ell)s.ell=l.ell;
+      segs.push(s);
     });
     return segs;
   }
@@ -7923,7 +7942,9 @@ function genTiledSegs(pat){
         const base=tileAid; tileAid+=arcIdCounter;
         flatSegs.forEach((l,fi)=>{
           const aid=l.aid>=0?base+l.aid:-1;
-          segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid});
+          const s={start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid};
+          if(l.ell)s.ell={c:[l.ell.c[0]+ou,l.ell.c[1]+ov],rx:l.ell.rx,ry:l.ell.ry,rot:l.ell.rot};
+          segs.push(s);
         });
       }
     }
@@ -7938,7 +7959,9 @@ function genTiledSegs(pat){
         const base=tileAid; tileAid+=arcIdCounter;
         flatSegs.forEach((l,fi)=>{
           const aid=l.aid>=0?base+l.aid:-1;
-          segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid});
+          const s={start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid};
+          if(l.ell)s.ell={c:[l.ell.c[0]+ou,l.ell.c[1]+ov],rx:l.ell.rx,ry:l.ell.ry,rot:l.ell.rot};
+          segs.push(s);
         });
       }
     }
@@ -8303,7 +8326,9 @@ window.editExpPattern=async function(idOrPat){
    cadLines=pat.lines.map(l=>{
      if(l.arc&&l.center!==undefined){
        const nc=[l.center[0]+su,l.center[1]+sv];
-       return{arc:true,center:nc,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]+su,l.start[1]+sv],end:[l.end[0]+su,l.end[1]+sv]};
+       const o={arc:true,center:nc,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]+su,l.start[1]+sv],end:[l.end[0]+su,l.end[1]+sv]};
+       if(l.ellipse){o.ellipse=true;o.rx=l.rx;o.ry=l.ry;o.rot=l.rot||0;}
+       return o;
      }
      return{start:[l.start[0]+su,l.start[1]+sv],end:[l.end[0]+su,l.end[1]+sv],...(l.arc?{arc:true}:{})};
    });
@@ -9498,7 +9523,7 @@ function _circumcircle(A,B,C){
 // whole circle, then stitches only the arc). Cached by EXP_path so Play stays cheap.
 function _galDraftShapes(){
   if(_galDraftCache&&_galDraftCache.ref===EXP_path)return _galDraftCache;
-  const out={ref:EXP_path,lines:[],circles:[]};
+  const out={ref:EXP_path,lines:[],circles:[],ellipses:[]};
   if(!curPat){return(_galDraftCache=out);}
   const iso=curPat.gridType==='isometric';
   const segs=tiledSegsFor({...curPat,patMacro:patMacroForTiles(curPat,_tileCells)});
@@ -9508,6 +9533,9 @@ function _galDraftShapes(){
     else out.lines.push({a:s.start,b:s.end});
   });
   byAid.forEach(group=>{
+    // Elliptical arcs carry their exact params on the segs (_flattenArc `ell`, tiled by
+    // genTiledSegs) — recover the FULL ellipse directly, like circles get their full circle.
+    if(group[0].ell){out.ellipses.push(group[0].ell);return;}
     const pts=[group[0].start];group.forEach(s=>pts.push(s.end));
     if(pts.length<3)return;
     const p3=[pts[0],pts[Math.floor(pts.length/3)],pts[Math.floor(2*pts.length/3)]];
@@ -9570,7 +9598,21 @@ function _galDrawDraft(){
     gp.forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});
     ctx.stroke();
   });
+  // Elliptical arcs recovered as their FULL pre-drawn ellipse (same idea as the circles).
+  (_galDraftShapes().ellipses||[]).forEach(e=>{
+    ctx.beginPath();
+    _galEllipsePts(e,NS).forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});
+    ctx.stroke();
+  });
   ctx.restore();
+}
+// Grid-space outline points of a draft ellipse {c,rx,ry,rot} (n+1 points, closed).
+function _galEllipsePts(e,n){
+  const co=Math.cos(e.rot||0), si=Math.sin(e.rot||0);
+  return Array.from({length:n+1},(_,k)=>{
+    const a=k/n*2*Math.PI, x=e.rx*Math.cos(a), y=e.ry*Math.sin(a);
+    return[e.c[0]+x*co-y*si, e.c[1]+x*si+y*co];
+  });
 }
 // ── Stitch-view options + thread-colour preview (gallery animation view) ─────
 function syncGalStitchUI(){
@@ -10041,7 +10083,9 @@ window.remixPattern=function(id){
   if(!confirm('Create a remix of "'+(pat.name||'Custom')+'"?'))return;
   cadLines=pat.lines.map(l=>{
     if(l.arc&&l.center!==undefined){
-      return{arc:true,center:[l.center[0],l.center[1]],r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]};
+      const o={arc:true,center:[l.center[0],l.center[1]],r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]};
+      if(l.ellipse){o.ellipse=true;o.rx=l.rx;o.ry=l.ry;o.rot=l.rot||0;}
+      return o;
     }
     return{start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]],...(l.arc?{arc:true}:{})};
   });
@@ -10188,6 +10232,10 @@ let cadDrawing=false,cadStart=null,cadCur=null,cadHover=null;
 let cadRecolorOn=false;  // recolor paint mode
 let cadArcState=0,cadArcCenter=null,cadArcStart=null; // arc tool state
 let cadArcSweep=0,cadArcPrevAng=0; // accumulated sweep angle (state 2) + last mouse angle, for continuous sweep
+// Ellipse tool state: 0=await center, 1=await first-axis point (sets rx + rotation),
+// 2=await second radius (perpendicular distance), 3=sweeping (parameter space).
+let cadEllState=0,cadEllCenter=null,cadEllAx1=null,cadEllRx=0,cadEllRy=0,cadEllRot=0;
+let cadEllSweep=0,cadEllPrevAng=0,cadEllA1=0;
 let cadLeftBuf=null,cadRightBuf=null;
 let cadInited=false;
 
@@ -10288,6 +10336,7 @@ function _isoFInSweep(f,f1,sw){
 // Distance from point p to an arc curve. Returns {dist, angle} where angle is
 // the radian parameter along the arc (in [a1,a2] for positive sweep / [a2,a1] for negative).
 function cadDistToArc(p, arc){
+  if(arc.ellipse)return _cadDistToEllipse(p,arc);
   if(cadGridType==='isometric'){
     const sc=_isoG2I(arc.center), P=_isoG2I(p);
     const dx=P[0]-sc[0], dy=P[1]-sc[1], rr=Math.hypot(dx,dy);
@@ -10353,6 +10402,7 @@ function cadAngleInArc(a, arc){
 
 // Intersect a line segment (p1→p2) with an arc. Returns array of {p:[u,v], t:lineParam, angle:arcAngle}.
 function cadLineArcIntersections(p1,p2,arc){
+  if(arc.ellipse)return _cadLineEllipseIntersections(p1,p2,arc);
   if(cadGridType==='isometric'){
     const sc=_isoG2I(arc.center), A=_isoG2I(p1), B=_isoG2I(p2), r=arc.r;
     const dx=B[0]-A[0], dy=B[1]-A[1], fx=A[0]-sc[0], fy=A[1]-sc[1];
@@ -10393,6 +10443,7 @@ function cadLineArcIntersections(p1,p2,arc){
 
 // Intersect two arcs. Returns array of {p:[u,v], angleA, angleB}.
 function cadArcArcIntersections(arcA, arcB){
+  if(arcA.ellipse||arcB.ellipse)return _cadCurveCurveIntersections(arcA,arcB);
   if(cadGridType==='isometric'){
     const c1=_isoG2I(arcA.center), c2=_isoG2I(arcB.center), r1=arcA.r, r2=arcB.r;
     const dx=c2[0]-c1[0], dy=c2[1]-c1[1], d=Math.hypot(dx,dy);
@@ -10505,6 +10556,15 @@ function cadBBox(){
   let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
   cadLines.forEach(l=>{
     if(l.arc){
+      // Ellipse extremes don't sit at parameter multiples of π/2 (when rotated), so take
+      // the bbox of the flattened polyline — which IS the stitched geometry anyway.
+      if(l.ellipse){
+        cadFlattenArc(l,48).forEach(s=>{
+          mnu=Math.min(mnu,s.start[0],s.end[0]);mxu=Math.max(mxu,s.start[0],s.end[0]);
+          mnv=Math.min(mnv,s.start[1],s.end[1]);mxv=Math.max(mxv,s.start[1],s.end[1]);
+        });
+        return;
+      }
       const cx=l.center[0], cy=l.center[1], r=l.r;
       mnu=Math.min(mnu,l.start[0],l.end[0]); mxu=Math.max(mxu,l.start[0],l.end[0]);
       mnv=Math.min(mnv,l.start[1],l.end[1]); mxv=Math.max(mxv,l.start[1],l.end[1]);
@@ -10526,6 +10586,13 @@ function cadBBox2(lines){
   let mnu=Infinity,mxu=-Infinity,mnv=Infinity,mxv=-Infinity;
   lines.forEach(l=>{
     if(l.arc){
+      if(l.ellipse){
+        cadFlattenArc(l,48).forEach(s=>{
+          mnu=Math.min(mnu,s.start[0],s.end[0]);mxu=Math.max(mxu,s.start[0],s.end[0]);
+          mnv=Math.min(mnv,s.start[1],s.end[1]);mxv=Math.max(mxv,s.start[1],s.end[1]);
+        });
+        return;
+      }
       const cx=l.center[0], cy=l.center[1], r=l.r;
       mnu=Math.min(mnu,l.start[0],l.end[0]); mxu=Math.max(mxu,l.start[0],l.end[0]);
       mnv=Math.min(mnv,l.start[1],l.end[1]); mxv=Math.max(mxv,l.start[1],l.end[1]);
@@ -10624,6 +10691,17 @@ function cadFlattenArc(arc, nSegs){
   const totalSweep=Math.abs(sweep);
   const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
   const result=[];
+  // Elliptical arc → flatten via the parameter form, in grid space on both grid types
+  // (no iso round-on-screen correction — that special case is circles-only).
+  if(arc.ellipse){
+    let prev=[...arc.start];
+    for(let i=1;i<=segs;i++){
+      const next=_cadEllPt(arc,a1+sweep*(i/segs));
+      result.push({start:prev,end:next,arc:true});
+      prev=next;
+    }
+    return result;
+  }
   // Iso arc (full or partial) → render round (matches the tiled/gallery flatten; see _flattenArc).
   if(cadGridType==='isometric'){
     const pts=_isoRoundArcPts(arc.center, arc.r, a1, a2, segs);
@@ -10690,6 +10768,98 @@ function cadGenArcSweep(center, start, sweep){
     end:[center[0]+r*Math.cos(a2),center[1]+r*Math.sin(a2)]};
 }
 
+// ── Elliptical-arc helpers ─────────────────────────────────────────────────
+// An elliptical arc is a generalised arc entry: {arc:true, ellipse:true, center,
+// rx, ry, rot, a1, a2, start, end} (+ r = mean radius, a graceful fallback for any
+// circle-only code path). a1/a2 are PARAMETER angles — φ in
+//   p(φ) = center + R(rot)·(rx·cosφ, ry·sinφ)
+// — not geometric angles. Parameters behave exactly like circle angles (periodic
+// 2π, monotonic along the sweep), so ALL the existing sweep bookkeeping
+// (cadAngleInArc, toSweep, sub-arc splitting, _dcClipArc's addA) works unchanged.
+// Ellipses are drawn in grid (u,v) space on BOTH grid types — no iso round-on-screen
+// correction (that special-case exists only for circles).
+function _cadEllPt(el,phi){
+  const co=Math.cos(el.rot||0), si=Math.sin(el.rot||0);
+  const x=el.rx*Math.cos(phi), y=el.ry*Math.sin(phi);
+  return[el.center[0]+x*co-y*si, el.center[1]+x*si+y*co];
+}
+function _cadEllParam(el,p){
+  const co=Math.cos(el.rot||0), si=Math.sin(el.rot||0);
+  const dx=p[0]-el.center[0], dy=p[1]-el.center[1];
+  return Math.atan2((-dx*si+dy*co)/el.ry, (dx*co+dy*si)/el.rx);
+}
+// Point at parameter φ on any arc entry (circle or ellipse) — the generic form of
+// center + r·(cosφ,sinφ) used by the cut/highlight/diamond-cut sub-arc builders.
+function _cadArcPt(arc,phi){
+  if(arc.ellipse)return _cadEllPt(arc,phi);
+  return[arc.center[0]+arc.r*Math.cos(phi),arc.center[1]+arc.r*Math.sin(phi)];
+}
+// Build an ellipse arc from centre + axes + start parameter + accumulated sweep
+// (the ellipse-tool analogue of cadGenArcSweep — any size, closes a full ellipse
+// whichever way you sweep).
+function cadGenEllipseSweep(center,rx,ry,rot,a1,sweep){
+  if(rx<0.01||ry<0.01)return null;
+  let sw=sweep;
+  if(Math.abs(sw)>=2*Math.PI-0.12)sw=(sw>=0?1:-1)*2*Math.PI;   // nearly all the way → full ellipse
+  if(Math.abs(sw)<0.02)return null;
+  const el={arc:true,ellipse:true,center:[center[0],center[1]],rx,ry,rot,r:(rx+ry)/2,a1,a2:a1+sw};
+  el.start=_cadEllPt(el,a1);el.end=_cadEllPt(el,el.a2);
+  return el;
+}
+// Distance from a point to an ellipse arc (dense polyline; exact enough for the
+// 15px hover threshold). Returns {dist, angle} with angle = parameter, like cadDistToArc.
+function _cadDistToEllipse(p,el){
+  const a1=el.a1;let sweep=el.a2-el.a1;
+  if(sweep>=2*Math.PI-0.001)sweep=2*Math.PI;
+  else if(sweep<=-2*Math.PI+0.001)sweep=-2*Math.PI;
+  const n=Math.max(24,Math.round(Math.abs(sweep)/(2*Math.PI)*96));
+  let prev=_cadEllPt(el,a1),bd=Infinity,bphi=a1;
+  for(let i=1;i<=n;i++){
+    const phi=a1+sweep*(i/n), pt=_cadEllPt(el,phi);
+    const r=cadDistToSeg(p,prev,pt);
+    if(r.dist<bd){bd=r.dist;bphi=a1+sweep*((i-1+r.t)/n);}
+    prev=pt;
+  }
+  return{dist:bd,angle:bphi};
+}
+// EXACT line-segment ∩ ellipse arc via the unit-circle transform: W maps the ellipse
+// to the unit circle (and lines to lines), and the angle in W-space IS the parameter.
+function _cadLineEllipseIntersections(p1,p2,el){
+  const co=Math.cos(el.rot||0), si=Math.sin(el.rot||0);
+  const W=p=>{const dx=p[0]-el.center[0],dy=p[1]-el.center[1];return[(dx*co+dy*si)/el.rx,(-dx*si+dy*co)/el.ry];};
+  const A=W(p1),B=W(p2);
+  const dx=B[0]-A[0],dy=B[1]-A[1];
+  const a=dx*dx+dy*dy,b=2*(A[0]*dx+A[1]*dy),c=A[0]*A[0]+A[1]*A[1]-1;
+  const disc=b*b-4*a*c;
+  if(disc<0||a<1e-12)return[];
+  const sd=Math.sqrt(disc),out=[];
+  for(const t of[(-b-sd)/(2*a),(-b+sd)/(2*a)]){
+    if(t>0.001&&t<0.999){
+      const phi=Math.atan2(A[1]+t*dy,A[0]+t*dx);
+      if(cadAngleInArc(phi,el)!==null)
+        out.push({p:[p1[0]+t*(p2[0]-p1[0]),p1[1]+t*(p2[1]-p1[1])],t,angle:phi});
+    }
+  }
+  if(out.length>1&&Math.hypot(out[0].p[0]-out[1].p[0],out[0].p[1]-out[1].p[1])<0.01)out.length=1;
+  return out;
+}
+// Curve ∩ curve when at least one side is an ellipse: intersect the two flattened
+// chains (cadFlattenArc renders each curve exactly as drawn, incl. iso round circles)
+// and recover each crossing's parameter on both curves. Chains are 72 segs — plenty
+// for the cut tool's breakpoints.
+function _cadCurveCurveIntersections(A,B){
+  const fa=cadFlattenArc(A,72), fb=cadFlattenArc(B,72), out=[];
+  const par=(arc,p)=>arc.ellipse?_cadEllParam(arc,p):Math.atan2(p[1]-arc.center[1],p[0]-arc.center[0]);
+  for(const sa of fa)for(const sb of fb){
+    const ix=cadLineInter(sa.start,sa.end,sb.start,sb.end);
+    if(!ix)continue;
+    const p=[ix[0],ix[1]];
+    if(out.some(o=>Math.hypot(o.p[0]-p[0],o.p[1]-p[1])<0.01))continue;
+    out.push({p,angleA:par(A,p),angleB:par(B,p)});
+  }
+  return out;
+}
+
 // Flatten all arcs in cadLines to segments (for downstream processing).
 // Returns an array of segment objects {start, end, arc:true, ...}.
 function cadAllSegments(lines){
@@ -10705,9 +10875,23 @@ function cadAllSegments(lines){
 }
 
 function cadArcLabel(){
-  const labels=['Click to place center','Click to set radius','Move to sweep the arc (either way), click to finish · all the way round = full circle'];
   const el=document.getElementById('cadArcHint');
-  if(el)el.textContent=cadArcState<3?labels[cadArcState]:'';
+  if(!el)return;
+  if(cadTool==='ellipse'){
+    const eLabels=['Click to place center','Click to set the first radius (its direction tilts the ellipse)','Click to set the second radius','Move to sweep the ellipse (either way), click to finish · all the way round = full ellipse'];
+    el.textContent=cadEllState<4?eLabels[cadEllState]:'';
+    return;
+  }
+  const labels=['Click to place center','Click to set radius','Move to sweep the arc (either way), click to finish · all the way round = full circle'];
+  el.textContent=cadArcState<3?labels[cadArcState]:'';
+}
+// Ellipse tool state helpers: reset, the in-progress ellipse (live ry while choosing),
+// and the perpendicular distance from the first-axis line (= the second radius).
+function _cadEllReset(){cadEllState=0;cadEllCenter=null;cadEllAx1=null;cadEllRx=0;cadEllRy=0;cadEllRot=0;cadEllSweep=0;cadEllPrevAng=0;cadEllA1=0;}
+function _cadEllProto(ry){return{center:cadEllCenter,rx:cadEllRx,ry:Math.max(ry!==undefined?ry:cadEllRy,0.01),rot:cadEllRot};}
+function _cadEllPerpR(p){
+  const si=Math.sin(cadEllRot), co=Math.cos(cadEllRot);
+  return Math.abs(-(p[0]-cadEllCenter[0])*si+(p[1]-cadEllCenter[1])*co);
 }
 
 // Auto-extend grid if any geometry extends beyond the current grid boundary
@@ -10871,6 +11055,10 @@ function cadDrawWorkspace(){
     const prevArc=cadGenArcSweep(cadArcCenter,cadArcStart,cadArcSweep);
     if(prevArc)all.push({...prevArc,preview:true});
   }
+  if(cadTool==='ellipse'&&cadEllState===3&&cadEllCenter){
+    const prevEl=cadGenEllipseSweep(cadEllCenter,cadEllRx,cadEllRy,cadEllRot,cadEllA1,cadEllSweep);
+    if(prevEl)all.push({...prevEl,preview:true});
+  }
 
   // Work-area boundary
   {const tc=cadMacro*CAD_MICRO;
@@ -10963,6 +11151,54 @@ function cadDrawWorkspace(){
     }
   }
 
+  // Ellipse tool visuals
+  if(cadTool==='ellipse'){
+    const traceEll=(el,segsN)=>{
+      const segs=cadFlattenArc(el,segsN||60);
+      if(!segs.length)return;
+      x.beginPath();
+      const p0=g2s(segs[0].start[0],segs[0].start[1]);x.moveTo(p0.x,p0.y);
+      for(const s of segs){const p=g2s(s.end[0],s.end[1]);x.lineTo(p.x,p.y);}
+      x.stroke();
+    };
+    if(cadEllState===1&&cadEllCenter&&cadCur){
+      // First axis being chosen: dashed centre→cursor guide (direction = tilt, length = rx).
+      const pc=g2s(cadEllCenter[0],cadEllCenter[1]), pm=g2s(cadCur[0],cadCur[1]);
+      x.strokeStyle='rgba(255,204,0,0.6)';x.setLineDash([5,5]);x.lineWidth=1;
+      x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(pm.x,pm.y);x.stroke();
+      x.setLineDash([]);
+    }else if(cadEllState===2&&cadEllCenter&&cadEllAx1){
+      // Second radius being chosen: dashed first-axis line + faint live full-ellipse hint.
+      const pc=g2s(cadEllCenter[0],cadEllCenter[1]), pa=g2s(cadEllAx1[0],cadEllAx1[1]);
+      x.strokeStyle='rgba(255,204,0,0.6)';x.setLineDash([5,5]);x.lineWidth=1;
+      x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(pa.x,pa.y);x.stroke();
+      if(cadCur){
+        const ry=_cadEllPerpR(cadCur);
+        if(ry>=0.01){
+          const proto=_cadEllProto(ry);
+          const hint={arc:true,ellipse:true,center:cadEllCenter,rx:cadEllRx,ry,rot:cadEllRot,
+            a1:0,a2:2*Math.PI,start:_cadEllPt(proto,0),end:_cadEllPt(proto,0)};
+          x.strokeStyle='rgba(0,255,204,0.35)';x.lineWidth=1.5;
+          traceEll(hint);
+        }
+      }
+      x.setLineDash([]);
+    }else if(cadEllState===3&&cadEllCenter){
+      // Sweeping: solid preview of the swept part + dashed guides to start and cursor.
+      const prevEl=cadGenEllipseSweep(cadEllCenter,cadEllRx,cadEllRy,cadEllRot,cadEllA1,cadEllSweep);
+      if(prevEl){
+        x.strokeStyle='rgba(0,255,204,0.5)';x.lineWidth=3;
+        traceEll(prevEl,80);
+      }
+      const pc=g2s(cadEllCenter[0],cadEllCenter[1]);
+      const st=_cadEllPt(_cadEllProto(),cadEllA1), ps=g2s(st[0],st[1]);
+      x.strokeStyle='rgba(255,204,0,0.4)';x.setLineDash([5,5]);x.lineWidth=1;
+      x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(ps.x,ps.y);x.stroke();
+      if(cadCur){const pe=g2s(cadCur[0],cadCur[1]);x.beginPath();x.moveTo(pc.x,pc.y);x.lineTo(pe.x,pe.y);x.stroke();}
+      x.setLineDash([]);
+    }
+  }
+
   // Cut tool highlight — bright red glow, drawn last so it sits on top
   if(cadTool==='erase'&&cadHover){
     if(cadHover.isArc){
@@ -10977,9 +11213,7 @@ function cadDrawWorkspace(){
         // Build the hovered sub-arc and flatten it via cadFlattenArc, so iso arcs trace
         // the true round screen curve (grid-circle points would project to the ellipse).
         const ang0=a1+sweepDir*t0*totalSweep, ang1=a1+sweepDir*t1*totalSweep;
-        const subArc={arc:true,center:arc.center,r:arc.r,a1:ang0,a2:ang1,
-          start:[arc.center[0]+arc.r*Math.cos(ang0),arc.center[1]+arc.r*Math.sin(ang0)],
-          end:[arc.center[0]+arc.r*Math.cos(ang1),arc.center[1]+arc.r*Math.sin(ang1)]};
+        const subArc={...arc,a1:ang0,a2:ang1,start:_cadArcPt(arc,ang0),end:_cadArcPt(arc,ang1)};
         const segs=cadFlattenArc(subArc, 120);
         const trace=()=>{
           x.beginPath();
@@ -11019,7 +11253,7 @@ function cadDrawWorkspace(){
       x.beginPath();x.moveTo(p1.x,p1.y);x.lineTo(p2.x,p2.y);x.stroke();
     }
   }
-  if((cadTool==='draw'||cadTool==='arc')&&cadCur){
+  if((cadTool==='draw'||cadTool==='arc'||cadTool==='ellipse')&&cadCur){
     const s=g2s(cadCur[0],cadCur[1]);
     x.fillStyle='#00ffcc';x.beginPath();x.arc(s.x,s.y,6,0,Math.PI*2);x.fill();
   }
@@ -11029,6 +11263,14 @@ function cadDrawWorkspace(){
   }
   if(cadTool==='arc'&&cadArcStart){
     const ps=g2s(cadArcStart[0],cadArcStart[1]);
+    x.fillStyle='rgba(0,255,204,0.8)';x.beginPath();x.arc(ps.x,ps.y,5,0,Math.PI*2);x.fill();
+  }
+  if(cadTool==='ellipse'&&cadEllCenter){
+    const pc=g2s(cadEllCenter[0],cadEllCenter[1]);
+    x.fillStyle='rgba(255,204,0,0.8)';x.beginPath();x.arc(pc.x,pc.y,5,0,Math.PI*2);x.fill();
+  }
+  if(cadTool==='ellipse'&&cadEllAx1){
+    const ps=g2s(cadEllAx1[0],cadEllAx1[1]);
     x.fillStyle='rgba(0,255,204,0.8)';x.beginPath();x.arc(ps.x,ps.y,5,0,Math.PI*2);x.fill();
   }
 }
@@ -11045,6 +11287,10 @@ function cadDrawPattern(){
     const prevArc=cadGenArcSweep(cadArcCenter,cadArcStart,cadArcSweep);
     if(prevArc)all.push({...prevArc,preview:true});
   }
+  if(cadTool==='ellipse'&&cadEllState===3&&cadEllCenter){
+    const prevEl=cadGenEllipseSweep(cadEllCenter,cadEllRx,cadEllRy,cadEllRot,cadEllA1,cadEllSweep);
+    if(prevEl)all.push({...prevEl,preview:true});
+  }
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
   const stepU=Math.max(dU+cadSpacing,1), stepV=Math.max(dV+cadSpacing,1);   // negative spacing floors at step 1
@@ -11059,9 +11305,9 @@ function cadDrawPattern(){
     if(l.preview)return;
     const fi=cadFamilies[li];
     if(l.arc){
-      // Transform arc center into tiled position
+      // Transform arc center into tiled position (spread keeps ellipse fields)
       const tCenter=[l.center[0]-bbox.minU+ou, l.center[1]-bbox.minV+ov2];
-      const tArc={arc:true,center:tCenter,r:l.r,a1:l.a1,a2:l.a2,
+      const tArc={...l,center:tCenter,
         start:[l.start[0]-bbox.minU+ou,l.start[1]-bbox.minV+ov2],
         end:[l.end[0]-bbox.minU+ou,l.end[1]-bbox.minV+ov2]};
       // Quick visibility check: check screen bbox of the arc
@@ -11112,9 +11358,11 @@ function cadUpdateAll(){
   cadBuildFamBar();
   const el=document.getElementById('cadArcHint');
   if(el){
+    // The arc/ellipse tools own the hint line (their step-by-step labels persist here).
+    const curveTool=cadTool==='arc'||cadTool==='ellipse';
     const red=cadFindRedundant();
-    if(red.length && cadTool!=='arc')el.innerHTML='<span style=\"color:#ff5555\">'+red.length+' redundant line'+(red.length>1?'s':'')+' (red dashed) — excluded when saving</span>';
-    else if(cadTool!=='arc')el.textContent='';
+    if(red.length && !curveTool)el.innerHTML='<span style=\"color:#ff5555\">'+red.length+' redundant line'+(red.length>1?'s':'')+' (red dashed) — excluded when saving</span>';
+    else if(!curveTool)el.textContent='';
   }
 }
 function cadBuildFamBar(){
@@ -11300,10 +11548,12 @@ window.cadSetTool=function(t){
   cadTool=t;
   document.getElementById('cadBtnDraw').classList.toggle('on',t==='draw');
   document.getElementById('cadBtnArc').classList.toggle('on',t==='arc');
+  const eb=document.getElementById('cadBtnEllipse');if(eb)eb.classList.toggle('on',t==='ellipse');
   document.getElementById('cadBtnErase').classList.toggle('on',t==='erase');
   document.getElementById('cadBtnRecolor').classList.toggle('on',t==='recolor');
   cadDrawing=false;cadStart=null;cadHover=null;
   cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;
+  _cadEllReset();
   cadRecolorOn=false;
   cadArcLabel();cadUpdateAll();
 };
@@ -11435,6 +11685,13 @@ window.cadRotate45=function(){
   const C=Math.SQRT2/2;
   const rot=([u,v])=>[cu+(u-cu)*C-(v-cv)*C, cv+(u-cu)*C+(v-cv)*C];
   cadLines=cadLines.map(l=>{
+    if(l.arc&&l.ellipse){
+      // Ellipse: rotate the centre and add 45° to the axis rotation; the parameter
+      // interval a1/a2 is unchanged, so just recompute the endpoint coordinates.
+      const el={...l,center:rot(l.center),rot:(l.rot||0)+Math.PI/4};
+      el.start=_cadEllPt(el,el.a1);el.end=_cadEllPt(el,el.a2);
+      return el;
+    }
     if(l.arc){
       const nCenter=rot(l.center);
       const nStart=rot(l.start);
@@ -11499,23 +11756,38 @@ function _dcClipArc(arc,rc){
       if(t>1e-6&&t<1-1e-6)ts.push(t);
     }
   };
-  for(const X of[rc.x0,rc.x1]){const d=(X-cx)/r;if(Math.abs(d)<=1){const a=Math.acos(Math.max(-1,Math.min(1,d)));addA(a);addA(-a);}}
-  for(const Y of[rc.y0,rc.y1]){const d=(Y-cy)/r;if(Math.abs(d)<=1){const a=Math.asin(Math.max(-1,Math.min(1,d)));addA(a);addA(Math.PI-a);}}
+  if(arc.ellipse){
+    // Ellipse ∩ axis-aligned boundary line: the u- (or v-) coordinate at parameter φ is
+    // A·cosφ + B·sinφ + c, so the crossings solve A·cosφ+B·sinφ=C → φ=atan2(B,A)±acos(C/√(A²+B²)).
+    const co=Math.cos(arc.rot||0), si=Math.sin(arc.rot||0);
+    const solve=(A,B,C)=>{
+      const R=Math.hypot(A,B);
+      if(R<1e-12||Math.abs(C)>R)return[];
+      const al=Math.atan2(B,A), be=Math.acos(Math.max(-1,Math.min(1,C/R)));
+      return[al-be,al+be];
+    };
+    for(const X of[rc.x0,rc.x1])solve(arc.rx*co,-arc.ry*si,X-cx).forEach(addA);
+    for(const Y of[rc.y0,rc.y1])solve(arc.rx*si,arc.ry*co,Y-cy).forEach(addA);
+  }else{
+    for(const X of[rc.x0,rc.x1]){const d=(X-cx)/r;if(Math.abs(d)<=1){const a=Math.acos(Math.max(-1,Math.min(1,d)));addA(a);addA(-a);}}
+    for(const Y of[rc.y0,rc.y1]){const d=(Y-cy)/r;if(Math.abs(d)<=1){const a=Math.asin(Math.max(-1,Math.min(1,d)));addA(a);addA(Math.PI-a);}}
+  }
   ts.sort((x,y)=>x-y);
   const TOL=1e-4, out=[];
   const inside=(x,y)=>x>=rc.x0-TOL&&x<=rc.x1+TOL&&y>=rc.y0-TOL&&y<=rc.y1+TOL;
   for(let i=0;i<ts.length-1;i++){
     if(ts[i+1]-ts[i]<1e-6)continue;
     const am=a1+sweep*(ts[i]+ts[i+1])/2;
-    if(!inside(cx+r*Math.cos(am),cy+r*Math.sin(am)))continue;
+    const mp=_cadArcPt(arc,am);
+    if(!inside(mp[0],mp[1]))continue;
     const b1=a1+sweep*ts[i], b2=a1+sweep*ts[i+1];
     const prev=out[out.length-1];
     if(prev&&Math.abs(prev.a2-b1)<1e-9){prev.a2=b2;continue;} // tangent touch → merge
-    out.push({arc:true,center:[cx,cy],r,a1:b1,a2:b2});
+    out.push({...arc,center:[cx,cy],a1:b1,a2:b2});   // spread keeps ellipse fields
   }
   return out.filter(s=>Math.abs(s.a2-s.a1)*r>=0.01).map(s=>({...s,
-    start:[cx+r*Math.cos(s.a1),cy+r*Math.sin(s.a1)],
-    end:[cx+r*Math.cos(s.a2),cy+r*Math.sin(s.a2)]}));
+    start:_cadArcPt(s,s.a1),
+    end:_cadArcPt(s,s.a2)}));
 }
 // Is straight piece p fully contained in an existing straight line of list?
 function _dcContainedSeg(p,list){
@@ -11538,8 +11810,11 @@ function _dcContainedSeg(p,list){
 function _dcContainedArc(p,list){
   for(const l of list){
     if(!l.arc)continue;
-    if(Math.abs(l.center[0]-p.center[0])>1e-3||Math.abs(l.center[1]-p.center[1])>1e-3
-       ||Math.abs(l.r-p.r)>1e-3)continue;
+    if(Math.abs(l.center[0]-p.center[0])>1e-3||Math.abs(l.center[1]-p.center[1])>1e-3)continue;
+    if(!!l.ellipse!==!!p.ellipse)continue;
+    if(l.ellipse){
+      if(Math.abs(l.rx-p.rx)>1e-3||Math.abs(l.ry-p.ry)>1e-3||Math.abs((l.rot||0)-(p.rot||0))>1e-3)continue;
+    }else if(Math.abs(l.r-p.r)>1e-3)continue;
     const am=(p.a1+p.a2)/2;
     if(cadAngleInArc(p.a1,l)!==null&&cadAngleInArc(am,l)!==null&&cadAngleInArc(p.a2,l)!==null)return true;
   }
@@ -11598,7 +11873,7 @@ window.cadDiamondCut=function(){
 // Convert a CAD line (straight or arc) to the saved format relative to bbox.
 function _cadLineToSaved(l, minU, minV){
   if(l.arc&&l.center!==undefined){
-    return{
+    const o={
       arc:true,
       center:[parseFloat((l.center[0]-minU).toFixed(3)),parseFloat((l.center[1]-minV).toFixed(3))],
       r:parseFloat(l.r.toFixed(3)),
@@ -11607,13 +11882,21 @@ function _cadLineToSaved(l, minU, minV){
       start:[parseFloat((l.start[0]-minU).toFixed(3)),parseFloat((l.start[1]-minV).toFixed(3))],
       end:[parseFloat((l.end[0]-minU).toFixed(3)),parseFloat((l.end[1]-minV).toFixed(3))]
     };
+    if(l.ellipse){
+      o.ellipse=true;
+      o.rx=parseFloat(l.rx.toFixed(3));o.ry=parseFloat(l.ry.toFixed(3));
+      o.rot=parseFloat((l.rot||0).toFixed(6));
+    }
+    return o;
   }
   return{start:[parseFloat((l.start[0]-minU).toFixed(3)),parseFloat((l.start[1]-minV).toFixed(3))],end:[parseFloat((l.end[0]-minU).toFixed(3)),parseFloat((l.end[1]-minV).toFixed(3))]};
 }
 function _cadLineFromSaved(l, minU, minV){
   if(l.arc&&l.center!==undefined){
     const c=[l.center[0]-minU,l.center[1]-minV];
-    return{arc:true,center:c,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV]};
+    const o={arc:true,center:c,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV]};
+    if(l.ellipse){o.ellipse=true;o.rx=l.rx;o.ry=l.ry;o.rot=l.rot||0;}
+    return o;
   }
   return{start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV],...(l.arc?{arc:true}:{})};
 }
@@ -12373,6 +12656,38 @@ function cadInit(){
       }
       cadArcLabel();
     }
+    else if(cadTool==='ellipse'){
+      // 4 clicks: center → first-axis point (rx + tilt) → second radius → sweep & finish.
+      if(cadEllState===0){cadEllCenter=[...cadCur];cadEllState=1;}
+      else if(cadEllState===1){
+        const rx=Math.hypot(cadCur[0]-cadEllCenter[0],cadCur[1]-cadEllCenter[1]);
+        if(rx>=0.01){
+          cadEllAx1=[...cadCur];cadEllRx=rx;
+          cadEllRot=Math.atan2(cadCur[1]-cadEllCenter[1],cadCur[0]-cadEllCenter[0]);
+          cadEllState=2;
+        }
+      }
+      else if(cadEllState===2){
+        const ry=_cadEllPerpR(cadCur);
+        if(ry>=0.01){
+          cadEllRy=ry;
+          // The sweep starts at the parameter under the cursor (mirrors the arc tool,
+          // where the sweep starts at the radius click).
+          cadEllA1=_cadEllParam(_cadEllProto(),cadCur);
+          cadEllSweep=0;cadEllPrevAng=cadEllA1;
+          cadEllState=3;
+        }
+      }
+      else if(cadEllState===3){
+        cadHistory.push({l:JSON.parse(JSON.stringify(cadLines)),f:[...cadFamilies]});
+        const el=cadGenEllipseSweep(cadEllCenter,cadEllRx,cadEllRy,cadEllRot,cadEllA1,cadEllSweep);
+        if(el)cadLines.push(el);
+        cadFamsLocked=false;cadFamSel=-1;
+        _cadEllReset();
+        cadAutoExtendGrid();
+      }
+      cadArcLabel();
+    }
     else if(cadTool==='erase'){
       // Normal erase: cut the hovered segment
       if(!cadHover)return;
@@ -12396,10 +12711,11 @@ function cadInit(){
           if(t1-t0<0.001)continue;
           const ang0=a1+sweepDir*t0*totalSweep;
           const ang1=a1+sweepDir*t1*totalSweep;
-          const p0=[arc.center[0]+arc.r*Math.cos(ang0),arc.center[1]+arc.r*Math.sin(ang0)];
-          const p1=[arc.center[0]+arc.r*Math.cos(ang1),arc.center[1]+arc.r*Math.sin(ang1)];
+          const p0=_cadArcPt(arc,ang0);
+          const p1=_cadArcPt(arc,ang1);
           if(Math.hypot(p1[0]-p0[0],p1[1]-p0[1])>0.005){
-            cadLines.push({arc:true,center:[...arc.center],r:arc.r,a1:ang0,a2:ang1,start:p0,end:p1});
+            // Spread keeps the ellipse fields (rx/ry/rot) on the surviving sub-arcs.
+            cadLines.push({...arc,center:[...arc.center],a1:ang0,a2:ang1,start:p0,end:p1});
           }
         }
       }else{
@@ -12419,13 +12735,20 @@ function cadInit(){
       cadDrawWorkspace();return;
     }
     const g=cadS2G(pos.x,pos.y,cadOX,cadOY,cadTileSize);
-    if(cadTool==='draw'||cadTool==='arc')cadCur=cadSnapPoint(g.u,g.v);
+    if(cadTool==='draw'||cadTool==='arc'||cadTool==='ellipse')cadCur=cadSnapPoint(g.u,g.v);
     // Arc: after the radius click, accumulate the sweep continuously as the mouse circles the
     // centre — so the arc can be any size and close a full circle whichever way you go round.
     if(cadTool==='arc'&&cadArcState===2&&cadArcCenter){
       const ang=Math.atan2(g.v-cadArcCenter[1],g.u-cadArcCenter[0]);
       let d=ang-cadArcPrevAng; while(d>Math.PI)d-=2*Math.PI; while(d<=-Math.PI)d+=2*Math.PI;
       cadArcSweep=Math.max(-2*Math.PI,Math.min(2*Math.PI,cadArcSweep+d)); cadArcPrevAng=ang;
+    }
+    // Ellipse: same continuous accumulation, but in PARAMETER space (the mouse's parameter
+    // on the chosen ellipse), so a full turn of the mouse closes a full ellipse either way.
+    else if(cadTool==='ellipse'&&cadEllState===3&&cadEllCenter){
+      const ang=_cadEllParam(_cadEllProto(),[g.u,g.v]);
+      let d=ang-cadEllPrevAng; while(d>Math.PI)d-=2*Math.PI; while(d<=-Math.PI)d+=2*Math.PI;
+      cadEllSweep=Math.max(-2*Math.PI,Math.min(2*Math.PI,cadEllSweep+d)); cadEllPrevAng=ang;
     }
     else if(cadTool==='recolor'){cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
     else{cadHover=cadHoveredSeg(g.u,g.v);cv.style.cursor=cadHover?'pointer':'default';}
@@ -12445,6 +12768,7 @@ function cadInit(){
     if(!document.getElementById('cadView').classList.contains('open'))return;
     if(e.ctrlKey&&(e.key==='z'||e.key==='Z'))cadUndo();
     if(e.key==='Escape'&&cadTool==='arc'){cadArcState=0;cadArcCenter=null;cadArcStart=null;cadArcSweep=0;cadArcLabel();cadUpdateAll();}
+    if(e.key==='Escape'&&cadTool==='ellipse'){_cadEllReset();cadArcLabel();cadUpdateAll();}
     if(e.key==='Escape'&&cadTool==='draw'){cadDrawing=false;cadStart=null;cadUpdateAll();}
   });
   if(!_cadResizeBound){_cadResizeBound=true;window.addEventListener('resize',()=>{if(document.getElementById('cadView').classList.contains('open'))cadAlignHeads();});}
@@ -12924,6 +13248,12 @@ function _pdfDraftWindow(px){
     const gp=cc.iso?_isoRoundArcPts(cc.c,cc.r,0,2*Math.PI,NS)
                    :Array.from({length:NS+1},(_,k)=>{const a=k/NS*2*Math.PI;return[cc.c[0]+cc.r*Math.cos(a),cc.c[1]+cc.r*Math.sin(a)];});
     gp.forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)x.moveTo(p.x,p.y);else x.lineTo(p.x,p.y);});
+    x.stroke();
+  });
+  // Elliptical arcs → their full pre-drawn ellipse (mirrors the gallery draft view).
+  (_galDraftShapes().ellipses||[]).forEach(e=>{
+    x.beginPath();
+    _galEllipsePts(e,NS).forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)x.moveTo(p.x,p.y);else x.lineTo(p.x,p.y);});
     x.stroke();
   });
   // The stitch-path lines highlighted on top.

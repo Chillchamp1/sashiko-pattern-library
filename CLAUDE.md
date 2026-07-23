@@ -489,6 +489,30 @@ Exp pattern thumbnails use `height:auto` CSS for non-square iso canvases.
 - **No `el.onclick=null`** in update functions — breaks the Reset/Play button
 - **Arc resolution in CAD editor:** max 30 segments per full circle (`Math.max(3, Math.round(sweep/2pi * 30))`) — sashiko stitching needs low-poly curves
 - **Arc tool sweep is continuous (2026-07-05):** click centre → click radius → then **move** the mouse to sweep the arc (the sweep is *accumulated* in `pointermove` as the cursor circles the centre: `cadArcSweep` += per-move angle delta, `cadArcPrevAng`) → click to finish. So the arc can be **any size** (incl. >180°) and closes a **full circle whichever direction** you sweep — `cadGenArcSweep(center,start,sweep)` builds it from the signed accumulated angle (snaps to ±2π near a full turn), replacing the old shortest-path `cadGenArc(center,start,end)` at the preview + finalize call sites. `cadArcSweep` resets on tool switch / Esc / finish. Partial arcs still supported; still click-based (3 clicks: centre, radius, finish).
+- **⬭ Ellipse tool (2026-07-23):** elliptical arcs alongside circular ones. 4 clicks: center →
+  first-axis point (sets `rx` AND the tilt `rot` from its direction) → second radius (perpendicular
+  distance from the axis line) → sweep continuously like the arc tool (accumulated in PARAMETER
+  space via `_cadEllParam`, full turn = full ellipse either way) → click to finish. Stored as a
+  generalised arc entry `{arc:true, ellipse:true, center, rx, ry, rot, a1, a2, start, end}` +
+  `r=(rx+ry)/2` as a graceful fallback for circle-only code paths. **a1/a2 are parameter angles**
+  (φ in `p=C+R(rot)·(rx·cosφ, ry·sinφ)`), which behave exactly like circle angles (periodic 2π,
+  monotonic along the sweep) — so ALL the sweep bookkeeping (`cadAngleInArc`, `toSweep`, sub-arc
+  splitting in cut/diamond-cut) works unchanged. Key helpers (cad-engine.js): `_cadEllPt`/
+  `_cadEllParam`/`_cadArcPt` (generic point-at-parameter), `cadGenEllipseSweep`,
+  `_cadDistToEllipse` (hover, dense polyline), `_cadLineEllipseIntersections` (EXACT via the
+  unit-circle transform), `_cadCurveCurveIntersections` (curve∩curve fallback via flattened
+  chains when either side is an ellipse). Dispatched at the top of `cadDistToArc`/
+  `cadLineArcIntersections`/`cadArcArcIntersections`, so the **Cut tool fully works on ellipses**.
+  `cadBBox`/`cadBBox2` take the flattened-polyline bbox for ellipses (that IS the stitched
+  geometry). `cadRotate45` adds π/4 to `rot`; `_dcClipArc` solves A·cosφ+B·sinφ=C per boundary
+  line (diamond cut works). Routing side (`_flattenArc` in experimental.js): flattens via the
+  parameter form and tags segs with `ell:{c,rx,ry,rot}` (tiled copies get offset centers in
+  `genTiledSegs`), which `_galDraftShapes` uses to recover the **full pre-drawn ellipse** for the
+  Draft view + PDF drafting window (`_galEllipsePts`), like circles get their circumcircle.
+  Ellipses are drawn in grid (u,v) space on BOTH grid types — no iso round-on-screen correction
+  (that special case stays circles-only), so on iso an ellipse renders projected. Purely additive:
+  no existing pattern has the flag; `route.js --check` verified unchanged. The hint line under the
+  canvases is shared with the arc tool (`cadArcLabel`; `cadUpdateAll` leaves it alone for both).
 - **Drawn shapes are kept whole (NOT auto-split at intersections):** each line/arc drawn in one piece stays a single `cadLines` entry, so the router's arc-atomicity (each `aid` = one atomic stroke, `extractArcStrokes` in `experimental.js`) makes it stitch as ONE continuous line (e.g. Maru Shippō circles route as full loops). The **Cut tool** (`erase`) still segments a whole shape on demand: `cadHoveredSeg` computes break points from intersections dynamically, so you can cut at any crossing without the geometry being pre-split. The old auto-splitter (`cadSplitOffGrid`) and the **Split tool** (`cadSplitAt`/`cadMergeAllAt`/`cadIsSplitPoint`/`cadIsMergePoint`/`_splitArc`) were removed — they were an earlier approach that broke shapes into segments and hurt routing.
 
 ## Custom Pattern Features (Experimental)

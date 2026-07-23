@@ -1060,6 +1060,22 @@ function _flattenArc(l, nSegs, arcId, iso){
   const totalSweep=Math.abs(sweep);
   const segs=Math.max(2,Math.round(totalSweep/(2*Math.PI)*(nSegs||60)));
   const result=[];
+  // Elliptical arc (CAD ellipse tool): p(φ)=C+R(rot)·(rx·cosφ, ry·sinφ), flattened in grid
+  // space on both grid types (no iso round-on-screen correction — circles only). Each seg
+  // carries the ellipse params (`ell`) so the draft view can recover the FULL ellipse the
+  // way it recovers full circles; genTiledSegs offsets ell.c per tile.
+  if(l.ellipse){
+    const co=Math.cos(l.rot||0), si=Math.sin(l.rot||0);
+    const pt=a=>{const x=l.rx*Math.cos(a),y=l.ry*Math.sin(a);return[l.center[0]+x*co-y*si,l.center[1]+x*si+y*co];};
+    const ell={c:[l.center[0],l.center[1]],rx:l.rx,ry:l.ry,rot:l.rot||0};
+    let prev=[...l.start];
+    for(let i=1;i<=segs;i++){
+      const next=pt(a1+sweep*(i/segs));
+      result.push({start:prev,end:next,aid:arcId,ell});
+      prev=next;
+    }
+    return result;
+  }
   // Use the exact center→start radius, not the stored l.r (which may be rounded, e.g.
   // 1.414 vs √2). A rounded radius drifts the computed points off the clean grid by
   // float noise — enough to break arc→arc endpoint merging when tiled (dead-ends, no
@@ -1162,7 +1178,9 @@ function genTiledSegs(pat){
   // everything else (same reasoning as the v2 routing modes — no engine fork needed).
   if(pat.embroidery){
     flatSegs.forEach((l,fi)=>{
-      segs.push({start:[...l.start],end:[...l.end],fam:flatFamOf[fi],aid:l.aid});
+      const s={start:[...l.start],end:[...l.end],fam:flatFamOf[fi],aid:l.aid};
+      if(l.ell)s.ell=l.ell;
+      segs.push(s);
     });
     return segs;
   }
@@ -1190,7 +1208,9 @@ function genTiledSegs(pat){
         const base=tileAid; tileAid+=arcIdCounter;
         flatSegs.forEach((l,fi)=>{
           const aid=l.aid>=0?base+l.aid:-1;
-          segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid});
+          const s={start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid};
+          if(l.ell)s.ell={c:[l.ell.c[0]+ou,l.ell.c[1]+ov],rx:l.ell.rx,ry:l.ell.ry,rot:l.ell.rot};
+          segs.push(s);
         });
       }
     }
@@ -1205,7 +1225,9 @@ function genTiledSegs(pat){
         const base=tileAid; tileAid+=arcIdCounter;
         flatSegs.forEach((l,fi)=>{
           const aid=l.aid>=0?base+l.aid:-1;
-          segs.push({start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid});
+          const s={start:[l.start[0]+ou,l.start[1]+ov],end:[l.end[0]+ou,l.end[1]+ov],fam:flatFamOf[fi],aid};
+          if(l.ell)s.ell={c:[l.ell.c[0]+ou,l.ell.c[1]+ov],rx:l.ell.rx,ry:l.ell.ry,rot:l.ell.rot};
+          segs.push(s);
         });
       }
     }
@@ -1570,7 +1592,9 @@ window.editExpPattern=async function(idOrPat){
    cadLines=pat.lines.map(l=>{
      if(l.arc&&l.center!==undefined){
        const nc=[l.center[0]+su,l.center[1]+sv];
-       return{arc:true,center:nc,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]+su,l.start[1]+sv],end:[l.end[0]+su,l.end[1]+sv]};
+       const o={arc:true,center:nc,r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0]+su,l.start[1]+sv],end:[l.end[0]+su,l.end[1]+sv]};
+       if(l.ellipse){o.ellipse=true;o.rx=l.rx;o.ry=l.ry;o.rot=l.rot||0;}
+       return o;
      }
      return{start:[l.start[0]+su,l.start[1]+sv],end:[l.end[0]+su,l.end[1]+sv],...(l.arc?{arc:true}:{})};
    });
@@ -2765,7 +2789,7 @@ function _circumcircle(A,B,C){
 // whole circle, then stitches only the arc). Cached by EXP_path so Play stays cheap.
 function _galDraftShapes(){
   if(_galDraftCache&&_galDraftCache.ref===EXP_path)return _galDraftCache;
-  const out={ref:EXP_path,lines:[],circles:[]};
+  const out={ref:EXP_path,lines:[],circles:[],ellipses:[]};
   if(!curPat){return(_galDraftCache=out);}
   const iso=curPat.gridType==='isometric';
   const segs=tiledSegsFor({...curPat,patMacro:patMacroForTiles(curPat,_tileCells)});
@@ -2775,6 +2799,9 @@ function _galDraftShapes(){
     else out.lines.push({a:s.start,b:s.end});
   });
   byAid.forEach(group=>{
+    // Elliptical arcs carry their exact params on the segs (_flattenArc `ell`, tiled by
+    // genTiledSegs) — recover the FULL ellipse directly, like circles get their full circle.
+    if(group[0].ell){out.ellipses.push(group[0].ell);return;}
     const pts=[group[0].start];group.forEach(s=>pts.push(s.end));
     if(pts.length<3)return;
     const p3=[pts[0],pts[Math.floor(pts.length/3)],pts[Math.floor(2*pts.length/3)]];
@@ -2837,7 +2864,21 @@ function _galDrawDraft(){
     gp.forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});
     ctx.stroke();
   });
+  // Elliptical arcs recovered as their FULL pre-drawn ellipse (same idea as the circles).
+  (_galDraftShapes().ellipses||[]).forEach(e=>{
+    ctx.beginPath();
+    _galEllipsePts(e,NS).forEach((g,k)=>{const p=EXP_g2s(g);if(k===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});
+    ctx.stroke();
+  });
   ctx.restore();
+}
+// Grid-space outline points of a draft ellipse {c,rx,ry,rot} (n+1 points, closed).
+function _galEllipsePts(e,n){
+  const co=Math.cos(e.rot||0), si=Math.sin(e.rot||0);
+  return Array.from({length:n+1},(_,k)=>{
+    const a=k/n*2*Math.PI, x=e.rx*Math.cos(a), y=e.ry*Math.sin(a);
+    return[e.c[0]+x*co-y*si, e.c[1]+x*si+y*co];
+  });
 }
 // ── Stitch-view options + thread-colour preview (gallery animation view) ─────
 function syncGalStitchUI(){
@@ -3308,7 +3349,9 @@ window.remixPattern=function(id){
   if(!confirm('Create a remix of "'+(pat.name||'Custom')+'"?'))return;
   cadLines=pat.lines.map(l=>{
     if(l.arc&&l.center!==undefined){
-      return{arc:true,center:[l.center[0],l.center[1]],r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]};
+      const o={arc:true,center:[l.center[0],l.center[1]],r:l.r,a1:l.a1,a2:l.a2,start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]]};
+      if(l.ellipse){o.ellipse=true;o.rx=l.rx;o.ry=l.ry;o.rot=l.rot||0;}
+      return o;
     }
     return{start:[l.start[0],l.start[1]],end:[l.end[0],l.end[1]],...(l.arc?{arc:true}:{})};
   });
