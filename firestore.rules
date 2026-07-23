@@ -80,6 +80,19 @@ service cloud.firestore {
         allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       }
 
+      // Per-pattern download marks: ONE doc per visitor (doc id = their auth uid),
+      // written when they export a GIF/PDF of the pattern — so repeat downloads by
+      // the same person count once. Public read — the aggregated count shows next
+      // to the Download button and feeds the gallery engagement sort (sub-linear).
+      // Update allowed (owner re-downloading just refreshes their own mark).
+      match /downloads/{uid} {
+        allow read: if true;
+        allow create, update: if request.auth != null
+                      && request.auth.uid == uid
+                      && request.resource.data.keys().size() <= 3;
+        allow delete: if isAdmin();
+      }
+
       // Per-pattern photos ("my stitched piece"): ONE doc per visitor — the doc id
       // must equal the uploader's auth uid, which hard-caps junk volume per person.
       // data = compressed base64 JPEG (< ~400 KB). New/replaced photos are always

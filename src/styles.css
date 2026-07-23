@@ -188,7 +188,9 @@ button.ctrl.primary:hover{background:#275784}
    flex column entirely so they don't contribute a 14px gap above the Download button. */
 .jumpbar:empty,.tip:empty{display:none}
 /* ── Download dropdown (pattern viewer) ── */
-.download-bar{position:relative;display:flex;justify-content:center;margin-top:6px}
+.download-bar{position:relative;display:flex;align-items:center;gap:6px;justify-content:center;margin-top:6px}
+/* ⬇ N unique-downloader count next to the Download button (hidden at 0) */
+.dl-count-badge{font-size:11px;color:#9cc2e8;pointer-events:none;white-space:nowrap}
 .dl-caret{display:inline-block;font-size:10px}
 .dl-menu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
   background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;
@@ -485,6 +487,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
 /* Read-only heart count on gallery cards */
 .like-heart-count{font-size:11px;color:#e09090;padding:1px 4px;pointer-events:none}
 .cm-count{font-size:11px;color:#9cc2e8;padding:1px 4px;pointer-events:none}
+.dl-count{font-size:11px;color:#a8c8a8;padding:1px 4px;pointer-events:none}
 /* My Patterns view overlay */
 #myPatsView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
 #myPatsView.open{display:block}

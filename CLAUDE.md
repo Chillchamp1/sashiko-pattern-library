@@ -362,10 +362,21 @@ exposure window, in `_engagement`) — driven by `pat.publishedAt`, stamped on t
 `publishExpPattern`; pre-existing publications have no stamp → no retroactive boost. The About dropdown shows `≈ N visitors
 per day` from GoatCounter's public counter endpoint (`_loadAboutVisitors`, download.js; fetched on first open,
 hidden on failure)
-(`_engagement` in gallery.js; counts cached in `_likeCounts`/`_commentCounts`, prefetched by
+(`_engagement` in gallery.js; counts cached in `_likeCounts`/`_commentCounts`/`_dlCounts`, prefetched by
 `_refreshEngagement` after the Firestore fetch, re-sorting via `_resortGalleryIfChanged` only when the
 visible order actually changed): equal hearts → comments break the tie; a commented zero-heart pattern
-outranks a silent one; one heart outweighs two comments. The admin drag order is the tiebreak within equal
+outranks a silent one; one heart outweighs two comments. **Download counter (2026-07-23):** GIF/PDF
+exports (not the STL placeholder) write one Firestore doc per visitor under
+`patterns/{id}/downloads/{authUid}` (doc id = auth uid → hard per-person dedupe; **needs the
+`/downloads` rules block in `firestore.rules` deployed** — until then it degrades to the per-device
+localStorage mirror `sashiko_dl_mine`). The count shows as a `⬇ N` badge next to the detail Download
+button (`#dlBtnCount`, refreshed by `_resetDownloadCount` from `loadPattern`) and on gallery cards
+(`.dl-count` in the like-row, only when N>0). Score contribution = **2·√d** (in `_engagement`):
+the first unique downloader is worth 2 pts — between a comment (1, weaker signal) and a heart (3,
+more deliberate endorsement) — and growth is sub-linear (4 downloads = 4 pts, 9 = 6, 25 = 10) because
+downloading is the default action for anyone *using* a pattern, so mass downloads can never drown out
+linearly-growing hearts. Recording: `_recordDownload(id)` in experimental.js (called from
+`downloadGIF`/`downloadPDF` after a successful export). The admin drag order is the tiebreak within equal
 scores (in practice: the all-zero majority), so curation still shapes the default layout. `_syncMyLikes`
 pushes a device's pre-global local hearts to the cloud once (retries each session until the rules exist). **Editing preserves the
 position (2026-07-22):** the edit branches of `cadSaveToLibrary`/`cadPublishToLibrary` MERGE the new save over the

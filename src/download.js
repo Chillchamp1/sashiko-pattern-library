@@ -66,7 +66,10 @@ window.downloadGIF=function(){
   const setBusy=txt=>{if(item){item.classList.add('busy');item.innerHTML='<span>🎞 '+txt+'</span><small>keep this tab open…</small>';}};
   setBusy('Generating GIF…');
   setTimeout(async()=>{
-    try{ await _buildGIF(p=>setBusy('Generating GIF… '+p+'%')); }
+    try{
+      await _buildGIF(p=>setBusy('Generating GIF… '+p+'%'));
+      if(window._recordDownload)_recordDownload(curPat.id);   // global ⬇ counter (deduped per visitor)
+    }
     catch(err){ console.error(err); alert('GIF export failed: '+err.message); }
     if(item){item.classList.remove('busy');item.innerHTML=restore;}
   },40);
@@ -268,7 +271,10 @@ const A4_W=595.28, A4_H=841.89;
 window.downloadPDF=function(){
   const menu=document.getElementById('dlMenu');if(menu)menu.style.display='none';
   if(!curPat){alert('Open a pattern first.');return;}
-  try{ _buildPDF(); }
+  try{
+    _buildPDF();
+    if(window._recordDownload)_recordDownload(curPat.id);   // global ⬇ counter (deduped per visitor)
+  }
   catch(err){ console.error(err); alert('PDF export failed: '+err.message); }
 };
 

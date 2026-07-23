@@ -211,7 +211,9 @@ button.ctrl.primary:hover{background:#275784}
    flex column entirely so they don't contribute a 14px gap above the Download button. */
 .jumpbar:empty,.tip:empty{display:none}
 /* ── Download dropdown (pattern viewer) ── */
-.download-bar{position:relative;display:flex;justify-content:center;margin-top:6px}
+.download-bar{position:relative;display:flex;align-items:center;gap:6px;justify-content:center;margin-top:6px}
+/* ⬇ N unique-downloader count next to the Download button (hidden at 0) */
+.dl-count-badge{font-size:11px;color:#9cc2e8;pointer-events:none;white-space:nowrap}
 .dl-caret{display:inline-block;font-size:10px}
 .dl-menu{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
   background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;
@@ -508,6 +510,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
 /* Read-only heart count on gallery cards */
 .like-heart-count{font-size:11px;color:#e09090;padding:1px 4px;pointer-events:none}
 .cm-count{font-size:11px;color:#9cc2e8;padding:1px 4px;pointer-events:none}
+.dl-count{font-size:11px;color:#a8c8a8;padding:1px 4px;pointer-events:none}
 /* My Patterns view overlay */
 #myPatsView{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;overflow-y:auto;padding:20px 16px 40px;box-sizing:border-box}
 #myPatsView.open{display:block}
@@ -551,7 +554,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p>Feel free to copy, mod or reimagine this project. If you do so, please mention sashikolib.org as a source.</p>
       <p>If you love what’s being built here, a small <a class="about-link" href="https://ko-fi.com/chillchamp" target="_blank" rel="noopener">donation</a> keeps the servers running and the stitches flowing❤️</p>
       <p class="build-stamp" id="aboutVisitors" style="display:none"></p>
-      <p class="build-stamp">sashikolib.org · build 2026-07-22</p>
+      <p class="build-stamp">sashikolib.org · build 2026-07-23</p>
     </div>
   </div>
   <div class="gal-tabs" role="tablist">
@@ -707,6 +710,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   <div class="action-bar" id="actionBar">
     <div class="download-bar" id="downloadBar">
       <button class="ctrl gal-pop-btn" id="downloadBtn" onclick="toggleDownloadMenu()">⬇ Download <span class="dl-caret">▾</span></button>
+      <span class="dl-count-badge" id="dlBtnCount" style="display:none" title="Unique downloaders"></span>
       <div class="dl-menu" id="dlMenu" style="display:none">
         <button class="dl-item" onclick="downloadGIF()"><span>🎞 Animated GIF</span><small>this pattern’s stitch animation</small></button>
         <button class="dl-item" onclick="downloadPDF()"><span>📄 PDF</span><small>printable stitching sheet (A4)</small></button>
@@ -5945,6 +5949,7 @@ function loadPattern(pat){
 
   curPat=pat;
   if(typeof _resetCommentBar==='function')_resetCommentBar();
+  if(typeof _resetDownloadCount==='function')_resetDownloadCount();
   isEXP=pat.type==='exp';
   const isGen=pat.type==='generator';
   isHM=isGen||pat.type==='hitomezashi';
@@ -6594,7 +6599,18 @@ function _engagement(p){
   // publications have no stamp → no retroactive boost.
   const age=p.publishedAt?(Date.now()-p.publishedAt)/86400000:Infinity;
   const fresh=age<10?8*(1-age/10):0;
-  return 3*h+c+vb+fresh;
+  // Download bonus: d = UNIQUE downloaders (patterns/{id}/downloads/*, one doc per
+  // auth uid, cached in _dlCounts) — repeat downloads by the same person never
+  // inflate it. Worth = 2·√d: the FIRST downloader scores 2 pts, between a comment
+  // (1) and a heart (3) — downloading a sheet signals intent to actually stitch the
+  // pattern, a stronger signal than a comment but a less deliberate endorsement
+  // than a heart. Growth is SUB-linear (4 downloads = 4 pts, 9 = 6, 25 = 10) since
+  // downloading is the default action for anyone using a pattern: hearts keep
+  // growing 3/each linearly, so a merely much-downloaded pattern can't drown out
+  // genuinely loved ones long-term.
+  const d=(typeof _dlCounts!=='undefined'&&_dlCounts[p.id])||0;
+  const dl=2*Math.sqrt(d);
+  return 3*h+c+vb+fresh+dl;
 }
 function _expGalleryOrder(a,b){
   const ea=_engagement(a), eb=_engagement(b);
@@ -9885,11 +9901,11 @@ async function _fetchLikeCount(id){
     _likeCounts[id]=n;return n;
   }catch(e){return _localHearts(id);}   // rules not deployed yet → local fallback
 }
-// Prefetch heart+comment counts for every published pattern, then re-sort the
-// gallery once if engagement actually changed the order.
+// Prefetch heart+comment+download counts for every published pattern, then
+// re-sort the gallery once if engagement actually changed the order.
 async function _refreshEngagement(){
   const pubs=EXP_PATTERNS.filter(p=>p.published&&!p.deleted);
-  await Promise.all(pubs.map(p=>Promise.all([_fetchLikeCount(p.id),_fetchCommentCount(p.id)])));
+  await Promise.all(pubs.map(p=>Promise.all([_fetchLikeCount(p.id),_fetchCommentCount(p.id),_fetchDownloadCount(p.id)])));
   if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
 }
 // One-time migration: hearts given before they went global exist only in this
@@ -9908,6 +9924,68 @@ async function _syncMyLikes(){
     localStorage.setItem('sashiko_likes_synced','1');
   }catch(e){}   // rules not deployed yet → try again next session
 }
+// ── Download counter ─────────────────────────────────────────────────────────
+// Downloads are GLOBAL like hearts: one Firestore doc per visitor under
+// patterns/{id}/downloads/{authUid} (doc id = the auth uid → hard per-person
+// dedupe: exporting the same pattern five times still counts once; needs the
+// /downloads rules block deployed — until then everything degrades to a
+// per-device localStorage mirror, 'sashiko_dl_mine'). The count shows as the
+// ⬇ N badge next to the detail Download button (#dlBtnCount) and on gallery
+// cards, and feeds the engagement sort sub-linearly (gallery.js _engagement).
+function _getMyDls(){try{return JSON.parse(localStorage.getItem('sashiko_dl_mine')||'{}');}catch(e){return{};}}
+let _dlCounts={};
+async function _fetchDownloadCount(id){
+  if(id in _dlCounts)return _dlCounts[id];
+  if(!_db||!_firebaseReady)return _getMyDls()[id]?1:0;
+  try{
+    const col=_db.collection('patterns').doc(id).collection('downloads');
+    let n;
+    if(typeof col.count==='function'){const s=await col.count().get();n=s.data().count;}
+    else{const s=await col.get();n=s.size;}
+    _dlCounts[id]=n;return n;
+  }catch(e){return _getMyDls()[id]?1:0;}   // rules not deployed yet → local fallback
+}
+// ⬇ N badge next to the detail-view Download button (hidden at 0, like the hearts).
+function _renderDownloadCount(){
+  const el=document.getElementById('dlBtnCount');if(!el)return;
+  const id=curPat&&curPat.id;
+  const n=id?((id in _dlCounts)?_dlCounts[id]:(_getMyDls()[id]?1:0)):0;
+  el.textContent='⬇ '+n;
+  el.style.display=n>0?'':'none';
+}
+// Called from loadPattern (render.js) when a pattern opens: show the cached count
+// immediately, then refresh with one cheap read (count() aggregation when available).
+function _resetDownloadCount(){
+  _renderDownloadCount();
+  const id=curPat&&curPat.id;
+  if(id)_fetchDownloadCount(id).then(()=>{if(curPat&&curPat.id===id)_renderDownloadCount();});
+}
+// Record a completed export (called from download.js after a GIF/PDF actually
+// downloads — not for the STL placeholder). Optimistic local bump on the first
+// download from this device; the Firestore doc id (auth uid) is the real dedupe.
+window._recordDownload=async function(id){
+  if(!id)return;
+  const mine=_getMyDls();
+  const first=!mine[id];
+  if(first){
+    mine[id]=1;localStorage.setItem('sashiko_dl_mine',JSON.stringify(mine));
+    if(id in _dlCounts)_dlCounts[id]++;
+    _renderDownloadCount();renderLikeButtons(id);
+  }
+  if(_db&&_firebaseReady){
+    try{
+      await _awaitAuth();
+      await _db.collection('patterns').doc(id).collection('downloads').doc(_authUid)
+        .set({uid:_authUid,created:Date.now()});
+      // First download with no cached count yet: pull the true global count now.
+      if(first&&!(id in _dlCounts)){
+        await _fetchDownloadCount(id);
+        _renderDownloadCount();renderLikeButtons(id);
+      }
+    }catch(e){}   // rules not deployed / offline → stays in the local mirror
+  }
+  if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
+};
 window.likePattern=async function(id){
   if(!id)return;
   const likes=_getLikes();if(!likes[id])likes[id]={up:0,down:0};
@@ -9945,11 +10023,13 @@ function renderLikeButtons(id){
         `<button class="like-btn remix" onclick="remixPattern('${id}')" title="Remix">↗ Remix</button>`+
         `<button class="like-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`;
     }else{
-      // Gallery card: read-only heart + comment counts
+      // Gallery card: read-only heart + comment + download counts
       const cc=_commentCounts[id]||0;
+      const dc=(id in _dlCounts)?_dlCounts[id]:0;
       let html='';
       if(hearts>0)html+=`<span class="like-heart-count">♥ ${hearts}</span>`;
       if(cc>0)html+=`<span class="cm-count">💬 ${cc}</span>`;
+      if(dc>0)html+=`<span class="dl-count">⬇ ${dc}</span>`;
       el.innerHTML=html;
     }
   });
@@ -12547,7 +12627,10 @@ window.downloadGIF=function(){
   const setBusy=txt=>{if(item){item.classList.add('busy');item.innerHTML='<span>🎞 '+txt+'</span><small>keep this tab open…</small>';}};
   setBusy('Generating GIF…');
   setTimeout(async()=>{
-    try{ await _buildGIF(p=>setBusy('Generating GIF… '+p+'%')); }
+    try{
+      await _buildGIF(p=>setBusy('Generating GIF… '+p+'%'));
+      if(window._recordDownload)_recordDownload(curPat.id);   // global ⬇ counter (deduped per visitor)
+    }
     catch(err){ console.error(err); alert('GIF export failed: '+err.message); }
     if(item){item.classList.remove('busy');item.innerHTML=restore;}
   },40);
@@ -12749,7 +12832,10 @@ const A4_W=595.28, A4_H=841.89;
 window.downloadPDF=function(){
   const menu=document.getElementById('dlMenu');if(menu)menu.style.display='none';
   if(!curPat){alert('Open a pattern first.');return;}
-  try{ _buildPDF(); }
+  try{
+    _buildPDF();
+    if(window._recordDownload)_recordDownload(curPat.id);   // global ⬇ counter (deduped per visitor)
+  }
   catch(err){ console.error(err); alert('PDF export failed: '+err.message); }
 };
 

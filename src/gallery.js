@@ -156,7 +156,18 @@ function _engagement(p){
   // publications have no stamp → no retroactive boost.
   const age=p.publishedAt?(Date.now()-p.publishedAt)/86400000:Infinity;
   const fresh=age<10?8*(1-age/10):0;
-  return 3*h+c+vb+fresh;
+  // Download bonus: d = UNIQUE downloaders (patterns/{id}/downloads/*, one doc per
+  // auth uid, cached in _dlCounts) — repeat downloads by the same person never
+  // inflate it. Worth = 2·√d: the FIRST downloader scores 2 pts, between a comment
+  // (1) and a heart (3) — downloading a sheet signals intent to actually stitch the
+  // pattern, a stronger signal than a comment but a less deliberate endorsement
+  // than a heart. Growth is SUB-linear (4 downloads = 4 pts, 9 = 6, 25 = 10) since
+  // downloading is the default action for anyone using a pattern: hearts keep
+  // growing 3/each linearly, so a merely much-downloaded pattern can't drown out
+  // genuinely loved ones long-term.
+  const d=(typeof _dlCounts!=='undefined'&&_dlCounts[p.id])||0;
+  const dl=2*Math.sqrt(d);
+  return 3*h+c+vb+fresh+dl;
 }
 function _expGalleryOrder(a,b){
   const ea=_engagement(a), eb=_engagement(b);

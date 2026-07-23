@@ -3168,11 +3168,11 @@ async function _fetchLikeCount(id){
     _likeCounts[id]=n;return n;
   }catch(e){return _localHearts(id);}   // rules not deployed yet → local fallback
 }
-// Prefetch heart+comment counts for every published pattern, then re-sort the
-// gallery once if engagement actually changed the order.
+// Prefetch heart+comment+download counts for every published pattern, then
+// re-sort the gallery once if engagement actually changed the order.
 async function _refreshEngagement(){
   const pubs=EXP_PATTERNS.filter(p=>p.published&&!p.deleted);
-  await Promise.all(pubs.map(p=>Promise.all([_fetchLikeCount(p.id),_fetchCommentCount(p.id)])));
+  await Promise.all(pubs.map(p=>Promise.all([_fetchLikeCount(p.id),_fetchCommentCount(p.id),_fetchDownloadCount(p.id)])));
   if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
 }
 // One-time migration: hearts given before they went global exist only in this
@@ -3191,6 +3191,68 @@ async function _syncMyLikes(){
     localStorage.setItem('sashiko_likes_synced','1');
   }catch(e){}   // rules not deployed yet → try again next session
 }
+// ── Download counter ─────────────────────────────────────────────────────────
+// Downloads are GLOBAL like hearts: one Firestore doc per visitor under
+// patterns/{id}/downloads/{authUid} (doc id = the auth uid → hard per-person
+// dedupe: exporting the same pattern five times still counts once; needs the
+// /downloads rules block deployed — until then everything degrades to a
+// per-device localStorage mirror, 'sashiko_dl_mine'). The count shows as the
+// ⬇ N badge next to the detail Download button (#dlBtnCount) and on gallery
+// cards, and feeds the engagement sort sub-linearly (gallery.js _engagement).
+function _getMyDls(){try{return JSON.parse(localStorage.getItem('sashiko_dl_mine')||'{}');}catch(e){return{};}}
+let _dlCounts={};
+async function _fetchDownloadCount(id){
+  if(id in _dlCounts)return _dlCounts[id];
+  if(!_db||!_firebaseReady)return _getMyDls()[id]?1:0;
+  try{
+    const col=_db.collection('patterns').doc(id).collection('downloads');
+    let n;
+    if(typeof col.count==='function'){const s=await col.count().get();n=s.data().count;}
+    else{const s=await col.get();n=s.size;}
+    _dlCounts[id]=n;return n;
+  }catch(e){return _getMyDls()[id]?1:0;}   // rules not deployed yet → local fallback
+}
+// ⬇ N badge next to the detail-view Download button (hidden at 0, like the hearts).
+function _renderDownloadCount(){
+  const el=document.getElementById('dlBtnCount');if(!el)return;
+  const id=curPat&&curPat.id;
+  const n=id?((id in _dlCounts)?_dlCounts[id]:(_getMyDls()[id]?1:0)):0;
+  el.textContent='⬇ '+n;
+  el.style.display=n>0?'':'none';
+}
+// Called from loadPattern (render.js) when a pattern opens: show the cached count
+// immediately, then refresh with one cheap read (count() aggregation when available).
+function _resetDownloadCount(){
+  _renderDownloadCount();
+  const id=curPat&&curPat.id;
+  if(id)_fetchDownloadCount(id).then(()=>{if(curPat&&curPat.id===id)_renderDownloadCount();});
+}
+// Record a completed export (called from download.js after a GIF/PDF actually
+// downloads — not for the STL placeholder). Optimistic local bump on the first
+// download from this device; the Firestore doc id (auth uid) is the real dedupe.
+window._recordDownload=async function(id){
+  if(!id)return;
+  const mine=_getMyDls();
+  const first=!mine[id];
+  if(first){
+    mine[id]=1;localStorage.setItem('sashiko_dl_mine',JSON.stringify(mine));
+    if(id in _dlCounts)_dlCounts[id]++;
+    _renderDownloadCount();renderLikeButtons(id);
+  }
+  if(_db&&_firebaseReady){
+    try{
+      await _awaitAuth();
+      await _db.collection('patterns').doc(id).collection('downloads').doc(_authUid)
+        .set({uid:_authUid,created:Date.now()});
+      // First download with no cached count yet: pull the true global count now.
+      if(first&&!(id in _dlCounts)){
+        await _fetchDownloadCount(id);
+        _renderDownloadCount();renderLikeButtons(id);
+      }
+    }catch(e){}   // rules not deployed / offline → stays in the local mirror
+  }
+  if(typeof _resortGalleryIfChanged==='function')_resortGalleryIfChanged();
+};
 window.likePattern=async function(id){
   if(!id)return;
   const likes=_getLikes();if(!likes[id])likes[id]={up:0,down:0};
@@ -3228,11 +3290,13 @@ function renderLikeButtons(id){
         `<button class="like-btn remix" onclick="remixPattern('${id}')" title="Remix">↗ Remix</button>`+
         `<button class="like-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`;
     }else{
-      // Gallery card: read-only heart + comment counts
+      // Gallery card: read-only heart + comment + download counts
       const cc=_commentCounts[id]||0;
+      const dc=(id in _dlCounts)?_dlCounts[id]:0;
       let html='';
       if(hearts>0)html+=`<span class="like-heart-count">♥ ${hearts}</span>`;
       if(cc>0)html+=`<span class="cm-count">💬 ${cc}</span>`;
+      if(dc>0)html+=`<span class="dl-count">⬇ ${dc}</span>`;
       el.innerHTML=html;
     }
   });
