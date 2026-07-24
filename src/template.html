@@ -100,22 +100,24 @@
 
   <div class="ctrls">
     <input type="range" id="scrubber" class="anim-scrubber" min="0" max="1000" value="0" oninput="seekScrubber(this.value)">
-    <button class="ctrl" id="bReset" title="Reset">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
-    </button>
-    <button class="ctrl primary" id="bPlay">
-      <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
-    </button>
-    <span class="speed-slider" title="Animation speed">
-      <span aria-hidden="true">🐢</span>
-      <input type="range" id="animSpeed" min="0" max="100" step="1" value="82">
-      <span aria-hidden="true">⚡</span>
-    </span>
-    <span class="anim-zoom" id="tileCellsCtrl" title="Pattern cells visible" style="display:none">
-      <button class="ctrl" onclick="stepTileCells(-1)" title="Fewer cells">−</button>
-      <span id="tileCellsVal" style="min-width:2.6em;text-align:center;font-size:12px;color:var(--muted)">3×3</span>
-      <button class="ctrl" onclick="stepTileCells(1)" title="More cells">+</button>
-    </span>
+    <div class="transport">
+      <button class="ctrl btn-reset" id="bReset" title="Reset to start">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
+      </button>
+      <button class="btn-play" id="bPlay" title="Play / pause the stitch animation" aria-label="Play">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
+      </button>
+      <span class="speed-slider" title="Animation speed">
+        <span aria-hidden="true">🐢</span>
+        <input type="range" id="animSpeed" min="0" max="100" step="1" value="82">
+        <span aria-hidden="true">⚡</span>
+      </span>
+      <span class="anim-zoom" id="tileCellsCtrl" title="Pattern cells visible" style="display:none">
+        <button class="ctrl" onclick="stepTileCells(-1)" title="Fewer cells">−</button>
+        <span id="tileCellsVal" style="min-width:2.6em;text-align:center;font-size:12px;color:var(--muted)">3×3</span>
+        <button class="ctrl" onclick="stepTileCells(1)" title="More cells">+</button>
+      </span>
+    </div>
   </div>
 
   <!-- Stitch-view options (custom patterns render in stitch view by default) -->

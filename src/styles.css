@@ -181,6 +181,18 @@ button.ctrl:hover{background:#1d3850;border-color:#33557a}
 button.ctrl:active{transform:scale(.97)}
 button.ctrl.primary{min-width:90px;justify-content:center;background:#214a72;border-color:#2f6699}
 button.ctrl.primary:hover{background:#275784}
+/* Transport cluster: big round accent Play is the hero, small round Reset + speed beside it */
+.transport{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;width:100%;margin-top:4px}
+.btn-play{width:58px;height:58px;border-radius:50%;background:var(--accent-h);border:none;
+  color:#0e1c2b;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  flex-shrink:0;padding:0;transition:.15s;box-shadow:0 4px 16px rgba(126,224,184,.25)}
+.btn-play:hover{background:#96e8c6}
+.btn-play:active{transform:scale(.95)}
+.btn-play .ico{width:26px;height:26px}
+/* keep the play/pause label present for a11y + generator.js text swap, but hidden visually */
+.btn-play span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.btn-reset{width:40px;height:40px;border-radius:50%;padding:0;justify-content:center;color:var(--muted)}
 .ico{width:16px;height:16px;display:inline-block;vertical-align:middle}
 .tip{font-size:12px;color:var(--muted);max-width:560px;text-align:center;
   line-height:1.7;border-top:1px solid var(--line);padding-top:14px;margin-top:2px}
@@ -202,10 +214,29 @@ button.ctrl.primary:hover{background:#275784}
 .dl-item span{font-size:13px}
 .dl-item small{font-size:10.5px;color:var(--muted)}
 .dl-item.busy{opacity:.6;cursor:default}
-/* ── Bottom action bar (Download · Remix · Heart · Comments) ── */
-.action-bar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:6px}
-.action-bar .download-bar{margin-top:0}
-.action-bar .like-row{margin-left:0}
+/* ── Bottom action bar — engage zone: prominent Heart, then Remix · Download · Comments ── */
+.action-bar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.action-bar .download-bar{margin-top:0;order:2}
+.action-bar #commentBtn{order:3}
+/* the injected Remix + Heart row leads the engage zone and lets the heart stretch */
+.action-bar .like-row{order:1;flex:1 1 150px;margin-left:0;gap:8px}
+/* Secondary action buttons (Download, Comments) — match the heart's height/shape */
+.action-bar #downloadBtn,.action-bar #commentBtn{border-radius:10px;padding:10px 14px;font-size:13px}
+/* Heart = primary social action: wide pink button, fills solid when liked */
+.heart-btn{flex:1;min-width:110px;background:#2a1622;border:1px solid #5a3348;color:#ff9bb0;
+  font-size:15px;font-weight:600;border-radius:10px;padding:10px 14px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s;font-family:inherit}
+.heart-btn:hover{background:#3a1e2e;border-color:#7a4560}
+.heart-btn.liked{background:#ff9bb0;border-color:#ff9bb0;color:#2a1622}
+.heart-btn.liked:hover{background:#ffb0c1}
+/* Remix = secondary neighbour of the heart */
+.act-btn{background:var(--panel);border:1px solid var(--line);color:#c9d7e6;font-size:13px;
+  border-radius:10px;padding:10px 14px;cursor:pointer;font-family:inherit;
+  display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.act-btn:hover{background:#1d3850;border-color:#33557a}
+.act-btn.remix{color:#a9b6ee}
+.act-btn.remix:hover{color:#c3cdff}
 /* ── Comments panel — inline, expands below the action bar ── */
 .cm-panel{width:300px;max-width:92vw;margin:8px auto 0;
   background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;

@@ -3279,12 +3279,15 @@ async function _fetchDownloadCount(id){
     _dlCounts[id]=n;return n;
   }catch(e){return _getMyDls()[id]?1:0;}   // rules not deployed yet → local fallback
 }
-// ⬇ N badge next to the detail-view Download button (hidden at 0, like the hearts).
+// Small download glyph (arrow into a tray) reused by the count badges, matching the
+// Download button icon — so downloads read as a symbol, not a bare ⬇ arrow.
+const DL_ICO='<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+// Download count badge next to the detail-view Download button (hidden at 0, like the hearts).
 function _renderDownloadCount(){
   const el=document.getElementById('dlBtnCount');if(!el)return;
   const id=curPat&&curPat.id;
   const n=id?((id in _dlCounts)?_dlCounts[id]:(_getMyDls()[id]?1:0)):0;
-  el.textContent='⬇ '+n;
+  el.innerHTML=DL_ICO+n;
   el.style.display=n>0?'':'none';
 }
 // Called from loadPattern (render.js) when a pattern opens: show the cached count
@@ -3352,10 +3355,11 @@ function renderLikeButtons(id){
   document.querySelectorAll(`.like-row[data-id="${id}"]`).forEach(el=>{
     const isDetail=el.id==='likeRow';
     if(isDetail){
-      // Detail action bar: Remix, then clickable heart (Download sits before, Comments after).
+      // Detail action bar (engage zone): the heart LEADS as the prominent primary action,
+      // Remix is its secondary neighbour (Download + Comments follow via CSS order).
       el.innerHTML=
-        `<button class="like-btn remix" onclick="remixPattern('${id}')" title="Remix">↗ Remix</button>`+
-        `<button class="like-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`;
+        `<button class="heart-btn${myVote===1?' liked':''}" onclick="likePattern('${id}')" title="${myVote===1?'Remove heart':'Give a heart'}">♥ ${hearts||0}</button>`+
+        `<button class="act-btn remix" onclick="remixPattern('${id}')" title="Remix this pattern">↗ Remix</button>`;
     }else{
       // Gallery card: read-only heart + comment + download counts
       const cc=_commentCounts[id]||0;
@@ -3363,7 +3367,7 @@ function renderLikeButtons(id){
       let html='';
       if(hearts>0)html+=`<span class="like-heart-count">♥ ${hearts}</span>`;
       if(cc>0)html+=`<span class="cm-count">💬 ${cc}</span>`;
-      if(dc>0)html+=`<span class="dl-count">⬇ ${dc}</span>`;
+      if(dc>0)html+=`<span class="dl-count">${DL_ICO}${dc}</span>`;
       el.innerHTML=html;
     }
   });
