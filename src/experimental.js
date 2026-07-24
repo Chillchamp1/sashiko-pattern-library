@@ -677,13 +677,18 @@ function _resetCommentBar(){
   if(id)_fetchCommentCount(id).then(n=>{if(curPat&&curPat.id===id)_setCommentBtnLabel(n);});
 }
 
-// Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit)
+// Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit).
+// Returns true/false so callers that promise the user a save (Publish/Save changes) can tell
+// them when it silently failed, instead of the UI claiming success while the write was rejected
+// (e.g. an admin-rules mismatch) — see _fetchFromFirestore's merge-conflict comment for why a
+// failed push used to look permanently "published" on the writer's own device.
 async function _pushToFirestore(pat){
-  if(!_db)return;
+  if(!_db)return false;
   await _awaitAuth();
   // Monotonic save marker for conflict resolution. createdAt is preserved across edits,
   // so it can't tell an edited remote doc apart from a stale local/backup copy — updatedAt
   // changes on every save, so the newest version always wins (see _fetchFromFirestore).
+  const prevUpdatedAt=pat.updatedAt;
   pat.updatedAt=Date.now();
   const doc={...pat};delete doc.thumbnail;
   // creatorId is attribution only (the rules gate by published-state + admin, not by
@@ -693,7 +698,15 @@ async function _pushToFirestore(pat){
   Object.keys(doc).forEach(k=>{if(doc[k]===undefined)delete doc[k];});
   try{
     await _db.collection('patterns').doc(pat.id).set(doc);
-  }catch(e){console.warn('Firestore write failed:',e);}
+    return true;
+  }catch(e){
+    console.warn('Firestore write failed:',e);
+    // Roll back the optimistic timestamp: a pattern that FAILED to reach Firestore must not
+    // look newer than the real remote doc, or the next _fetchFromFirestore merge keeps trusting
+    // (and re-pushing, and re-failing) the local copy forever instead of surfacing the mismatch.
+    pat.updatedAt=prevUpdatedAt;
+    return false;
+  }
 }
 
 // Push all local patterns that are missing from Firestore (first-time sync, offline recovery)
@@ -805,13 +818,22 @@ async function _fetchFromFirestore(){
   }catch(e){console.warn('Firestore fetch failed, using local cache:',e);}
 }
 // ── Public API ───────────────────────────────────────────────────────────────
+// A fresh device (no localStorage — e.g. an incognito tab) used to seed+render the embedded
+// monthly backup snapshot BEFORE the live Firestore fetch resolved, so visitors briefly saw
+// stale patterns in the wrong order that then visibly jumped to the current gallery a moment
+// later. When Firestore is available, skip the seed and let its own fetch produce the first
+// render — the backup is a true OFFLINE fallback (file://, blocked CDN) now, not a placeholder
+// for the live site's normal (fast) case.
 function loadExpPatterns(){
   _loadLocal();
-  _seedLocalFromBackup();
   _initFirebase();
   if(_firebaseReady){
     _fetchFromFirestore()
       .then(()=>{
+        // Firestore reachable but this device still has nothing cached (e.g. the collection
+        // fetch failed after all, or genuinely returned empty) — fall back to the backup seed
+        // so the gallery isn't blank, same as the true-offline path below.
+        if(!EXP_PATTERNS.length){_seedLocalFromBackup();buildGallery();}
         rebuildMyPatsView();
         _refreshEngagement();   // heart+comment counts → engagement re-sort (async)
         _syncMyLikes();         // one-time: push this device's old local hearts to the cloud
@@ -822,6 +844,8 @@ function loadExpPatterns(){
           if(exp)openExpPattern(exp);
         }
       });
+  }else{
+    _seedLocalFromBackup();
   }
 }
 

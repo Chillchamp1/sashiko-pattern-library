@@ -558,7 +558,7 @@ body.is-admin #myPatsView .pcard:hover .exp-pub-btn{display:flex;align-items:cen
       <p>Feel free to copy, mod or reimagine this project. If you do so, please mention sashikolib.org as a source.</p>
       <p>If you love what’s being built here, a small <a class="about-link" href="https://ko-fi.com/chillchamp" target="_blank" rel="noopener">donation</a> keeps the servers running and the stitches flowing❤️</p>
       <p class="build-stamp" id="aboutVisitors" style="display:none"></p>
-      <p class="build-stamp">sashikolib.org · build 2026-07-23</p>
+      <p class="build-stamp">sashikolib.org · build 2026-07-24</p>
     </div>
   </div>
   <div class="gal-tabs" role="tablist">
@@ -7451,13 +7451,18 @@ function _resetCommentBar(){
   if(id)_fetchCommentCount(id).then(n=>{if(curPat&&curPat.id===id)_setCommentBtnLabel(n);});
 }
 
-// Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit)
+// Upload a single pattern to Firestore (thumbnail stripped — too large for 1 MB doc limit).
+// Returns true/false so callers that promise the user a save (Publish/Save changes) can tell
+// them when it silently failed, instead of the UI claiming success while the write was rejected
+// (e.g. an admin-rules mismatch) — see _fetchFromFirestore's merge-conflict comment for why a
+// failed push used to look permanently "published" on the writer's own device.
 async function _pushToFirestore(pat){
-  if(!_db)return;
+  if(!_db)return false;
   await _awaitAuth();
   // Monotonic save marker for conflict resolution. createdAt is preserved across edits,
   // so it can't tell an edited remote doc apart from a stale local/backup copy — updatedAt
   // changes on every save, so the newest version always wins (see _fetchFromFirestore).
+  const prevUpdatedAt=pat.updatedAt;
   pat.updatedAt=Date.now();
   const doc={...pat};delete doc.thumbnail;
   // creatorId is attribution only (the rules gate by published-state + admin, not by
@@ -7467,7 +7472,15 @@ async function _pushToFirestore(pat){
   Object.keys(doc).forEach(k=>{if(doc[k]===undefined)delete doc[k];});
   try{
     await _db.collection('patterns').doc(pat.id).set(doc);
-  }catch(e){console.warn('Firestore write failed:',e);}
+    return true;
+  }catch(e){
+    console.warn('Firestore write failed:',e);
+    // Roll back the optimistic timestamp: a pattern that FAILED to reach Firestore must not
+    // look newer than the real remote doc, or the next _fetchFromFirestore merge keeps trusting
+    // (and re-pushing, and re-failing) the local copy forever instead of surfacing the mismatch.
+    pat.updatedAt=prevUpdatedAt;
+    return false;
+  }
 }
 
 // Push all local patterns that are missing from Firestore (first-time sync, offline recovery)
@@ -7579,13 +7592,22 @@ async function _fetchFromFirestore(){
   }catch(e){console.warn('Firestore fetch failed, using local cache:',e);}
 }
 // ── Public API ───────────────────────────────────────────────────────────────
+// A fresh device (no localStorage — e.g. an incognito tab) used to seed+render the embedded
+// monthly backup snapshot BEFORE the live Firestore fetch resolved, so visitors briefly saw
+// stale patterns in the wrong order that then visibly jumped to the current gallery a moment
+// later. When Firestore is available, skip the seed and let its own fetch produce the first
+// render — the backup is a true OFFLINE fallback (file://, blocked CDN) now, not a placeholder
+// for the live site's normal (fast) case.
 function loadExpPatterns(){
   _loadLocal();
-  _seedLocalFromBackup();
   _initFirebase();
   if(_firebaseReady){
     _fetchFromFirestore()
       .then(()=>{
+        // Firestore reachable but this device still has nothing cached (e.g. the collection
+        // fetch failed after all, or genuinely returned empty) — fall back to the backup seed
+        // so the gallery isn't blank, same as the true-offline path below.
+        if(!EXP_PATTERNS.length){_seedLocalFromBackup();buildGallery();}
         rebuildMyPatsView();
         _refreshEngagement();   // heart+comment counts → engagement re-sort (async)
         _syncMyLikes();         // one-time: push this device's old local hearts to the cloud
@@ -7596,6 +7618,8 @@ function loadExpPatterns(){
           if(exp)openExpPattern(exp);
         }
       });
+  }else{
+    _seedLocalFromBackup();
   }
 }
 
@@ -11946,7 +11970,7 @@ function _cadLineFromSaved(l, minU, minV){
   return{start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV],...(l.arc?{arc:true}:{})};
 }
 
-window.cadSaveToLibrary=function(){
+window.cadSaveToLibrary=async function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim();
@@ -11989,11 +12013,21 @@ window.cadSaveToLibrary=function(){
     cadRemixOf=null;
   }
   _saveLocal();
-  if(_firebaseReady)_pushToFirestore(pat);
+  let synced=true;
+  if(_firebaseReady)synced=await _pushToFirestore(pat);
   rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
-  btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
-  setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},2000);
+  if(synced){
+    btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
+    setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},2000);
+  }else{
+    // Don't claim success when the cloud write was rejected — a stale local copy that
+    // silently "wins" every future sync is exactly what made the teddy-bear pattern look
+    // published here while every other visitor still saw it in the Sandbox.
+    btn.textContent='⚠ Saved locally only';btn.style.background='#5c1a1a';
+    alert('Saved on this device, but the cloud sync failed (check your connection / admin sign-in). Other visitors won\'t see this change until it syncs — try saving again.');
+    setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},3000);
+  }
 };
 window.cadPublishToLibrary=async function(){
   // Publishing to the gallery is admin-only (Google sign-in, enforced by Firestore rules).
@@ -12039,10 +12073,19 @@ window.cadPublishToLibrary=async function(){
     cadRemixOf=null;
   }
   _saveLocal();
-  if(_firebaseReady)_pushToFirestore(pat);
+  let synced=true;
+  if(_firebaseReady)synced=await _pushToFirestore(pat);
   rebuildExpGallery();
-  alert('Published! Visible in main gallery.');
-  cadIsPublished=true;
+  if(synced){
+    alert('Published! Visible in main gallery.');
+    cadIsPublished=true;
+  }else{
+    // The cloud write was rejected (rules/auth mismatch, offline, …) — this device's local
+    // cache would otherwise keep looking "published" forever while every other visitor still
+    // sees the old (unpublished) state, since the merge logic always trusts a newer local
+    // timestamp. Tell the truth instead.
+    alert('Publish failed to reach the cloud (check your connection / admin sign-in). It looks published only on this device — other visitors still see it in Sandbox. Please try Publish again once connected.');
+  }
 };
 
 // ── Tile preview play → animates inline on right canvas ──────────────────

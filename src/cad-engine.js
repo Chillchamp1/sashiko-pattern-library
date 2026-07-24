@@ -1713,7 +1713,7 @@ function _cadLineFromSaved(l, minU, minV){
   return{start:[l.start[0]-minU,l.start[1]-minV],end:[l.end[0]-minU,l.end[1]-minV],...(l.arc?{arc:true}:{})};
 }
 
-window.cadSaveToLibrary=function(){
+window.cadSaveToLibrary=async function(){
   if(!cadLines.length)return;
   const bbox=cadBBox();if(!bbox)return;
   const name=document.getElementById('cadPatName').value.trim();
@@ -1756,11 +1756,21 @@ window.cadSaveToLibrary=function(){
     cadRemixOf=null;
   }
   _saveLocal();
-  if(_firebaseReady)_pushToFirestore(pat);
+  let synced=true;
+  if(_firebaseReady)synced=await _pushToFirestore(pat);
   rebuildExpGallery();
   const btn=document.getElementById('cadSaveBtn');
-  btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
-  setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},2000);
+  if(synced){
+    btn.textContent=wasEdit?'✓ Updated!':'✓ Saved!';btn.style.background='#1a5c28';
+    setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},2000);
+  }else{
+    // Don't claim success when the cloud write was rejected — a stale local copy that
+    // silently "wins" every future sync is exactly what made the teddy-bear pattern look
+    // published here while every other visitor still saw it in the Sandbox.
+    btn.textContent='⚠ Saved locally only';btn.style.background='#5c1a1a';
+    alert('Saved on this device, but the cloud sync failed (check your connection / admin sign-in). Other visitors won\'t see this change until it syncs — try saving again.');
+    setTimeout(()=>{btn.textContent='⊕ Save changes';btn.style.background='';},3000);
+  }
 };
 window.cadPublishToLibrary=async function(){
   // Publishing to the gallery is admin-only (Google sign-in, enforced by Firestore rules).
@@ -1806,10 +1816,19 @@ window.cadPublishToLibrary=async function(){
     cadRemixOf=null;
   }
   _saveLocal();
-  if(_firebaseReady)_pushToFirestore(pat);
+  let synced=true;
+  if(_firebaseReady)synced=await _pushToFirestore(pat);
   rebuildExpGallery();
-  alert('Published! Visible in main gallery.');
-  cadIsPublished=true;
+  if(synced){
+    alert('Published! Visible in main gallery.');
+    cadIsPublished=true;
+  }else{
+    // The cloud write was rejected (rules/auth mismatch, offline, …) — this device's local
+    // cache would otherwise keep looking "published" forever while every other visitor still
+    // sees the old (unpublished) state, since the merge logic always trusts a newer local
+    // timestamp. Tell the truth instead.
+    alert('Publish failed to reach the cloud (check your connection / admin sign-in). It looks published only on this device — other visitors still see it in Sandbox. Please try Publish again once connected.');
+  }
 };
 
 // ── Tile preview play → animates inline on right canvas ──────────────────
