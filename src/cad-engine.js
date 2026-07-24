@@ -1,7 +1,7 @@
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
-let cadGridType='square',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
+let cadGridType='square',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadSpacingY=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 // Per-family routing overrides {famIdx→mode} — normally empty (whole pattern uses
 // cadRoutingMode); an entry routes just that colour with a different logic.
@@ -883,7 +883,7 @@ function cadDrawWorkspace(){
   const bbox=cadBBox2(all);
   if(bbox){
     const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
-    const sU=Math.max(dU+cadSpacing,1),sV=Math.max(dV+cadSpacing,1);   // negative spacing floors at 1
+    const sU=Math.max(dU+cadSpacing,1),sV=Math.max(dV+cadSpacingY,1);   // negative spacing floors at 1
     const cu=(bbox.minU+bbox.maxU)/2,cv=(bbox.minV+bbox.maxV)/2;
     x.fillStyle='rgba(255,255,255,0.06)';
     x.strokeStyle='rgba(255,240,140,0.65)';x.lineWidth=1.5;x.setLineDash([4,3]);
@@ -898,7 +898,7 @@ function cadDrawWorkspace(){
       epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
       // Match genTiledSegs: diagonal tiling period is rounded up to even so tiles stay grid-aligned.
       const evenUp=x=>2*Math.ceil(x/2);
-      const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacing,1));
+      const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacingY,1));
       const midP=(mnP+mxP)/2,midQ=(mnQ+mxQ)/2;
       const g45=(p,q)=>cadG2S((p+q)/2,(p-q)/2,cadOX,cadOY,cadTileSize);
       const ps=[g45(midP-sP/2,midQ-sQ/2),g45(midP+sP/2,midQ-sQ/2),g45(midP+sP/2,midQ+sQ/2),g45(midP-sP/2,midQ+sQ/2)];
@@ -1105,7 +1105,7 @@ function cadDrawPattern(){
   }
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
-  const stepU=Math.max(dU+cadSpacing,1), stepV=Math.max(dV+cadSpacing,1);   // negative spacing floors at step 1
+  const stepU=Math.max(dU+cadSpacing,1), stepV=Math.max(dV+cadSpacingY,1);   // negative spacing floors at step 1
   const ptc=cadPtc||cadPatMacro*cadMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
   const g2s=(u,v)=>cadG2S(u,v,cadPOX,cadPOY,cadPTile);
@@ -1160,7 +1160,7 @@ function cadDrawPattern(){
     // period — 1 unit tighter than the stitch view — so the two views' spacing drifted apart
     // whenever 45° tiling was on (e.g. Dancing Fans). negative spacing still floors at 1.
     const evenUp=x=>2*Math.ceil(x/2);
-    const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacing,1));
+    const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacingY,1));
     const base_u=(mnP+mnQ)/2,base_v=(mnP-mnQ)/2;
     const N=Math.ceil(2*(ptc+ov)/Math.min(sP,sQ))+3;
     for(let a=-N;a<=N;a++){for(let b=-N;b<=N;b++){
@@ -1335,7 +1335,7 @@ function _cadSyncTilesLabel(){
 function _cadRefreshTiling(force){
   const bb=cadBBox();
   const sig=(bb?[bb.minU,bb.maxU,bb.minV,bb.maxV].map(v=>v.toFixed(2)).join(','):'e')
-    +'|'+_cadTiles()+'|'+cadEmbroidery+'|'+cadMacro+'|'+cadSpacing+'|'+cadGridType;
+    +'|'+_cadTiles()+'|'+cadEmbroidery+'|'+cadMacro+'|'+cadSpacing+'|'+cadSpacingY+'|'+cadGridType;
   if(!force&&sig===_cadTileSig)return;
   _cadTileSig=sig;
   const tc=cadMacro*CAD_MICRO;
@@ -1349,7 +1349,8 @@ function _cadRefreshTiling(force){
 }
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
-  cadSpacing=parseInt(document.getElementById('cadSpacing').value);
+  cadSpacing=parseInt(document.getElementById('cadSpacingX').value)||0;
+  cadSpacingY=parseInt(document.getElementById('cadSpacingY').value)||0;
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   // Diamond re-cut is square-grid only — hide the button on isometric.
   const db=document.getElementById('cadBtnDiamond');
@@ -1448,8 +1449,8 @@ function _cadSyncCommunityUI(){
   _cadSyncTilesLabel();
   _cadSyncStitchUI();   // coloured-thread toggle visibility follows the Community flag
 }
-window.cadStepSpacing=function(d){
-  const el=document.getElementById('cadSpacing');
+window.cadStepSpacing=function(axis,d){
+  const el=document.getElementById(axis==='y'?'cadSpacingY':'cadSpacingX');
   let v=parseInt(el.value)||0;
   // Negative spacing overlaps/interlocks the tiled motifs (the tiling step is
   // floored at 1 grid unit in the geometry, so it can never lock up).
@@ -1742,7 +1743,7 @@ window.cadSaveToLibrary=async function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),famColors:_cadRemapFamColors(cf.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,spacingY:cadSpacingY,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),famColors:_cadRemapFamColors(cf.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -1803,7 +1804,7 @@ window.cadPublishToLibrary=async function(){
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),famColors:_cadRemapFamColors(cf2.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,spacingY:cadSpacingY,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),famColors:_cadRemapFamColors(cf2.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -1867,7 +1868,7 @@ window.cadTilePlay=function(){
     return rel;
   });
   const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,spacingY:cadSpacingY,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric',famRouting:cadFamRouting});
@@ -1952,7 +1953,7 @@ function _tpLoop(t){
 }
 // ── Realistic stitch scene ───────────────────────────────────────────────────
 function _cadStitchSig(){
-  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+_cadRefMacro+'|'+cadSpacing+'|'+
+  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+_cadRefMacro+'|'+cadSpacing+'|'+cadSpacingY+'|'+
     cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio+'|'+cadEmbroidery+'|'+JSON.stringify(cadFamRouting);
 }
 // Bake the indigo-denim background once (base wash + twill diagonal + speckle).
@@ -2258,7 +2259,7 @@ function _cadStitchScene(){
   const lines=clean.map(l=>_cadLineToSaved(l,bbox.minU,bbox.minV));
   const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
   const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,
-    patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
+    patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,spacingY:cadSpacingY,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric',famRouting:cadFamRouting});
@@ -2448,6 +2449,7 @@ function cadInit(){
   const cv=document.getElementById('cadCanvas');
   cadUpdateSettings();
   _cadRefMacro=cadPatMacro;   // freeze the stitch-length reference at the loaded tile count
+  if(!_cadWired){_cadWired=true;   // attach the canvas + keydown listeners ONCE (see _cadWired note)
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   cv.addEventListener('wheel',e=>{
     e.preventDefault();
@@ -2649,12 +2651,19 @@ function cadInit(){
     if(e.key==='Escape'&&cadTool==='ellipse'){_cadEllReset();cadArcLabel();cadUpdateAll();}
     if(e.key==='Escape'&&cadTool==='draw'){cadDrawing=false;cadStart=null;cadUpdateAll();}
   });
+  }   // end _cadWired once-only listener block
   if(!_cadResizeBound){_cadResizeBound=true;window.addEventListener('resize',()=>{if(document.getElementById('cadView').classList.contains('open'))cadAlignHeads();});}
   cadAlignHeads();
 }
 // Make the Draw and Live-Tiling canvases line up: equalise the two pre-canvas heads to the
 // taller one (toolbar wrapping varies with viewport width, so measure rather than hard-code).
 let _cadResizeBound=false;
+// Canvas + keyboard listeners are attached exactly once for the page's lifetime. cadInit runs
+// again on every editor entry (showCAD/edit/remix reset cadInited) to redo per-pattern setup, so
+// without this guard the pointer listeners stacked up — two pointerdown handlers made the
+// click-move-click tools (Line/Arc/Ellipse) start-then-instantly-cancel, i.e. "the tool stopped
+// working after leaving and re-entering" (an odd count happened to work again).
+let _cadWired=false;
 function cadAlignHeads(){
   const heads=[...document.querySelectorAll('#cadView .cad-panel-head')];
   if(heads.length<2)return;

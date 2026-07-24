@@ -1194,7 +1194,10 @@ function genTiledSegs(pat){
       flatFamOf.push(famOfLine[li]);
     }
   });
+  // Separate X/Y (or P/Q in 45° mode) spacing. Old patterns store only `spacing` → both axes
+  // fall back to it, so they tile byte-identically (spacingY absent ⇒ symmetric, as before).
   const spacing=pat.spacing||0;
+  const spacingY=(pat.spacingY!==undefined&&pat.spacingY!==null)?pat.spacingY:spacing;
   const segs=[];
   let tileAid=arcIdCounter;  // running counter for tiled copies
   // Embroidery patterns are single standalone motifs — emit exactly ONE instance, no tiling.
@@ -1223,7 +1226,7 @@ function genTiledSegs(pat){
     // tiled copy is grid-congruent (adds ≤1 unit of diagonal spacing, never overlaps).
     // Already-even integer periods (e.g. Ajiro sP=12) are unchanged → byte-identical output.
     const evenUp=x=>2*Math.ceil(x/2);
-    const sP=evenUp(Math.max(mxP-mnP+spacing,1)), sQ=evenUp(Math.max(mxQ-mnQ+spacing,1));
+    const sP=evenUp(Math.max(mxP-mnP+spacing,1)), sQ=evenUp(Math.max(mxQ-mnQ+spacingY,1));
     const pad=sP+sQ;
     const N=Math.ceil((Math.abs(maxU-minU)+Math.abs(maxV-minV)+pad)/Math.min(sP,sQ));
     for(let a=-N;a<=N;a++){
@@ -1241,7 +1244,7 @@ function genTiledSegs(pat){
   }else{
     // Spacing may be NEGATIVE (tiles overlap/interlock); floor the step at 1 grid
     // unit so the tiling loop always advances (0/negative step = infinite loop).
-    const su=Math.max(dU+spacing,1), sv=Math.max(dV+spacing,1);
+    const su=Math.max(dU+spacing,1), sv=Math.max(dV+spacingY,1);
     const ou0=Math.floor((minU-dU)/su)*su, ou1=Math.ceil((maxU-0)/su)*su;
     const ov0=Math.floor((minV-dV)/sv)*sv, ov1=Math.ceil((maxV-0)/sv)*sv;
     for(let ou=ou0;ou<=ou1;ou+=su){
@@ -1666,7 +1669,10 @@ window.editExpPattern=async function(idOrPat){
   cadFabric=pat.fabric||'indigo';
   cadFamColorOpen=null;
   cadSpacing=parseInt(pat.spacing)||0;
-  document.getElementById('cadSpacing').value=cadSpacing;
+  // spacingY falls back to spacing so single-spacing patterns load symmetric X=Y.
+  cadSpacingY=(pat.spacingY!==undefined&&pat.spacingY!==null)?(parseInt(pat.spacingY)||0):cadSpacing;
+  document.getElementById('cadSpacingX').value=cadSpacing;
+  document.getElementById('cadSpacingY').value=cadSpacingY;
   cadMacro=macroVal;
   cadPatMacro=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
   document.getElementById('cadPatName').value=pat.name||'';
@@ -3405,6 +3411,10 @@ window.remixPattern=function(id){
   // once the remixer re-checks Community, like the embroidery flag above.
   cadFamColors={...(pat.famColors||{})};cadStitchColors=!!pat.stitchColors;cadFabric=pat.fabric||'indigo';cadFamColorOpen=null;
   cadBBoxRotated=pat.bboxRotated||false;
+  cadSpacing=parseInt(pat.spacing)||0;
+  cadSpacingY=(pat.spacingY!==undefined&&pat.spacingY!==null)?(parseInt(pat.spacingY)||0):cadSpacing;
+  document.getElementById('cadSpacingX').value=cadSpacing;
+  document.getElementById('cadSpacingY').value=cadSpacingY;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
   cadInited=false;
   document.getElementById('galleryView').style.display='none';
@@ -3460,6 +3470,9 @@ window.showCAD=function(){
   cadFamRouting={};_cadSyncFamRoutingUI();
   cadBgRemove();   // fresh pattern starts without a background sketch image
   cadMacro=2;cadPatMacro=3;   // fresh draw-grid + Tiles defaults for a new pattern
+  cadSpacing=0;cadSpacingY=0;
+  document.getElementById('cadSpacingX').value=0;
+  document.getElementById('cadSpacingY').value=0;
   // Square is the standard grid for a NEW pattern (the select is otherwise sticky from
   // the last edited pattern); editing/remixing still restores the pattern's own gridType.
   document.getElementById('cadGridType').value='square';

@@ -981,9 +981,14 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <span class="cad-step-arrows"><button onclick="cadStepPatMacro(1)"></button><button onclick="cadStepPatMacro(-1)"></button></span>
             </span>
             <span class="cad-panel-stepper">
-              <span class="cad-panel-stepper-label">Spacing</span>
-              <input type="number" id="cadSpacing" value="0" min="-12" max="12" onchange="cadUpdateSettings()" title="Space between tiled motifs — negative values overlap/interlock them">
-              <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
+              <span class="cad-panel-stepper-label">Space X</span>
+              <input type="number" id="cadSpacingX" value="0" min="-12" max="12" onchange="cadUpdateSettings()" title="Horizontal space between tiled motifs — negative values overlap/interlock them">
+              <span class="cad-step-arrows"><button onclick="cadStepSpacing('x',1)"></button><button onclick="cadStepSpacing('x',-1)"></button></span>
+            </span>
+            <span class="cad-panel-stepper">
+              <span class="cad-panel-stepper-label">Space Y</span>
+              <input type="number" id="cadSpacingY" value="0" min="-12" max="12" onchange="cadUpdateSettings()" title="Vertical space between tiled motifs — negative values overlap/interlock them">
+              <span class="cad-step-arrows"><button onclick="cadStepSpacing('y',1)"></button><button onclick="cadStepSpacing('y',-1)"></button></span>
             </span>
           </div>
           <div class="cad-prop-row">
@@ -8058,7 +8063,10 @@ function genTiledSegs(pat){
       flatFamOf.push(famOfLine[li]);
     }
   });
+  // Separate X/Y (or P/Q in 45° mode) spacing. Old patterns store only `spacing` → both axes
+  // fall back to it, so they tile byte-identically (spacingY absent ⇒ symmetric, as before).
   const spacing=pat.spacing||0;
+  const spacingY=(pat.spacingY!==undefined&&pat.spacingY!==null)?pat.spacingY:spacing;
   const segs=[];
   let tileAid=arcIdCounter;  // running counter for tiled copies
   // Embroidery patterns are single standalone motifs — emit exactly ONE instance, no tiling.
@@ -8087,7 +8095,7 @@ function genTiledSegs(pat){
     // tiled copy is grid-congruent (adds ≤1 unit of diagonal spacing, never overlaps).
     // Already-even integer periods (e.g. Ajiro sP=12) are unchanged → byte-identical output.
     const evenUp=x=>2*Math.ceil(x/2);
-    const sP=evenUp(Math.max(mxP-mnP+spacing,1)), sQ=evenUp(Math.max(mxQ-mnQ+spacing,1));
+    const sP=evenUp(Math.max(mxP-mnP+spacing,1)), sQ=evenUp(Math.max(mxQ-mnQ+spacingY,1));
     const pad=sP+sQ;
     const N=Math.ceil((Math.abs(maxU-minU)+Math.abs(maxV-minV)+pad)/Math.min(sP,sQ));
     for(let a=-N;a<=N;a++){
@@ -8105,7 +8113,7 @@ function genTiledSegs(pat){
   }else{
     // Spacing may be NEGATIVE (tiles overlap/interlock); floor the step at 1 grid
     // unit so the tiling loop always advances (0/negative step = infinite loop).
-    const su=Math.max(dU+spacing,1), sv=Math.max(dV+spacing,1);
+    const su=Math.max(dU+spacing,1), sv=Math.max(dV+spacingY,1);
     const ou0=Math.floor((minU-dU)/su)*su, ou1=Math.ceil((maxU-0)/su)*su;
     const ov0=Math.floor((minV-dV)/sv)*sv, ov1=Math.ceil((maxV-0)/sv)*sv;
     for(let ou=ou0;ou<=ou1;ou+=su){
@@ -8530,7 +8538,10 @@ window.editExpPattern=async function(idOrPat){
   cadFabric=pat.fabric||'indigo';
   cadFamColorOpen=null;
   cadSpacing=parseInt(pat.spacing)||0;
-  document.getElementById('cadSpacing').value=cadSpacing;
+  // spacingY falls back to spacing so single-spacing patterns load symmetric X=Y.
+  cadSpacingY=(pat.spacingY!==undefined&&pat.spacingY!==null)?(parseInt(pat.spacingY)||0):cadSpacing;
+  document.getElementById('cadSpacingX').value=cadSpacing;
+  document.getElementById('cadSpacingY').value=cadSpacingY;
   cadMacro=macroVal;
   cadPatMacro=Math.max(1,Math.min(12,tilesForPatMacro(pat)));
   document.getElementById('cadPatName').value=pat.name||'';
@@ -10269,6 +10280,10 @@ window.remixPattern=function(id){
   // once the remixer re-checks Community, like the embroidery flag above.
   cadFamColors={...(pat.famColors||{})};cadStitchColors=!!pat.stitchColors;cadFabric=pat.fabric||'indigo';cadFamColorOpen=null;
   cadBBoxRotated=pat.bboxRotated||false;
+  cadSpacing=parseInt(pat.spacing)||0;
+  cadSpacingY=(pat.spacingY!==undefined&&pat.spacingY!==null)?(parseInt(pat.spacingY)||0):cadSpacing;
+  document.getElementById('cadSpacingX').value=cadSpacing;
+  document.getElementById('cadSpacingY').value=cadSpacingY;
   cadFamsLocked=false;cadFamOrder=[];cadFamSel=-1;
   cadInited=false;
   document.getElementById('galleryView').style.display='none';
@@ -10324,6 +10339,9 @@ window.showCAD=function(){
   cadFamRouting={};_cadSyncFamRoutingUI();
   cadBgRemove();   // fresh pattern starts without a background sketch image
   cadMacro=2;cadPatMacro=3;   // fresh draw-grid + Tiles defaults for a new pattern
+  cadSpacing=0;cadSpacingY=0;
+  document.getElementById('cadSpacingX').value=0;
+  document.getElementById('cadSpacingY').value=0;
   // Square is the standard grid for a NEW pattern (the select is otherwise sticky from
   // the last edited pattern); editing/remixing still restores the pattern's own gridType.
   document.getElementById('cadGridType').value='square';
@@ -10352,7 +10370,7 @@ window.showGalleryFromCAD=function(){
 // ── CAD Engine ──────────────────────────────────────────────────────────────
 let cadLines=[],cadFamilies=[],cadHistory=[],cadTool='draw',cadEditId=null;
 let cadRemixOf=null,cadIsPublished=false;
-let cadGridType='square',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadBBoxRotated=false,cadRoutingMode='default';
+let cadGridType='square',cadMacro=3,cadPatMacro=3,cadSpacing=0,cadSpacingY=0,cadBBoxRotated=false,cadRoutingMode='default';
 let cadFamSel=-1,cadFamsLocked=false,cadFamOrder=[];
 // Per-family routing overrides {famIdx→mode} — normally empty (whole pattern uses
 // cadRoutingMode); an entry routes just that colour with a different logic.
@@ -11234,7 +11252,7 @@ function cadDrawWorkspace(){
   const bbox=cadBBox2(all);
   if(bbox){
     const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
-    const sU=Math.max(dU+cadSpacing,1),sV=Math.max(dV+cadSpacing,1);   // negative spacing floors at 1
+    const sU=Math.max(dU+cadSpacing,1),sV=Math.max(dV+cadSpacingY,1);   // negative spacing floors at 1
     const cu=(bbox.minU+bbox.maxU)/2,cv=(bbox.minV+bbox.maxV)/2;
     x.fillStyle='rgba(255,255,255,0.06)';
     x.strokeStyle='rgba(255,240,140,0.65)';x.lineWidth=1.5;x.setLineDash([4,3]);
@@ -11249,7 +11267,7 @@ function cadDrawWorkspace(){
       epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
       // Match genTiledSegs: diagonal tiling period is rounded up to even so tiles stay grid-aligned.
       const evenUp=x=>2*Math.ceil(x/2);
-      const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacing,1));
+      const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacingY,1));
       const midP=(mnP+mxP)/2,midQ=(mnQ+mxQ)/2;
       const g45=(p,q)=>cadG2S((p+q)/2,(p-q)/2,cadOX,cadOY,cadTileSize);
       const ps=[g45(midP-sP/2,midQ-sQ/2),g45(midP+sP/2,midQ-sQ/2),g45(midP+sP/2,midQ+sQ/2),g45(midP-sP/2,midQ+sQ/2)];
@@ -11456,7 +11474,7 @@ function cadDrawPattern(){
   }
   const bbox=cadBBox2(all);if(!bbox)return;
   const dU=Math.max(bbox.maxU-bbox.minU,4),dV=Math.max(bbox.maxV-bbox.minV,4);
-  const stepU=Math.max(dU+cadSpacing,1), stepV=Math.max(dV+cadSpacing,1);   // negative spacing floors at step 1
+  const stepU=Math.max(dU+cadSpacing,1), stepV=Math.max(dV+cadSpacingY,1);   // negative spacing floors at step 1
   const ptc=cadPtc||cadPatMacro*cadMacro*CAD_MICRO,ov=ptc;
   x.lineWidth=2.5;x.lineCap='round';
   const g2s=(u,v)=>cadG2S(u,v,cadPOX,cadPOY,cadPTile);
@@ -11511,7 +11529,7 @@ function cadDrawPattern(){
     // period — 1 unit tighter than the stitch view — so the two views' spacing drifted apart
     // whenever 45° tiling was on (e.g. Dancing Fans). negative spacing still floors at 1.
     const evenUp=x=>2*Math.ceil(x/2);
-    const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacing,1));
+    const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacingY,1));
     const base_u=(mnP+mnQ)/2,base_v=(mnP-mnQ)/2;
     const N=Math.ceil(2*(ptc+ov)/Math.min(sP,sQ))+3;
     for(let a=-N;a<=N;a++){for(let b=-N;b<=N;b++){
@@ -11686,7 +11704,7 @@ function _cadSyncTilesLabel(){
 function _cadRefreshTiling(force){
   const bb=cadBBox();
   const sig=(bb?[bb.minU,bb.maxU,bb.minV,bb.maxV].map(v=>v.toFixed(2)).join(','):'e')
-    +'|'+_cadTiles()+'|'+cadEmbroidery+'|'+cadMacro+'|'+cadSpacing+'|'+cadGridType;
+    +'|'+_cadTiles()+'|'+cadEmbroidery+'|'+cadMacro+'|'+cadSpacing+'|'+cadSpacingY+'|'+cadGridType;
   if(!force&&sig===_cadTileSig)return;
   _cadTileSig=sig;
   const tc=cadMacro*CAD_MICRO;
@@ -11700,7 +11718,8 @@ function _cadRefreshTiling(force){
 }
 window.cadUpdateSettings=function(){
   cadGridType=document.getElementById('cadGridType').value;
-  cadSpacing=parseInt(document.getElementById('cadSpacing').value);
+  cadSpacing=parseInt(document.getElementById('cadSpacingX').value)||0;
+  cadSpacingY=parseInt(document.getElementById('cadSpacingY').value)||0;
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   // Diamond re-cut is square-grid only — hide the button on isometric.
   const db=document.getElementById('cadBtnDiamond');
@@ -11799,8 +11818,8 @@ function _cadSyncCommunityUI(){
   _cadSyncTilesLabel();
   _cadSyncStitchUI();   // coloured-thread toggle visibility follows the Community flag
 }
-window.cadStepSpacing=function(d){
-  const el=document.getElementById('cadSpacing');
+window.cadStepSpacing=function(axis,d){
+  const el=document.getElementById(axis==='y'?'cadSpacingY':'cadSpacingX');
   let v=parseInt(el.value)||0;
   // Negative spacing overlaps/interlocks the tiled motifs (the tiling step is
   // floored at 1 grid unit in the geometry, so it can never lock up).
@@ -12093,7 +12112,7 @@ window.cadSaveToLibrary=async function(){
   const thumbnail=document.getElementById('cadCanvas').toDataURL('image/png');
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),famColors:_cadRemapFamColors(cf.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,spacingY:cadSpacingY,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf.map),famColors:_cadRemapFamColors(cf.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   const wasEdit=!!cadEditId;
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
@@ -12154,7 +12173,7 @@ window.cadPublishToLibrary=async function(){
   const cf2=_compactFamilies(cadFamilies.filter((_,i)=>!redSet.has(i)), [...cadFamOrder]);
   cadRoutingMode=document.getElementById('cadRoutingMode').value;
   const sbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),famColors:_cadRemapFamColors(cf2.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
+  let pat={name,type:'exp',gridType:cadGridType,lines,bbox:sbb,patMacro:patMacroForTiles({bbox:sbb},_cadTiles()),gridMacro:cadMacro,spacing:cadSpacing,spacingY:cadSpacingY,thumbnail,createdAt:Date.now(),creatorId:_getUserId(),bboxRotated:cadBBoxRotated,famOrder:cf2.famOrder,traditional:cadTraditional,community:cadCommunity,communityName:(cadCommunity||cadTraditional)?cadCommunityName:'',embroidery:cadCommunity&&cadEmbroidery,routingMode:cadRoutingMode,famRouting:_cadRemapFamRouting(cf2.map),famColors:_cadRemapFamColors(cf2.map),stitchColors:cadCommunity&&cadStitchColors,fabric:cadCommunity?cadFabric:'',published:true,thumbCells:_cadTiles(),stitchView:cadStitchView,stitchLen:cadStitchLen,stitchRatio:cadStitchRatio,stitchGrid:cadStitchGrid};
   if(cadEditId){
     const idx=EXP_PATTERNS.findIndex(p=>p.id===cadEditId);
     if(idx>=0){
@@ -12218,7 +12237,7 @@ window.cadTilePlay=function(){
     return rel;
   });
   const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
-  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
+  const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,spacingY:cadSpacingY,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric',famRouting:cadFamRouting});
@@ -12303,7 +12322,7 @@ function _tpLoop(t){
 }
 // ── Realistic stitch scene ───────────────────────────────────────────────────
 function _cadStitchSig(){
-  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+_cadRefMacro+'|'+cadSpacing+'|'+
+  return JSON.stringify(cadLines)+'|'+cadGridType+'|'+cadMacro+'|'+cadPatMacro+'|'+_cadRefMacro+'|'+cadSpacing+'|'+cadSpacingY+'|'+
     cadRoutingMode+'|'+cadBBoxRotated+'|'+cadFamOrder.join(',')+'|'+cadStitchLen+'|'+cadStitchRatio+'|'+cadEmbroidery+'|'+JSON.stringify(cadFamRouting);
 }
 // Bake the indigo-denim background once (base wash + twill diagonal + speckle).
@@ -12609,7 +12628,7 @@ function _cadStitchScene(){
   const lines=clean.map(l=>_cadLineToSaved(l,bbox.minU,bbox.minV));
   const pbb={minU:0,maxU:bbox.maxU-bbox.minU,minV:0,maxV:bbox.maxV-bbox.minV};
   const pat={type:'exp',gridType:cadGridType,lines,bbox:pbb,
-    patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
+    patMacro:patMacroForTiles({bbox:pbb},_cadTiles()),spacing:cadSpacing,spacingY:cadSpacingY,bboxRotated:cadBBoxRotated,famOrder:[...cadFamOrder],routingMode:cadRoutingMode,embroidery:cadEmbroidery};
   pat.families=cadFamilies.filter((_,i)=>!redSet.has(i));
   const segs=genTiledSegs(pat);
   const fullPath=buildExpPath(segs,pat.famOrder,cadRoutingMode,{iso:cadGridType==='isometric',famRouting:cadFamRouting});
@@ -12799,6 +12818,7 @@ function cadInit(){
   const cv=document.getElementById('cadCanvas');
   cadUpdateSettings();
   _cadRefMacro=cadPatMacro;   // freeze the stitch-length reference at the loaded tile count
+  if(!_cadWired){_cadWired=true;   // attach the canvas + keydown listeners ONCE (see _cadWired note)
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   cv.addEventListener('wheel',e=>{
     e.preventDefault();
@@ -13000,12 +13020,19 @@ function cadInit(){
     if(e.key==='Escape'&&cadTool==='ellipse'){_cadEllReset();cadArcLabel();cadUpdateAll();}
     if(e.key==='Escape'&&cadTool==='draw'){cadDrawing=false;cadStart=null;cadUpdateAll();}
   });
+  }   // end _cadWired once-only listener block
   if(!_cadResizeBound){_cadResizeBound=true;window.addEventListener('resize',()=>{if(document.getElementById('cadView').classList.contains('open'))cadAlignHeads();});}
   cadAlignHeads();
 }
 // Make the Draw and Live-Tiling canvases line up: equalise the two pre-canvas heads to the
 // taller one (toolbar wrapping varies with viewport width, so measure rather than hard-code).
 let _cadResizeBound=false;
+// Canvas + keyboard listeners are attached exactly once for the page's lifetime. cadInit runs
+// again on every editor entry (showCAD/edit/remix reset cadInited) to redo per-pattern setup, so
+// without this guard the pointer listeners stacked up — two pointerdown handlers made the
+// click-move-click tools (Line/Arc/Ellipse) start-then-instantly-cancel, i.e. "the tool stopped
+// working after leaving and re-entering" (an odd count happened to work again).
+let _cadWired=false;
 function cadAlignHeads(){
   const heads=[...document.querySelectorAll('#cadView .cad-panel-head')];
   if(heads.length<2)return;
