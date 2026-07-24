@@ -288,27 +288,33 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-panel-head">
           <div class="cad-panel-top">
             <div class="cad-canvas-label">Draw</div>
-            <span class="cad-seg" title="Grid geometry">
-              <select id="cadGridType" onchange="cadUpdateSettings()">
-                <option value="square" selected>Square (90°)</option>
-                <option value="isometric">Isometric (30°)</option>
-              </select>
-            </span>
+            <!-- Grid geometry is a two-state SWITCH (off = square 90°, on = isometric 30°).
+                 The hidden <select> stays the source of truth so every existing reader/writer
+                 of #cadGridType is unchanged; cadSetGridIso drives it, _cadSyncGridSwitch reflects it. -->
+            <select id="cadGridType" onchange="cadUpdateSettings()" style="display:none">
+              <option value="square" selected>Square (90°)</option>
+              <option value="isometric">Isometric (30°)</option>
+            </select>
+            <label class="cad-switch cad-grid-switch" title="Grid geometry — off: square (90°), on: isometric (30°)">
+              <input type="checkbox" id="cadGridIso" onchange="cadSetGridIso(this.checked)">
+              <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
+              <span class="cad-switch-text" id="cadGridLabel">Square</span>
+            </label>
             <span class="cad-panel-stepper">
               <span class="cad-panel-stepper-label">Grid</span>
               <span class="cad-stepper-val" id="cadGridSizeVal" title="Draw-canvas size in grid units">30×30</span>
               <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
             </span>
           </div>
-          <!-- Only the modal drawing TOOLS live in the head (draggable-reorderable for admin),
-               so both panel heads stay a single short row and the canvases sit high + aligned.
-               TRANSFORM + ACTIONS moved below the canvas (mirrors the right panel's props). -->
+          <!-- Head holds the modal drawing TOOLS (draggable-reorderable for admin) plus Undo,
+               so undo sits right with the tools. TRANSFORM + ACTIONS live below the canvas. -->
           <div class="cad-toolbar cad-tools-bar" data-dragzone="cadTools">
             <button data-did="draw" id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')" title="Draw a straight line: click the start point, then click the end point">✏ Line</button>
             <button data-did="arc" id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')" title="Circular arc — 3 clicks: center → radius → move to sweep, click to finish">⭕ Arc</button>
             <button data-did="ellipse" id="cadBtnEllipse" class="cad-tool" onclick="cadSetTool('ellipse')" title="Elliptical arc — 4 clicks: center → first radius (sets the tilt) → second radius → move to sweep, click to finish">⬭ Ellipse</button>
             <button data-did="cut" id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')" title="Cut: click a piece of a line or arc to remove it (shapes split at crossings)">✂ Cut</button>
             <button data-did="color" id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')" title="Recolor: pick a family swatch below, then click lines to assign them to it">🎨 Color</button>
+            <button data-did="undo" class="cad-tool cad-act cad-tool-undo" onclick="cadUndo()" title="Undo the last change (Ctrl+Z)">↩ Undo</button>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
@@ -327,11 +333,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
             </span>
             <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
             <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
-            <button id="cadBtnDiamond" class="cad-tool" onclick="cadDiamondCut()" title="Kitties cut: replace the motif with a half-period-shifted copy cut at the tile edges into the corners — the freed middle is for drawing the alternate motif (square grid only)">◆ Diamond</button>
           </div>
           <div class="cad-prop-row">
-            <span class="cad-prop-label">Actions</span>
-            <button class="cad-tool cad-act" onclick="cadUndo()" title="Undo the last change (Ctrl+Z)">↩ Undo</button>
+            <span class="cad-prop-label" aria-hidden="true"></span>
             <button class="cad-tool cad-act" onclick="cadBgPick()" title="Load a pale background image to sketch over (session only, never saved)">🖼 Image</button>
             <button class="cad-tool cad-act" onclick="cadResetView()" title="Reset zoom and pan of the draw canvas (does not touch the drawing)">🔍 Reset view</button>
             <button class="cad-tool cad-act" onclick="cadClear()" title="Clear the whole drawing — Undo brings it back">🗑 Clear</button>

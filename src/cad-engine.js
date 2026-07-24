@@ -1350,12 +1350,23 @@ window.cadUpdateSettings=function(){
   const db=document.getElementById('cadBtnDiamond');
   if(db)db.style.display=(cadGridType==='isometric')?'none':'';
   cadZoom=1;cadPanX=0;cadPanY=0;
-  _cadSyncGridLabel();_cadSyncTilesLabel();
+  _cadSyncGridLabel();_cadSyncTilesLabel();_cadSyncGridSwitch();
   const tc=cadMacro*CAD_MICRO;
   cadBase=(cadGridType==='isometric')?460/(2*tc*CAD_COS30):460/tc;
   _cadRefreshTiling(true);
   cadApplyView();cadBakeLeft();cadUpdateAll();
 };
+// Grid-geometry switch ↔ hidden #cadGridType <select>. The select stays the single source of
+// truth (every existing reader/writer of #cadGridType is untouched); the switch just mirrors it.
+window.cadSetGridIso=function(iso){
+  const sel=document.getElementById('cadGridType');if(sel)sel.value=iso?'isometric':'square';
+  cadUpdateSettings();   // reads the select, then _cadSyncGridSwitch() reflects it back
+};
+function _cadSyncGridSwitch(){
+  const iso=(document.getElementById('cadGridType')||{}).value==='isometric';
+  const cb=document.getElementById('cadGridIso');if(cb)cb.checked=iso;
+  const lbl=document.getElementById('cadGridLabel');if(lbl)lbl.textContent=iso?'Isometric':'Square';
+}
 window.cadSetTool=function(t){
   cadTool=t;
   document.getElementById('cadBtnDraw').classList.toggle('on',t==='draw');
