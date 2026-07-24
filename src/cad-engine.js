@@ -1878,16 +1878,28 @@ window.cadTilePlay=function(){
   });
   }
   _tpStep=0;_tpOn=true;_tpLast=0;
-  document.getElementById('cadBtnTilePlay').textContent='⏹ Stop';
-  document.getElementById('cadBtnTilePlay').style.color='#ff8888';
+  _cadSetPlayBtn(true);
   _renderTileFrame();
   _tpRAF=requestAnimationFrame(_tpLoop);
+};
+// Toggle the round Preview Play button between play/pause icons (was a textContent swap on
+// a text button; now an SVG swap so the button stays a round hero like the gallery viewer).
+function _cadSetPlayBtn(playing){
+  const b=document.getElementById('cadBtnTilePlay');if(!b)return;
+  const svg=b.querySelector('svg'),sp=b.querySelector('span');
+  if(svg)svg.innerHTML=playing?'<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>':'<path d="M8 5v14l11-7z"/>';
+  if(sp)sp.textContent=playing?'Stop':'Play';
+  b.classList.toggle('playing',!!playing);
+  b.setAttribute('aria-label',playing?'Stop':'Play');
+}
+window.cadTogglePublishSettings=function(){
+  const pop=document.getElementById('cadPublishPop');if(!pop)return;
+  pop.style.display=pop.style.display==='none'?'':'none';
 };
 function _stopTilePlay(){
   _tpOn=false;
   if(_tpRAF){cancelAnimationFrame(_tpRAF);_tpRAF=null;}
-  document.getElementById('cadBtnTilePlay').textContent='▶ Play';
-  document.getElementById('cadBtnTilePlay').style.color='#88cc88';
+  _cadSetPlayBtn(false);
   cadDrawPattern();
 }
 function _renderTileFrame(){
@@ -2692,9 +2704,9 @@ function _cadInitToolbarDrag(){
 function _cadSaveToolbarOrder(){try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(_cadTbCollect()));}catch(_){}}
 function _cadApplyToolbarCache(){try{
   const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(!c)return;
-  // An admin draft saved before the current toolset existed would scramble the new
-  // committed layout — drop it (detected by a did the draft doesn't know about).
-  if(Array.isArray(c.cadLeft)&&!c.cadLeft.includes('ellipse')){localStorage.removeItem('sashiko_cadtoolbar');return;}
+  // Drafts from the pre-grouping toolbar used cadLeft/cadRight zones; the grouped layout
+  // only exposes the Tools group (cadTools) as a drag zone. Drop any draft that predates it.
+  if(!Array.isArray(c.cadTools)){localStorage.removeItem('sashiko_cadtoolbar');return;}
   _cadTbApply(c);
 }catch(_){}}
 window._cadTbSetDraggable=_cadTbSetDraggable;

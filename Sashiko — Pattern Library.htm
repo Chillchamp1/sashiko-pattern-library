@@ -406,13 +406,45 @@ body.is-admin .cad-admin-tool{display:inline-flex}
 body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-toolbar [data-did].cad-tb-dragging{opacity:.4}
 .cad-toolbar [data-did].cad-tb-over{outline:2px solid #6aabff;outline-offset:1px;border-radius:7px}
+.cad-move-inline{display:inline-flex;align-items:center;gap:5px}
 .cad-move-inline .cad-move-label{margin-right:2px}
 .cad-arrow{padding:6px 9px;font-size:14px;line-height:1;min-width:0}
-.cad-name-trad{font-size:12px;color:var(--muted);display:flex;align-items:center}
+.cad-name-trad{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
 .cad-name-trad input{accent-color:#6aabff;cursor:pointer}
 .cad-flags{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .cad-flags-row{display:flex;align-items:center;gap:8px}
 .cad-name-input::placeholder{color:#6b7d92}
+/* ── CAD redesign: publish-settings popover, grouped tools, grouped preview props ── */
+.cad-pub-wrap{position:relative}
+.cad-pub-btn{font-size:12px;white-space:nowrap}
+.cad-pub-btn:hover{background:#1d3850;color:#e7eef6}
+.cad-pub-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:30;display:flex;flex-direction:column;
+  gap:8px;min-width:210px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.cad-pub-pop .cad-name-input{width:100%}
+.cad-seg select{background:var(--panel2,#1c3045);color:#e7eef6;border:1px solid var(--line);
+  padding:4px 8px;border-radius:6px;font-size:12px;outline:none;cursor:pointer}
+/* Labelled tool groups (Tools / Transform / Actions) */
+.cad-toolgroups{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
+.cad-tgroup{display:flex;flex-direction:column;gap:3px;align-items:center}
+.cad-tgroup-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.cad-toolgroups .cad-toolbar{min-height:0;padding:6px}
+.cad-tools-bar{border-color:#2e638f}
+/* Preview head: round accent Play, view switch */
+.cad-preview-top{align-items:center}
+.btn-play.cad-play{width:44px;height:44px;box-shadow:0 3px 12px rgba(126,224,184,.22)}
+.btn-play.cad-play .ico{width:20px;height:20px}
+.btn-play.cad-play.playing{background:#ffb37a}
+.btn-play.cad-play.playing:hover{background:#ffc290}
+.cad-view-switch{margin-left:auto}
+/* Tiling / Routing property rows below the preview canvas */
+.cad-props{display:flex;flex-direction:column;gap:8px;margin-top:8px;padding:10px;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-prop-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cad-prop-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;min-width:52px}
+.cad-prop-select{background:var(--panel2,#1c3045);color:#e7eef6;border:1px solid var(--line);
+  padding:5px 8px;border-radius:6px;font-size:12px;outline:none;cursor:pointer;flex:1;min-width:120px}
+.cad-props .cad-famroute-btn{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--panel2,#1c3045)}
 .cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
 .cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
 /* Per-colour routing overrides (▾ next to the Routing dropdown + panel below the canvas) */
@@ -805,27 +837,22 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
   <div class="cad-wrap">
     <div class="cad-header">
       <button class="back-btn" onclick="showGalleryFromCAD()">← Patterns</button>
-      <h2>CAD Pattern Editor</h2>
+      <h2>CAD editor</h2>
       <input id="cadPatName" class="cad-name-input" placeholder="Unnamed pattern" value="">
-      <div class="cad-flags">
-        <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
-        <div class="cad-flags-row">
-          <label class="cad-name-trad" style="gap:5px"><input type="checkbox" id="cadCommunity" onchange="cadUpdateCommunity()"> Community</label>
-          <input id="cadCommunityName" class="cad-name-input" placeholder="Your name (optional)" value="" style="visibility:hidden;width:150px" oninput="cadUpdateCommunityName()">
-          <label class="cad-name-trad" id="cadEmbroideryWrap" style="gap:5px;visibility:hidden" title="A single embroidery motif — shown once, never tiled/repeated"><input type="checkbox" id="cadEmbroidery" onchange="cadUpdateEmbroidery()"> Embroidery</label>
+      <!-- Publish-settings popover: the flags (Traditional / Community / Embroidery) + author
+           name only matter at save time, so they live here instead of crowding the header. -->
+      <div class="cad-pub-wrap">
+        <button class="cad-tool cad-pub-btn" id="cadPubSettingsBtn" onclick="cadTogglePublishSettings()" title="Traditional / Community / Embroidery options and author name">⚙ Publish settings ▾</button>
+        <div class="cad-pub-pop" id="cadPublishPop" style="display:none">
+          <label class="cad-name-trad"><input type="checkbox" id="cadTraditional" onchange="cadUpdateTraditional()"> Traditional</label>
+          <label class="cad-name-trad"><input type="checkbox" id="cadCommunity" onchange="cadUpdateCommunity()"> Community</label>
+          <input id="cadCommunityName" class="cad-name-input" placeholder="Your name (optional)" value="" style="visibility:hidden;width:100%" oninput="cadUpdateCommunityName()">
+          <label class="cad-name-trad" id="cadEmbroideryWrap" style="visibility:hidden" title="A single embroidery motif — shown once, never tiled/repeated"><input type="checkbox" id="cadEmbroidery" onchange="cadUpdateEmbroidery()"> Embroidery</label>
+          <button class="cad-save-btn cad-admin-tool" id="cadCopyLayoutBtn" onclick="cadCopyToolbarLayout()" title="Copy the current toolbar arrangement — paste into cad-toolbar.json and push to make it everyone's default">📋 Copy layout</button>
         </div>
       </div>
       <button class="cad-save-btn" id="cadSaveBtn" onclick="cadSaveToLibrary()">⊕ Save changes</button>
       <button class="cad-save-btn" onclick="cadPublishToLibrary()" style="background:#3a2020;border-color:#6a3030;color:#ffaa88" id="cadPublishBtn">📌 Publish (admin)</button>
-      <button class="cad-save-btn cad-admin-tool" id="cadCopyLayoutBtn" onclick="cadCopyToolbarLayout()" title="Copy the current toolbar arrangement — paste into cad-toolbar.json and push to make it everyone's default">📋 Copy layout</button>
-    </div>
-    <div class="cad-settings-bar">
-      <label>Grid:
-        <select id="cadGridType" onchange="cadUpdateSettings()">
-          <option value="square" selected>Square (90°)</option>
-          <option value="isometric">Isometric (30°)</option>
-        </select>
-      </label>
     </div>
     <div class="cad-fam-bar" id="cadFamBar">
       <span class="cad-fam-label">Stitch Order:</span>
@@ -841,45 +868,55 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
         <div class="cad-panel-head">
           <div class="cad-panel-top">
             <div class="cad-canvas-label">Draw</div>
+            <span class="cad-seg" title="Grid geometry">
+              <select id="cadGridType" onchange="cadUpdateSettings()">
+                <option value="square" selected>Square (90°)</option>
+                <option value="isometric">Isometric (30°)</option>
+              </select>
+            </span>
             <span class="cad-panel-stepper">
               <span class="cad-panel-stepper-label">Grid</span>
               <span class="cad-stepper-val" id="cadGridSizeVal" title="Draw-canvas size in grid units">30×30</span>
               <span class="cad-step-arrows"><button onclick="cadStepMacro(1)"></button><button onclick="cadStepMacro(-1)"></button></span>
             </span>
           </div>
-          <!-- Toolbar layout: row 1 = the DRAWING tools (modal, raised buttons) + Undo right
-               beside them; row 2 = arrange/transform (Move cluster, sketch image) and the
-               flat one-shot actions (Reset view, Clear). Actions carry .cad-act (flat look)
-               so tools and commands read as different things. -->
-          <div class="cad-toolbar" data-dragzone="cadLeft">
+          <!-- Only the modal drawing TOOLS live in the head (draggable-reorderable for admin),
+               so both panel heads stay a single short row and the canvases sit high + aligned.
+               TRANSFORM + ACTIONS moved below the canvas (mirrors the right panel's props). -->
+          <div class="cad-toolbar cad-tools-bar" data-dragzone="cadTools">
             <button data-did="draw" id="cadBtnDraw" class="cad-tool on" onclick="cadSetTool('draw')" title="Draw a straight line: click the start point, then click the end point">✏ Line</button>
             <button data-did="arc" id="cadBtnArc" class="cad-tool" onclick="cadSetTool('arc')" title="Circular arc — 3 clicks: center → radius → move to sweep, click to finish">⭕ Arc</button>
             <button data-did="ellipse" id="cadBtnEllipse" class="cad-tool" onclick="cadSetTool('ellipse')" title="Elliptical arc — 4 clicks: center → first radius (sets the tilt) → second radius → move to sweep, click to finish">⬭ Ellipse</button>
             <button data-did="cut" id="cadBtnErase" class="cad-tool" onclick="cadSetTool('erase')" title="Cut: click a piece of a line or arc to remove it (shapes split at crossings)">✂ Cut</button>
             <button data-did="color" id="cadBtnRecolor" class="cad-tool" onclick="cadSetTool('recolor')" title="Recolor: pick a family swatch below, then click lines to assign them to it">🎨 Color</button>
-            <span data-did="sep1" class="cad-tool-sep"></span>
-            <button data-did="undo" class="cad-tool cad-act" onclick="cadUndo()" title="Undo the last change (Ctrl+Z)">↩ Undo</button>
-            <span data-did="sep2" class="cad-tool-break" title="Row break"></span>
-            <span data-did="move" class="cad-tool-group cad-move-inline" title="Move whole pattern">
-              <span class="cad-move-label">Move</span>
-              <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
-              <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,1)" title="Move down">↓</button>
-              <button class="cad-tool cad-arrow" onclick="cadMovePattern(-1,0)" title="Move left">←</button>
-              <button class="cad-tool cad-arrow" onclick="cadMovePattern(1,0)" title="Move right">→</button>
-              <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
-              <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
-              <button id="cadBtnDiamond" class="cad-tool" onclick="cadDiamondCut()" title="Kitties cut: replace the motif with a half-period-shifted copy cut at the tile edges into the corners — the freed middle is for drawing the alternate motif (square grid only)">◆ Diamond</button>
-            </span>
-            <button data-did="bgimg" class="cad-tool cad-act" onclick="cadBgPick()" title="Load a pale background image to sketch over (session only, never saved)">🖼 Image</button>
-            <span data-did="sep3" class="cad-tool-sep"></span>
-            <button data-did="reset" class="cad-tool cad-act" onclick="cadResetView()" title="Reset zoom and pan of the draw canvas (does not touch the drawing)">🔍 Reset view</button>
-            <button data-did="clear" class="cad-tool cad-act" onclick="cadClear()" title="Clear the whole drawing — Undo brings it back">🗑 Clear</button>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="cadCanvas" width="500" height="500"></canvas></div>
         <!-- Step-by-step tool hint (arc/ellipse state labels, redundant-line warnings) — lives
              directly under the draw canvas so multi-click tools explain themselves in view. -->
         <div id="cadArcHint" style="min-height:18px;text-align:center;font-size:12px;color:#ffcf7a;margin-top:2px"></div>
+        <!-- Transform + Actions groups below the draw canvas (were in the head). -->
+        <div class="cad-props">
+          <div class="cad-prop-row">
+            <span class="cad-prop-label">Transform</span>
+            <span class="cad-move-inline" title="Move whole pattern">
+              <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,-1)" title="Move up">↑</button>
+              <button class="cad-tool cad-arrow" onclick="cadMovePattern(0,1)" title="Move down">↓</button>
+              <button class="cad-tool cad-arrow" onclick="cadMovePattern(-1,0)" title="Move left">←</button>
+              <button class="cad-tool cad-arrow" onclick="cadMovePattern(1,0)" title="Move right">→</button>
+            </span>
+            <button class="cad-tool" onclick="cadRotate45()" title="Rotate pattern 45°">↻ 45°</button>
+            <button id="cadBtnBBoxRot" class="cad-tool" onclick="cadToggleBBoxRotate()" title="45° rotated tiling">◇ 45°</button>
+            <button id="cadBtnDiamond" class="cad-tool" onclick="cadDiamondCut()" title="Kitties cut: replace the motif with a half-period-shifted copy cut at the tile edges into the corners — the freed middle is for drawing the alternate motif (square grid only)">◆ Diamond</button>
+          </div>
+          <div class="cad-prop-row">
+            <span class="cad-prop-label">Actions</span>
+            <button class="cad-tool cad-act" onclick="cadUndo()" title="Undo the last change (Ctrl+Z)">↩ Undo</button>
+            <button class="cad-tool cad-act" onclick="cadBgPick()" title="Load a pale background image to sketch over (session only, never saved)">🖼 Image</button>
+            <button class="cad-tool cad-act" onclick="cadResetView()" title="Reset zoom and pan of the draw canvas (does not touch the drawing)">🔍 Reset view</button>
+            <button class="cad-tool cad-act" onclick="cadClear()" title="Clear the whole drawing — Undo brings it back">🗑 Clear</button>
+          </div>
+        </div>
         <input type="file" id="cadBgFile" accept="image/*" style="display:none" onchange="cadBgFileChange(this)">
         <!-- Background sketch image controls — shown only while an image is loaded. -->
         <div class="cad-stitch-controls" id="cadBgControls" style="display:none">
@@ -900,19 +937,32 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
       </div>
       <div class="cad-panel">
         <div class="cad-panel-head">
-          <div class="cad-panel-top">
-            <div class="cad-canvas-label">Live Tiling</div>
-            <label class="cad-routing-toggle">Routing:
-              <select id="cadRoutingMode" onchange="cadUpdateSettings()">
-                <option value="default" selected>1 · Straight rows</option>
-                <option value="continuous">2 · Zigzag</option>
-                <option value="zigzag2">2b · Zigzag v2</option>
-                <option value="contour">3 · Waves</option>
-                <option value="waves2">3b · Waves v2</option>
-                <option value="sequential">4 · One by one (motifs)</option>
-              </select>
-              <button id="cadFamRoutingBtn" class="cad-famroute-btn" onclick="cadToggleFamRouting()" title="Advanced: route individual colours with a different logic">▾</button>
+          <!-- Preview head = the playback zone: prominent round Play, speed, and the
+               Colour ↔ Stitch view toggle. Parameters (tiling/routing/stitch) moved BELOW
+               the canvas into labelled groups so the head stays a single clean row. -->
+          <div class="cad-panel-top cad-preview-top">
+            <div class="cad-canvas-label">Preview</div>
+            <button class="btn-play cad-play" id="cadBtnTilePlay" onclick="cadTilePlay()" aria-label="Play" title="Play / pause the tiling animation">
+              <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg><span>Play</span>
+            </button>
+            <span class="speed-slider" title="Animation speed">
+              <span aria-hidden="true">🐢</span>
+              <input type="range" id="cadSpeed" min="0" max="100" step="1" value="82" oninput="cadSetSpeed(this.value)">
+              <span aria-hidden="true">⚡</span>
+            </span>
+            <label class="cad-switch cad-view-switch" title="Switch between coloured and realistic denim + thread view">
+              <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
+              <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
+              <span class="cad-switch-text">🪡 Stitch view</span>
             </label>
+          </div>
+        </div>
+        <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
+        <!-- Tiling + Routing parameters — grouped, labelled rows below the canvas (were scattered
+             across the old panel head). Sit above #cadStitchControls (the stitch-render group). -->
+        <div class="cad-props">
+          <div class="cad-prop-row">
+            <span class="cad-prop-label">Tiling</span>
             <span class="cad-panel-stepper" id="cadTilesCtl">
               <span class="cad-panel-stepper-label">Tiles</span>
               <span class="cad-stepper-val" id="cadPatSizeVal" title="Number of tiles across (N×N repeat)">3×3</span>
@@ -924,24 +974,19 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
               <span class="cad-step-arrows"><button onclick="cadStepSpacing(1)"></button><button onclick="cadStepSpacing(-1)"></button></span>
             </span>
           </div>
-          <div class="cad-toolbar" data-dragzone="cadRight">
-            <span data-did="play" class="cad-tool-group">
-              <button class="cad-tool" id="cadBtnTilePlay" onclick="cadTilePlay()" style="color:#88cc88">▶ Play</button>
-              <span class="speed-slider" title="Animation speed">
-                <span aria-hidden="true">🐢</span>
-                <input type="range" id="cadSpeed" min="0" max="100" step="1" value="82" oninput="cadSetSpeed(this.value)">
-                <span aria-hidden="true">⚡</span>
-              </span>
-            </span>
-            <span data-did="rsep" class="cad-tool-sep"></span>
-            <label data-did="stitchview" class="cad-switch" title="Switch between coloured and realistic denim + thread view">
-              <input type="checkbox" id="cadStitchToggle" onchange="cadToggleStitchView()">
-              <span class="cad-switch-track"><span class="cad-switch-knob"></span></span>
-              <span class="cad-switch-text">🪡 Stitch view</span>
-            </label>
+          <div class="cad-prop-row">
+            <span class="cad-prop-label">Routing</span>
+            <select id="cadRoutingMode" class="cad-prop-select" onchange="cadUpdateSettings()">
+              <option value="default" selected>1 · Straight rows</option>
+              <option value="continuous">2 · Zigzag</option>
+              <option value="zigzag2">2b · Zigzag v2</option>
+              <option value="contour">3 · Waves</option>
+              <option value="waves2">3b · Waves v2</option>
+              <option value="sequential">4 · One by one (motifs)</option>
+            </select>
+            <button id="cadFamRoutingBtn" class="cad-famroute-btn" onclick="cadToggleFamRouting()" title="Advanced: route individual colours with a different logic">per-colour ▾</button>
           </div>
         </div>
-        <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
         <!-- Per-colour routing overrides (opened via the ▾ next to the Routing dropdown).
              Sits below the canvas like #cadStitchControls so toggling never shifts the canvas. -->
         <div class="cad-stitch-controls cad-famroute-panel" id="cadFamRoutingPanel" style="display:none"></div>
@@ -5210,7 +5255,7 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
     }
   ]
 }</script>
-<script>const CAD_TOOLBAR_LAYOUT={"cadLeft":["draw","arc","ellipse","cut","color","sep1","undo","sep2","move","bgimg","sep3","reset","clear"],"cadRight":["play","rsep","stitchview"]}</script>
+<script>const CAD_TOOLBAR_LAYOUT={"cadTools":["draw","arc","ellipse","cut","color"]}</script>
 <script>const PATTERN_CLICKS={
   "exp_1781813334725": 5,
   "exp_1781819811459": 35,
@@ -12172,16 +12217,28 @@ window.cadTilePlay=function(){
   });
   }
   _tpStep=0;_tpOn=true;_tpLast=0;
-  document.getElementById('cadBtnTilePlay').textContent='⏹ Stop';
-  document.getElementById('cadBtnTilePlay').style.color='#ff8888';
+  _cadSetPlayBtn(true);
   _renderTileFrame();
   _tpRAF=requestAnimationFrame(_tpLoop);
+};
+// Toggle the round Preview Play button between play/pause icons (was a textContent swap on
+// a text button; now an SVG swap so the button stays a round hero like the gallery viewer).
+function _cadSetPlayBtn(playing){
+  const b=document.getElementById('cadBtnTilePlay');if(!b)return;
+  const svg=b.querySelector('svg'),sp=b.querySelector('span');
+  if(svg)svg.innerHTML=playing?'<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>':'<path d="M8 5v14l11-7z"/>';
+  if(sp)sp.textContent=playing?'Stop':'Play';
+  b.classList.toggle('playing',!!playing);
+  b.setAttribute('aria-label',playing?'Stop':'Play');
+}
+window.cadTogglePublishSettings=function(){
+  const pop=document.getElementById('cadPublishPop');if(!pop)return;
+  pop.style.display=pop.style.display==='none'?'':'none';
 };
 function _stopTilePlay(){
   _tpOn=false;
   if(_tpRAF){cancelAnimationFrame(_tpRAF);_tpRAF=null;}
-  document.getElementById('cadBtnTilePlay').textContent='▶ Play';
-  document.getElementById('cadBtnTilePlay').style.color='#88cc88';
+  _cadSetPlayBtn(false);
   cadDrawPattern();
 }
 function _renderTileFrame(){
@@ -12986,9 +13043,9 @@ function _cadInitToolbarDrag(){
 function _cadSaveToolbarOrder(){try{localStorage.setItem('sashiko_cadtoolbar',JSON.stringify(_cadTbCollect()));}catch(_){}}
 function _cadApplyToolbarCache(){try{
   const c=JSON.parse(localStorage.getItem('sashiko_cadtoolbar')||'null'); if(!c)return;
-  // An admin draft saved before the current toolset existed would scramble the new
-  // committed layout — drop it (detected by a did the draft doesn't know about).
-  if(Array.isArray(c.cadLeft)&&!c.cadLeft.includes('ellipse')){localStorage.removeItem('sashiko_cadtoolbar');return;}
+  // Drafts from the pre-grouping toolbar used cadLeft/cadRight zones; the grouped layout
+  // only exposes the Tools group (cadTools) as a drag zone. Drop any draft that predates it.
+  if(!Array.isArray(c.cadTools)){localStorage.removeItem('sashiko_cadtoolbar');return;}
   _cadTbApply(c);
 }catch(_){}}
 window._cadTbSetDraggable=_cadTbSetDraggable;

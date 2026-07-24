@@ -383,13 +383,45 @@ body.is-admin .cad-admin-tool{display:inline-flex}
 body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-toolbar [data-did].cad-tb-dragging{opacity:.4}
 .cad-toolbar [data-did].cad-tb-over{outline:2px solid #6aabff;outline-offset:1px;border-radius:7px}
+.cad-move-inline{display:inline-flex;align-items:center;gap:5px}
 .cad-move-inline .cad-move-label{margin-right:2px}
 .cad-arrow{padding:6px 9px;font-size:14px;line-height:1;min-width:0}
-.cad-name-trad{font-size:12px;color:var(--muted);display:flex;align-items:center}
+.cad-name-trad{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
 .cad-name-trad input{accent-color:#6aabff;cursor:pointer}
 .cad-flags{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .cad-flags-row{display:flex;align-items:center;gap:8px}
 .cad-name-input::placeholder{color:#6b7d92}
+/* ── CAD redesign: publish-settings popover, grouped tools, grouped preview props ── */
+.cad-pub-wrap{position:relative}
+.cad-pub-btn{font-size:12px;white-space:nowrap}
+.cad-pub-btn:hover{background:#1d3850;color:#e7eef6}
+.cad-pub-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:30;display:flex;flex-direction:column;
+  gap:8px;min-width:210px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.cad-pub-pop .cad-name-input{width:100%}
+.cad-seg select{background:var(--panel2,#1c3045);color:#e7eef6;border:1px solid var(--line);
+  padding:4px 8px;border-radius:6px;font-size:12px;outline:none;cursor:pointer}
+/* Labelled tool groups (Tools / Transform / Actions) */
+.cad-toolgroups{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
+.cad-tgroup{display:flex;flex-direction:column;gap:3px;align-items:center}
+.cad-tgroup-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.cad-toolgroups .cad-toolbar{min-height:0;padding:6px}
+.cad-tools-bar{border-color:#2e638f}
+/* Preview head: round accent Play, view switch */
+.cad-preview-top{align-items:center}
+.btn-play.cad-play{width:44px;height:44px;box-shadow:0 3px 12px rgba(126,224,184,.22)}
+.btn-play.cad-play .ico{width:20px;height:20px}
+.btn-play.cad-play.playing{background:#ffb37a}
+.btn-play.cad-play.playing:hover{background:#ffc290}
+.cad-view-switch{margin-left:auto}
+/* Tiling / Routing property rows below the preview canvas */
+.cad-props{display:flex;flex-direction:column;gap:8px;margin-top:8px;padding:10px;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.cad-prop-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cad-prop-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;min-width:52px}
+.cad-prop-select{background:var(--panel2,#1c3045);color:#e7eef6;border:1px solid var(--line);
+  padding:5px 8px;border-radius:6px;font-size:12px;outline:none;cursor:pointer;flex:1;min-width:120px}
+.cad-props .cad-famroute-btn{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--panel2,#1c3045)}
 .cad-routing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#b0c8e0;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2,#1c3045);user-select:none}
 .cad-routing-toggle input{accent-color:#6aabff;cursor:pointer}
 /* Per-colour routing overrides (▾ next to the Routing dropdown + panel below the canvas) */
