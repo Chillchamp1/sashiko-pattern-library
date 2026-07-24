@@ -405,6 +405,8 @@ body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-tool-undo{margin-left:8px}
 /* Grid geometry switch: fixed label width so Square↔Isometric doesn't shift the row */
 .cad-grid-switch .cad-switch-text{min-width:60px}
+/* Mirrors #cadArcHint's footprint on the right panel so both lower bars start level */
+.cad-hint-spacer{min-height:18px;margin-top:2px}
 /* Labelled tool groups (Tools / Transform / Actions) */
 .cad-toolgroups{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
 .cad-tgroup{display:flex;flex-direction:column;gap:3px;align-items:center}

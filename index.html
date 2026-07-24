@@ -428,6 +428,8 @@ body.is-admin .cad-toolbar[data-dragzone] > [data-did]{cursor:grab}
 .cad-tool-undo{margin-left:8px}
 /* Grid geometry switch: fixed label width so Square↔Isometric doesn't shift the row */
 .cad-grid-switch .cad-switch-text{min-width:60px}
+/* Mirrors #cadArcHint's footprint on the right panel so both lower bars start level */
+.cad-hint-spacer{min-height:18px;margin-top:2px}
 /* Labelled tool groups (Tools / Transform / Actions) */
 .cad-toolgroups{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
 .cad-tgroup{display:flex;flex-direction:column;gap:3px;align-items:center}
@@ -966,6 +968,9 @@ palindrome with 4-fold symmetry. (Monnerot-Dumaine, 2009)</p>
           </div>
         </div>
         <div class="cad-canvas-wrap"><canvas id="patCanvas" width="500" height="500"></canvas></div>
+        <!-- Spacer mirroring the left panel's #cadArcHint (which sits between the draw canvas and
+             its props) so the two lower control bars start at the SAME vertical level. -->
+        <div class="cad-hint-spacer" aria-hidden="true"></div>
         <!-- Tiling + Routing parameters — grouped, labelled rows below the canvas (were scattered
              across the old panel head). Sit above #cadStitchControls (the stitch-render group). -->
         <div class="cad-props">
