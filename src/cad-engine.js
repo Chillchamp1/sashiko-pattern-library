@@ -1155,7 +1155,12 @@ function cadDrawPattern(){
     const epts=[];cadAllSegments(all.filter(l=>!l.preview)).forEach(s=>epts.push(s.start,s.end));
     let mnP=Infinity,mxP=-Infinity,mnQ=Infinity,mxQ=-Infinity;
     epts.forEach(([u,v])=>{const p=u+v,q=u-v;if(p<mnP)mnP=p;if(p>mxP)mxP=p;if(q<mnQ)mnQ=q;if(q>mxQ)mxQ=q;});
-    const sP=Math.max(mxP-mnP+cadSpacing,1),sQ=Math.max(mxQ-mnQ+cadSpacing,1);   // negative spacing floors at 1
+    // Round the diagonal period UP to even, exactly like genTiledSegs (stitch view + saved
+    // output) and the dashed guide. Without this the coloured preview tiled at the raw (odd)
+    // period — 1 unit tighter than the stitch view — so the two views' spacing drifted apart
+    // whenever 45° tiling was on (e.g. Dancing Fans). negative spacing still floors at 1.
+    const evenUp=x=>2*Math.ceil(x/2);
+    const sP=evenUp(Math.max(mxP-mnP+cadSpacing,1)),sQ=evenUp(Math.max(mxQ-mnQ+cadSpacing,1));
     const base_u=(mnP+mnQ)/2,base_v=(mnP-mnQ)/2;
     const N=Math.ceil(2*(ptc+ov)/Math.min(sP,sQ))+3;
     for(let a=-N;a<=N;a++){for(let b=-N;b<=N;b++){
@@ -2732,16 +2737,6 @@ window.sashikoToolbarLayout=function(){
   _cadCopyText(json).catch(()=>{});
   console.log('CAD toolbar layout — copied. Paste into cad-toolbar.json and push to publish for everyone:\n'+json);
   return o;
-};
-// Admin-only header button: copy the current toolbar layout, with feedback on the button itself.
-window.cadCopyToolbarLayout=function(){
-  const json=JSON.stringify(_cadTbCollect());
-  const btn=document.getElementById('cadCopyLayoutBtn');
-  console.log('CAD toolbar layout:\n'+json);
-  _cadCopyText(json).then(()=>{if(btn){btn.textContent='✓ Copied';setTimeout(()=>{btn.textContent='📋 Copy layout';},2000);}}).catch(()=>{});
-  // Guaranteed path: show the code pre-selected in a prompt so it can always be copied (Ctrl/Cmd+C)
-  // and pasted anywhere — e.g. straight into the chat with Claude, or into cad-toolbar.json.
-  window.prompt('Toolbar layout — copy this (Ctrl/Cmd+C) and paste it to Claude, or into cad-toolbar.json:', json);
 };
 
 // ── Init ───────────────────────────────────────────────────────────────────
