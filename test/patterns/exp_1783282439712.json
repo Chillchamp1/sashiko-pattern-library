@@ -1,16 +1,13 @@
 {
-  "spacing": 0,
-  "routingMode": "default",
-  "name": "Nijuu-Kagome / Double Woven Bamboo",
-  "order": 8,
-  "thumbCells": 1,
-  "stitchGrid": false,
-  "type": "exp",
-  "updatedAt": 1784724887803,
-  "createdAt": 1783282439712,
-  "gridMacro": 1,
-  "creatorId": "uuqxh5yyn7w",
-  "stitchLen": 7,
+  "published": true,
+  "patMacro": 0.9,
+  "order": 25,
+  "famOrder": [
+    0,
+    2,
+    1
+  ],
+  "bboxRotated": true,
   "families": [
     2,
     1,
@@ -51,46 +48,36 @@
     1,
     2
   ],
-  "stitchRatio": "standard",
-  "id": "exp_1783282439712",
-  "community": false,
-  "published": true,
   "gridType": "isometric",
-  "bboxRotated": true,
-  "stitchView": true,
-  "routingEngine": 1,
-  "patMacro": 0.9,
-  "bbox": {
-    "maxV": 9,
-    "maxU": 9,
-    "minU": 0,
-    "minV": 0
-  },
-  "famOrder": [
-    0,
-    2,
-    1
-  ],
-  "traditional": true,
   "lines": [
     {
+      "end": [
+        4,
+        7
+      ],
       "start": [
         4,
         9
-      ],
+      ]
+    },
+    {
       "end": [
+        5,
+        8
+      ],
+      "start": [
         4,
         7
       ]
     },
     {
-      "start": [
-        4,
-        7
-      ],
       "end": [
         5,
-        8
+        7
+      ],
+      "start": [
+        4,
+        6
       ]
     },
     {
@@ -98,29 +85,19 @@
         4,
         6
       ],
-      "end": [
-        5,
-        7
-      ]
-    },
-    {
       "end": [
         4,
         4
-      ],
-      "start": [
-        4,
-        6
       ]
     },
     {
-      "start": [
-        5,
-        9
-      ],
       "end": [
         5,
         8
+      ],
+      "start": [
+        5,
+        9
       ]
     },
     {
@@ -134,12 +111,12 @@
       ]
     },
     {
-      "start": [
-        2,
-        5
-      ],
       "end": [
         3,
+        5
+      ],
+      "start": [
+        2,
         5
       ]
     },
@@ -164,53 +141,53 @@
       ]
     },
     {
+      "start": [
+        5,
+        4
+      ],
       "end": [
         9,
         4
-      ],
-      "start": [
-        5,
-        4
       ]
     },
     {
-      "end": [
-        5,
-        3
-      ],
       "start": [
         4,
         2
+      ],
+      "end": [
+        5,
+        3
       ]
     },
     {
-      "start": [
-        5,
-        3
-      ],
       "end": [
         6,
         4
+      ],
+      "start": [
+        5,
+        3
       ]
     },
     {
+      "end": [
+        5,
+        2
+      ],
       "start": [
         7,
         4
-      ],
-      "end": [
-        5,
-        2
       ]
     },
     {
-      "start": [
-        5,
-        2
-      ],
       "end": [
         4,
         1
+      ],
+      "start": [
+        5,
+        2
       ]
     },
     {
@@ -224,13 +201,13 @@
       ]
     },
     {
-      "end": [
-        5,
-        4
-      ],
       "start": [
         5,
         5
+      ],
+      "end": [
+        5,
+        4
       ]
     },
     {
@@ -244,23 +221,23 @@
       ]
     },
     {
-      "start": [
-        5,
-        2
-      ],
       "end": [
         5,
         1
+      ],
+      "start": [
+        5,
+        2
       ]
     },
     {
-      "start": [
-        4,
-        4
-      ],
       "end": [
         4,
         2
+      ],
+      "start": [
+        4,
+        4
       ]
     },
     {
@@ -294,33 +271,33 @@
       ]
     },
     {
+      "end": [
+        0,
+        4
+      ],
       "start": [
         0,
         5
-      ],
-      "end": [
-        0,
-        4
       ]
     },
     {
-      "start": [
-        2,
-        4
-      ],
       "end": [
         1,
         3
+      ],
+      "start": [
+        2,
+        4
       ]
     },
     {
-      "start": [
-        1,
-        4
-      ],
       "end": [
         0.5,
         3.5
+      ],
+      "start": [
+        1,
+        4
       ]
     },
     {
@@ -354,13 +331,13 @@
       ]
     },
     {
+      "end": [
+        2,
+        4
+      ],
       "start": [
         4,
         4
-      ],
-      "end": [
-        2,
-        4
       ]
     },
     {
@@ -394,23 +371,23 @@
       ]
     },
     {
+      "start": [
+        8,
+        5
+      ],
       "end": [
         9,
         5
-      ],
-      "start": [
-        8,
-        5
       ]
     },
     {
-      "start": [
-        8.5,
-        5.5
-      ],
       "end": [
         8,
         5
+      ],
+      "start": [
+        8.5,
+        5.5
       ]
     },
     {
@@ -434,25 +411,48 @@
       ]
     },
     {
-      "start": [
-        5,
-        8
-      ],
       "end": [
         5.5,
         8.5
+      ],
+      "start": [
+        5,
+        8
       ]
     },
     {
-      "start": [
-        9,
-        5
-      ],
       "end": [
         9,
         4
+      ],
+      "start": [
+        9,
+        5
       ]
     }
   ],
-  "communityName": ""
+  "stitchRatio": "standard",
+  "routingEngine": 1,
+  "spacing": 0,
+  "community": false,
+  "creatorId": "uuqxh5yyn7w",
+  "createdAt": 1783282439712,
+  "stitchView": true,
+  "thumbCells": 1,
+  "type": "exp",
+  "traditional": true,
+  "gridMacro": 1,
+  "updatedAt": 1784923592389,
+  "stitchLen": 7,
+  "routingMode": "default",
+  "name": "Nijuu-Kagome / Double Woven Bamboo",
+  "stitchGrid": false,
+  "id": "exp_1783282439712",
+  "communityName": "",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 9,
+    "maxU": 9
+  }
 }

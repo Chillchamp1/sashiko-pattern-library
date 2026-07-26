@@ -1,36 +1,27 @@
 {
-  "traditional": true,
-  "createdAt": 1783025395704,
-  "famOrder": [
-    0,
-    1
-  ],
-  "stitchRatio": "standard",
-  "families": [
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0,
-    1,
-    0
-  ],
-  "creatorId": "uq9c875443t",
+  "name": "Higaki (Wooden fence) Remix",
   "stitchLen": 8,
+  "routingMode": "default",
+  "spacing": 0,
+  "routingEngine": 1,
+  "stitchRatio": "standard",
+  "updatedAt": 1784923593424,
+  "bbox": {
+    "minU": 0,
+    "maxU": 8,
+    "maxV": 8,
+    "minV": 0
+  },
+  "stitchView": false,
+  "id": "exp_1783025395704",
+  "createdAt": 1783025395704,
+  "stitchGrid": false,
+  "creatorId": "uq9c875443t",
+  "type": "exp",
+  "thumbCells": 1,
+  "patMacro": 1,
+  "order": 24,
+  "published": true,
   "lines": [
     {
       "end": [
@@ -43,33 +34,33 @@
       ]
     },
     {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        2,
+        6
+      ]
+    },
+    {
       "start": [
         2,
         6
       ],
-      "end": [
-        2,
-        8
-      ]
-    },
-    {
       "end": [
         2,
         4
-      ],
-      "start": [
-        2,
-        6
       ]
     },
     {
+      "end": [
+        6,
+        6
+      ],
       "start": [
         6,
         8
-      ],
-      "end": [
-        6,
-        6
       ]
     },
     {
@@ -83,22 +74,22 @@
       ]
     },
     {
-      "end": [
-        2,
-        8
-      ],
       "start": [
         0,
         8
+      ],
+      "end": [
+        2,
+        8
       ]
     },
     {
-      "start": [
-        2,
-        8
-      ],
       "end": [
         6,
+        8
+      ],
+      "start": [
+        2,
         8
       ]
     },
@@ -133,13 +124,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        2
-      ],
       "start": [
         3,
         2
+      ],
+      "end": [
+        4,
+        2
       ]
     },
     {
@@ -173,52 +164,52 @@
       ]
     },
     {
+      "end": [
+        4,
+        4
+      ],
       "start": [
         8,
         4
-      ],
-      "end": [
-        4,
-        4
       ]
     },
     {
-      "end": [
-        6,
-        0
-      ],
       "start": [
         6,
         4
+      ],
+      "end": [
+        6,
+        0
       ]
     },
     {
+      "end": [
+        4,
+        0
+      ],
       "start": [
         6,
         0
-      ],
-      "end": [
-        4,
-        0
       ]
     },
     {
+      "end": [
+        4,
+        2
+      ],
       "start": [
         4,
         0
-      ],
-      "end": [
-        4,
-        2
       ]
     },
     {
-      "end": [
-        0,
-        2
-      ],
       "start": [
         2,
+        2
+      ],
+      "end": [
+        0,
         2
       ]
     },
@@ -243,25 +234,34 @@
       ]
     }
   ],
-  "order": 7,
   "gridType": "isometric",
-  "published": true,
-  "name": "Higaki (Wooden fence) Remix",
-  "id": "exp_1783025395704",
-  "routingMode": "default",
-  "spacing": 0,
-  "bbox": {
-    "maxV": 8,
-    "maxU": 8,
-    "minU": 0,
-    "minV": 0
-  },
-  "type": "exp",
-  "updatedAt": 1784724887803,
-  "stitchGrid": false,
-  "patMacro": 1,
-  "routingEngine": 1,
-  "stitchView": false,
-  "thumbCells": 1,
-  "bboxRotated": false
+  "families": [
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0
+  ],
+  "traditional": true,
+  "bboxRotated": false,
+  "famOrder": [
+    0,
+    1
+  ]
 }

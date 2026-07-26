@@ -1,0 +1,151 @@
+{
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 5.000000000000001,
+    "maxU": 4
+  },
+  "id": "exp_1784926684907",
+  "communityName": "Chillchamp",
+  "stitchGrid": false,
+  "fabric": "",
+  "routingMode": "default",
+  "stitchLen": 8,
+  "stitchColors": false,
+  "name": "Raimon (雷紋)",
+  "updatedAt": 1785019597222,
+  "embroidery": false,
+  "gridMacro": 1,
+  "famRouting": {},
+  "traditional": true,
+  "type": "exp",
+  "thumbCells": 3,
+  "stitchView": false,
+  "createdAt": 1784926684906,
+  "creatorId": "uuqxh5yyn7w",
+  "community": false,
+  "spacing": 0,
+  "stitchRatio": "standard",
+  "lines": [
+    {
+      "start": [
+        2,
+        2
+      ],
+      "end": [
+        2,
+        3
+      ]
+    },
+    {
+      "end": [
+        1,
+        3
+      ],
+      "start": [
+        2,
+        3
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        3,
+        4
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "start": [
+        1,
+        3
+      ],
+      "end": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "start": [
+        3,
+        4
+      ],
+      "end": [
+        0,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        0
+      ],
+      "start": [
+        0,
+        0
+      ]
+    }
+  ],
+  "gridType": "isometric",
+  "famOrder": [
+    0,
+    1
+  ],
+  "famColors": {},
+  "families": [
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0
+  ],
+  "bboxRotated": false,
+  "patMacro": 1.5
+}

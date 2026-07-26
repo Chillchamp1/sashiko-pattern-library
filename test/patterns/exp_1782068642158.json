@@ -1,15 +1,79 @@
 {
-  "name": "Lightning bolt 1",
-  "routingMode": "default",
-  "spacing": 0,
-  "stitchGrid": false,
-  "type": "exp",
-  "updatedAt": 1784513600338,
-  "embroidery": false,
-  "thumbCells": 3,
-  "gridMacro": 2,
-  "createdAt": 1782068642173,
-  "stitchRatio": "standard",
+  "patMacro": 5.4,
+  "published": true,
+  "lines": [
+    {
+      "end": [
+        10,
+        0
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        8,
+        4
+      ],
+      "start": [
+        10,
+        0
+      ]
+    },
+    {
+      "start": [
+        8,
+        4
+      ],
+      "end": [
+        12,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        18
+      ],
+      "start": [
+        12,
+        4
+      ]
+    },
+    {
+      "end": [
+        0,
+        7
+      ],
+      "start": [
+        1,
+        0
+      ]
+    },
+    {
+      "end": [
+        5,
+        7
+      ],
+      "start": [
+        0,
+        7
+      ]
+    },
+    {
+      "start": [
+        2,
+        18
+      ],
+      "end": [
+        5,
+        7
+      ]
+    }
+  ],
+  "gridType": "square",
   "families": [
     2,
     0,
@@ -19,99 +83,40 @@
     2,
     1
   ],
-  "creatorId": "uconggef72r",
-  "stitchLen": 8,
-  "published": true,
-  "gridType": "square",
-  "community": true,
-  "id": "exp_1782068642158",
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxV": 18,
-    "maxU": 12
-  },
-  "patMacro": 5.4,
-  "routingEngine": 1,
-  "stitchView": false,
   "bboxRotated": false,
-  "traditional": false,
+  "famColors": {},
   "famOrder": [
     2,
     0,
     1
   ],
-  "communityName": "ChillChamp",
-  "lines": [
-    {
-      "start": [
-        1,
-        0
-      ],
-      "end": [
-        10,
-        0
-      ]
-    },
-    {
-      "end": [
-        8,
-        4
-      ],
-      "start": [
-        10,
-        0
-      ]
-    },
-    {
-      "start": [
-        8,
-        4
-      ],
-      "end": [
-        12,
-        4
-      ]
-    },
-    {
-      "start": [
-        12,
-        4
-      ],
-      "end": [
-        2,
-        18
-      ]
-    },
-    {
-      "end": [
-        0,
-        7
-      ],
-      "start": [
-        1,
-        0
-      ]
-    },
-    {
-      "end": [
-        5,
-        7
-      ],
-      "start": [
-        0,
-        7
-      ]
-    },
-    {
-      "end": [
-        5,
-        7
-      ],
-      "start": [
-        2,
-        18
-      ]
-    }
-  ]
+  "community": true,
+  "spacing": 0,
+  "routingEngine": 1,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "createdAt": 1782068642173,
+  "creatorId": "uconggef72r",
+  "thumbCells": 3,
+  "type": "exp",
+  "gridMacro": 2,
+  "embroidery": false,
+  "famRouting": {},
+  "traditional": false,
+  "spacingY": 0,
+  "name": "Lightning bolt 1",
+  "stitchColors": false,
+  "stitchLen": 8,
+  "routingMode": "default",
+  "updatedAt": 1785019092200,
+  "bbox": {
+    "minV": 0,
+    "maxV": 18,
+    "minU": 0,
+    "maxU": 12
+  },
+  "communityName": "",
+  "id": "exp_1782068642158",
+  "fabric": "indigo",
+  "stitchGrid": false
 }

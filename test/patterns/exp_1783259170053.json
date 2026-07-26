@@ -1,10 +1,29 @@
 {
-  "famOrder": [
-    0,
-    2,
-    1
-  ],
+  "bbox": {
+    "minU": 0,
+    "maxU": 18,
+    "maxV": 18,
+    "minV": 0
+  },
+  "communityName": "",
+  "id": "exp_1783259170053",
+  "stitchGrid": false,
+  "name": "Kawari-Bishamon-Kikko / Bishamon Tortoise Shell",
+  "routingMode": "default",
+  "stitchLen": 8,
+  "updatedAt": 1784923592642,
+  "gridMacro": 2,
+  "embroidery": false,
   "traditional": true,
+  "type": "exp",
+  "thumbCells": 1,
+  "stitchView": true,
+  "createdAt": 1783259170053,
+  "creatorId": "uuqxh5yyn7w",
+  "community": false,
+  "spacing": 0,
+  "routingEngine": 1,
+  "stitchRatio": "relaxed",
   "lines": [
     {
       "end": [
@@ -27,11 +46,21 @@
       ]
     },
     {
+      "end": [
+        9,
+        16
+      ],
       "start": [
         9,
         9
-      ],
+      ]
+    },
+    {
       "end": [
+        9,
+        17
+      ],
+      "start": [
         9,
         16
       ]
@@ -39,60 +68,50 @@
     {
       "start": [
         9,
-        16
-      ],
-      "end": [
-        9,
         17
-      ]
-    },
-    {
+      ],
       "end": [
         9,
         18
-      ],
-      "start": [
-        9,
-        17
       ]
     },
     {
-      "end": [
-        13,
-        11
-      ],
       "start": [
         11,
         11
+      ],
+      "end": [
+        13,
+        11
       ]
     },
     {
-      "start": [
-        13,
-        11
-      ],
       "end": [
         16,
         11
+      ],
+      "start": [
+        13,
+        11
       ]
     },
     {
-      "start": [
-        16,
-        11
-      ],
       "end": [
         16,
         9
+      ],
+      "start": [
+        16,
+        11
       ]
     },
     {
-      "start": [
-        11,
-        16
-      ],
       "end": [
         9,
+        16
+      ],
+      "start": [
+        11,
         16
       ]
     },
@@ -107,22 +126,22 @@
       ]
     },
     {
-      "end": [
-        7,
-        9
-      ],
       "start": [
         7,
         14
+      ],
+      "end": [
+        7,
+        9
       ]
     },
     {
-      "start": [
-        7,
-        9
-      ],
       "end": [
         9,
+        9
+      ],
+      "start": [
+        7,
         9
       ]
     },
@@ -137,12 +156,12 @@
       ]
     },
     {
-      "end": [
-        0,
-        9
-      ],
       "start": [
         7,
+        9
+      ],
+      "end": [
+        0,
         9
       ]
     },
@@ -167,23 +186,23 @@
       ]
     },
     {
-      "end": [
-        11,
-        3
-      ],
       "start": [
         11,
         7
+      ],
+      "end": [
+        11,
+        3
       ]
     },
     {
-      "end": [
-        7,
-        2
-      ],
       "start": [
         7,
         3
+      ],
+      "end": [
+        7,
+        2
       ]
     },
     {
@@ -207,33 +226,33 @@
       ]
     },
     {
-      "start": [
-        9,
-        9
-      ],
       "end": [
         4.5,
         4.5
+      ],
+      "start": [
+        9,
+        9
       ]
     },
     {
+      "end": [
+        7,
+        5
+      ],
       "start": [
         5.5,
         3.5
-      ],
-      "end": [
-        7,
-        5
       ]
     },
     {
-      "end": [
-        9,
-        7
-      ],
       "start": [
         7,
         5
+      ],
+      "end": [
+        9,
+        7
       ]
     },
     {
@@ -257,33 +276,33 @@
       ]
     },
     {
+      "end": [
+        11,
+        11
+      ],
       "start": [
         9,
         9
-      ],
-      "end": [
-        11,
-        11
       ]
     },
     {
-      "start": [
-        11,
-        11
-      ],
       "end": [
         13.5,
         13.5
+      ],
+      "start": [
+        11,
+        11
       ]
     },
     {
-      "end": [
-        14.5,
-        12.5
-      ],
       "start": [
         13,
         11
+      ],
+      "end": [
+        14.5,
+        12.5
       ]
     },
     {
@@ -297,13 +316,13 @@
       ]
     },
     {
-      "start": [
-        4,
-        11
-      ],
       "end": [
         7,
         14
+      ],
+      "start": [
+        4,
+        11
       ]
     },
     {
@@ -317,23 +336,23 @@
       ]
     },
     {
+      "start": [
+        11,
+        2
+      ],
       "end": [
         18,
         9
-      ],
-      "start": [
-        11,
-        2
       ]
     },
     {
-      "end": [
-        9,
-        0
-      ],
       "start": [
         11,
         2
+      ],
+      "end": [
+        9,
+        0
       ]
     },
     {
@@ -347,12 +366,12 @@
       ]
     },
     {
-      "end": [
-        2,
-        11
-      ],
       "start": [
         4,
+        11
+      ],
+      "end": [
+        2,
         11
       ]
     },
@@ -367,12 +386,12 @@
       ]
     },
     {
-      "end": [
-        16,
-        9
-      ],
       "start": [
         9,
+        9
+      ],
+      "end": [
+        16,
         9
       ]
     },
@@ -397,12 +416,12 @@
       ]
     },
     {
-      "end": [
-        14,
-        7
-      ],
       "start": [
         11,
+        7
+      ],
+      "end": [
+        14,
         7
       ]
     },
@@ -417,25 +436,8 @@
       ]
     }
   ],
-  "communityName": "",
   "gridType": "isometric",
-  "published": true,
-  "id": "exp_1783259170053",
-  "community": false,
-  "stitchView": true,
   "bboxRotated": true,
-  "bbox": {
-    "minV": 0,
-    "minU": 0,
-    "maxU": 18,
-    "maxV": 18
-  },
-  "routingEngine": 1,
-  "patMacro": 1.8,
-  "gridMacro": 2,
-  "createdAt": 1783259170053,
-  "creatorId": "uuqxh5yyn7w",
-  "stitchLen": 8,
   "families": [
     2,
     2,
@@ -479,14 +481,12 @@
     0,
     0
   ],
-  "stitchRatio": "relaxed",
-  "spacing": 0,
-  "routingMode": "default",
-  "order": 67,
-  "name": "Kawari-Bishamon-Kikko / Bishamon Tortoise Shell",
-  "thumbCells": 1,
-  "updatedAt": 1784727516451,
-  "stitchGrid": false,
-  "type": "exp",
-  "embroidery": false
+  "famOrder": [
+    0,
+    2,
+    1
+  ],
+  "order": 21,
+  "patMacro": 1.8,
+  "published": true
 }

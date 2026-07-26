@@ -1,33 +1,22 @@
 {
-  "order": 18,
-  "gridType": "square",
-  "published": true,
-  "name": "Musubi Kasane Kikkō (Knotted and Overlapping Tortoise Shell)",
+  "creatorId": "un4bcd6du2x",
+  "stitchGrid": false,
+  "createdAt": 1782748419661,
+  "stitchView": false,
   "id": "exp_1782748419661",
-  "routingMode": "default",
-  "spacing": 0,
   "bbox": {
-    "minU": 0,
     "minV": 0,
+    "minU": 0,
     "maxV": 12,
     "maxU": 8
   },
-  "type": "exp",
-  "stitchGrid": false,
-  "updatedAt": 1784727523709,
-  "patMacro": 3,
-  "stitchView": false,
-  "thumbCells": 3,
-  "bboxRotated": false,
-  "traditional": true,
-  "famOrder": [
-    1,
-    0,
-    2,
-    3
-  ],
-  "createdAt": 1782748419661,
+  "updatedAt": 1784923597167,
   "stitchRatio": "standard",
+  "name": "Musubi Kasane Kikkō (Knotted and Overlapping Tortoise Shell)",
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchLen": 8,
+  "traditional": true,
   "families": [
     2,
     3,
@@ -57,8 +46,14 @@
     0,
     0
   ],
-  "stitchLen": 8,
-  "creatorId": "un4bcd6du2x",
+  "bboxRotated": false,
+  "famOrder": [
+    1,
+    0,
+    2,
+    3
+  ],
+  "gridType": "square",
   "lines": [
     {
       "start": [
@@ -101,13 +96,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        6
-      ],
       "end": [
         0,
         5
+      ],
+      "start": [
+        2,
+        6
       ]
     },
     {
@@ -141,43 +136,43 @@
       ]
     },
     {
+      "start": [
+        0,
+        11
+      ],
       "end": [
         6,
         8
-      ],
-      "start": [
-        0,
-        11
       ]
     },
     {
-      "end": [
-        0,
-        1
-      ],
       "start": [
         2,
         2
+      ],
+      "end": [
+        0,
+        1
       ]
     },
     {
-      "end": [
-        4,
-        11
-      ],
       "start": [
         4,
         9
+      ],
+      "end": [
+        4,
+        11
       ]
     },
     {
+      "end": [
+        6,
+        12
+      ],
       "start": [
         4,
         11
-      ],
-      "end": [
-        6,
-        12
       ]
     },
     {
@@ -191,13 +186,13 @@
       ]
     },
     {
-      "end": [
-        8,
-        1
-      ],
       "start": [
         6,
         0
+      ],
+      "end": [
+        8,
+        1
       ]
     },
     {
@@ -221,23 +216,23 @@
       ]
     },
     {
+      "start": [
+        6,
+        4
+      ],
       "end": [
         6,
         2
-      ],
-      "start": [
-        6,
-        4
       ]
     },
     {
-      "start": [
-        6,
-        4
-      ],
       "end": [
         6,
         6
+      ],
+      "start": [
+        6,
+        4
       ]
     },
     {
@@ -271,13 +266,13 @@
       ]
     },
     {
-      "start": [
-        2,
-        8
-      ],
       "end": [
         2,
         12
+      ],
+      "start": [
+        2,
+        8
       ]
     },
     {
@@ -330,5 +325,10 @@
         7
       ]
     }
-  ]
+  ],
+  "published": true,
+  "patMacro": 3,
+  "order": 27,
+  "thumbCells": 3,
+  "type": "exp"
 }

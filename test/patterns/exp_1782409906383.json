@@ -1,21 +1,18 @@
 {
-  "traditional": true,
-  "famOrder": [
-    0,
-    1
-  ],
-  "createdAt": 1782409906383,
-  "creatorId": "ubv38qfe752",
-  "stitchLen": 8,
+  "type": "exp",
+  "thumbCells": 3,
+  "patMacro": 2,
+  "order": 49,
+  "published": true,
   "lines": [
     {
-      "end": [
-        2,
-        2
-      ],
       "start": [
         4,
         1
+      ],
+      "end": [
+        2,
+        2
       ]
     },
     {
@@ -39,13 +36,13 @@
       ]
     },
     {
-      "end": [
-        4,
-        1
-      ],
       "start": [
         6,
         2
+      ],
+      "end": [
+        4,
+        1
       ]
     },
     {
@@ -59,33 +56,33 @@
       ]
     },
     {
-      "start": [
-        4,
-        1
-      ],
       "end": [
         2,
         0
+      ],
+      "start": [
+        4,
+        1
       ]
     },
     {
+      "start": [
+        6,
+        2
+      ],
       "end": [
         8,
         1
-      ],
-      "start": [
-        6,
-        2
       ]
     },
     {
-      "start": [
-        6,
-        2
-      ],
       "end": [
         8,
         3
+      ],
+      "start": [
+        6,
+        2
       ]
     },
     {
@@ -109,13 +106,13 @@
       ]
     },
     {
+      "start": [
+        4,
+        3
+      ],
       "end": [
         2,
         4
-      ],
-      "start": [
-        4,
-        3
       ]
     },
     {
@@ -129,7 +126,11 @@
       ]
     }
   ],
-  "stitchRatio": "relaxed",
+  "gridType": "square",
+  "famOrder": [
+    0,
+    1
+  ],
   "families": [
     1,
     0,
@@ -144,24 +145,23 @@
     1,
     0
   ],
+  "bboxRotated": false,
+  "traditional": true,
+  "stitchLen": 8,
   "routingMode": "default",
   "spacing": 0,
-  "order": 20,
-  "gridType": "square",
-  "published": true,
   "name": "Yotsukumi Hishi (Four Linked Diamonds)",
-  "id": "exp_1782409906383",
-  "stitchView": true,
-  "thumbCells": 3,
-  "bboxRotated": false,
+  "stitchRatio": "relaxed",
+  "updatedAt": 1784923599830,
   "bbox": {
     "minU": 0,
-    "minV": 0,
+    "maxU": 8,
     "maxV": 4,
-    "maxU": 8
+    "minV": 0
   },
+  "id": "exp_1782409906383",
+  "stitchView": true,
   "stitchGrid": false,
-  "updatedAt": 1784727523709,
-  "type": "exp",
-  "patMacro": 2
+  "createdAt": 1782409906383,
+  "creatorId": "ubv38qfe752"
 }

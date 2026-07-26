@@ -1,0 +1,334 @@
+{
+  "stitchView": false,
+  "creatorId": "uconggef72r",
+  "createdAt": 1785018427463,
+  "spacing": 0,
+  "community": true,
+  "stitchRatio": "standard",
+  "gridType": "square",
+  "lines": [
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        0,
+        6
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        0
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        8,
+        2
+      ],
+      "start": [
+        6,
+        0
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        8,
+        2
+      ]
+    },
+    {
+      "end": [
+        10,
+        2
+      ],
+      "start": [
+        8,
+        2
+      ]
+    },
+    {
+      "end": [
+        10,
+        4
+      ],
+      "start": [
+        10,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        10,
+        4
+      ]
+    },
+    {
+      "end": [
+        12,
+        6
+      ],
+      "start": [
+        10,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        0,
+        6
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        10,
+        8
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "end": [
+        12,
+        6
+      ],
+      "start": [
+        10,
+        8
+      ]
+    },
+    {
+      "end": [
+        5,
+        8
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "end": [
+        7,
+        8
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "end": [
+        10,
+        10
+      ],
+      "start": [
+        10,
+        8
+      ]
+    },
+    {
+      "end": [
+        8,
+        10
+      ],
+      "start": [
+        10,
+        10
+      ]
+    },
+    {
+      "end": [
+        7,
+        8
+      ],
+      "start": [
+        8,
+        10
+      ]
+    },
+    {
+      "end": [
+        4,
+        10
+      ],
+      "start": [
+        5,
+        8
+      ]
+    },
+    {
+      "end": [
+        6,
+        12
+      ],
+      "start": [
+        4,
+        10
+      ]
+    },
+    {
+      "end": [
+        8,
+        10
+      ],
+      "start": [
+        6,
+        12
+      ]
+    },
+    {
+      "end": [
+        2,
+        10
+      ],
+      "start": [
+        4,
+        10
+      ]
+    },
+    {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        2,
+        10
+      ]
+    }
+  ],
+  "bboxRotated": false,
+  "families": [
+    6,
+    4,
+    0,
+    6,
+    3,
+    1,
+    2,
+    5,
+    0,
+    4,
+    7,
+    2,
+    2,
+    7,
+    1,
+    6,
+    5,
+    3,
+    4,
+    0,
+    3,
+    5,
+    2,
+    6,
+    0,
+    4
+  ],
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "famColors": {},
+  "patMacro": 3.6,
+  "communityName": "AntiqueWish",
+  "id": "exp_1785018427463",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 12,
+    "maxV": 12
+  },
+  "fabric": "indigo",
+  "stitchGrid": false,
+  "name": "8 pointed rosette",
+  "stitchColors": false,
+  "stitchLen": 8,
+  "routingMode": "default",
+  "updatedAt": 1785018427474,
+  "famRouting": {},
+  "gridMacro": 2,
+  "embroidery": false,
+  "traditional": false,
+  "spacingY": 0,
+  "thumbCells": 3,
+  "type": "exp"
+}

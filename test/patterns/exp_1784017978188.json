@@ -1,43 +1,72 @@
 {
+  "bbox": {
+    "minU": 0,
+    "maxV": 5,
+    "maxU": 5,
+    "minV": 0
+  },
+  "id": "exp_1784017978188",
+  "communityName": "Cherry Blossom",
+  "stitchGrid": false,
+  "fabric": "indigo",
+  "routingMode": "default",
+  "stitchLen": 8,
+  "name": "Fries",
+  "stitchColors": false,
+  "updatedAt": 1784906339110,
+  "gridMacro": 2,
+  "embroidery": false,
+  "famRouting": {},
+  "traditional": false,
+  "type": "exp",
+  "thumbCells": 3,
+  "stitchView": true,
+  "publishedAt": 1784906339103,
+  "createdAt": 1784017978188,
+  "creatorId": "uevg2wnhrt8",
+  "community": true,
+  "spacing": 1,
+  "stitchRatio": "standard",
+  "routingEngine": 1,
   "lines": [
     {
-      "end": [
-        5,
-        3
-      ],
       "start": [
         3,
         3
-      ]
-    },
-    {
-      "start": [
-        3,
-        4
       ],
       "end": [
         5,
+        3
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        3,
         4
       ]
     },
     {
-      "start": [
-        3,
-        5
-      ],
       "end": [
         5,
+        5
+      ],
+      "start": [
+        3,
         5
       ]
     },
     {
-      "start": [
-        2,
-        2
-      ],
       "end": [
         2,
         0
+      ],
+      "start": [
+        2,
+        2
       ]
     },
     {
@@ -51,37 +80,22 @@
       ]
     },
     {
-      "start": [
-        0,
-        0
-      ],
       "end": [
         0,
         2
+      ],
+      "start": [
+        0,
+        0
       ]
     }
   ],
-  "communityName": "Cherry Blossom",
-  "traditional": false,
+  "gridType": "square",
+  "famColors": {},
   "famOrder": [
     0,
     1
   ],
-  "stitchView": true,
-  "bboxRotated": false,
-  "bbox": {
-    "maxU": 5,
-    "maxV": 5,
-    "minV": 0,
-    "minU": 0
-  },
-  "patMacro": 1.5,
-  "gridType": "square",
-  "community": true,
-  "id": "exp_1784017978188",
-  "stitchLen": 8,
-  "creatorId": "uevg2wnhrt8",
-  "stitchRatio": "standard",
   "families": [
     0,
     0,
@@ -90,14 +104,7 @@
     1,
     1
   ],
-  "gridMacro": 2,
-  "createdAt": 1784017978188,
-  "thumbCells": 3,
-  "updatedAt": 1784743699870,
-  "stitchGrid": false,
-  "type": "exp",
-  "embroidery": false,
-  "routingMode": "default",
-  "spacing": 1,
-  "name": "Fries"
+  "bboxRotated": false,
+  "patMacro": 1.5,
+  "published": true
 }

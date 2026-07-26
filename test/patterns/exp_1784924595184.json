@@ -1,0 +1,217 @@
+{
+  "creatorId": "uuqxh5yyn7w",
+  "publishedAt": 1784924595184,
+  "createdAt": 1784924595184,
+  "stitchView": true,
+  "routingEngine": 1,
+  "stitchRatio": "standard",
+  "spacing": -11,
+  "community": false,
+  "bboxRotated": true,
+  "families": [
+    1,
+    0,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "famColors": {},
+  "famOrder": [
+    0,
+    1,
+    2
+  ],
+  "gridType": "square",
+  "lines": [
+    {
+      "r": 10,
+      "start": [
+        20.024,
+        0
+      ],
+      "a2": -3.141991,
+      "center": [
+        20.024,
+        10
+      ],
+      "a1": -1.570796,
+      "end": [
+        10.024,
+        10.004
+      ],
+      "arc": true
+    },
+    {
+      "r": 10,
+      "start": [
+        10.024,
+        0
+      ],
+      "a2": 1.573156,
+      "end": [
+        0,
+        10
+      ],
+      "a1": 0,
+      "center": [
+        0.024,
+        0
+      ],
+      "arc": true
+    },
+    {
+      "end": [
+        10.024,
+        10.004
+      ],
+      "start": [
+        20.024,
+        10
+      ]
+    },
+    {
+      "end": [
+        0,
+        10
+      ],
+      "start": [
+        0.024,
+        0
+      ]
+    },
+    {
+      "end": [
+        7.093,
+        7.072
+      ],
+      "start": [
+        0.024,
+        0
+      ]
+    },
+    {
+      "end": [
+        8.786,
+        4.819
+      ],
+      "start": [
+        0.024,
+        0
+      ]
+    },
+    {
+      "end": [
+        4.843,
+        8.762
+      ],
+      "start": [
+        0.024,
+        0
+      ]
+    },
+    {
+      "end": [
+        2.449,
+        9.701
+      ],
+      "start": [
+        0.024,
+        0
+      ]
+    },
+    {
+      "end": [
+        12.953,
+        2.929
+      ],
+      "start": [
+        20.024,
+        10
+      ]
+    },
+    {
+      "end": [
+        10.322,
+        7.575
+      ],
+      "start": [
+        20.024,
+        10
+      ]
+    },
+    {
+      "end": [
+        11.261,
+        5.181
+      ],
+      "start": [
+        20.024,
+        10
+      ]
+    },
+    {
+      "end": [
+        15.204,
+        1.238
+      ],
+      "start": [
+        20.024,
+        10
+      ]
+    },
+    {
+      "end": [
+        17.598,
+        0.299
+      ],
+      "start": [
+        20.024,
+        10
+      ]
+    },
+    {
+      "end": [
+        9.725,
+        2.425
+      ],
+      "start": [
+        0.024,
+        0
+      ]
+    }
+  ],
+  "published": true,
+  "patMacro": 4.004800653589793,
+  "fabric": "",
+  "stitchGrid": false,
+  "communityName": "Chillchamp",
+  "id": "exp_1784924595184",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 10.003999999999998,
+    "maxU": 20.024003267948967
+  },
+  "updatedAt": 1784925447371,
+  "stitchColors": false,
+  "name": "Dancing Fans",
+  "stitchLen": 5,
+  "routingMode": "waves2",
+  "traditional": true,
+  "famRouting": {
+    "2": "default"
+  },
+  "embroidery": false,
+  "gridMacro": 3,
+  "thumbCells": 2,
+  "type": "exp"
+}

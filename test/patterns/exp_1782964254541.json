@@ -1,24 +1,79 @@
 {
+  "thumbCells": 2,
+  "type": "exp",
+  "traditional": false,
+  "embroidery": false,
+  "gridMacro": 2,
+  "updatedAt": 1784514446526,
+  "name": "Lightning bolt 1 Remix",
+  "stitchLen": 8,
+  "routingMode": "default",
+  "stitchGrid": false,
   "communityName": "AntiqueWish (remix version)",
+  "id": "exp_1782964254541",
+  "bbox": {
+    "minV": 0,
+    "maxV": 18,
+    "minU": 0,
+    "maxU": 12
+  },
+  "published": true,
+  "patMacro": 3.6,
+  "bboxRotated": false,
+  "families": [
+    0,
+    4,
+    0,
+    5,
+    2,
+    0,
+    3,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "gridType": "square",
   "lines": [
     {
+      "end": [
+        10,
+        0
+      ],
       "start": [
         1,
         0
-      ],
-      "end": [
-        10,
-        0
       ]
     },
     {
-      "start": [
-        10,
-        0
-      ],
       "end": [
         8,
         4
+      ],
+      "start": [
+        10,
+        0
       ]
     },
     {
@@ -32,13 +87,13 @@
       ]
     },
     {
-      "start": [
-        12,
-        4
-      ],
       "end": [
         2,
         18
+      ],
+      "start": [
+        12,
+        4
       ]
     },
     {
@@ -62,23 +117,23 @@
       ]
     },
     {
-      "start": [
-        2,
-        18
-      ],
       "end": [
         5,
         7
+      ],
+      "start": [
+        2,
+        18
       ]
     },
     {
-      "start": [
-        10,
-        0
-      ],
       "end": [
         10,
         4
+      ],
+      "start": [
+        10,
+        0
       ]
     },
     {
@@ -112,13 +167,13 @@
       ]
     },
     {
-      "start": [
-        9,
-        8
-      ],
       "end": [
         9,
         18
+      ],
+      "start": [
+        9,
+        8
       ]
     },
     {
@@ -132,33 +187,33 @@
       ]
     },
     {
+      "end": [
+        7,
+        18
+      ],
       "start": [
         7,
         11
-      ],
-      "end": [
-        7,
-        18
       ]
     },
     {
-      "start": [
-        6,
-        18
-      ],
       "end": [
         6,
         13
+      ],
+      "start": [
+        6,
+        18
       ]
     },
     {
-      "start": [
-        5,
-        18
-      ],
       "end": [
         5,
         14
+      ],
+      "start": [
+        5,
+        18
       ]
     },
     {
@@ -182,23 +237,23 @@
       ]
     },
     {
+      "end": [
+        2,
+        7
+      ],
       "start": [
         2,
         18
-      ],
-      "end": [
-        2,
-        7
       ]
     },
     {
-      "start": [
-        3,
-        7
-      ],
       "end": [
         3,
         14
+      ],
+      "start": [
+        3,
+        7
       ]
     },
     {
@@ -212,23 +267,23 @@
       ]
     },
     {
+      "end": [
+        1,
+        18
+      ],
       "start": [
         1,
         7
-      ],
-      "end": [
-        1,
-        18
       ]
     },
     {
-      "start": [
-        12,
-        0
-      ],
       "end": [
         12,
         18
+      ],
+      "start": [
+        12,
+        0
       ]
     },
     {
@@ -242,66 +297,11 @@
       ]
     }
   ],
-  "traditional": false,
-  "famOrder": [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5
-  ],
-  "patMacro": 3.6,
   "routingEngine": 1,
-  "bbox": {
-    "minU": 0,
-    "minV": 0,
-    "maxV": 18,
-    "maxU": 12
-  },
-  "bboxRotated": false,
-  "stitchView": false,
-  "community": true,
-  "id": "exp_1782964254541",
-  "gridType": "square",
-  "published": true,
   "stitchRatio": "standard",
-  "families": [
-    0,
-    4,
-    0,
-    5,
-    2,
-    0,
-    3,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1
-  ],
-  "stitchLen": 8,
+  "spacing": 0,
+  "community": true,
   "creatorId": "uconggef72r",
   "createdAt": 1782964254541,
-  "gridMacro": 2,
-  "embroidery": false,
-  "stitchGrid": false,
-  "updatedAt": 1784514446526,
-  "type": "exp",
-  "thumbCells": 2,
-  "name": "Lightning bolt 1 Remix",
-  "routingMode": "default",
-  "spacing": 0
+  "stitchView": false
 }

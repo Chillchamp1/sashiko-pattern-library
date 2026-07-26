@@ -1,6 +1,9 @@
 {
-  "stitchLen": 8,
-  "creatorId": "uuqxh5yyn7w",
+  "famOrder": [
+    1,
+    0,
+    2
+  ],
   "families": [
     2,
     2,
@@ -36,57 +39,47 @@
     0,
     0
   ],
-  "stitchRatio": "standard",
-  "createdAt": 1782679660951,
-  "gridMacro": 4,
-  "thumbCells": 2,
-  "embroidery": false,
-  "updatedAt": 1784727523709,
-  "stitchGrid": false,
-  "type": "exp",
-  "spacing": 0,
-  "routingMode": "continuous",
-  "name": "Kitties",
-  "order": 14,
+  "bboxRotated": false,
+  "gridType": "square",
   "lines": [
     {
-      "end": [
-        4,
-        3
-      ],
       "start": [
         0,
         3
-      ]
-    },
-    {
-      "start": [
-        0,
-        2
       ],
       "end": [
         4,
+        3
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        0,
         2
       ]
     },
     {
-      "start": [
-        0,
-        4
-      ],
       "end": [
         4,
         4
+      ],
+      "start": [
+        0,
+        4
       ]
     },
     {
-      "end": [
-        5,
-        4
-      ],
       "start": [
         5,
         2
+      ],
+      "end": [
+        5,
+        4
       ]
     },
     {
@@ -120,22 +113,22 @@
       ]
     },
     {
-      "start": [
-        12,
-        3
-      ],
       "end": [
         16,
+        3
+      ],
+      "start": [
+        12,
         3
       ]
     },
     {
-      "start": [
-        12,
-        4
-      ],
       "end": [
         16,
+        4
+      ],
+      "start": [
+        12,
         4
       ]
     },
@@ -150,13 +143,13 @@
       ]
     },
     {
-      "end": [
-        2,
-        9
-      ],
       "start": [
         2,
         5
+      ],
+      "end": [
+        2,
+        9
       ]
     },
     {
@@ -170,42 +163,42 @@
       ]
     },
     {
+      "end": [
+        14,
+        5
+      ],
       "start": [
         11,
         8
-      ],
-      "end": [
-        14,
-        5
       ]
     },
     {
+      "start": [
+        14,
+        5
+      ],
       "end": [
         14,
         9
+      ]
+    },
+    {
+      "end": [
+        20,
+        7
       ],
       "start": [
-        14,
-        5
+        16,
+        7
       ]
     },
     {
       "start": [
         16,
-        7
-      ],
-      "end": [
-        20,
-        7
-      ]
-    },
-    {
-      "end": [
-        20,
         8
       ],
-      "start": [
-        16,
+      "end": [
+        20,
         8
       ]
     },
@@ -220,13 +213,13 @@
       ]
     },
     {
+      "start": [
+        14,
+        9
+      ],
       "end": [
         14,
         10
-      ],
-      "start": [
-        14,
-        9
       ]
     },
     {
@@ -240,43 +233,43 @@
       ]
     },
     {
-      "end": [
-        21,
-        3
-      ],
       "start": [
         18,
         0
+      ],
+      "end": [
+        21,
+        3
       ]
     },
     {
+      "end": [
+        21,
+        9
+      ],
       "start": [
         21,
         7
-      ],
+      ]
+    },
+    {
       "end": [
-        21,
+        24,
+        10
+      ],
+      "start": [
+        24,
         9
       ]
     },
     {
       "start": [
-        24,
+        2,
         9
       ],
       "end": [
-        24,
-        10
-      ]
-    },
-    {
-      "end": [
         2,
         10
-      ],
-      "start": [
-        2,
-        9
       ]
     },
     {
@@ -320,12 +313,12 @@
       ]
     },
     {
-      "end": [
-        32,
-        8
-      ],
       "start": [
         28,
+        8
+      ],
+      "end": [
+        32,
         8
       ]
     },
@@ -360,12 +353,12 @@
       ]
     },
     {
-      "end": [
-        11,
-        8
-      ],
       "start": [
         5,
+        8
+      ],
+      "end": [
+        11,
         8
       ]
     },
@@ -380,30 +373,37 @@
       ]
     }
   ],
-  "communityName": "",
-  "famOrder": [
-    1,
-    0,
-    2
-  ],
+  "published": true,
+  "patMacro": 6.4,
+  "order": 5,
+  "creatorId": "uuqxh5yyn7w",
+  "createdAt": 1782679660951,
+  "stitchView": false,
+  "stitchRatio": "standard",
+  "routingEngine": 1,
+  "spacing": 0,
+  "community": true,
   "traditional": false,
   "famRouting": {
     "0": "zigzag2",
     "1": "default",
     "2": "default"
   },
-  "bboxRotated": false,
-  "stitchView": false,
-  "routingEngine": 1,
-  "patMacro": 6.4,
-  "bbox": {
-    "maxU": 32,
-    "maxV": 10,
-    "minV": 0,
-    "minU": 0
-  },
+  "gridMacro": 4,
+  "embroidery": false,
+  "type": "exp",
+  "thumbCells": 2,
+  "stitchGrid": false,
   "id": "exp_1782679660951",
-  "community": true,
-  "published": true,
-  "gridType": "square"
+  "communityName": "",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxV": 10,
+    "maxU": 32
+  },
+  "updatedAt": 1784923597416,
+  "routingMode": "continuous",
+  "stitchLen": 8,
+  "name": "Kitties"
 }

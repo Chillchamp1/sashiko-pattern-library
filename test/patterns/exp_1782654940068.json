@@ -1,101 +1,16 @@
 {
-  "famOrder": [
-    1,
-    4,
-    2,
-    5,
-    3,
-    6,
-    0,
-    7
-  ],
-  "traditional": true,
-  "famRouting": {},
+  "stitchView": false,
+  "createdAt": 1782654940068,
+  "creatorId": "uuqxh5yyn7w",
+  "community": false,
+  "spacing": 0,
+  "stitchRatio": "standard",
+  "routingEngine": 1,
   "lines": [
     {
-      "start": [
-        8,
-        8
-      ],
       "end": [
         10,
         2
-      ]
-    },
-    {
-      "end": [
-        14,
-        6
-      ],
-      "start": [
-        8,
-        8
-      ]
-    },
-    {
-      "start": [
-        10,
-        2
-      ],
-      "end": [
-        16,
-        0
-      ]
-    },
-    {
-      "start": [
-        14,
-        6
-      ],
-      "end": [
-        16,
-        0
-      ]
-    },
-    {
-      "end": [
-        2,
-        6
-      ],
-      "start": [
-        8,
-        8
-      ]
-    },
-    {
-      "end": [
-        0,
-        0
-      ],
-      "start": [
-        2,
-        6
-      ]
-    },
-    {
-      "end": [
-        6,
-        2
-      ],
-      "start": [
-        8,
-        8
-      ]
-    },
-    {
-      "end": [
-        0,
-        0
-      ],
-      "start": [
-        6,
-        2
-      ]
-    },
-    {
-      "end": [
-        2,
-        10
       ],
       "start": [
         8,
@@ -109,6 +24,86 @@
       ],
       "end": [
         14,
+        6
+      ]
+    },
+    {
+      "start": [
+        10,
+        2
+      ],
+      "end": [
+        16,
+        0
+      ]
+    },
+    {
+      "start": [
+        14,
+        6
+      ],
+      "end": [
+        16,
+        0
+      ]
+    },
+    {
+      "start": [
+        8,
+        8
+      ],
+      "end": [
+        2,
+        6
+      ]
+    },
+    {
+      "start": [
+        2,
+        6
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        6,
+        2
+      ],
+      "start": [
+        8,
+        8
+      ]
+    },
+    {
+      "start": [
+        6,
+        2
+      ],
+      "end": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        10
+      ],
+      "start": [
+        8,
+        8
+      ]
+    },
+    {
+      "start": [
+        8,
+        8
+      ],
+      "end": [
+        14,
         10
       ]
     },
@@ -133,23 +128,23 @@
       ]
     },
     {
-      "end": [
-        8,
-        8
-      ],
       "start": [
         6,
         14
+      ],
+      "end": [
+        8,
+        8
       ]
     },
     {
+      "end": [
+        10,
+        14
+      ],
       "start": [
         8,
         8
-      ],
-      "end": [
-        10,
-        14
       ]
     },
     {
@@ -163,23 +158,23 @@
       ]
     },
     {
-      "start": [
-        16,
-        16
-      ],
       "end": [
         14,
         10
+      ],
+      "start": [
+        16,
+        16
       ]
     },
     {
-      "start": [
-        0,
-        16
-      ],
       "end": [
         8,
         8
+      ],
+      "start": [
+        0,
+        16
       ]
     },
     {
@@ -203,13 +198,23 @@
       ]
     },
     {
-      "start": [
-        8,
-        8
-      ],
       "end": [
         0,
         0
+      ],
+      "start": [
+        8,
+        8
+      ]
+    },
+    {
+      "start": [
+        0,
+        16
+      ],
+      "end": [
+        2.667,
+        10.667
       ]
     },
     {
@@ -218,18 +223,8 @@
         10.667
       ],
       "start": [
-        0,
-        16
-      ]
-    },
-    {
-      "start": [
         8,
         8
-      ],
-      "end": [
-        2.667,
-        10.667
       ]
     },
     {
@@ -263,13 +258,13 @@
       ]
     },
     {
+      "end": [
+        3.429,
+        11.429
+      ],
       "start": [
         0,
         16
-      ],
-      "end": [
-        3.429,
-        11.429
       ]
     },
     {
@@ -293,13 +288,13 @@
       ]
     },
     {
+      "start": [
+        8,
+        8
+      ],
       "end": [
         12.571,
         11.429
-      ],
-      "start": [
-        8,
-        8
       ]
     },
     {
@@ -313,23 +308,23 @@
       ]
     },
     {
+      "end": [
+        11.429,
+        12.571
+      ],
       "start": [
         16,
         16
-      ],
-      "end": [
-        11.429,
-        12.571
       ]
     },
     {
+      "start": [
+        8,
+        8
+      ],
       "end": [
         11.429,
         3.429
-      ],
-      "start": [
-        8,
-        8
       ]
     },
     {
@@ -363,13 +358,13 @@
       ]
     },
     {
-      "start": [
-        8,
-        8
-      ],
       "end": [
         4.571,
         3.429
+      ],
+      "start": [
+        8,
+        8
       ]
     },
     {
@@ -403,13 +398,13 @@
       ]
     },
     {
-      "end": [
-        3.429,
-        4.571
-      ],
       "start": [
         8,
         8
+      ],
+      "end": [
+        3.429,
+        4.571
       ]
     },
     {
@@ -423,13 +418,13 @@
       ]
     },
     {
-      "end": [
-        8,
-        8
-      ],
       "start": [
         5.333,
         2.667
+      ],
+      "end": [
+        8,
+        8
       ]
     },
     {
@@ -463,23 +458,23 @@
       ]
     },
     {
-      "end": [
-        2.667,
-        5.333
-      ],
       "start": [
         0,
         0
+      ],
+      "end": [
+        2.667,
+        5.333
       ]
     },
     {
-      "start": [
-        10.667,
-        2.667
-      ],
       "end": [
         16,
         0
+      ],
+      "start": [
+        10.667,
+        2.667
       ]
     },
     {
@@ -493,13 +488,13 @@
       ]
     },
     {
-      "start": [
-        13.333,
-        10.667
-      ],
       "end": [
         8,
         8
+      ],
+      "start": [
+        13.333,
+        10.667
       ]
     },
     {
@@ -533,25 +528,18 @@
       ]
     }
   ],
-  "communityName": "",
-  "id": "exp_1782654940068",
-  "community": false,
   "gridType": "square",
-  "published": true,
+  "famOrder": [
+    1,
+    4,
+    2,
+    5,
+    3,
+    6,
+    0,
+    7
+  ],
   "bboxRotated": false,
-  "stitchView": false,
-  "routingEngine": 1,
-  "patMacro": 3.2,
-  "bbox": {
-    "maxV": 16,
-    "maxU": 16,
-    "minU": 0,
-    "minV": 0
-  },
-  "createdAt": 1782654940068,
-  "gridMacro": 2,
-  "stitchLen": 8,
-  "creatorId": "uuqxh5yyn7w",
   "families": [
     7,
     7,
@@ -606,14 +594,26 @@
     3,
     3
   ],
-  "stitchRatio": "standard",
-  "spacing": 0,
-  "routingMode": "contour",
-  "name": "Kamon (Family Crest)",
-  "order": 6,
-  "thumbCells": 2,
-  "embroidery": false,
+  "patMacro": 3.2,
+  "order": 9,
+  "published": true,
+  "bbox": {
+    "minU": 0,
+    "maxV": 16,
+    "maxU": 16,
+    "minV": 0
+  },
+  "id": "exp_1782654940068",
+  "communityName": "",
   "stitchGrid": false,
-  "type": "exp",
-  "updatedAt": 1784724887803
+  "routingMode": "contour",
+  "stitchLen": 8,
+  "name": "Kamon (Family Crest)",
+  "updatedAt": 1784923598237,
+  "embroidery": false,
+  "gridMacro": 2,
+  "famRouting": {},
+  "traditional": true,
+  "thumbCells": 2,
+  "type": "exp"
 }

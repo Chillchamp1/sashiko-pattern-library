@@ -1,0 +1,209 @@
+{
+  "stitchColors": false,
+  "name": "Tile Pattern",
+  "stitchLen": 8,
+  "routingMode": "default",
+  "updatedAt": 1785019596309,
+  "communityName": "AntiqueWish",
+  "id": "exp_1785010011972",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 6,
+    "maxV": 6
+  },
+  "fabric": "indigo",
+  "stitchGrid": false,
+  "type": "exp",
+  "thumbCells": 2,
+  "famRouting": {},
+  "embroidery": false,
+  "gridMacro": 2,
+  "traditional": false,
+  "spacingY": 0,
+  "spacing": 0,
+  "community": true,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "creatorId": "uconggef72r",
+  "createdAt": 1785010011972,
+  "patMacro": 1.2,
+  "gridType": "square",
+  "lines": [
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        0,
+        5
+      ]
+    },
+    {
+      "start": [
+        1,
+        4
+      ],
+      "end": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "start": [
+        2,
+        1
+      ],
+      "end": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        0,
+        6
+      ],
+      "start": [
+        0,
+        5
+      ]
+    },
+    {
+      "start": [
+        3,
+        3
+      ],
+      "end": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "start": [
+        4,
+        1
+      ],
+      "end": [
+        5,
+        1
+      ]
+    },
+    {
+      "start": [
+        5,
+        1
+      ],
+      "end": [
+        6,
+        0
+      ]
+    },
+    {
+      "end": [
+        6,
+        5
+      ],
+      "start": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        6,
+        5
+      ]
+    }
+  ],
+  "families": [
+    1,
+    3,
+    0,
+    3,
+    2,
+    1,
+    0,
+    2,
+    1,
+    0,
+    3,
+    0,
+    3,
+    1,
+    2
+  ],
+  "bboxRotated": false,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "famColors": {}
+}

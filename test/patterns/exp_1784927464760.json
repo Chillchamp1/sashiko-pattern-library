@@ -1,0 +1,52 @@
+{
+  "patMacro": 3.3,
+  "gridType": "square",
+  "lines": [
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        11,
+        11
+      ]
+    }
+  ],
+  "families": [
+    0
+  ],
+  "bboxRotated": false,
+  "famColors": {},
+  "famOrder": [
+    0
+  ],
+  "spacing": 0,
+  "community": false,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "creatorId": "ugxlanoizhv",
+  "createdAt": 1784927464760,
+  "thumbCells": 3,
+  "type": "exp",
+  "famRouting": {},
+  "embroidery": false,
+  "gridMacro": 2,
+  "traditional": false,
+  "spacingY": 0,
+  "name": "ztest",
+  "stitchColors": false,
+  "stitchLen": 8,
+  "routingMode": "default",
+  "updatedAt": 1785019596771,
+  "communityName": "",
+  "id": "exp_1784927464760",
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 11,
+    "maxV": 11
+  },
+  "fabric": "",
+  "stitchGrid": false
+}

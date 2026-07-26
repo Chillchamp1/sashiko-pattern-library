@@ -1,8 +1,18 @@
 {
   "createdAt": 1783540440983,
-  "gridMacro": 2,
-  "stitchLen": 5,
   "creatorId": "uuqxh5yyn7w",
+  "stitchView": true,
+  "stitchRatio": "standard",
+  "routingEngine": 1,
+  "community": true,
+  "spacing": 0,
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "bboxRotated": false,
   "families": [
     1,
     2,
@@ -21,23 +31,6 @@
     0,
     0
   ],
-  "stitchRatio": "standard",
-  "spacing": 0,
-  "routingMode": "default",
-  "name": "Isometric Scales",
-  "order": 50,
-  "thumbCells": 1,
-  "embroidery": false,
-  "type": "exp",
-  "updatedAt": 1784727610412,
-  "stitchGrid": false,
-  "famOrder": [
-    0,
-    1,
-    2,
-    3
-  ],
-  "traditional": false,
   "lines": [
     {
       "start": [
@@ -60,43 +53,43 @@
       ]
     },
     {
-      "end": [
-        4,
-        1
-      ],
       "start": [
         3,
         2
+      ],
+      "end": [
+        4,
+        1
       ]
     },
     {
+      "end": [
+        6,
+        1
+      ],
       "start": [
         4,
         1
-      ],
+      ]
+    },
+    {
       "end": [
+        7,
+        2
+      ],
+      "start": [
         6,
         1
       ]
     },
     {
-      "start": [
-        6,
-        1
-      ],
-      "end": [
-        7,
-        2
-      ]
-    },
-    {
-      "start": [
-        3,
-        2
-      ],
       "end": [
         3,
         3
+      ],
+      "start": [
+        3,
+        2
       ]
     },
     {
@@ -110,13 +103,13 @@
       ]
     },
     {
-      "start": [
-        5,
-        1
-      ],
       "end": [
         5,
         0
+      ],
+      "start": [
+        5,
+        1
       ]
     },
     {
@@ -130,22 +123,22 @@
       ]
     },
     {
+      "end": [
+        4,
+        3
+      ],
       "start": [
         2,
         3
-      ],
-      "end": [
-        4,
-        3
       ]
     },
     {
-      "end": [
-        8,
-        3
-      ],
       "start": [
         6,
+        3
+      ],
+      "end": [
+        8,
         3
       ]
     },
@@ -160,13 +153,13 @@
       ]
     },
     {
-      "end": [
-        2,
-        3
-      ],
       "start": [
         1,
         4
+      ],
+      "end": [
+        2,
+        3
       ]
     },
     {
@@ -180,13 +173,13 @@
       ]
     },
     {
-      "end": [
-        6,
-        3
-      ],
       "start": [
         5,
         4
+      ],
+      "end": [
+        6,
+        3
       ]
     },
     {
@@ -200,19 +193,26 @@
       ]
     }
   ],
-  "communityName": "AntiqueWish",
-  "id": "exp_1783540440983",
-  "community": true,
   "gridType": "isometric",
   "published": true,
-  "bboxRotated": false,
-  "stitchView": true,
-  "routingEngine": 1,
   "patMacro": 0.8,
+  "order": 63,
+  "stitchGrid": false,
   "bbox": {
     "minV": 0,
+    "maxV": 4,
     "minU": 0,
-    "maxU": 8,
-    "maxV": 4
-  }
+    "maxU": 8
+  },
+  "id": "exp_1783540440983",
+  "communityName": "AntiqueWish",
+  "updatedAt": 1784923588566,
+  "stitchLen": 5,
+  "routingMode": "default",
+  "name": "Isometric Scales",
+  "traditional": false,
+  "embroidery": false,
+  "gridMacro": 2,
+  "type": "exp",
+  "thumbCells": 1
 }
