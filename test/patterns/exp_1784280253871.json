@@ -1,0 +1,263 @@
+{
+  "embroidery": false,
+  "stitchGrid": false,
+  "type": "exp",
+  "updatedAt": 1784743696666,
+  "thumbCells": 3,
+  "name": "My Pattern",
+  "spacing": 0,
+  "routingMode": "default",
+  "families": [
+    7,
+    3,
+    7,
+    3,
+    4,
+    0,
+    4,
+    0,
+    2,
+    6,
+    2,
+    6,
+    6,
+    2,
+    6,
+    2,
+    1,
+    5,
+    1,
+    5
+  ],
+  "stitchRatio": "standard",
+  "stitchLen": 8,
+  "creatorId": "uuqxh5yyn7w",
+  "createdAt": 1784280253871,
+  "gridMacro": 3,
+  "patMacro": 6,
+  "bbox": {
+    "minV": 0,
+    "minU": 0,
+    "maxU": 20,
+    "maxV": 20
+  },
+  "bboxRotated": false,
+  "stitchView": false,
+  "id": "exp_1784280253871",
+  "community": true,
+  "gridType": "square",
+  "communityName": "",
+  "lines": [
+    {
+      "start": [
+        7,
+        10
+      ],
+      "end": [
+        10,
+        7
+      ]
+    },
+    {
+      "start": [
+        10,
+        7
+      ],
+      "end": [
+        13,
+        10
+      ]
+    },
+    {
+      "start": [
+        13,
+        10
+      ],
+      "end": [
+        10,
+        13
+      ]
+    },
+    {
+      "start": [
+        10,
+        13
+      ],
+      "end": [
+        7,
+        10
+      ]
+    },
+    {
+      "start": [
+        7,
+        13
+      ],
+      "end": [
+        7,
+        7
+      ]
+    },
+    {
+      "start": [
+        7,
+        7
+      ],
+      "end": [
+        13,
+        7
+      ]
+    },
+    {
+      "start": [
+        13,
+        7
+      ],
+      "end": [
+        13,
+        13
+      ]
+    },
+    {
+      "start": [
+        13,
+        13
+      ],
+      "end": [
+        7,
+        13
+      ]
+    },
+    {
+      "start": [
+        7,
+        13
+      ],
+      "end": [
+        11.8,
+        15.4
+      ]
+    },
+    {
+      "end": [
+        11.8,
+        15.4
+      ],
+      "start": [
+        13,
+        13
+      ]
+    },
+    {
+      "start": [
+        13,
+        7
+      ],
+      "end": [
+        15.4,
+        8.2
+      ]
+    },
+    {
+      "end": [
+        8.2,
+        4.6
+      ],
+      "start": [
+        7,
+        7
+      ]
+    },
+    {
+      "start": [
+        13,
+        13
+      ],
+      "end": [
+        15.4,
+        8.2
+      ]
+    },
+    {
+      "end": [
+        4.6,
+        11.8
+      ],
+      "start": [
+        7,
+        13
+      ]
+    },
+    {
+      "start": [
+        7,
+        7
+      ],
+      "end": [
+        4.6,
+        11.8
+      ]
+    },
+    {
+      "start": [
+        13,
+        7
+      ],
+      "end": [
+        8.2,
+        4.6
+      ]
+    },
+    {
+      "end": [
+        20,
+        7
+      ],
+      "start": [
+        8.2,
+        4.6
+      ]
+    },
+    {
+      "start": [
+        15.4,
+        8.2
+      ],
+      "end": [
+        13,
+        20
+      ]
+    },
+    {
+      "start": [
+        11.8,
+        15.4
+      ],
+      "end": [
+        0,
+        13
+      ]
+    },
+    {
+      "end": [
+        7,
+        0
+      ],
+      "start": [
+        4.6,
+        11.8
+      ]
+    }
+  ],
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "traditional": false
+}
