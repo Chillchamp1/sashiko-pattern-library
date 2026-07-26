@@ -1,0 +1,176 @@
+{
+  "id": "exp_1785000057000",
+  "type": "exp",
+  "name": "Kagome (Hitomezashi)",
+  "lines": [
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        0,
+        2
+      ]
+    },
+    {
+      "start": [
+        0,
+        2
+      ],
+      "end": [
+        0,
+        4
+      ]
+    },
+    {
+      "start": [
+        4,
+        0
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "start": [
+        4,
+        2
+      ],
+      "end": [
+        4,
+        4
+      ]
+    },
+    {
+      "start": [
+        0,
+        4
+      ],
+      "end": [
+        2,
+        3
+      ]
+    },
+    {
+      "start": [
+        2,
+        3
+      ],
+      "end": [
+        4,
+        2
+      ]
+    },
+    {
+      "start": [
+        4,
+        2
+      ],
+      "end": [
+        6,
+        1
+      ]
+    },
+    {
+      "start": [
+        6,
+        1
+      ],
+      "end": [
+        8,
+        0
+      ]
+    },
+    {
+      "start": [
+        0,
+        2
+      ],
+      "end": [
+        2,
+        3
+      ]
+    },
+    {
+      "start": [
+        2,
+        3
+      ],
+      "end": [
+        4,
+        4
+      ]
+    },
+    {
+      "start": [
+        4,
+        0
+      ],
+      "end": [
+        6,
+        1
+      ]
+    },
+    {
+      "start": [
+        6,
+        1
+      ],
+      "end": [
+        8,
+        2
+      ]
+    }
+  ],
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxU": 8,
+    "maxV": 4
+  },
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2
+  ],
+  "famOrder": [
+    0,
+    1,
+    2
+  ],
+  "gridType": "square",
+  "bboxRotated": false,
+  "routingMode": "default",
+  "patMacro": 4.8,
+  "gridMacro": 2,
+  "spacing": 0,
+  "spacingY": 0,
+  "thumbCells": 6,
+  "published": false,
+  "traditional": true,
+  "community": false,
+  "communityName": "",
+  "embroidery": false,
+  "famRouting": {},
+  "famColors": {},
+  "stitchColors": false,
+  "fabric": "",
+  "stitchView": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchGrid": false,
+  "createdAt": 1785000057000,
+  "creatorId": "book-import",
+  "source": "Essential Sashiko (Boutique-Sha), printed p.57"
+}

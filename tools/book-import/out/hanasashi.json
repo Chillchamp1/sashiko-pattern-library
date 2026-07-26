@@ -1,0 +1,177 @@
+{
+  "id": "exp_1785000060000",
+  "type": "exp",
+  "name": "Hanasashi (Flower Stitch)",
+  "lines": [
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        0,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        0,
+        2
+      ]
+    },
+    {
+      "start": [
+        1,
+        0
+      ],
+      "end": [
+        1,
+        1
+      ]
+    },
+    {
+      "start": [
+        1,
+        1
+      ],
+      "end": [
+        1,
+        2
+      ]
+    },
+    {
+      "start": [
+        0,
+        0
+      ],
+      "end": [
+        1,
+        0
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        1,
+        1
+      ]
+    },
+    {
+      "start": [
+        1,
+        0
+      ],
+      "end": [
+        2,
+        0
+      ]
+    },
+    {
+      "start": [
+        1,
+        1
+      ],
+      "end": [
+        2,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        1,
+        0
+      ]
+    },
+    {
+      "start": [
+        1,
+        2
+      ],
+      "end": [
+        2,
+        1
+      ]
+    },
+    {
+      "start": [
+        0,
+        1
+      ],
+      "end": [
+        1,
+        2
+      ]
+    },
+    {
+      "start": [
+        1,
+        0
+      ],
+      "end": [
+        2,
+        1
+      ]
+    }
+  ],
+  "bbox": {
+    "minU": 0,
+    "minV": 0,
+    "maxU": 2,
+    "maxV": 2
+  },
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3
+  ],
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "gridType": "square",
+  "bboxRotated": false,
+  "routingMode": "default",
+  "patMacro": 1.2,
+  "gridMacro": 2,
+  "spacing": 0,
+  "spacingY": 0,
+  "thumbCells": 6,
+  "published": false,
+  "traditional": true,
+  "community": false,
+  "communityName": "",
+  "embroidery": false,
+  "famRouting": {},
+  "famColors": {},
+  "stitchColors": false,
+  "fabric": "",
+  "stitchView": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchGrid": false,
+  "createdAt": 1785000060000,
+  "creatorId": "book-import",
+  "source": "Essential Sashiko (Boutique-Sha), printed p.60"
+}
