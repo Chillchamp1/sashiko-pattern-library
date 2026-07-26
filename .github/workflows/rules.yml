@@ -1,0 +1,77 @@
+name: Deploy Firestore rules
+
+# The admin addresses are NOT in the repo (it is public). firestore.rules ships as a
+# template with __ADMIN_EMAILS__; this job substitutes the ADMIN_EMAILS secret at deploy
+# time and publishes the result. The rendered file is never committed.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   ADMIN_EMAILS              "'a@x.com','b@y.com','c@z.com'"   <- quoted, comma-separated
+#   FIREBASE_SERVICE_ACCOUNT  full service-account JSON, role: Firebase Rules Admin
+#
+# Deploying a bad admin list locks the owner out of the gallery (publish, edit, reorder,
+# moderate, approve). Every guard below exists to make that impossible rather than quiet.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'firestore.rules'
+      - '.github/workflows/rules.yml'
+      - 'tools/firebase/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Guard — no addresses committed to the public repo
+        run: node tools/firebase/check-rules.js
+
+      - name: Guard — required secrets present
+        env:
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          test -n "$ADMIN_EMAILS" || { echo "::error::ADMIN_EMAILS secret is empty — deploying would lock the admin out."; exit 1; }
+          test -n "$SA"           || { echo "::error::FIREBASE_SERVICE_ACCOUNT secret is empty."; exit 1; }
+
+      - name: Render rules (substitute admin addresses)
+        env:
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+        run: node tools/firebase/render-rules.js -o "$RUNNER_TEMP/firestore.rendered.rules"
+
+      - name: Show what will deploy (addresses masked)
+        run: |
+          sed -E "s/'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+'/'***@***'/g" \
+            "$RUNNER_TEMP/firestore.rendered.rules" | sed -n '1,45p'
+
+      - name: Write service-account credentials
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          node -e "JSON.parse(require('fs').readFileSync(process.env.RUNNER_TEMP+'/sa.json','utf8'))" \
+            || { echo "::error::FIREBASE_SERVICE_ACCOUNT is not valid JSON."; exit 1; }
+
+      - name: Deploy
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          # firebase.json points at ./firestore.rules, so swap the rendered file in.
+          cp "$RUNNER_TEMP/firestore.rendered.rules" firestore.rules
+          npx --yes firebase-tools@13 deploy \
+            --only firestore:rules \
+            --project sashiko-library \
+            --non-interactive
+
+      - name: Scrub
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/sa.json" "$RUNNER_TEMP/firestore.rendered.rules"
+          git checkout -- firestore.rules || true

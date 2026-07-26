@@ -13,10 +13,18 @@ rules_version = '2';
 // SETUP:
 //   1. Firebase Console -> Authentication -> Sign-in method:
 //        enable "Anonymous"  AND  "Google".
-//   2. Put your Google address in isAdmin() below (replace the placeholder).
-//      (Rules are server-side/private, so the email is NOT exposed to visitors.)
-//   3. Deploy: Console -> Firestore Database -> Rules -> paste -> Publish,
-//      or:  firebase deploy --only firestore:rules
+//   2. The admin addresses are NOT stored in this file. `__ADMIN_EMAILS__` below is a
+//      placeholder substituted at deploy time from the GitHub secret ADMIN_EMAILS.
+//      THIS REPOSITORY IS PUBLIC — an address committed here is published. (The old
+//      comment claimed rules are "server-side/private, so the email is NOT exposed":
+//      that is true of the DEPLOYED rules, but not of this file, which anyone can read
+//      on GitHub. Keep addresses in the secret only.)
+//   3. Deploy: push a change to this file and .github/workflows/rules.yml does it,
+//      or run it manually from the Actions tab. By hand, see the usage line in
+//        tools/firebase/render-rules.js  (renders this template, then firebase deploy)
+//
+// NB the rendered file must never be committed — tools/firebase/check-rules.js fails
+// the build if an address appears in this file, and CI runs it before deploying.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -26,7 +34,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null
           && request.auth.token.email_verified == true
-          && request.auth.token.email in ['PASTE_YOUR_GOOGLE_EMAIL'];
+          && request.auth.token.email in [__ADMIN_EMAILS__];
     }
 
     function isValidPattern(d) {

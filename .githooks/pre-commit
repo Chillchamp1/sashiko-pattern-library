@@ -1,0 +1,4 @@
+#!/bin/sh
+# Refuse to commit admin addresses into the public repo. Enable with:
+#   git config core.hooksPath .githooks
+exec node tools/firebase/check-rules.js
