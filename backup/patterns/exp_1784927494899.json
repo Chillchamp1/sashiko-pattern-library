@@ -1,0 +1,272 @@
+{
+  "bbox": {
+    "maxU": 20.064898719756037,
+    "maxV": 20,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "",
+  "createdAt": 1784927494899,
+  "creatorId": "uuqxh5yyn7w",
+  "deleted": true,
+  "deletedAt": 1785020039566,
+  "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
+  "famOrder": [
+    0
+  ],
+  "famRouting": {},
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "gridMacro": 3,
+  "gridType": "square",
+  "id": "exp_1784927494899",
+  "lines": [
+    {
+      "a1": 1.570796,
+      "a2": 0.833856,
+      "arc": true,
+      "center": [
+        14.065,
+        20
+      ],
+      "ellipse": true,
+      "end": [
+        18.508,
+        11.936
+      ],
+      "r": 9,
+      "rot": -1.570796,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        20.065,
+        20
+      ]
+    },
+    {
+      "a1": 0.833856,
+      "a2": -0.561879,
+      "arc": true,
+      "center": [
+        14.065,
+        20
+      ],
+      "ellipse": true,
+      "end": [
+        10.868,
+        9.845
+      ],
+      "r": 9,
+      "rot": -1.570796,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        18.508,
+        11.936
+      ]
+    },
+    {
+      "a1": -0.561879,
+      "a2": -0.697746,
+      "arc": true,
+      "center": [
+        14.065,
+        20
+      ],
+      "ellipse": true,
+      "end": [
+        10.21,
+        10.804
+      ],
+      "r": 9,
+      "rot": -1.570796,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        10.868,
+        9.845
+      ]
+    },
+    {
+      "a1": 1.570796,
+      "a2": 0.833892,
+      "arc": true,
+      "center": [
+        20.065,
+        6
+      ],
+      "ellipse": true,
+      "end": [
+        12.001,
+        1.557
+      ],
+      "r": 9,
+      "rot": 3.141593,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        20.065,
+        0
+      ]
+    },
+    {
+      "a1": 0.833892,
+      "a2": -0.56181,
+      "arc": true,
+      "center": [
+        20.065,
+        6
+      ],
+      "ellipse": true,
+      "end": [
+        9.909,
+        9.196
+      ],
+      "r": 9,
+      "rot": 3.141593,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        12.001,
+        1.557
+      ]
+    },
+    {
+      "a1": -0.56181,
+      "a2": -0.696861,
+      "arc": true,
+      "center": [
+        20.065,
+        6
+      ],
+      "ellipse": true,
+      "end": [
+        10.863,
+        9.851
+      ],
+      "r": 9,
+      "rot": 3.141593,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        9.909,
+        9.196
+      ]
+    },
+    {
+      "a1": 1.570796,
+      "a2": 0.833849,
+      "arc": true,
+      "center": [
+        6.065,
+        0
+      ],
+      "ellipse": true,
+      "end": [
+        1.622,
+        8.064
+      ],
+      "r": 9,
+      "rot": 1.570796,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        0.065,
+        0
+      ]
+    },
+    {
+      "a1": 0.833849,
+      "a2": -0.561989,
+      "arc": true,
+      "center": [
+        6.065,
+        0
+      ],
+      "ellipse": true,
+      "end": [
+        9.262,
+        10.154
+      ],
+      "r": 9,
+      "rot": 1.570796,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        1.622,
+        8.064
+      ]
+    },
+    {
+      "a1": -0.561989,
+      "a2": -0.696848,
+      "arc": true,
+      "center": [
+        6.065,
+        0
+      ],
+      "ellipse": true,
+      "end": [
+        9.916,
+        9.202
+      ],
+      "r": 9,
+      "rot": 1.570796,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        9.262,
+        10.154
+      ]
+    },
+    {
+      "a1": -0.696964,
+      "a2": 1.576205,
+      "arc": true,
+      "center": [
+        0.065,
+        14
+      ],
+      "ellipse": true,
+      "end": [
+        0,
+        20
+      ],
+      "r": 9,
+      "rot": 0,
+      "rx": 12,
+      "ry": 6,
+      "start": [
+        9.266,
+        10.149
+      ]
+    }
+  ],
+  "name": "Whirl",
+  "patMacro": 6.019469615926811,
+  "routingMode": "default",
+  "spacing": 1,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1785019596636
+}

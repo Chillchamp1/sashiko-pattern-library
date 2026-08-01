@@ -6,14 +6,20 @@
     "minV": 0
   },
   "bboxRotated": false,
+  "community": false,
+  "communityName": "",
   "createdAt": 1782944904928,
   "creatorId": "uq9c875443t",
+  "embroidery": false,
+  "fabric": "",
+  "famColors": {},
   "famOrder": [
     0,
     1,
     2,
     3
   ],
+  "famRouting": {},
   "families": [
     2,
     2,
@@ -636,12 +642,13 @@
   "routingEngine": 1,
   "routingMode": "contour",
   "spacing": 0,
+  "stitchColors": false,
   "stitchGrid": false,
-  "stitchLen": 5,
+  "stitchLen": 7,
   "stitchRatio": "relaxed",
   "stitchView": true,
   "thumbCells": 2,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784724887804
+  "updatedAt": 1785167062146
 }

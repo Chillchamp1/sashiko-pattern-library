@@ -11,12 +11,15 @@
   "createdAt": 1783847279092,
   "creatorId": "uevg2wnhrt8",
   "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
   "famOrder": [
     0,
     1,
     2,
     3
   ],
+  "famRouting": {},
   "families": [
     1,
     3,
@@ -246,8 +249,12 @@
   ],
   "name": "Diamond Framed Rice",
   "patMacro": 3,
+  "published": true,
+  "publishedAt": 1784906329606,
+  "routingEngine": 1,
   "routingMode": "default",
   "spacing": 0,
+  "stitchColors": false,
   "stitchGrid": false,
   "stitchLen": 8,
   "stitchRatio": "standard",
@@ -255,5 +262,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784682412099
+  "updatedAt": 1785167051563
 }

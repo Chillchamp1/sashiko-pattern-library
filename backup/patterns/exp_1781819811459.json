@@ -122,7 +122,7 @@
     }
   ],
   "name": "Asanoha (Hemp Leaf) straight rows",
-  "order": 16,
+  "order": 19,
   "patMacro": 3,
   "published": true,
   "routingMode": "default",
@@ -134,5 +134,5 @@
   "thumbCells": 3,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727523709
+  "updatedAt": 1785167068818
 }

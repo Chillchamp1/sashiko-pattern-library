@@ -1494,7 +1494,7 @@
     }
   ],
   "name": "Fireball Cube 1 Remix",
-  "order": 51,
+  "order": 64,
   "patMacro": 3.5,
   "published": true,
   "routingEngine": 1,
@@ -1507,5 +1507,5 @@
   "thumbCells": 1,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727610412
+  "updatedAt": 1785167055224
 }

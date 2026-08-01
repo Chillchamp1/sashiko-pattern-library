@@ -225,7 +225,7 @@
     }
   ],
   "name": "Isometric Lotus",
-  "order": 49,
+  "order": 61,
   "patMacro": 2.1,
   "published": true,
   "routingEngine": 1,
@@ -238,5 +238,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727610412
+  "updatedAt": 1785167054679
 }

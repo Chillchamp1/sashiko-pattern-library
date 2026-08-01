@@ -423,7 +423,7 @@
     }
   ],
   "name": "Maru Shippō (Linked Seven Treasures or Shippō Variation)",
-  "order": 58,
+  "order": 20,
   "patMacro": 6,
   "published": true,
   "routingEngine": 1,
@@ -436,5 +436,5 @@
   "thumbCells": 3,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727610413
+  "updatedAt": 1785167064850
 }

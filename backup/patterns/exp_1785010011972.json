@@ -1,0 +1,209 @@
+{
+  "bbox": {
+    "maxU": 6,
+    "maxV": 6,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "AntiqueWish",
+  "createdAt": 1785010011972,
+  "creatorId": "uconggef72r",
+  "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
+  "famOrder": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "famRouting": {},
+  "families": [
+    1,
+    3,
+    0,
+    3,
+    2,
+    1,
+    0,
+    2,
+    1,
+    0,
+    3,
+    0,
+    3,
+    1,
+    2
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1785010011972",
+  "lines": [
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        0,
+        0
+      ]
+    },
+    {
+      "end": [
+        1,
+        4
+      ],
+      "start": [
+        0,
+        5
+      ]
+    },
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        1,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        0,
+        6
+      ],
+      "start": [
+        0,
+        5
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        5,
+        4
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        3,
+        2
+      ]
+    },
+    {
+      "end": [
+        5,
+        1
+      ],
+      "start": [
+        4,
+        1
+      ]
+    },
+    {
+      "end": [
+        6,
+        0
+      ],
+      "start": [
+        5,
+        1
+      ]
+    },
+    {
+      "end": [
+        6,
+        5
+      ],
+      "start": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        6,
+        5
+      ]
+    }
+  ],
+  "name": "Tile Pattern",
+  "patMacro": 1.2,
+  "routingMode": "default",
+  "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 2,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1785507420086
+}

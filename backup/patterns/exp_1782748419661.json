@@ -318,7 +318,7 @@
     }
   ],
   "name": "Musubi Kasane Kikkō (Knotted and Overlapping Tortoise Shell)",
-  "order": 18,
+  "order": 27,
   "patMacro": 3,
   "published": true,
   "routingMode": "default",
@@ -330,5 +330,5 @@
   "thumbCells": 3,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727523709
+  "updatedAt": 1785167063005
 }

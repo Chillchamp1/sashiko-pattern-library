@@ -211,7 +211,7 @@
     }
   ],
   "name": "Igeta ni hakkaku tsunagi (special linked well curbs)",
-  "order": 29,
+  "order": 18,
   "patMacro": 2.4,
   "published": true,
   "routingEngine": 1,
@@ -224,5 +224,5 @@
   "thumbCells": 3,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727523710
+  "updatedAt": 1785167057036
 }

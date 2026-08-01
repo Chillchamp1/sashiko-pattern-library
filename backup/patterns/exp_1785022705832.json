@@ -1,0 +1,404 @@
+{
+  "bbox": {
+    "maxU": 10,
+    "maxV": 10,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "AntiqueWish",
+  "createdAt": 1785022705831,
+  "creatorId": "uconggef72r",
+  "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "famRouting": {},
+  "families": [
+    2,
+    10,
+    11,
+    8,
+    10,
+    4,
+    7,
+    8,
+    2,
+    5,
+    1,
+    4,
+    10,
+    2,
+    11,
+    8,
+    7,
+    4,
+    10,
+    5,
+    1,
+    4,
+    2,
+    8,
+    3,
+    9,
+    3,
+    9,
+    0,
+    6,
+    0,
+    6
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1785022705832",
+  "lines": [
+    {
+      "end": [
+        3,
+        0
+      ],
+      "start": [
+        5,
+        1
+      ]
+    },
+    {
+      "end": [
+        7,
+        0
+      ],
+      "start": [
+        5,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        5,
+        1
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        3,
+        0
+      ]
+    },
+    {
+      "end": [
+        0,
+        3
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        5
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        1,
+        5
+      ]
+    },
+    {
+      "end": [
+        0,
+        7
+      ],
+      "start": [
+        1,
+        5
+      ]
+    },
+    {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        0,
+        7
+      ]
+    },
+    {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        1,
+        5
+      ]
+    },
+    {
+      "end": [
+        5,
+        9
+      ],
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        3,
+        10
+      ],
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        5,
+        9
+      ],
+      "start": [
+        3,
+        10
+      ]
+    },
+    {
+      "end": [
+        7,
+        10
+      ],
+      "start": [
+        5,
+        9
+      ]
+    },
+    {
+      "end": [
+        8,
+        8
+      ],
+      "start": [
+        5,
+        9
+      ]
+    },
+    {
+      "end": [
+        7,
+        10
+      ],
+      "start": [
+        8,
+        8
+      ]
+    },
+    {
+      "end": [
+        9,
+        5
+      ],
+      "start": [
+        8,
+        8
+      ]
+    },
+    {
+      "end": [
+        10,
+        7
+      ],
+      "start": [
+        9,
+        5
+      ]
+    },
+    {
+      "end": [
+        8,
+        8
+      ],
+      "start": [
+        10,
+        7
+      ]
+    },
+    {
+      "end": [
+        8,
+        2
+      ],
+      "start": [
+        9,
+        5
+      ]
+    },
+    {
+      "end": [
+        5,
+        1
+      ],
+      "start": [
+        8,
+        2
+      ]
+    },
+    {
+      "end": [
+        8,
+        2
+      ],
+      "start": [
+        7,
+        0
+      ]
+    },
+    {
+      "end": [
+        10,
+        3
+      ],
+      "start": [
+        8,
+        2
+      ]
+    },
+    {
+      "end": [
+        9,
+        5
+      ],
+      "start": [
+        10,
+        3
+      ]
+    },
+    {
+      "end": [
+        9,
+        5
+      ],
+      "start": [
+        5,
+        1
+      ]
+    },
+    {
+      "end": [
+        5,
+        9
+      ],
+      "start": [
+        9,
+        5
+      ]
+    },
+    {
+      "end": [
+        1,
+        5
+      ],
+      "start": [
+        5,
+        9
+      ]
+    },
+    {
+      "end": [
+        1,
+        5
+      ],
+      "start": [
+        5,
+        1
+      ]
+    },
+    {
+      "end": [
+        8,
+        2
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        8,
+        8
+      ],
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        8,
+        2
+      ],
+      "start": [
+        8,
+        8
+      ]
+    }
+  ],
+  "name": "Octagonal Star",
+  "patMacro": 3,
+  "routingMode": "default",
+  "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 6,
+  "stitchRatio": "standard",
+  "stitchView": true,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1785507416254
+}

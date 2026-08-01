@@ -1,0 +1,53 @@
+{
+  "bbox": {
+    "maxU": 8,
+    "maxV": 8,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1784793830046,
+  "creatorId": "uwpod63ttdj",
+  "deleted": true,
+  "deletedAt": 1784793832340,
+  "embroidery": false,
+  "fabric": "",
+  "famColors": {},
+  "famOrder": [
+    0
+  ],
+  "famRouting": {},
+  "families": [
+    0
+  ],
+  "gridMacro": 2,
+  "gridType": "isometric",
+  "id": "exp_1784793830046",
+  "lines": [
+    {
+      "end": [
+        8,
+        0
+      ],
+      "start": [
+        0,
+        8
+      ]
+    }
+  ],
+  "name": "Iso Grid Test",
+  "patMacro": 2.4,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784793830051
+}

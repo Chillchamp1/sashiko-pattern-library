@@ -459,12 +459,12 @@
     }
   ],
   "name": "Masusashi (Square Measures Stitch)",
-  "order": 21,
+  "order": 29,
   "patMacro": 5,
   "published": true,
   "routingMode": "default",
   "spacing": 0,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727523709
+  "updatedAt": 1785167065526
 }

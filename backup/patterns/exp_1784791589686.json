@@ -1,0 +1,65 @@
+{
+  "bbox": {
+    "maxU": 8.48528137423857,
+    "maxV": 7.242640687119284,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1784791589686,
+  "creatorId": "uwpod63ttdj",
+  "deleted": true,
+  "deletedAt": 1784792787428,
+  "embroidery": false,
+  "fabric": "",
+  "famColors": {},
+  "famOrder": [
+    0
+  ],
+  "famRouting": {},
+  "families": [
+    0
+  ],
+  "gridMacro": 2,
+  "gridType": "isometric",
+  "id": "exp_1784791589686",
+  "lines": [
+    {
+      "a1": -1.570796,
+      "a2": -6.283185,
+      "arc": true,
+      "center": [
+        4.243,
+        3
+      ],
+      "ellipse": true,
+      "end": [
+        7.243,
+        0
+      ],
+      "r": 4.243,
+      "rot": -0.785398,
+      "rx": 4.243,
+      "ry": 4.243,
+      "start": [
+        1.243,
+        0
+      ]
+    }
+  ],
+  "name": "Ellipse Test",
+  "patMacro": 2.545584412271571,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784791589705
+}

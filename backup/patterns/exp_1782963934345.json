@@ -1013,7 +1013,7 @@
     }
   ],
   "name": "Star Tile",
-  "order": 62,
+  "order": 42,
   "patMacro": 2,
   "published": true,
   "routingEngine": 1,
@@ -1026,5 +1026,5 @@
   "thumbCells": 2,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727587601
+  "updatedAt": 1785167060742
 }

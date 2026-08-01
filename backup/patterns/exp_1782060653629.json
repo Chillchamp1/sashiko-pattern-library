@@ -597,7 +597,7 @@
     }
   ],
   "name": "Dasies",
-  "order": 65,
+  "order": 22,
   "patMacro": 3.2,
   "published": true,
   "routingEngine": 1,
@@ -610,5 +610,5 @@
   "thumbCells": 4,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727558651
+  "updatedAt": 1785167068583
 }

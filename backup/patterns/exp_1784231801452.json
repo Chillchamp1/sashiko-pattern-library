@@ -1385,7 +1385,7 @@
     }
   ],
   "name": "Alternating Clouds",
-  "order": 41,
+  "order": 55,
   "patMacro": 5.8,
   "published": true,
   "routingEngine": 1,
@@ -1398,5 +1398,5 @@
   "thumbCells": 2,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727606838
+  "updatedAt": 1785167050409
 }

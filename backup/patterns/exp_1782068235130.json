@@ -1,20 +1,23 @@
 {
   "bbox": {
-    "maxU": 18.657000000000004,
-    "maxV": 18.535000000000004,
+    "maxU": 18.657,
+    "maxV": 18.535,
     "minU": 0,
     "minV": 0
   },
   "bboxRotated": false,
   "community": true,
-  "communityName": "ChillChamp",
+  "communityName": "",
   "createdAt": 1782068235148,
   "creatorId": "uconggef72r",
   "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
   "famOrder": [
     0,
     1
   ],
+  "famRouting": {},
   "families": [
     0,
     0,
@@ -419,11 +422,13 @@
     }
   ],
   "name": "Hearts",
-  "patMacro": 5.597100000000001,
+  "patMacro": 5.5971,
   "published": true,
   "routingEngine": 1,
   "routingMode": "default",
   "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
   "stitchGrid": false,
   "stitchLen": 8,
   "stitchRatio": "standard",
@@ -431,5 +436,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784513583611
+  "updatedAt": 1785019084325
 }

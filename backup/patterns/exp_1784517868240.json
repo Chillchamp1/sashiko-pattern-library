@@ -511,7 +511,7 @@
     }
   ],
   "name": "Starry Sky",
-  "order": 30,
+  "order": 50,
   "patMacro": 3.6,
   "published": true,
   "routingEngine": 1,
@@ -524,5 +524,5 @@
   "thumbCells": 2,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727523710
+  "updatedAt": 1785167049395
 }

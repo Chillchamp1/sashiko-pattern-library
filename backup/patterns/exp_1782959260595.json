@@ -333,7 +333,7 @@
     }
   ],
   "name": "Pinwheels and squares",
-  "order": 63,
+  "order": 68,
   "patMacro": 1.8,
   "published": true,
   "routingEngine": 1,
@@ -346,5 +346,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727587601
+  "updatedAt": 1785167061188
 }

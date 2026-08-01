@@ -376,7 +376,7 @@
     }
   ],
   "name": "Pinwheels repeating",
-  "order": 15,
+  "order": 47,
   "patMacro": 1.8,
   "published": true,
   "routingEngine": 1,
@@ -389,5 +389,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727523709
+  "updatedAt": 1785167060970
 }

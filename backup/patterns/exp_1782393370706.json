@@ -272,12 +272,12 @@
     }
   ],
   "name": "Sankuzushimon (Sets of Three)",
-  "order": 22,
+  "order": 34,
   "patMacro": 4,
   "published": true,
   "spacing": 0,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727523710,
+  "updatedAt": 1785167065863,
   "zigzagRouting": false
 }

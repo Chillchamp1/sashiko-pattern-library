@@ -8,8 +8,6 @@
   "bboxRotated": false,
   "createdAt": 1782862091559,
   "creatorId": "ubv38qfe752",
-  "deleted": true,
-  "deletedAt": 1783022396141,
   "famOrder": [
     0,
     1,
@@ -209,5 +207,5 @@
   "thumbCells": 3,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1782974956759
+  "updatedAt": 1785527294354
 }

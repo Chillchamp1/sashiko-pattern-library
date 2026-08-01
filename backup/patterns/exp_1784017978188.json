@@ -11,10 +11,13 @@
   "createdAt": 1784017978188,
   "creatorId": "uevg2wnhrt8",
   "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
   "famOrder": [
     0,
     1
   ],
+  "famRouting": {},
   "families": [
     0,
     0,
@@ -90,8 +93,12 @@
   ],
   "name": "Fries",
   "patMacro": 1.5,
+  "published": true,
+  "publishedAt": 1784906339103,
+  "routingEngine": 1,
   "routingMode": "default",
   "spacing": 1,
+  "stitchColors": false,
   "stitchGrid": false,
   "stitchLen": 8,
   "stitchRatio": "standard",
@@ -99,5 +106,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784682411377
+  "updatedAt": 1785167051132
 }

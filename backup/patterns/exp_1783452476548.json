@@ -1272,7 +1272,7 @@
     }
   ],
   "name": "Stars and crosshatch",
-  "order": 48,
+  "order": 62,
   "patMacro": 2.2,
   "published": true,
   "routingEngine": 1,
@@ -1285,5 +1285,5 @@
   "thumbCells": 2,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727610411
+  "updatedAt": 1785167058244
 }

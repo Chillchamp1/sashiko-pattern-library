@@ -10,6 +10,8 @@
   "communityName": "Chillchamp",
   "createdAt": 1784279457459,
   "creatorId": "uuqxh5yyn7w",
+  "deleted": true,
+  "deletedAt": 1784730879560,
   "embroidery": false,
   "famOrder": [
     0,

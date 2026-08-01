@@ -195,7 +195,7 @@
     }
   ],
   "name": "Kaku Shippō (Shippō Tsunagi Variation)",
-  "order": 5,
+  "order": 23,
   "patMacro": 2,
   "published": true,
   "routingMode": "contour",
@@ -207,5 +207,5 @@
   "thumbCells": 3,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784724455668
+  "updatedAt": 1785167063694
 }

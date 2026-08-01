@@ -475,7 +475,7 @@
     }
   ],
   "name": "Kawari-Bishamon-Kikko / Bishamon Tortoise Shell",
-  "order": 67,
+  "order": 21,
   "patMacro": 1.8,
   "published": true,
   "routingEngine": 1,
@@ -488,5 +488,5 @@
   "thumbCells": 1,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727516451
+  "updatedAt": 1785167059601
 }

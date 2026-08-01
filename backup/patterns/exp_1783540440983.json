@@ -201,7 +201,7 @@
     }
   ],
   "name": "Isometric Scales",
-  "order": 50,
+  "order": 63,
   "patMacro": 0.8,
   "published": true,
   "routingEngine": 1,
@@ -214,5 +214,5 @@
   "thumbCells": 1,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727610412
+  "updatedAt": 1785167055020
 }

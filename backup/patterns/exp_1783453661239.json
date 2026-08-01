@@ -782,7 +782,7 @@
     }
   ],
   "name": "Simple squares",
-  "order": 59,
+  "order": 67,
   "patMacro": 2.8,
   "published": true,
   "routingEngine": 1,
@@ -795,5 +795,5 @@
   "thumbCells": 2,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727610413
+  "updatedAt": 1785167057323
 }

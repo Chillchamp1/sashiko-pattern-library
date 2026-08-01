@@ -1,0 +1,96 @@
+{
+  "bbox": {
+    "maxU": 4,
+    "maxV": 4,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "Chillchamp",
+  "createdAt": 1784755233345,
+  "creatorId": "uuqxh5yyn7w",
+  "embroidery": false,
+  "famOrder": [
+    0,
+    1
+  ],
+  "famRouting": {},
+  "families": [
+    0,
+    1,
+    1,
+    0,
+    1
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1784755233345",
+  "lines": [
+    {
+      "end": [
+        2,
+        3
+      ],
+      "start": [
+        0,
+        3
+      ]
+    },
+    {
+      "end": [
+        1,
+        1
+      ],
+      "start": [
+        1,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        4,
+        1
+      ],
+      "start": [
+        2,
+        1
+      ]
+    },
+    {
+      "end": [
+        3,
+        4
+      ],
+      "start": [
+        3,
+        2
+      ]
+    }
+  ],
+  "name": "Kōshi Variation",
+  "order": 74,
+  "patMacro": 1.2,
+  "published": true,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": true,
+  "type": "exp",
+  "updatedAt": 1785167048932
+}

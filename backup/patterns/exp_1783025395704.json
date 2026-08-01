@@ -250,7 +250,7 @@
     }
   ],
   "name": "Higaki (Wooden fence) Remix",
-  "order": 7,
+  "order": 24,
   "patMacro": 1,
   "published": true,
   "routingEngine": 1,
@@ -263,5 +263,5 @@
   "thumbCells": 1,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784724887803
+  "updatedAt": 1785167060075
 }

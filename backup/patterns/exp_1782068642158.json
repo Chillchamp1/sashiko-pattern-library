@@ -7,15 +7,18 @@
   },
   "bboxRotated": false,
   "community": true,
-  "communityName": "ChillChamp",
+  "communityName": "",
   "createdAt": 1782068642173,
   "creatorId": "uconggef72r",
   "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
   "famOrder": [
     2,
     0,
     1
   ],
+  "famRouting": {},
   "families": [
     2,
     0,
@@ -106,6 +109,8 @@
   "routingEngine": 1,
   "routingMode": "default",
   "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
   "stitchGrid": false,
   "stitchLen": 8,
   "stitchRatio": "standard",
@@ -113,5 +118,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784513600338
+  "updatedAt": 1785019092200
 }

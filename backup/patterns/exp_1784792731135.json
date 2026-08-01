@@ -1,0 +1,100 @@
+{
+  "bbox": {
+    "maxU": 14,
+    "maxV": 14,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1784792731135,
+  "creatorId": "uwpod63ttdj",
+  "deleted": true,
+  "deletedAt": 1784792787426,
+  "embroidery": false,
+  "fabric": "",
+  "famColors": {},
+  "famOrder": [
+    0,
+    1
+  ],
+  "famRouting": {},
+  "families": [
+    0,
+    1,
+    1
+  ],
+  "gridMacro": 2,
+  "gridType": "isometric",
+  "id": "exp_1784792731135",
+  "lines": [
+    {
+      "end": [
+        14,
+        0
+      ],
+      "start": [
+        0,
+        14
+      ]
+    },
+    {
+      "a1": -3.141593,
+      "a2": -6.283185,
+      "arc": true,
+      "center": [
+        7,
+        7
+      ],
+      "ellipse": true,
+      "end": [
+        11,
+        3
+      ],
+      "r": 5.657,
+      "rot": -0.785398,
+      "rx": 5.657,
+      "ry": 5.657,
+      "start": [
+        3,
+        11
+      ]
+    },
+    {
+      "a1": -6.283185,
+      "a2": -7.853982,
+      "arc": true,
+      "center": [
+        7,
+        7
+      ],
+      "ellipse": true,
+      "end": [
+        3,
+        3
+      ],
+      "r": 5.657,
+      "rot": -0.785398,
+      "rx": 5.657,
+      "ry": 5.657,
+      "start": [
+        11,
+        3
+      ]
+    }
+  ],
+  "name": "Ellipse Test 2",
+  "patMacro": 4.2,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1784792731151
+}

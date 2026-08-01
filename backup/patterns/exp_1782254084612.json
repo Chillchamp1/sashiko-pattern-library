@@ -524,7 +524,7 @@
     }
   ],
   "name": "Kikkō (Tortoise Shell)",
-  "order": 60,
+  "order": 11,
   "patMacro": 3.6,
   "published": true,
   "routingEngine": 1,
@@ -537,5 +537,5 @@
   "thumbCells": 2,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727610413
+  "updatedAt": 1785167067925
 }

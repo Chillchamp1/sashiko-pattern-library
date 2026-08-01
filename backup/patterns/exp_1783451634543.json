@@ -1453,7 +1453,7 @@
     }
   ],
   "name": "Double Persimmon flower",
-  "order": 57,
+  "order": 31,
   "patMacro": 2.4,
   "published": true,
   "routingEngine": 1,
@@ -1466,5 +1466,5 @@
   "thumbCells": 2,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727610413
+  "updatedAt": 1785167058570
 }

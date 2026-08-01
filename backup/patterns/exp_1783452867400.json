@@ -124,7 +124,7 @@
     }
   ],
   "name": "Scales",
-  "order": 61,
+  "order": 41,
   "patMacro": 1.6,
   "published": true,
   "routingEngine": 1,
@@ -137,5 +137,5 @@
   "thumbCells": 4,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727610413
+  "updatedAt": 1785167058047
 }

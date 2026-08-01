@@ -883,7 +883,7 @@
     }
   ],
   "name": "Gerber Daisy",
-  "order": 54,
+  "order": 65,
   "patMacro": 2,
   "published": true,
   "routingEngine": 1,
@@ -896,5 +896,5 @@
   "thumbCells": 2,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727610412
+  "updatedAt": 1785167056291
 }

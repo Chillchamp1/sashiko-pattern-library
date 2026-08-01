@@ -11,12 +11,15 @@
   "createdAt": 1784017440456,
   "creatorId": "uevg2wnhrt8",
   "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
   "famOrder": [
     0,
     1,
     2,
     3
   ],
+  "famRouting": {},
   "families": [
     1,
     0,
@@ -39,7 +42,9 @@
     0,
     3,
     0,
-    3
+    3,
+    1,
+    1
   ],
   "gridMacro": 2,
   "gridType": "square",
@@ -264,12 +269,37 @@
         3,
         6
       ]
+    },
+    {
+      "end": [
+        6,
+        12
+      ],
+      "start": [
+        6,
+        9
+      ]
+    },
+    {
+      "end": [
+        12,
+        12
+      ],
+      "start": [
+        12,
+        9
+      ]
     }
   ],
   "name": "S x Infinity",
   "patMacro": 4.5,
+  "published": true,
+  "publishedAt": 1785083074980,
+  "routingEngine": 1,
   "routingMode": "default",
   "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
   "stitchGrid": false,
   "stitchLen": 8,
   "stitchRatio": "standard",
@@ -277,5 +307,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784682411938
+  "updatedAt": 1785167051323
 }

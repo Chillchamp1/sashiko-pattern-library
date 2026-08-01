@@ -1,0 +1,220 @@
+{
+  "bbox": {
+    "maxU": 8.000000078461241,
+    "maxV": 8,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "Chillchamp",
+  "createdAt": 1784757645863,
+  "creatorId": "uuqxh5yyn7w",
+  "embroidery": false,
+  "fabric": "midnight",
+  "famColors": {
+    "0": "#20338a",
+    "1": "#0464b0",
+    "2": "#0695ad"
+  },
+  "famOrder": [
+    0,
+    1,
+    2
+  ],
+  "famRouting": {},
+  "families": [
+    2,
+    1,
+    0,
+    0,
+    1,
+    2,
+    1,
+    2,
+    0
+  ],
+  "gridMacro": 1,
+  "gridType": "square",
+  "id": "exp_1784757645863",
+  "lines": [
+    {
+      "a1": 3.141593,
+      "a2": 6.283185,
+      "arc": true,
+      "center": [
+        4,
+        8
+      ],
+      "end": [
+        6,
+        8
+      ],
+      "r": 2,
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "a1": 3.141593,
+      "a2": 6.283185,
+      "arc": true,
+      "center": [
+        4,
+        8
+      ],
+      "end": [
+        7,
+        8
+      ],
+      "r": 3,
+      "start": [
+        1,
+        8
+      ]
+    },
+    {
+      "a1": 3.141593,
+      "a2": 4.712389,
+      "arc": true,
+      "center": [
+        8,
+        4
+      ],
+      "end": [
+        8,
+        0
+      ],
+      "r": 4,
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "a1": 0,
+      "a2": -1.570796,
+      "arc": true,
+      "center": [
+        0,
+        4
+      ],
+      "end": [
+        0,
+        0
+      ],
+      "r": 4,
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "a1": 0,
+      "a2": -1.570796,
+      "arc": true,
+      "center": [
+        0,
+        4
+      ],
+      "end": [
+        0,
+        1
+      ],
+      "r": 3,
+      "start": [
+        3,
+        4
+      ]
+    },
+    {
+      "a1": 0,
+      "a2": -1.570796,
+      "arc": true,
+      "center": [
+        0,
+        4
+      ],
+      "end": [
+        0,
+        2
+      ],
+      "r": 2,
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "a1": 3.141593,
+      "a2": 4.712389,
+      "arc": true,
+      "center": [
+        8,
+        4
+      ],
+      "end": [
+        8,
+        1
+      ],
+      "r": 3,
+      "start": [
+        5,
+        4
+      ]
+    },
+    {
+      "a1": 3.141593,
+      "a2": 4.712389,
+      "arc": true,
+      "center": [
+        8,
+        4
+      ],
+      "end": [
+        8,
+        2
+      ],
+      "r": 2,
+      "start": [
+        6,
+        4
+      ]
+    },
+    {
+      "a1": 3.141593,
+      "a2": 6.283185,
+      "arc": true,
+      "center": [
+        4,
+        8
+      ],
+      "end": [
+        8,
+        8
+      ],
+      "r": 4,
+      "start": [
+        0,
+        8
+      ]
+    }
+  ],
+  "name": "Seigaiha (Ocean Waves) Remix",
+  "patMacro": 3.2,
+  "published": true,
+  "publishedAt": 1784906322537,
+  "routingEngine": 1,
+  "routingMode": "default",
+  "spacing": 0,
+  "stitchColors": true,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": true,
+  "thumbCells": 4,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1785167048699
+}

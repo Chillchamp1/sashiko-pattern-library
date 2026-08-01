@@ -785,7 +785,7 @@
     }
   ],
   "name": "Maru Bishamon / Round Bishamon",
-  "order": 66,
+  "order": 32,
   "patMacro": 2,
   "published": true,
   "routingEngine": 1,
@@ -798,5 +798,5 @@
   "thumbCells": 1,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727516450
+  "updatedAt": 1785167059075
 }

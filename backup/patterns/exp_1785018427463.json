@@ -1,0 +1,334 @@
+{
+  "bbox": {
+    "maxU": 12,
+    "maxV": 12,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "AntiqueWish",
+  "createdAt": 1785018427463,
+  "creatorId": "uconggef72r",
+  "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "famRouting": {},
+  "families": [
+    6,
+    4,
+    0,
+    6,
+    3,
+    1,
+    2,
+    5,
+    0,
+    4,
+    7,
+    2,
+    2,
+    7,
+    1,
+    6,
+    5,
+    3,
+    4,
+    0,
+    3,
+    5,
+    2,
+    6,
+    0,
+    4
+  ],
+  "gridMacro": 2,
+  "gridType": "square",
+  "id": "exp_1785018427463",
+  "lines": [
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        0,
+        6
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        0
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        8,
+        2
+      ],
+      "start": [
+        6,
+        0
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        8,
+        2
+      ]
+    },
+    {
+      "end": [
+        10,
+        2
+      ],
+      "start": [
+        8,
+        2
+      ]
+    },
+    {
+      "end": [
+        10,
+        4
+      ],
+      "start": [
+        10,
+        2
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        10,
+        4
+      ]
+    },
+    {
+      "end": [
+        12,
+        6
+      ],
+      "start": [
+        10,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        0,
+        6
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        10,
+        8
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "end": [
+        12,
+        6
+      ],
+      "start": [
+        10,
+        8
+      ]
+    },
+    {
+      "end": [
+        5,
+        8
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "end": [
+        7,
+        8
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "end": [
+        10,
+        10
+      ],
+      "start": [
+        10,
+        8
+      ]
+    },
+    {
+      "end": [
+        8,
+        10
+      ],
+      "start": [
+        10,
+        10
+      ]
+    },
+    {
+      "end": [
+        7,
+        8
+      ],
+      "start": [
+        8,
+        10
+      ]
+    },
+    {
+      "end": [
+        4,
+        10
+      ],
+      "start": [
+        5,
+        8
+      ]
+    },
+    {
+      "end": [
+        6,
+        12
+      ],
+      "start": [
+        4,
+        10
+      ]
+    },
+    {
+      "end": [
+        8,
+        10
+      ],
+      "start": [
+        6,
+        12
+      ]
+    },
+    {
+      "end": [
+        2,
+        10
+      ],
+      "start": [
+        4,
+        10
+      ]
+    },
+    {
+      "end": [
+        2,
+        8
+      ],
+      "start": [
+        2,
+        10
+      ]
+    }
+  ],
+  "name": "8 pointed rosette",
+  "patMacro": 3.6,
+  "routingMode": "default",
+  "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1785507418409
+}

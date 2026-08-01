@@ -200,7 +200,7 @@
     }
   ],
   "name": "Tsuzuki Yamagata (Mountains)",
-  "order": 4,
+  "order": 8,
   "patMacro": 1.2,
   "published": true,
   "routingEngine": 1,
@@ -213,5 +213,5 @@
   "thumbCells": 3,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784724455668
+  "updatedAt": 1785167062777
 }

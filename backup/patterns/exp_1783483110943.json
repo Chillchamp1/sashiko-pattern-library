@@ -10,6 +10,7 @@
   "communityName": "AntiqueWish",
   "createdAt": 1783483110943,
   "creatorId": "uconggef72r",
+  "dislikes": 0,
   "embroidery": false,
   "famOrder": [
     0,
@@ -110,6 +111,7 @@
   "gridMacro": 2,
   "gridType": "square",
   "id": "exp_1783483110943",
+  "likes": 1,
   "lines": [
     {
       "end": [
@@ -953,7 +955,7 @@
     }
   ],
   "name": "Stars and Xs",
-  "order": 55,
+  "order": 46,
   "patMacro": 2,
   "published": true,
   "routingEngine": 1,
@@ -966,5 +968,5 @@
   "thumbCells": 2,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727610412
+  "updatedAt": 1785167056530
 }

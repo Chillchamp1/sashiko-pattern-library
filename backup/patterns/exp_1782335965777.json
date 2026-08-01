@@ -41,7 +41,7 @@
     }
   ],
   "name": "Jūji-zashi (Cross Stitch)",
-  "order": 26,
+  "order": 21,
   "patMacro": 5,
   "published": true,
   "routingMode": "default",
@@ -53,5 +53,5 @@
   "thumbCells": 10,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727523710
+  "updatedAt": 1785167066789
 }

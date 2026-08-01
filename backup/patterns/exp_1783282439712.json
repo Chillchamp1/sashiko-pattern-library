@@ -441,7 +441,7 @@
     }
   ],
   "name": "Nijuu-Kagome / Double Woven Bamboo",
-  "order": 8,
+  "order": 25,
   "patMacro": 0.9,
   "published": true,
   "routingEngine": 1,
@@ -454,5 +454,5 @@
   "thumbCells": 1,
   "traditional": true,
   "type": "exp",
-  "updatedAt": 1784724887803
+  "updatedAt": 1785167059409
 }

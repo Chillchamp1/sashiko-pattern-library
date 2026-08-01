@@ -202,7 +202,7 @@
     }
   ],
   "name": "Arrows",
-  "order": 38,
+  "order": 54,
   "patMacro": 2.3333999999999997,
   "published": true,
   "routingEngine": 1,
@@ -215,5 +215,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1784727594498
+  "updatedAt": 1785167052824
 }
