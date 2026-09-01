@@ -1,0 +1,374 @@
+{
+  "bbox": {
+    "maxU": 16,
+    "maxV": 16,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "Noy",
+  "createdAt": 1787067667031,
+  "creatorId": "ur37wiz981j",
+  "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
+  "famOrder": [
+    0,
+    1,
+    2
+  ],
+  "famRouting": {},
+  "families": [
+    1,
+    0,
+    2,
+    2,
+    0,
+    1,
+    0,
+    0,
+    2,
+    1,
+    1,
+    1,
+    0,
+    2,
+    1,
+    1,
+    2,
+    0,
+    2,
+    0,
+    1,
+    0,
+    1,
+    2,
+    2,
+    0,
+    2,
+    2,
+    1,
+    0
+  ],
+  "gridMacro": 2,
+  "gridType": "isometric",
+  "id": "exp_1787067667031",
+  "lines": [
+    {
+      "end": [
+        12,
+        12
+      ],
+      "start": [
+        14,
+        14
+      ]
+    },
+    {
+      "end": [
+        14,
+        13
+      ],
+      "start": [
+        12,
+        13
+      ]
+    },
+    {
+      "end": [
+        13,
+        12
+      ],
+      "start": [
+        13,
+        14
+      ]
+    },
+    {
+      "end": [
+        13,
+        7
+      ],
+      "start": [
+        13,
+        9
+      ]
+    },
+    {
+      "end": [
+        14,
+        8
+      ],
+      "start": [
+        12,
+        8
+      ]
+    },
+    {
+      "end": [
+        12,
+        7
+      ],
+      "start": [
+        14,
+        9
+      ]
+    },
+    {
+      "end": [
+        10,
+        13
+      ],
+      "start": [
+        11,
+        13
+      ]
+    },
+    {
+      "end": [
+        7,
+        13
+      ],
+      "start": [
+        9,
+        13
+      ]
+    },
+    {
+      "end": [
+        8,
+        12
+      ],
+      "start": [
+        8,
+        14
+      ]
+    },
+    {
+      "end": [
+        9,
+        14
+      ],
+      "start": [
+        7,
+        12
+      ]
+    },
+    {
+      "end": [
+        10,
+        5
+      ],
+      "start": [
+        11,
+        6
+      ]
+    },
+    {
+      "end": [
+        7,
+        2
+      ],
+      "start": [
+        9,
+        4
+      ]
+    },
+    {
+      "end": [
+        9,
+        3
+      ],
+      "start": [
+        7,
+        3
+      ]
+    },
+    {
+      "end": [
+        8,
+        2
+      ],
+      "start": [
+        8,
+        4
+      ]
+    },
+    {
+      "end": [
+        5,
+        10
+      ],
+      "start": [
+        6,
+        11
+      ]
+    },
+    {
+      "end": [
+        2,
+        7
+      ],
+      "start": [
+        4,
+        9
+      ]
+    },
+    {
+      "end": [
+        3,
+        7
+      ],
+      "start": [
+        3,
+        9
+      ]
+    },
+    {
+      "end": [
+        4,
+        8
+      ],
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        3,
+        2
+      ],
+      "start": [
+        3,
+        4
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        2,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        2
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        6,
+        3
+      ],
+      "start": [
+        5,
+        3
+      ]
+    },
+    {
+      "end": [
+        0,
+        0
+      ],
+      "start": [
+        1,
+        1
+      ]
+    },
+    {
+      "end": [
+        13,
+        10
+      ],
+      "start": [
+        13,
+        11
+      ]
+    },
+    {
+      "end": [
+        3,
+        5
+      ],
+      "start": [
+        3,
+        6
+      ]
+    },
+    {
+      "end": [
+        16,
+        8
+      ],
+      "start": [
+        15,
+        8
+      ]
+    },
+    {
+      "end": [
+        8,
+        0
+      ],
+      "start": [
+        8,
+        1
+      ]
+    },
+    {
+      "end": [
+        8,
+        16
+      ],
+      "start": [
+        8,
+        15
+      ]
+    },
+    {
+      "end": [
+        16,
+        16
+      ],
+      "start": [
+        15,
+        15
+      ]
+    },
+    {
+      "end": [
+        0,
+        8
+      ],
+      "start": [
+        1,
+        8
+      ]
+    }
+  ],
+  "name": "Stars in hexagons (Corrected)",
+  "patMacro": 4.8,
+  "remixOf": "exp_1787059881439",
+  "routingMode": "default",
+  "spacing": -1,
+  "spacingY": -1,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1788209324464
+}

@@ -10,8 +10,6 @@
   "communityName": "",
   "createdAt": 1784927494899,
   "creatorId": "uuqxh5yyn7w",
-  "deleted": true,
-  "deletedAt": 1785020039566,
   "embroidery": false,
   "fabric": "indigo",
   "famColors": {},
@@ -268,5 +266,5 @@
   "thumbCells": 3,
   "traditional": false,
   "type": "exp",
-  "updatedAt": 1785019596636
+  "updatedAt": 1788198835216
 }

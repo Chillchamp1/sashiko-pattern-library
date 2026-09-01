@@ -6,12 +6,10 @@
     "minV": 0
   },
   "bboxRotated": false,
-  "community": true,
-  "communityName": "Chillchamp",
+  "community": false,
+  "communityName": "",
   "createdAt": 1784279457459,
   "creatorId": "uuqxh5yyn7w",
-  "deleted": true,
-  "deletedAt": 1784730879560,
   "embroidery": false,
   "famOrder": [
     0,
@@ -29,7 +27,6 @@
     12,
     13
   ],
-  "famRouting": {},
   "families": [
     0,
     7,
@@ -2092,7 +2089,7 @@
   "stitchRatio": "standard",
   "stitchView": true,
   "thumbCells": 1,
-  "traditional": false,
+  "traditional": true,
   "type": "exp",
-  "updatedAt": 1784727436640
+  "updatedAt": 1788167601567
 }
