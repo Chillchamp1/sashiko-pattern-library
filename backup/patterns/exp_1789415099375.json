@@ -1,0 +1,178 @@
+{
+  "bbox": {
+    "maxU": 6,
+    "maxV": 8,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": true,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1789415099374,
+  "creatorId": "uyomw5w0nrm",
+  "embroidery": false,
+  "fabric": "",
+  "famColors": {},
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "famRouting": {},
+  "families": [
+    2,
+    1,
+    5,
+    0,
+    3,
+    4,
+    1,
+    2,
+    5,
+    0,
+    3,
+    4
+  ],
+  "gridMacro": 1,
+  "gridType": "isometric",
+  "id": "exp_1789415099375",
+  "lines": [
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        2,
+        3
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        6
+      ],
+      "start": [
+        2,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        5
+      ],
+      "start": [
+        2,
+        6
+      ]
+    },
+    {
+      "end": [
+        5,
+        8
+      ],
+      "start": [
+        3,
+        5
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        5,
+        8
+      ]
+    },
+    {
+      "end": [
+        6,
+        6
+      ],
+      "start": [
+        4,
+        5
+      ]
+    },
+    {
+      "end": [
+        4,
+        4
+      ],
+      "start": [
+        6,
+        6
+      ]
+    },
+    {
+      "end": [
+        4,
+        2
+      ],
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "end": [
+        1,
+        0
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        2,
+        3
+      ],
+      "start": [
+        1,
+        0
+      ]
+    }
+  ],
+  "name": "Wonky Isometric Star",
+  "patMacro": 2.4,
+  "routingMode": "default",
+  "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 3,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1790840143730
+}

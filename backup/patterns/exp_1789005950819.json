@@ -1,0 +1,178 @@
+{
+  "bbox": {
+    "maxU": 8,
+    "maxV": 8,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": true,
+  "communityName": "AntiqueWish",
+  "createdAt": 1789005950814,
+  "creatorId": "ul7jxv6c9fd",
+  "embroidery": false,
+  "fabric": "indigo",
+  "famColors": {},
+  "famOrder": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "famRouting": {},
+  "families": [
+    2,
+    1,
+    4,
+    3,
+    0,
+    5,
+    2,
+    1,
+    4,
+    3,
+    0,
+    5
+  ],
+  "gridMacro": 2,
+  "gridType": "isometric",
+  "id": "exp_1789005950819",
+  "lines": [
+    {
+      "end": [
+        0,
+        2
+      ],
+      "start": [
+        3,
+        4
+      ]
+    },
+    {
+      "end": [
+        3,
+        3
+      ],
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "end": [
+        2,
+        0
+      ],
+      "start": [
+        3,
+        3
+      ]
+    },
+    {
+      "end": [
+        4,
+        3
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        6,
+        2
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        6,
+        2
+      ],
+      "start": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        8,
+        6
+      ],
+      "start": [
+        5,
+        4
+      ]
+    },
+    {
+      "end": [
+        5,
+        5
+      ],
+      "start": [
+        8,
+        6
+      ]
+    },
+    {
+      "end": [
+        6,
+        8
+      ],
+      "start": [
+        5,
+        5
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        6,
+        8
+      ]
+    },
+    {
+      "end": [
+        2,
+        6
+      ],
+      "start": [
+        4,
+        5
+      ]
+    },
+    {
+      "end": [
+        2,
+        6
+      ],
+      "start": [
+        3,
+        4
+      ]
+    }
+  ],
+  "name": "Stars - isometric",
+  "patMacro": 0.8,
+  "routingMode": "continuous",
+  "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 1,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1790840145116
+}

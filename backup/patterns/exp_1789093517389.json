@@ -1,0 +1,194 @@
+{
+  "bbox": {
+    "maxU": 4.00030265668332,
+    "maxV": 4.000302349550017,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1789093517389,
+  "creatorId": "ukitnr7qpcq",
+  "embroidery": false,
+  "fabric": "",
+  "famColors": {},
+  "famOrder": [
+    0
+  ],
+  "famRouting": {},
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "gridMacro": 1,
+  "gridType": "square",
+  "id": "exp_1789093517389",
+  "lines": [
+    {
+      "a1": 7.068583,
+      "a2": 8.63938,
+      "arc": true,
+      "center": [
+        3,
+        1
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1.414,
+      "start": [
+        4,
+        2
+      ]
+    },
+    {
+      "a1": -2.356194,
+      "a2": -0.785398,
+      "arc": true,
+      "center": [
+        1,
+        3
+      ],
+      "end": [
+        2,
+        2
+      ],
+      "r": 1.414,
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "a1": -0.785398,
+      "a2": 0.785398,
+      "arc": true,
+      "center": [
+        1,
+        3
+      ],
+      "end": [
+        2,
+        4
+      ],
+      "r": 1.414,
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "a1": 5.497787,
+      "a2": 7.068583,
+      "arc": true,
+      "center": [
+        -1,
+        3
+      ],
+      "end": [
+        0,
+        4
+      ],
+      "r": 1.414,
+      "start": [
+        0,
+        2
+      ]
+    },
+    {
+      "a1": -2.356194,
+      "a2": -0.785398,
+      "arc": true,
+      "center": [
+        1,
+        5
+      ],
+      "end": [
+        2,
+        4
+      ],
+      "r": 1.414,
+      "start": [
+        0,
+        4
+      ]
+    },
+    {
+      "a1": 2.356194,
+      "a2": 3.926991,
+      "arc": true,
+      "center": [
+        3,
+        1
+      ],
+      "end": [
+        2,
+        0
+      ],
+      "r": 1.414,
+      "start": [
+        2,
+        2
+      ]
+    },
+    {
+      "a1": 0.785398,
+      "a2": 2.356194,
+      "arc": true,
+      "center": [
+        3,
+        -1
+      ],
+      "end": [
+        2,
+        0
+      ],
+      "r": 1.414,
+      "start": [
+        4,
+        0
+      ]
+    },
+    {
+      "a1": 2.356194,
+      "a2": 3.926991,
+      "arc": true,
+      "center": [
+        5,
+        1
+      ],
+      "end": [
+        4,
+        0
+      ],
+      "r": 1.414,
+      "start": [
+        4,
+        2
+      ]
+    }
+  ],
+  "name": "Toridasuki (Crossed Birds) Remix",
+  "patMacro": 2,
+  "remixOf": "exp_1782555421394",
+  "routingMode": "default",
+  "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": false,
+  "thumbCells": 5,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1790840143963
+}

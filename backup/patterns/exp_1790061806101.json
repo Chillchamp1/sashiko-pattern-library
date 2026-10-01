@@ -1,0 +1,174 @@
+{
+  "bbox": {
+    "maxU": 8.000000078461241,
+    "maxV": 8,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1790061806101,
+  "creatorId": "u4xqvn4tbjr",
+  "embroidery": false,
+  "fabric": "",
+  "famColors": {},
+  "famOrder": [
+    0
+  ],
+  "famRouting": {},
+  "families": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "gridMacro": 1,
+  "gridType": "square",
+  "id": "exp_1790061806101",
+  "lines": [
+    {
+      "a1": 3.141593,
+      "a2": 4.712389,
+      "arc": true,
+      "center": [
+        8,
+        4
+      ],
+      "end": [
+        8,
+        0
+      ],
+      "r": 4,
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "a1": 0,
+      "a2": -1.570796,
+      "arc": true,
+      "center": [
+        0,
+        4
+      ],
+      "end": [
+        0,
+        0
+      ],
+      "r": 4,
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "a1": 3.141593,
+      "a2": 6.283185,
+      "arc": true,
+      "center": [
+        4,
+        8
+      ],
+      "end": [
+        8,
+        8
+      ],
+      "r": 4,
+      "start": [
+        0,
+        8
+      ]
+    },
+    {
+      "a1": -2.896614,
+      "a2": -1.582732,
+      "arc": true,
+      "center": [
+        8,
+        5
+      ],
+      "end": [
+        7.951,
+        0.877
+      ],
+      "r": 4.123,
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "a1": -2.896614,
+      "a2": -1.577051,
+      "arc": true,
+      "center": [
+        4,
+        9
+      ],
+      "end": [
+        3.974,
+        4.877
+      ],
+      "r": 4.123,
+      "start": [
+        0,
+        8
+      ]
+    },
+    {
+      "a1": -2.677945,
+      "a2": -1.575242,
+      "arc": true,
+      "center": [
+        8,
+        6
+      ],
+      "end": [
+        7.98,
+        1.528
+      ],
+      "r": 4.472,
+      "start": [
+        4,
+        4
+      ]
+    },
+    {
+      "a1": -2.677945,
+      "a2": -1.577211,
+      "arc": true,
+      "center": [
+        4,
+        10
+      ],
+      "end": [
+        3.971,
+        5.528
+      ],
+      "r": 4.472,
+      "start": [
+        0,
+        8
+      ]
+    }
+  ],
+  "name": "Nowaki / Blowing Grass",
+  "patMacro": 3.2,
+  "routingMode": "default",
+  "spacing": 0,
+  "spacingY": 0,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 8,
+  "stitchRatio": "standard",
+  "stitchView": true,
+  "thumbCells": 4,
+  "traditional": true,
+  "type": "exp",
+  "updatedAt": 1790840143317
+}
