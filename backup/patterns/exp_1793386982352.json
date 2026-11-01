@@ -1,0 +1,176 @@
+{
+  "bbox": {
+    "maxU": 16,
+    "maxV": 17,
+    "minU": 0,
+    "minV": 0
+  },
+  "bboxRotated": false,
+  "community": false,
+  "communityName": "",
+  "createdAt": 1793386982352,
+  "creatorId": "u2opwnst9oi",
+  "embroidery": false,
+  "fabric": "",
+  "famColors": {},
+  "famOrder": [
+    0,
+    1,
+    2
+  ],
+  "famRouting": {},
+  "families": [
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    2,
+    2
+  ],
+  "gridMacro": 1,
+  "gridType": "square",
+  "id": "exp_1793386982352",
+  "lines": [
+    {
+      "end": [
+        2,
+        4
+      ],
+      "start": [
+        2,
+        0
+      ]
+    },
+    {
+      "end": [
+        2,
+        12
+      ],
+      "start": [
+        2,
+        8
+      ]
+    },
+    {
+      "end": [
+        10,
+        8
+      ],
+      "start": [
+        10,
+        4
+      ]
+    },
+    {
+      "end": [
+        10,
+        16
+      ],
+      "start": [
+        10,
+        12
+      ]
+    },
+    {
+      "end": [
+        8,
+        5
+      ],
+      "start": [
+        4,
+        3
+      ]
+    },
+    {
+      "end": [
+        16,
+        9
+      ],
+      "start": [
+        12,
+        7
+      ]
+    },
+    {
+      "end": [
+        8,
+        13
+      ],
+      "start": [
+        4,
+        11
+      ]
+    },
+    {
+      "end": [
+        16,
+        17
+      ],
+      "start": [
+        12,
+        15
+      ]
+    },
+    {
+      "end": [
+        4,
+        5
+      ],
+      "start": [
+        0,
+        7
+      ]
+    },
+    {
+      "end": [
+        12,
+        1
+      ],
+      "start": [
+        8,
+        3
+      ]
+    },
+    {
+      "end": [
+        4,
+        13
+      ],
+      "start": [
+        0,
+        15
+      ]
+    },
+    {
+      "end": [
+        12,
+        9
+      ],
+      "start": [
+        8,
+        11
+      ]
+    }
+  ],
+  "name": "Hex Weave Hitomezashi",
+  "patMacro": 3.4,
+  "remixOf": "exp_1793386732805",
+  "routingMode": "default",
+  "spacing": 0,
+  "spacingY": -1,
+  "stitchColors": false,
+  "stitchGrid": false,
+  "stitchLen": 15,
+  "stitchRatio": "even",
+  "stitchView": true,
+  "thumbCells": 2,
+  "traditional": false,
+  "type": "exp",
+  "updatedAt": 1793516650006
+}
